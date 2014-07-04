@@ -60,11 +60,11 @@ structure PatchFunctionCalls = struct
       }
      | visitDecl s d = d
 
-   fun run ({ decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } : imp) =
+   fun run ({ decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } : imp) =
       let
          val ds = map (visitDecl {}) ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } : imp
+         { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } : imp
       end
    
 end
@@ -248,12 +248,12 @@ structure ActionClosures = struct
       },s) = SymMap.insert (s, del, name)
      | genFunToClosure (d,s) = s 
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
+   fun run { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } =
       let
          val s = foldl genFunToClosure SymMap.empty ds
          val ds = visitDecl s ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
+         { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs }
       end
    
 end
@@ -505,7 +505,7 @@ structure ActionReduce = struct
      | visitDecl s d = d
 
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
+   fun run { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } =
       let
          fun fixpoint (size,set) =
             let
@@ -528,7 +528,7 @@ structure ActionReduce = struct
          val sVar = { monVars = pureToMon } : stateVar
          val ds = map (visitDecl sVar) ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
+         { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs }
       end
    
 end
@@ -728,7 +728,7 @@ structure Simplify = struct
       }
      | visitDecl s d = d
 
-   fun run ({ decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } : imp) =
+   fun run ({ decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } : imp) =
       let
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
          val state = { decls = declMap,
@@ -736,7 +736,7 @@ structure Simplify = struct
                        stmtsRef = ref ([] : stmt list) } : state
          val ds = map (visitDecl state) ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } : imp
+         { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } : imp
       end
    
 end
@@ -1579,19 +1579,45 @@ structure TypeRefinement = struct
    structure AST = SpecAbstractTree
 
    (* translate AST types to check that exports have expected types *)
-   fun trType (AST.MARKty {span, tree=t}) = trType t
-     | trType (AST.BITty sz) = BOXstype (BITstype (CONSTstype (IntInf.toInt sz)))
-     | trType (AST.NAMEDty (sym,_)) = OBJstype
-     | trType (AST.RECORDty fs) = RECORDstype (OBJstype,map (fn (f,ty) => (true,f,trType ty)) fs,false)
-     | trType (AST.FUNCTIONty (args,res)) = FUNstype (trType res,VOIDstype,map trType args)
-     | trType (AST.MONADty (res,inp,out)) = trType res
-     | trType AST.INTty = BOXstype (INTstype)
-     | trType AST.UNITty = VOIDstype
-     | trType AST.STRINGty = STRINGstype
+   fun trType s (AST.MARKty {span, tree=t}) = trType (s : AST.ty SymMap.map)  t
+     | trType s (AST.BITty sz) = BOXstype (BITstype (CONSTstype (IntInf.toInt sz)))
+     | trType s (AST.NAMEDty (sym,args)) = (case SymMap.find (s,sym) of
+          SOME ty => trType (List.foldl SymMap.insert' s args) ty
+        | NONE => OBJstype
+        )
+     | trType s (AST.RECORDty fs) = RECORDstype (OBJstype,map (fn (f,ty) => (true,f,trType s ty)) fs,false)
+     | trType s (AST.FUNCTIONty (args,res)) = FUNstype (trType s res,VOIDstype,map (trType s) args)
+     | trType s (AST.MONADty (res,inp,out)) = trType s res
+     | trType s AST.INTty = BOXstype (INTstype)
+     | trType s AST.UNITty = VOIDstype
+     | trType s AST.STRINGty = STRINGstype
 
-   structure CM = CompilationMonad
+   fun compareTypes (VOIDstype,VOIDstype) = true
+     | compareTypes (BOXstype t1,BOXstype t2) = compareTypes (t1,t2)
+     | compareTypes (FUNstype (res1,clos1,args1), FUNstype (res2,clos2,args2)) =
+        compareTypes (res1,res2) andalso compareTypes (clos1,clos2) andalso
+        List.all  (fn b => b) (List.map compareTypes (ListPair.zip (args1,args2)))
+     | compareTypes (MONADstype t1, MONADstype t2) = compareTypes (t1,t2)
+     | compareTypes (RECORDstype (box1,fs1,_),RECORDstype (box2,fs2,_)) =
+     let
+        fun genMap fs = List.foldl (fn ((_,fid,ty),sm) => SymMap.insert (sm,fid,ty)) SymMap.empty fs
+        val sm1 = genMap fs1
+        val sm2 = genMap fs2
+        val res = compareTypes (box1,box2)
+        fun inBoth (SOME f1, SOME f2) = SOME (compareTypes (f1,f2))
+          | inBoth (_, _) = NONE
+        val boolMap = SymMap.mergeWith inBoth (sm1,sm2)
+     in
+        res andalso List.all (fn b => b) (SymMap.listItems boolMap)
+     end
+     | compareTypes (BITstype t1,BITstype t2) = compareTypes (t1,t2)
+     | compareTypes (CONSTstype i1,CONSTstype i2) = i1=i2
+     | compareTypes (STRINGstype,STRINGstype) = true
+     | compareTypes (INTstype,INTstype) = true
+     | compareTypes (OBJstype,OBJstype) = true
+     | compareTypes (t1,t2) = false (*(TextIO.print ("comparing " ^ showSType t1 ^ " with " ^ showSType t2 ^ "\n"); false)*)
 
-   fun setArgsToType (errs,es,s) (FUNCdecl {
+   fun setArgsToType (errs,ta,dt,es,s) (FUNCdecl {
         funcName = f,
         funcArgs = args,
         ...
@@ -1600,37 +1626,12 @@ structure TypeRefinement = struct
          val srcloc = case ty of
               (AST.MARKty {span=s, tree}) => s
             | _ => SymbolTable.noSpan
-         val targetType = case trType ty of
+         val targetType = case trType ta ty of
             FUNstype a => FUNstype a
           | t => FUNstype (t,VOIDstype,[]) (* top-level constants are still functions *)
          val originalType = inlineSType s (symType s f)
 
          val obtainedType = inlineSType s (lub (s, symType s f, targetType))
-         fun compareTypes (VOIDstype,VOIDstype) = true
-           | compareTypes (BOXstype t1,BOXstype t2) = compareTypes (t1,t2)
-           | compareTypes (FUNstype (res1,clos1,args1), FUNstype (res2,clos2,args2)) =
-              compareTypes (res1,res2) andalso compareTypes (clos1,clos2) andalso
-              List.all  (fn b => b) (List.map compareTypes (ListPair.zip (args1,args2)))
-           | compareTypes (MONADstype t1, MONADstype t2) = compareTypes (t1,t2)
-           | compareTypes (RECORDstype (box1,fs1,_),RECORDstype (box2,fs2,_)) =
-           let
-              fun genMap fs = List.foldl (fn ((_,fid,ty),sm) => SymMap.insert (sm,fid,ty)) SymMap.empty fs
-              val sm1 = genMap fs1
-              val sm2 = genMap fs2
-              val res = compareTypes (box1,box2)
-              fun inBoth (SOME f1, SOME f2) = SOME (compareTypes (f1,f2))
-                | inBoth (_, _) = NONE
-              val boolMap = SymMap.mergeWith inBoth (sm1,sm2)
-           in
-              res andalso List.all (fn b => b) (SymMap.listItems boolMap)
-           end
-           | compareTypes (BITstype t1,BITstype t2) = compareTypes (t1,t2)
-           | compareTypes (CONSTstype i1,CONSTstype i2) = i1=i2
-           | compareTypes (STRINGstype,STRINGstype) = true
-           | compareTypes (INTstype,INTstype) = true
-           | compareTypes (OBJstype,OBJstype) = true
-           | compareTypes (t1,t2) = false (*(TextIO.print ("comparing " ^ showSType t1 ^ " with " ^ showSType t2 ^ "\n"); false)*)
-
       in
          if compareTypes (targetType,obtainedType) then () else
          Error.warningAt (errs, srcloc,  ["export declaration of " ^
@@ -1640,7 +1641,7 @@ structure TypeRefinement = struct
             "exported " ^ showSType targetType ^ "\n",
             "combined " ^ showSType obtainedType ^ "\n"])
       end)
-     | setArgsToType (errs,es,s) _ = ()
+     | setArgsToType (errs,ta,dt,es,s) _ = ()
 
    fun mergeRecords s =
       let
@@ -1659,7 +1660,7 @@ structure TypeRefinement = struct
          DynamicArray.foldl checkForRecord AtomMap.empty (#typeTable s)
       end
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
+   fun run { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } =
       let
          (* register one symbol to track the type of the global state *)
          val (tab, stateSym) = SymbolTable.fresh (!SymbolTables.varTable, Atom.atom Primitives.globalState)
@@ -1680,7 +1681,7 @@ structure TypeRefinement = struct
          (* unify the types of all records that have the same set of fields *)
          val _ = mergeRecords state
          (* set all arguments in functions and constructors to the type declared in the export list *)
-         val _ = app (setArgsToType (errs,es,state)) ds
+         val _ = app (setArgsToType (errs,ta,dt,es,state)) ds
       
          (*val _ = showState es state*)
          (*val _ = debugOn := false
@@ -1689,7 +1690,7 @@ structure TypeRefinement = struct
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, fieldType state sym)) fs
          val mt = adjustType state (mt, symType state stateSym)
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
+         { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs }
       end
    
 end
@@ -2053,11 +2054,11 @@ structure SwitchReduce = struct
       }
      | visitDecl s d = d
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
+   fun run { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } =
       let
          val ds = map (visitDecl {}) ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
+         { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs }
       end
    
 end
@@ -2171,7 +2172,7 @@ structure DeadFunctions = struct
      }) = if SymSet.member(!(#referenced s), name) then refSym (s : state) del else ()
      | visitCDecl s _ = ()
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
+   fun run { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } =
       let
          val s = { locals = SymSet.empty,
                    replace = ref SymMap.empty,
@@ -2189,7 +2190,7 @@ structure DeadFunctions = struct
             end
          val ds = fixpoint ()
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
+         { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs }
       end
    
 end
@@ -2360,11 +2361,11 @@ structure DeadVariables = struct
       }) = (pureSet := SymSet.add(!pureSet,sym))
      | addPure _ = ()
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
+   fun run { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } =
       let
          val _ = app addPure ds
       in
-         { decls = map visitDecl ds, fdecls = fs, exports = es, monad = mt, errs = errs }
+         { decls = map visitDecl ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs }
       end
    
 end

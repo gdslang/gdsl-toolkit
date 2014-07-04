@@ -183,6 +183,8 @@ structure Imp = struct
       decls : decl list,
       fdecls : vtype SymMap.map,
       exports : (sym list * SpecAbstractTree.ty) SymMap.map,
+      typealias: SpecAbstractTree.ty SymMap.map,
+      datatypes: (sym * SpecAbstractTree.ty option) list SymMap.map,
       monad : vtype,
       errs : Error.err_stream
    }
@@ -302,7 +304,8 @@ structure Imp = struct
       and def (intro, body) =
          align [seq [intro, space, str "="], indent 3 body]
       fun decls ds = align (map decl ds)
-      fun imp ({ decls = ds, fdecls = fs, exports, monad, errs } : imp) = decls ds
+      fun imp ({ decls = ds, fdecls = fs,
+                 exports, typealias, datatypes, monad, errs } : imp) = decls ds
       val pretty = Pretty.pretty o imp
       val spec = Spec.PP.spec imp
    end

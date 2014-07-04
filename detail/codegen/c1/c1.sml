@@ -1101,7 +1101,8 @@ structure C1 = struct
          val _ = genClosureSet := AtomSet.empty
          val _ = invokeClosureSet := AtomSet.empty
 
-         val { decls = ds, fdecls = fs, exports, monad = mt, errs } = Spec.get #declarations spec
+         val { decls = ds, fdecls = fs, exports, typealias, datatypes,
+               monad = mt, errs } = Spec.get #declarations spec
          val ds = sortTopologically ds
          
          val recordMapping = case mt of

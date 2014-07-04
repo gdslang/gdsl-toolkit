@@ -642,6 +642,8 @@ end = struct
                { decls = !decls,
                  fdecls = !fields,
                  exports = exports,
+                 typealias = List.foldl SymMap.insert' SymMap.empty (!typealias),
+                 datatypes = List.foldl SymMap.insert' SymMap.empty (!datatypes),
                  monad = OBJvtype,
                  errs = errs }
             end) spec
