@@ -13,15 +13,17 @@ end
 
 
 val generalize-opnd opnd = case opnd of
-   IMM8 i: asm-imm (asm-immediate-unk (zx i.imm) 8)
- | IMM16 i: asm-imm (asm-immediate-unk (zx i.imm) 16)
- | IMM32 i: asm-imm (asm-immediate-unk (zx i.imm) 32)
- | IMM64 i: asm-imm (asm-immediate-unk (zx i.imm) 64)
+   IMM8 i: generalize-immediate 8 (zx i.imm)
+ | IMM16 i: generalize-immediate 16 (zx i.imm)
+ | IMM32 i: generalize-immediate 32 (zx i.imm)
+ | IMM64 i: generalize-immediate 64 (zx i.imm)
  | REG r: generalize-register r
  | MEM m: generalize-memory m
  | X86_SUM s: asm-sum (generalize-opnd s.a) (generalize-opnd s.b)
  | X86_SCALE s: asm-scale (zx s.imm) (generalize-opnd s.opnd)
 end
+
+val generalize-immediate sz imm = asm-bounded (asm-boundary-sz sz) (asm-imm imm)
 
 val generalize-register r = let
   val rs = semantic-register-of r

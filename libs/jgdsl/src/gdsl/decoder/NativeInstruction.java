@@ -8,7 +8,7 @@ import gdsl.HeapExpiredException;
  * 
  * @author Julian Kranz
  */
-public class Instruction {
+public class NativeInstruction {
   private long insnPtr = 0;
   private Gdsl gdsl;
   
@@ -17,7 +17,7 @@ public class Instruction {
   /**
    * Get the address of the associated native instruction object;
    * 
-   * Warning: This pointer is only valid as long as this {@link Instruction} object
+   * Warning: This pointer is only valid as long as this {@link NativeInstruction} object
    * is reachable. This method should only be used by the jgdsl library.
    * 
    * @return the value of the pointer
@@ -57,7 +57,7 @@ public class Instruction {
    * @param insnPtr the address of the native instruction object
    * @param size the size of the instruction
    */
-  public Instruction (Gdsl gdsl, long insnPtr) {
+  public NativeInstruction (Gdsl gdsl, long insnPtr) {
     this.gdsl = gdsl;
     this.heapRevision = gdsl.getHeapRevision();
     gdsl.heapManager.ref();

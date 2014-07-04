@@ -19,9 +19,9 @@ public class Decoder {
    * 
    * @return the decoded instruction
    */
-  public Instruction decodeOne () {
+  public NativeInstruction decodeOne () {
     long insnPtr = gdsl.decodeOne();
 
-    return new Instruction(gdsl, insnPtr);
+    return new NativeInstruction(gdsl, insnPtr);
   }
 }

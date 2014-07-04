@@ -7,14 +7,19 @@ type asm-opnd-list =
 type asm-opnd =
    ASM_REGISTER of string
  | ASM_MEMORY of asm-opnd
- | ASM_IMM of asm-immediate
+ | ASM_IMM of int
  | ASM_POST_OP of {expr:asm-opnd, opnd:asm-opnd}
  | ASM_PRE_OP of {expr:asm-opnd, opnd:asm-opnd}
  | ASM_REL of asm-opnd
- | ASM_ANNOTATION of {ann:asm-annotation, opnd:asm-opnd}
+ | ASM_ANNOTATED of {ann:asm-annotation, opnd:asm-opnd}
  | ASM_SUM of {lhs:asm-opnd, rhs:asm-opnd}
  | ASM_SCALE of {factor:int, rhs:asm-opnd}
  | ASM_BOUNDED of {boundary: asm-boundary, opnd:asm-opnd}
+ | ASM_SIGN of {signedness:asm-signedness, opnd:asm-opnd}
+
+type asm-signedness =
+   ASM_SIGNED
+ | ASM_UNSIGNED
 
 type asm-boundary =
    ASM_BOUNDARY_SZ of int
@@ -29,10 +34,6 @@ type asm-annotation =
  | ASM_ANN_FUNCTION of {name:string, args:asm-opnd-list}
  | ASM_ANN_OPND of {name:string, opnd:asm-opnd}
 
-type asm-immediate =
-   ASM_IMMEDIATE of int
- | ASM_UNKNOWN_SIGNEDNESS of {value:int, size:int}
-
 val asm-insn l m o = {length=l, mnemonic=m, annotations=asm-anns-none, opnds=o}
 val asm-insn-flags l m a o = {length=l, mnemonic=m, annotations=a, opnds=o}
 
@@ -46,7 +47,7 @@ val asm-imm simm = ASM_IMM simm
 val asm-po expr opnd = ASM_POST_OP {expr=expr, opnd=opnd}
 val asm-pr expr opnd = ASM_PRE_OP {expr=expr, opnd=opnd}
 val asm-rel o = ASM_REL o
-val asm-annotation a opnd = ASM_ANNOTATION {ann=a, opnd=opnd}
+val asm-annotated a opnd = ASM_ANNOTATED {ann=a, opnd=opnd}
 val asm-sum l r = ASM_SUM {lhs=l, rhs=r}
 val asm-scale f r = ASM_SCALE {factor=f, rhs=r}
 val asm-bounded b o = ASM_BOUNDED {boundary=b, opnd=o}
@@ -62,6 +63,3 @@ val asm-ann-string s = ASM_ANN_STRING s
 val asm-ann-function name args = ASM_ANN_FUNCTION {name=name, args=args}
 val asm-ann-function-unary name arg = ASM_ANN_FUNCTION {name=name, args=asm-opnds-one arg}
 val asm-ann-opnd name opnd = ASM_ANN_OPND {name=name, opnd=opnd}
-
-val asm-immediate i = ASM_IMMEDIATE i
-val asm-immediate-unk value size = ASM_UNKNOWN_SIGNEDNESS {value=value, size=size}

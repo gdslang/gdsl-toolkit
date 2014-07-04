@@ -2,7 +2,7 @@ import gdsl.Frontend;
 import gdsl.Gdsl;
 import gdsl.HeapUseIndicator;
 import gdsl.decoder.Decoder;
-import gdsl.decoder.Instruction;
+import gdsl.decoder.NativeInstruction;
 import gdsl.rreil.DefaultRReilBuilder;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;

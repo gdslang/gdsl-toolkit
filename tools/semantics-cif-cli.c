@@ -66,10 +66,9 @@ static obj_t asm_memory(state_t state, obj_t _this) {
   return indent;
 }
 
-static obj_t asm_imm(state_t state, obj_t _this) {
-  obj_t indent = indent_unary(_this);
-  printf("> immediate\n");
-  return indent;
+static obj_t asm_imm(state_t state, int_t _this) {
+  printf("> immediate {value=%lld}\n", _this);
+  return (obj_t)0;
 }
 
 static obj_t asm_post_op(state_t state, obj_t expr, obj_t opnd) {
@@ -112,6 +111,24 @@ static obj_t asm_bounded(state_t state, obj_t ann, obj_t opnd) {
   obj_t indent = indent_binary(ann, opnd);
   printf("> bounded\n");
   return indent;
+}
+
+static obj_t asm_sign(state_t state, obj_t signedness, obj_t opnd) {
+  obj_t indent = indent_binary(signedness, opnd);
+  printf("> signedness\n");
+  return indent;
+}
+
+// signedness
+
+static obj_t asm_signed(state_t state, obj_t foo) {
+  printf("> signed\n");
+  return (state_t)0;
+}
+
+static obj_t asm_unsigned(state_t state, obj_t foo) {
+  printf("> unsigned\n");
+  return (state_t)0;
 }
 
 // boundary
@@ -763,23 +780,22 @@ int main(int argc, char** argv) {
   unboxed_asm_opnds_callbacks_t asm_opnds_callbacks = {.opnds_next = &asm_opnds_next, .init = &asm_opnds_init};
   unboxed_asm_opnd_callbacks_t asm_opnd_callbacks = {.opnd_register = &asm_register, .memory = &asm_memory, .imm =
       &asm_imm, .post_op = &asm_post_op, .pre_op = &asm_pre_op, .rel = &asm_rel, .annotation = &asm_annotation, .sum =
-      &asm_sum, .scale = &asm_scale, .bounded = &asm_bounded};
+      &asm_sum, .scale = &asm_scale, .bounded = &asm_bounded, .sign = &asm_sign};
+  unboxed_asm_signedness_callbacks_t asm_signedness_callbacks = {.asm_signed = &asm_signed, .asm_unsigned = &asm_unsigned};
   unboxed_asm_boundary_callbacks_t asm_boundary_callbacks = {.sz = &asm_sz, .sz_o = &asm_sz_o};
   unboxed_asm_annotations_callbacks_t asm_annotations_callbacks = {.annotations_next = &asm_annotations_next, .init =
       &asm_annotations_init};
   unboxed_asm_annotation_callbacks_t asm_annotation_callbacks = {.ann_string = &asm_annotation_string, .function =
       &asm_annotation_function, .opnd = &asm_annotation_opnd};
-  unboxed_asm_immediate_callbacks_t asm_immediate_callbacks = {.immediate = &asm_immediate, .unknown_signedness =
-      &asm_immediate_unknown_signedness};
 
   unboxed_asm_callbacks_t asm_callbacks = {
       .insn = &asm_insn,
       .opnds = &asm_opnds_callbacks,
       .opnd = &asm_opnd_callbacks,
+      .signedness = &asm_signedness_callbacks,
       .boundary = &asm_boundary_callbacks,
       .annotations = &asm_annotations_callbacks,
       .annotation = &asm_annotation_callbacks,
-      .immediate = &asm_immediate_callbacks
   };
 
   obj_t generic_insn = gdsl_generalize(state, insn);
