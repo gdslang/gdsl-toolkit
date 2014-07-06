@@ -1579,13 +1579,40 @@ structure TypeRefinement = struct
    structure AST = SpecAbstractTree
 
    (* translate AST types to check that exports have expected types *)
-   fun trType s (AST.MARKty {span, tree=t}) = trType (s : AST.ty SymMap.map)  t
+
+   fun trType (ta,dt,quantVars,conRef,_,s) (AST.MARKty {span=srcloc, tree=t}) =
+         trType (ta,dt,quantVars,conRef,srcloc,s)  t
      | trType s (AST.BITty sz) = BOXstype (BITstype (CONSTstype (IntInf.toInt sz)))
-     | trType s (AST.NAMEDty (sym,args)) = (case SymMap.find (s,sym) of
-          SOME ty => trType (List.foldl SymMap.insert' s args) ty
-        | NONE => OBJstype
+     | trType (ta,dt,quantVars,conRef,srcloc,s) (AST.NAMEDty (sym,args)) =
+     (case SymMap.find (ta,sym) of
+          SOME ty => trType (List.foldl SymMap.insert' ta args,dt,quantVars,conRef,srcloc,s) ty
+        | NONE => (case SymMap.find (dt,sym) of
+             SOME cons =>
+               let
+                  val dt = #1 (SymMap.remove (dt,sym)) (* avoid infinite recursion *)
+                  fun addConType ((cSym,NONE),sm) = sm
+                    | addConType ((cSym,SOME ty),sm) =
+         (TextIO.print ("trType for constructor " ^
+            SymbolTable.getString(!SymbolTables.conTable, cSym) ^ "\n");
+                        SymMap.insert (sm,cSym,
+                           (srcloc,sym,trType (ta,dt,quantVars,conRef,srcloc,s) ty))
+         )
+                  val sm = List.foldl addConType SymMap.empty cons
+                  fun calcLub ((srcloc1,dSym1,t1),(srcloc2,dSym2,t2)) =
+                        (srcloc1,dSym1,lub (s,t1,t2))
+                  val _ = conRef := SymMap.unionWith calcLub (!conRef,sm)
+                  val _ = TextIO.print ("conRef contains " ^ Int.toString (SymMap.numItems (!conRef)) ^ "\n")
+               in
+                  OBJstype
+               end
+           | NONE => (
+            case SymMap.find (quantVars,sym) of
+               SOME tyVar => tyVar
+             | NONE => VOIDstype
+           )
         )
-     | trType s (AST.RECORDty fs) = RECORDstype (OBJstype,map (fn (f,ty) => (true,f,trType s ty)) 
+     )
+     | trType s (AST.RECORDty fs) = RECORDstype (VOIDstype,map (fn (f,ty) => (true,f,trType s ty)) 
         (SymMap.listItemsi (List.foldl SymMap.insert' SymMap.empty fs)),false)
      | trType s (AST.FUNCTIONty (args,res)) = FUNstype (trType s res,VOIDstype,map (trType s) args)
      | trType s (AST.MONADty (res,inp,out)) = trType s res
@@ -1618,16 +1645,22 @@ structure TypeRefinement = struct
      | compareTypes (OBJstype,OBJstype) = true
      | compareTypes (t1,t2) = false (*(TextIO.print ("comparing " ^ showSType t1 ^ " with " ^ showSType t2 ^ "\n"); false)*)
 
-   fun setArgsToType (errs,ta,dt,es,s) (FUNCdecl {
+   fun setArgsToType (errs,ta,dt,conRef,es,s) (FUNCdecl {
         funcName = f,
         funcArgs = args,
         ...
-      }) = (case SymMap.find (es,f) of NONE => () | SOME (_,ty) =>
+      }) = (case SymMap.find (es,f) of NONE => () | SOME (quant,ty) =>
       let
+         (*val _ = TextIO.print ("setArgsToType for export " ^
+            SymbolTable.getString(!SymbolTables.varTable, f) ^ "\n") *)
          val srcloc = case ty of
               (AST.MARKty {span=s, tree}) => s
             | _ => SymbolTable.noSpan
-         val targetType = case trType ta ty of
+         fun addTypeVars (sym,ta) = SymMap.insert (ta,sym,freshTVar s)
+         val quantVars = foldl addTypeVars SymMap.empty quant
+         val targetType = trType (ta,dt,quantVars,conRef,srcloc,s) ty
+         val targetType = inlineSType s targetType
+         val targetType = case targetType  of
             FUNstype a => FUNstype a
           | t => FUNstype (t,VOIDstype,[]) (* top-level constants are still functions *)
          val originalType = inlineSType s (symType s f)
@@ -1642,7 +1675,34 @@ structure TypeRefinement = struct
             "exported " ^ showSType targetType ^ "\n",
             "combined " ^ showSType obtainedType ^ "\n"])
       end)
-     | setArgsToType (errs,ta,dt,es,s) _ = ()
+     | setArgsToType _ _ = ()
+
+   fun setConArgToType (errs,ta,dt,cons,s) (CONdecl {
+         conName = name,
+         conTag = tag,
+         conArg = (_, argName),
+        ...
+      }) = (case SymMap.find (cons,tag) of
+           NONE => ()
+         | SOME (srcloc,dSym,targetType) =>
+      let
+         val _ = TextIO.print ("setConArgToType for constructor '" ^
+            SymbolTable.getString(!SymbolTables.conTable, tag) ^ "'\n")
+         val originalType = inlineSType s (symType s argName)
+
+         val obtainedType = inlineSType s (lub (s, symType s argName, targetType))
+         val _ = lub (s, symType s name, FUNstype (OBJstype, VOIDstype, [symType s argName]))
+      in
+(*         if compareTypes (targetType,obtainedType) then () else*)
+         Error.warningAt (errs, srcloc,  ["parameter to data type '" ^
+            SymbolTable.getString(!SymbolTables.typeTable, dSym) ^
+            "' in export declaration does not fit C type for constructor '" ^
+            SymbolTable.getString(!SymbolTables.conTable, tag) ^ "'\n",
+            "C type   " ^ showSType originalType ^ "\n",
+            "exported " ^ showSType targetType ^ "\n",
+            "combined " ^ showSType obtainedType ^ "\n"])
+      end)
+     | setConArgToType _ _ = ()
 
    fun mergeRecords s =
       let
@@ -1682,8 +1742,10 @@ structure TypeRefinement = struct
          (* unify the types of all records that have the same set of fields *)
          val _ = mergeRecords state
          (* set all arguments in functions and constructors to the type declared in the export list *)
-         val _ = app (setArgsToType (errs,ta,dt,es,state)) ds
-      
+         val conRef = ref (SymMap.empty : (Error.span * SymbolTable.symid * stype) SymMap.map)
+         val _ = app (setArgsToType (errs,ta,dt,conRef,es,state)) ds
+         val _ = app (setConArgToType (errs,ta,dt,!conRef,state)) ds
+
          (*val _ = showState es state*)
          (*val _ = debugOn := false
          fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)*)
