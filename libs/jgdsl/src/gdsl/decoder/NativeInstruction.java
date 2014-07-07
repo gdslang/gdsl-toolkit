@@ -127,8 +127,6 @@ public class NativeInstruction {
   }
   
   public Instruction generalize() {
-    return null;
+    return new GeneralizerBackend().generalize();
   }
-  
-  private native Instruction generalize(GeneralizerBackend backend);
 }

@@ -11,10 +11,10 @@
 #include <jni.h>
 #include <gdsl_generic.h>
 #include <gdsl_multiplex.h>
-#include "gdsl_decoder_Instruction.h"
+#include "gdsl_decoder_NativeInstruction.h"
 #include "util.h"
 
-JNIEXPORT jlong JNICALL Java_gdsl_decoder_Instruction_size(JNIEnv *env, jobject this, jlong frontendPtr,
+JNIEXPORT jlong JNICALL Java_gdsl_decoder_NativeInstruction_size(JNIEnv *env, jobject this, jlong frontendPtr,
     jlong gdslStatePtr, jlong insnPtr) {
   struct frontend *frontend = (struct frontend*)frontendPtr;
   state_t state = (state_t)gdslStatePtr;
@@ -28,7 +28,7 @@ JNIEXPORT jlong JNICALL Java_gdsl_decoder_Instruction_size(JNIEnv *env, jobject 
   return (jlong)s;
 }
 
-JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_pretty(JNIEnv *env, jobject this, jlong frontendPtr,
+JNIEXPORT jstring JNICALL Java_gdsl_decoder_NativeInstruction_pretty(JNIEnv *env, jobject this, jlong frontendPtr,
     jlong gdslStatePtr, jlong insnPtr) {
   struct frontend *frontend = (struct frontend*)frontendPtr;
   state_t state = (state_t)gdslStatePtr;
@@ -42,7 +42,7 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_pretty(JNIEnv *env, jobj
   return (*env)->NewStringUTF(env, str);
 }
 
-JNIEXPORT jint JNICALL Java_gdsl_decoder_Instruction_operands(JNIEnv *env, jobject this, jlong frontendPtr,
+JNIEXPORT jint JNICALL Java_gdsl_decoder_NativeInstruction_operands(JNIEnv *env, jobject this, jlong frontendPtr,
     jlong gdslStatePtr, jlong insnPtr) {
   struct frontend *frontend = (struct frontend*)frontendPtr;
   state_t state = (state_t)gdslStatePtr;
@@ -54,7 +54,7 @@ JNIEXPORT jint JNICALL Java_gdsl_decoder_Instruction_operands(JNIEnv *env, jobje
   return (jint)frontend->decoder.operands(state, insn);
 }
 
-JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_prettyOperand(JNIEnv *env, jobject this, jlong frontendPtr,
+JNIEXPORT jstring JNICALL Java_gdsl_decoder_NativeInstruction_prettyOperand(JNIEnv *env, jobject this, jlong frontendPtr,
     jlong gdslStatePtr, jlong insnPtr, jint operand) {
   struct frontend *frontend = (struct frontend*)frontendPtr;
   state_t state = (state_t)gdslStatePtr;
@@ -68,7 +68,7 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_prettyOperand(JNIEnv *en
   return (*env)->NewStringUTF(env, str);
 }
 
-JNIEXPORT jint JNICALL Java_gdsl_decoder_Instruction_operandType(JNIEnv *env, jobject this, jlong frontendPtr,
+JNIEXPORT jint JNICALL Java_gdsl_decoder_NativeInstruction_operandType(JNIEnv *env, jobject this, jlong frontendPtr,
     jlong gdslStatePtr, jlong insnPtr, jint operand) {
   struct frontend *frontend = (struct frontend*)frontendPtr;
   state_t state = (state_t)gdslStatePtr;
@@ -82,7 +82,7 @@ JNIEXPORT jint JNICALL Java_gdsl_decoder_Instruction_operandType(JNIEnv *env, jo
   return type;
 }
 
-JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_mnemonic(JNIEnv *env, jobject this, jlong frontendPtr,
+JNIEXPORT jstring JNICALL Java_gdsl_decoder_NativeInstruction_mnemonic(JNIEnv *env, jobject this, jlong frontendPtr,
     jlong gdslStatePtr, jlong insnPtr) {
   struct frontend *frontend = (struct frontend*)frontendPtr;
   state_t state = (state_t)gdslStatePtr;
@@ -94,4 +94,9 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_mnemonic(JNIEnv *env, jo
   string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty_mnemonic(state, insn));
 
   return (*env)->NewStringUTF(env, str);
+}
+
+JNIEXPORT jobject JNICALL Java_gdsl_decoder_NativeInstruction_generalize
+  (JNIEnv *env, jobject this, jobject backend) {
+  return NULL;
 }
