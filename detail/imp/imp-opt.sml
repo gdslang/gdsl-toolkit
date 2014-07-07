@@ -1584,34 +1584,44 @@ structure TypeRefinement = struct
          trType (ta,dt,quantVars,conRef,srcloc,s)  t
      | trType s (AST.BITty sz) = BOXstype (BITstype (CONSTstype (IntInf.toInt sz)))
      | trType (ta,dt,quantVars,conRef,srcloc,s) (AST.NAMEDty (sym,args)) =
+     let
+        val _ = TextIO.print ("looking up type " ^
+           SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " with "
+           ^ Int.toString (List.length args) ^ " arguments:\n")
+        val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ Layout.tostring (AST.PP.ty ty) ^ "\n")) args
+        val _ = TextIO.print ("type alias contains:\n")
+        val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ Layout.tostring (AST.PP.ty ty) ^ "\n")) (SymMap.listItemsi ta)
+        val _ = TextIO.print ("quantVars contains:\n")
+        val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ showSType ty ^ "\n")) (SymMap.listItemsi quantVars)
+        val _ = TextIO.print ("conRef contains:\n")
+        val _ = List.app (fn (sym,(_,_,ty)) => TextIO.print (SymbolTable.getString(!SymbolTables.conTable, sym) ^ " : " ^ showSType ty ^ "\n")) (SymMap.listItemsi (!conRef))
+     in
      (case SymMap.find (ta,sym) of
           SOME ty => trType (List.foldl SymMap.insert' ta args,dt,quantVars,conRef,srcloc,s) ty
         | NONE => (case SymMap.find (dt,sym) of
              SOME cons =>
                let
-                  val dt = #1 (SymMap.remove (dt,sym)) (* avoid infinite recursion *)
+                  val ta = List.foldl SymMap.insert' ta args
+                  val dt = SymMap.insert (dt,sym,[]) (* avoid infinite recursion *)
                   fun addConType ((cSym,NONE),sm) = sm
                     | addConType ((cSym,SOME ty),sm) =
-         (TextIO.print ("trType for constructor " ^
-            SymbolTable.getString(!SymbolTables.conTable, cSym) ^ "\n");
                         SymMap.insert (sm,cSym,
                            (srcloc,sym,trType (ta,dt,quantVars,conRef,srcloc,s) ty))
-         )
                   val sm = List.foldl addConType SymMap.empty cons
                   fun calcLub ((srcloc1,dSym1,t1),(srcloc2,dSym2,t2)) =
                         (srcloc1,dSym1,lub (s,t1,t2))
                   val _ = conRef := SymMap.unionWith calcLub (!conRef,sm)
-                  val _ = TextIO.print ("conRef contains " ^ Int.toString (SymMap.numItems (!conRef)) ^ "\n")
                in
                   OBJstype
                end
            | NONE => (
             case SymMap.find (quantVars,sym) of
                SOME tyVar => tyVar
-             | NONE => VOIDstype
+             | NONE => raise TypeOptBug
            )
         )
      )
+     end
      | trType s (AST.RECORDty fs) = RECORDstype (VOIDstype,map (fn (f,ty) => (true,f,trType s ty)) 
         (SymMap.listItemsi (List.foldl SymMap.insert' SymMap.empty fs)),false)
      | trType s (AST.FUNCTIONty (args,res)) = FUNstype (trType s res,VOIDstype,map (trType s) args)
@@ -1686,14 +1696,14 @@ structure TypeRefinement = struct
            NONE => ()
          | SOME (srcloc,dSym,targetType) =>
       let
-         val _ = TextIO.print ("setConArgToType for constructor '" ^
-            SymbolTable.getString(!SymbolTables.conTable, tag) ^ "'\n")
+         val targetType = inlineSType s targetType
          val originalType = inlineSType s (symType s argName)
 
-         val obtainedType = inlineSType s (lub (s, symType s argName, targetType))
+         val obtainedType = lub (s, symType s argName, targetType)
          val _ = lub (s, symType s name, FUNstype (OBJstype, VOIDstype, [symType s argName]))
+         val obtainedType = inlineSType s obtainedType
       in
-(*         if compareTypes (targetType,obtainedType) then () else*)
+         if compareTypes (targetType,obtainedType) then () else
          Error.warningAt (errs, srcloc,  ["parameter to data type '" ^
             SymbolTable.getString(!SymbolTables.typeTable, dSym) ^
             "' in export declaration does not fit C type for constructor '" ^
