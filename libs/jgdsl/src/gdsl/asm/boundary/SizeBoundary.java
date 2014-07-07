@@ -1,16 +1,16 @@
 package gdsl.asm.boundary;
 
 public class SizeBoundary extends Boundary {
-  private int size;
+  private long size;
   
-  public int getSize() {
+  public long getSize() {
     return size;
   }
 
   /**
    * @param size
    */
-  public SizeBoundary (int size) {
+  public SizeBoundary (long size) {
     super();
     this.size = size;
   }

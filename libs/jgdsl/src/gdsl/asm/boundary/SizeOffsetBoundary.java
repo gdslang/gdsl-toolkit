@@ -1,15 +1,15 @@
 package gdsl.asm.boundary;
 
 public class SizeOffsetBoundary extends Boundary {
-  private int size;
+  private long size;
   
-  public int getSize() {
+  public long getSize() {
     return size;
   }
   
-  private int offset;
+  private long offset;
   
-  public int getOffset() {
+  public long getOffset() {
     return offset;
   }
 
@@ -17,7 +17,7 @@ public class SizeOffsetBoundary extends Boundary {
    * @param size
    * @param offset
    */
-  public SizeOffsetBoundary (int size, int offset) {
+  public SizeOffsetBoundary (long size, long offset) {
     super();
     this.size = size;
     this.offset = offset;

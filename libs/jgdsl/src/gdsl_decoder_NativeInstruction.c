@@ -95,8 +95,3 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_NativeInstruction_mnemonic(JNIEnv *e
 
   return (*env)->NewStringUTF(env, str);
 }
-
-JNIEXPORT jobject JNICALL Java_gdsl_decoder_NativeInstruction_generalize
-  (JNIEnv *env, jobject this, jobject backend) {
-  return NULL;
-}

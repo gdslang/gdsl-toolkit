@@ -7,6 +7,8 @@ import gdsl.asm.annotation.FunctionAnnotation;
 import gdsl.asm.annotation.OperandAnnotation;
 import gdsl.asm.annotation.StringAnnotation;
 import gdsl.asm.boundary.Boundary;
+import gdsl.asm.boundary.SizeBoundary;
+import gdsl.asm.boundary.SizeOffsetBoundary;
 import gdsl.asm.operand.Annotated;
 import gdsl.asm.operand.Bounded;
 import gdsl.asm.operand.Immediate;
@@ -21,90 +23,121 @@ import gdsl.asm.operand.Sign;
 import gdsl.asm.operand.Sum;
 
 public class GeneralizerBackend {
-  private Instruction insn (Long length, String mnemonic, ArrayList<Annotation> annotations, ArrayList<Operand> operands) {
-    return new Instruction((Long) length, mnemonic, annotations.toArray(new Annotation[0]),
+  private Object insn (Object length, Object mnemonic, Object annotations_, Object operands_) {
+    @SuppressWarnings("unchecked")
+    ArrayList<Annotation> annotations = (ArrayList<Annotation>)annotations_;
+    @SuppressWarnings("unchecked")
+    ArrayList<Operand> operands = (ArrayList<Operand>)operands_;
+    return new Instruction((Long) length, (String)mnemonic, annotations.toArray(new Annotation[0]),
       operands.toArray(new Operand[0]));
   }
   
   // operands
 
-  private ArrayList<Operand> opnds_next (Operand next, ArrayList<Operand> list) {
-    list.add(next);
+  private Object opnds_next (Object next, Object _list) {
+    @SuppressWarnings("unchecked")
+    ArrayList<Operand> list = (ArrayList<Operand>)_list;
+    list.add((Operand)next);
     return list;
   }
   
-  private ArrayList<Operand> opnds_init() {
+  private Object opnds_init() {
     return new ArrayList<Operand>();
   }
   
   // operand
   
-  private Register register(String mnemonic) {
-    return new Register(mnemonic);
+  private Object register(Object mnemonic) {
+    return new Register((String)mnemonic);
   }
   
-  private Memory memory(Operand pointer) {
-    return new Memory(pointer);
+  private Object memory(Object pointer) {
+    return new Memory((Operand)pointer);
   }
   
-  private Immediate immediate(Long imm) {
-    return new Immediate(imm);
+  private Object immediate(Object imm) {
+    return new Immediate((Long)imm);
   }
   
-  private PostOperation post_op(Operand expression, Operand operand) {
-    return new PostOperation(expression, operand);
+  private Object post_op(Object expression, Object operand) {
+    return new PostOperation((Operand)expression, (Operand)operand);
   }
   
-  private PreOperation pre_op(Operand expression, Operand operand) {
-    return new PreOperation(expression, operand);
+  private Object pre_op(Object expression, Object operand) {
+    return new PreOperation((Operand)expression, (Operand)operand);
   }
   
-  private Relative rel(Operand operand) {
-    return new Relative(operand);
+  private Object rel(Object operand) {
+    return new Relative((Operand)operand);
   }
   
-  private Annotated annotated(Annotation ann, Operand operand) {
-    return new Annotated(ann, operand);
+  private Object annotated(Object ann, Object operand) {
+    return new Annotated((Annotation)ann, (Operand)operand);
   }
   
-  private Sum sum(Operand lhs, Operand rhs) {
-    return new Sum(lhs, rhs);
+  private Object sum(Object lhs, Object rhs) {
+    return new Sum((Operand)lhs, (Operand)rhs);
   }
   
-  private Scale scale(Long factor, Operand rhs) {
-    return new Scale(factor, rhs);
+  private Object scale(Object factor, Object rhs) {
+    return new Scale((Long)factor, (Operand)rhs);
   }
   
-  private Bounded bounded(Boundary boundary, Operand operand) {
-    return new Bounded(boundary, operand);
+  private Object bounded(Object boundary, Object operand) {
+    return new Bounded((Boundary)boundary, (Operand)operand);
   }
   
-  private Sign sign(Signedness signedness, Operand operand) {
-    return new Sign(signedness, operand);
+  private Object sign(Object signedness, Object operand) {
+    return new Sign((Signedness)signedness, (Operand)operand);
   }
   
   // signedness
   
-  private Signedness signed() {
+  private Object signed() {
     return Signedness.Signed;
   }
   
-  private Signedness unsigned() {
+  private Object unsigned() {
     return Signedness.Unsigned;
+  }
+  
+  // boundary
+  
+  private Object sz(Object size) {
+    return new SizeBoundary((Long)size);
+  }
+  
+  private Object sz_o(Object size, Object offset) {
+    return new SizeOffsetBoundary((Long)size, (Long)offset);
+  }
+  
+  // annotations
+  
+  private Object annotations_next (Object next, Object _list) {
+    @SuppressWarnings("unchecked")
+    ArrayList<Annotation> list = (ArrayList<Annotation>)_list;
+    list.add((Annotation)next);
+    return list;
+  }
+  
+  private Object annotations_init() {
+    return new ArrayList<Annotation>();
   }
   
   // annotation
   
-  private Annotation string(String annotation) {
-    return new StringAnnotation(annotation);
+  private Object string(Object annotation) {
+    return new StringAnnotation((String)annotation);
   }
   
-  private Annotation function(String name, Operand[] arguments) {
-    return new FunctionAnnotation(name, arguments);
+  private Object function(Object name, Object arguments_) {
+    @SuppressWarnings("unchecked")
+    ArrayList<Operand> arguments = (ArrayList<Operand>)arguments_;
+    return new FunctionAnnotation((String)name, arguments.toArray(new Operand[0]));
   }
   
-  private Annotation operand(String name, Operand operand) {
-    return new OperandAnnotation(name, operand);
+  private Object operand(Object name, Object operand) {
+    return new OperandAnnotation((String)name, (Operand)operand);
   }
   
   public native Instruction generalize();

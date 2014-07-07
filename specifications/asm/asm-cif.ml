@@ -1,7 +1,7 @@
 export = asm-convert-insn{opnd, insn, annotations, opnds, boundary, annotation, immediate, length, mnemonic, annotations, opnds, signedness}
 
 type asm_opnds_callbacks = {opnds_next:int, init:int}
-type asm_opnd_callbacks = {opnd_register:int, memory:int, imm:int, post_op:int, pre_op:int, rel:int, annotation:int, sum:int, scale:int, bounded:int, sign:int}
+type asm_opnd_callbacks = {opnd_register:int, memory:int, imm:int, post_op:int, pre_op:int, rel:int, annotated:int, sum:int, scale:int, bounded:int, sign:int}
 type asm_signedness_callbacks = {asm_signed:int, asm_unsigned:int}
 type asm_boundary_callbacks = {sz:int, sz_o:int}
 type asm_annotations_callbacks = {annotations_next:int, init:int}
@@ -35,7 +35,7 @@ val asm-convert-opnd cbs opnd = case opnd of
  | ASM_POST_OP po: cbs.opnd.post_op (asm-convert-opnd cbs po.expr) (asm-convert-opnd cbs po.opnd)
  | ASM_PRE_OP pr: cbs.opnd.pre_op (asm-convert-opnd cbs pr.expr) (asm-convert-opnd cbs pr.opnd)
  | ASM_REL r: cbs.opnd.rel (asm-convert-opnd cbs r)
- | ASM_ANNOTATED a: cbs.opnd.annotation (asm-convert-annotation cbs a.ann) (asm-convert-opnd cbs a.opnd)
+ | ASM_ANNOTATED a: cbs.opnd.annotated (asm-convert-annotation cbs a.ann) (asm-convert-opnd cbs a.opnd)
  | ASM_SUM s: cbs.opnd.sum (asm-convert-opnd cbs s.lhs) (asm-convert-opnd cbs s.rhs)
  | ASM_SCALE s: cbs.opnd.scale s.factor (asm-convert-opnd cbs s.rhs)
  | ASM_BOUNDED b: cbs.opnd.bounded (asm-convert-boundary cbs b.boundary) (asm-convert-opnd cbs b.opnd)

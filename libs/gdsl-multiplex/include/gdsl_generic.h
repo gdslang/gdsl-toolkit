@@ -16,15 +16,6 @@ typedef long long int int_t;
 typedef char* string_t;
 typedef uint64_t vec_data_t;
 
-struct vec {
-  unsigned int size;
-  vec_data_t data;
-};
-
-typedef struct vec vec_t;
-typedef int_t con_tag_t;
-
-
 /**
  * RReil defintions
  */
@@ -46,6 +37,14 @@ typedef int_t con_tag_t;
  */
 
 #ifndef GDSL_SPECIFIC
+struct vec {
+  unsigned int size;
+  vec_data_t data;
+};
+
+typedef struct vec vec_t;
+typedef int_t con_tag_t;
+
 typedef struct {
 } unboxed_struct2_t;
 typedef unboxed_struct2_t* struct2_t;
@@ -67,7 +66,7 @@ typedef struct {
 typedef unboxed_sem_varl_callbacks_t* sem_varl_callbacks_t;
 typedef struct {
   obj_t (*shared)(state_t,int_t);
-  obj_t (*virt_t)(state_t,obj_t);
+  obj_t (*virt_t)(state_t,int_t);
   obj_t (*arch)(state_t,obj_t);
 } unboxed_sem_id_callbacks_t;
 typedef unboxed_sem_id_callbacks_t* sem_id_callbacks_t;
@@ -142,7 +141,7 @@ typedef struct {
 } unboxed_sem_var_callbacks_t;
 typedef unboxed_sem_var_callbacks_t* sem_var_callbacks_t;
 typedef struct {
-  obj_t (*sem_address_)(state_t,obj_t,obj_t);
+  obj_t (*sem_address_)(state_t,int_t,obj_t);
 } unboxed_sem_address_callbacks_t;
 typedef unboxed_sem_address_callbacks_t* sem_address_callbacks_t;
 typedef struct {
@@ -207,7 +206,7 @@ typedef struct {
 typedef unboxed_asm_insn_t* asm_insn_t;
 typedef struct {
   obj_t (*imm)(state_t,obj_t);
-  obj_t (*annotation)(state_t,obj_t,obj_t);
+  obj_t (*annotated)(state_t,obj_t,obj_t);
   obj_t (*opnd_register)(state_t,obj_t);
   obj_t (*memory)(state_t,obj_t);
   obj_t (*post_op)(state_t,obj_t,obj_t);

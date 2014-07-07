@@ -48,7 +48,7 @@ static obj_t asm_opnds_next(state_t state, obj_t next, obj_t list) {
   return indent;
 }
 
-static obj_t asm_opnds_init(state_t state, obj_t next) {
+static obj_t asm_opnds_init(state_t state, obj_t nothing) {
   printf("> init operands\n");
   return (state_t)0;
 }
@@ -89,7 +89,7 @@ static obj_t asm_rel(state_t state, obj_t _this) {
   return indent;
 }
 
-static obj_t asm_annotation(state_t state, obj_t ann, obj_t opnd) {
+static obj_t asm_annotated(state_t state, obj_t ann, obj_t opnd) {
   obj_t indent = indent_binary(ann, opnd);
   printf("> annotation\n");
   return indent;
@@ -107,8 +107,8 @@ static obj_t asm_scale(state_t state, int_t factor, obj_t rhs) {
   return indent;
 }
 
-static obj_t asm_bounded(state_t state, obj_t ann, obj_t opnd) {
-  obj_t indent = indent_binary(ann, opnd);
+static obj_t asm_bounded(state_t state, obj_t boundary, obj_t opnd) {
+  obj_t indent = indent_binary(boundary, opnd);
   printf("> bounded\n");
   return indent;
 }
@@ -151,7 +151,7 @@ static obj_t asm_annotations_next(state_t state, obj_t next, obj_t list) {
   return indent;
 }
 
-static obj_t asm_annotations_init(state_t state, obj_t next) {
+static obj_t asm_annotations_init(state_t state, obj_t nothing) {
   printf("> init annotations\n");
   return (state_t)0;
 }
@@ -767,7 +767,7 @@ int main(int argc, char** argv) {
 
   unboxed_asm_opnds_callbacks_t asm_opnds_callbacks = {.opnds_next = &asm_opnds_next, .init = &asm_opnds_init};
   unboxed_asm_opnd_callbacks_t asm_opnd_callbacks = {.opnd_register = &asm_register, .memory = &asm_memory, .imm =
-      &asm_imm, .post_op = &asm_post_op, .pre_op = &asm_pre_op, .rel = &asm_rel, .annotation = &asm_annotation, .sum =
+      &asm_imm, .post_op = &asm_post_op, .pre_op = &asm_pre_op, .rel = &asm_rel, .annotated = &asm_annotated, .sum =
       &asm_sum, .scale = &asm_scale, .bounded = &asm_bounded, .sign = &asm_sign};
   unboxed_asm_signedness_callbacks_t asm_signedness_callbacks = {.asm_signed = &asm_signed, .asm_unsigned = &asm_unsigned};
   unboxed_asm_boundary_callbacks_t asm_boundary_callbacks = {.sz = &asm_sz, .sz_o = &asm_sz_o};
