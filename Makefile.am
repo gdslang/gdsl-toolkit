@@ -167,11 +167,17 @@ GDSL_BASIS = \
 	$(srcdir)/specifications/basis/prelude.ml \
 	$(srcdir)/specifications/basis/selectors.ml 
 
+GDSL_ASM = \
+	$(srcdir)/specifications/asm/asm-cif.ml \
+	$(srcdir)/specifications/asm/asm.ml \
+	$(srcdir)/specifications/asm/asm-pretty.ml
+
 GDSL_X86 = \
 	$(srcdir)/specifications/x86/x86.ml \
-	$(srcdir)/specifications/x86/x86-util.ml \
+	$(srcdir)/specifications/x86/x86-traverse.ml \
 	$(srcdir)/specifications/x86/x86-pretty.ml \
-	$(srcdir)/specifications/x86/x86-pretty-simple.ml
+	$(srcdir)/specifications/x86/x86-asm.ml \
+	$(srcdir)/specifications/x86-tester/x86-pretty-simple.ml
 
 GDSL_X86SEM = \
 	$(srcdir)/specifications/x86/x86-rreil-pretty.ml \
@@ -233,7 +239,7 @@ libgdsl_x86_rreil_la_SOURCES =
 nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
 libgdsl_x86_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 
-GS_X86_RREIL = $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
+GS_X86_RREIL = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
 gdsl-x86-rreil.c: $(GDSLC_DEP) $(GS_X86_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86_RREIL)
 
@@ -247,7 +253,7 @@ libgdsl_x86_la_SOURCES =
 nodist_libgdsl_x86_la_SOURCES = gdsl-x86.c
 libgdsl_x86_la_DEPENDENCIES = $(GDSLC_DEP)
 
-GS_X86 = $(GDSL_BASIS) $(GDSL_X86)
+GS_X86 = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86)
 gdsl-x86.c: $(GDSLC_DEP) $(GS_X86)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86)
 
@@ -270,7 +276,7 @@ libgdsl_avr_rreil_la_SOURCES =
 nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
 libgdsl_avr_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 
-GS_AVR_RREIL =  $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
+GS_AVR_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
 gdsl-avr-rreil.c: $(GDSLC_DEP) $(GS_AVR_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
 
@@ -284,7 +290,7 @@ libgdsl_avr_la_SOURCES =
 nodist_libgdsl_avr_la_SOURCES = gdsl-avr.c
 libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
 
-GS_AVR = $(GDSL_BASIS) $(GDSL_AVR)
+GS_AVR = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_AVR)
 gdsl-avr.c: $(GDSLC_DEP) $(GS_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR)
 
@@ -307,7 +313,7 @@ libgdsl_mips_rreil_la_SOURCES =
 nodist_libgdsl_mips_rreil_la_SOURCES = gdsl-mips-rreil.c
 libgdsl_mips_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 
-GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_MIPS) $(GDSL_RREIL) $(GDSL_MIPSSEM)
+GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS) $(GDSL_RREIL) $(GDSL_MIPSSEM)
 gdsl-mips-rreil.c: $(GDSLC_DEP) $(GS_MIPS_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS_RREIL)
 
@@ -321,7 +327,7 @@ libgdsl_mips_la_SOURCES =
 nodist_libgdsl_mips_la_SOURCES = gdsl-mips.c
 libgdsl_mips_la_DEPENDENCIES = $(GDSLC_DEP)
 
-GS_MIPS = $(GDSL_BASIS) $(GDSL_MIPS)
+GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS)
 gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
 
@@ -438,6 +444,29 @@ JSOURCES = src/gdsl/rreil/DefaultLimitedVariableCollection.java \
 	  			 src/gdsl/arch/IConfigFlag.java \
 	  			 src/gdsl/arch/X86Binder.java \
 	  			 src/gdsl/arch/X86ConfigFlag.java \
+					 src/gdsl/asm/Signedness.java \
+					 src/gdsl/asm/Instruction.java \
+					 src/gdsl/asm/operand/PreOperation.java \
+					 src/gdsl/asm/operand/Immediate.java \
+					 src/gdsl/asm/operand/PostOperation.java \
+					 src/gdsl/asm/operand/Register.java \
+					 src/gdsl/asm/operand/Bounded.java \
+					 src/gdsl/asm/operand/Relative.java \
+					 src/gdsl/asm/operand/Scale.java \
+					 src/gdsl/asm/operand/Sign.java \
+					 src/gdsl/asm/operand/Sum.java \
+					 src/gdsl/asm/operand/Annotated.java \
+					 src/gdsl/asm/operand/Memory.java \
+					 src/gdsl/asm/operand/Operand.java \
+					 src/gdsl/asm/annotation/OperandAnnotation.java \
+					 src/gdsl/asm/annotation/StringAnnotation.java \
+					 src/gdsl/asm/annotation/Annotation.java \
+					 src/gdsl/asm/annotation/FunctionAnnotation.java \
+					 src/gdsl/asm/GeneralizerBackend.java \
+					 src/gdsl/asm/boundary/SizeBoundary.java \
+					 src/gdsl/asm/boundary/SizeOffsetBoundary.java \
+					 src/gdsl/asm/boundary/Boundary.java \
+					 src/gdsl_asm_GeneralizerBackend.c \
            src/Program.java
 
 SPRE=src
@@ -626,7 +655,7 @@ endif
 endif
 
 if HAVE_RREIL
-libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.c $(srcdir)/libs/jgdsl/src/gdsl_Frontend.c $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.c $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.c $(srcdir)/libs/jgdsl/src/util.c
+libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_NativeInstruction.c $(srcdir)/libs/jgdsl/src/gdsl_asm_GeneralizerBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Frontend.c $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.c $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.c $(srcdir)/libs/jgdsl/src/util.c
 libjgdsl_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
 libjgdsl_la_LIBADD += libgdsl-multiplex.la
 private_headers += $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.h $(srcdir)/libs/jgdsl/src/gdsl_Frontend.h $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.h $(srcdir)/libs/jgdsl/src/util.h
@@ -782,7 +811,7 @@ endif
 private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 endif
 
-EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm
+EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm
 
 if X86_RREIL
 install-data-hook:
