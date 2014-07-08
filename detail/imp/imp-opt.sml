@@ -2129,7 +2129,8 @@ structure DeadFunctions = struct
    
    type state = { locals : SymSet.set,
                   replace : SymbolTable.symid SymMap.map ref,
-                  referenced : SymSet.set ref }
+                  referenced : SymSet.set ref,
+                  refdTags : SymSet.set ref }
 
    fun refSym (s : state) sym = 
       if not (SymSet.member (#locals s,sym)) then
@@ -2140,7 +2141,8 @@ structure DeadFunctions = struct
    fun withLocals (s : state, decls : arg list) =
       { locals = SymSet.addList (#locals s, map #2 decls),
         replace = #replace s,
-        referenced = #referenced s
+        referenced = #referenced s,
+        refdTags = #refdTags s
       }
 
    fun applyReplace (s : state,sym) = case SymMap.find (!(#replace s),sym) of
@@ -2182,9 +2184,12 @@ structure DeadFunctions = struct
       )
      | visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
-     | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
+     | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, foldr (visitCase s) [] ps)
 
-   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   and visitCase s ((CONpat sym,stmts),cs) = 
+         if SymSet.member (!(#refdTags s),sym) then
+            (CONpat sym, visitBlock s stmts) :: cs else cs
+     | visitCase s ((p,stmts),cs) = (p, visitBlock s stmts) :: cs
    
    and visitExp s (IDexp sym) = (refSym s sym; IDexp (applyReplace (s,sym)))
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
@@ -2219,6 +2224,13 @@ structure DeadFunctions = struct
         funcBody = visitBlock s body,
         funcRes = res
       })
+     | visitDecl s (d as CONdecl {
+        conName = name,
+        conTag = tag,
+        ...
+     }) = (if SymSet.member (!(#referenced s),name) then
+         #refdTags s := SymSet.add (!(#refdTags s),tag) else ()
+         ;d)
      | visitDecl s d = d
 
    fun visitCDecl s (CLOSUREdecl {
@@ -2234,7 +2246,8 @@ structure DeadFunctions = struct
       let
          val s = { locals = SymSet.empty,
                    replace = ref SymMap.empty,
-                   referenced = ref SymSet.empty } : state
+                   referenced = ref SymSet.empty,
+                   refdTags = ref SymSet.empty } : state
          val _ = SymMap.appi (refSym s o #1) es
          fun fixpoint _ =
             let
