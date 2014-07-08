@@ -282,10 +282,10 @@ structure Primitives = struct
          fun pr (prim,ty,args) = PRIexp (prim, ty, args)
          fun action e = STATEexp (BASICblock ([],[]), OBJvtype, e)
          fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
-         fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (VECvtype, arg))) args
-         fun unboxVfixed args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (VECvtype, arg))) args
+         fun unboxVany args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (VECvtype, arg))) args
          fun unboxV args = map (fn arg => UNBOXexp (VECvtype, arg)) args
          fun boxI arg = BOXexp (INTvtype, arg)
+         fun boxVany arg = BOXexp (VECvtype, INT2VECexp (0,arg))
          fun boxV1 arg = BOXexp (VECvtype, INT2VECexp (1,arg))
          fun boxV8 arg = BOXexp (VECvtype, INT2VECexp (8,arg))
          fun boxV16 arg = BOXexp (VECvtype, INT2VECexp (16,arg))
@@ -322,8 +322,8 @@ structure Primitives = struct
                                genType (MONADvtype VOIDvtype, ~n)
       in [
          ("raise", (t ~1, fn args => action (PRIexp (RAISEprim,sv,args)))),
-         ((Atom.toString Op.andAlso), (t 2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
-         ((Atom.toString Op.orElse), (t 2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
+         ((Atom.toString Op.andAlso), (t 2, fn args => boxVany (pr (ANDprim,iii,unboxVany args)))),
+         ((Atom.toString Op.orElse), (t 2, fn args => boxVany (pr (ORprim,iii,unboxVany args)))),
          ("sx", (t 1, fn args => boxI (pr (SIGNEDprim,bi,unboxV args)))),
          ("zx", (t 1, fn args => boxI (pr (UNSIGNEDprim,bi,unboxV args)))),
          ("+", (t 2, fn args => boxI (pr (ADDprim,iii,unboxI args)))),
@@ -335,7 +335,7 @@ structure Primitives = struct
          ("<=", (t 2, fn args => boxV1 (pr (LEprim,iii,unboxI args)))),
          (">=", (t 2, fn args => boxV1 (pr (LEprim,iii,unboxI (rev args))))),
          ("not", (t 1, fn args => boxV (pr (NOT_VECprim,bb,unboxV args)))),
-         ("==", (t 2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVfixed args)))),
+         ("==", (t 2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVany args)))),
          ("^", (t 2, fn args => boxV (pr (CONCAT_VECprim,vvv,unboxV args)))),
          ("showint", (t 1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
          ("strlen", (t 1, fn args => boxI (pr (STRLENprim,si,args)))),
@@ -343,7 +343,7 @@ structure Primitives = struct
             [src,tgt,size] => pr (CONCAT_STRINGprim,ssis,[src,tgt,UNBOXexp (INTvtype, size)])
           | _ => raise ImpPrimTranslationBug))),
          ("slice", (t ~3, fn args => (case args of
-            [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
+            [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVany [vec] @ unboxI [ofs,sz])))
           | _ => raise ImpPrimTranslationBug))),
          ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
          ("query", (t 1, fn args => (case args of

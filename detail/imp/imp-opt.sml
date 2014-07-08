@@ -1036,12 +1036,8 @@ structure TypeRefinement = struct
            | lub (STRINGstype, STRINGstype) = STRINGstype
            | lub (BOXstype t1, BOXstype t2) = BOXstype (lub (t1,t2))
            | lub (OBJstype, OBJstype) = OBJstype
-           | lub (CONSTstype _, OBJstype) = OBJstype
-           | lub (OBJstype, CONSTstype _) = OBJstype
-           | lub (_, OBJstype) = OBJstype
-           | lub (OBJstype, _) = OBJstype
            | lub (t1', t2') = 
-            ((*TextIO.print ("lub top for " ^ showSType t1' ^ "; " ^ showSType t2' ^ " when called for " ^ showSType t1 ^ "; " ^ showSType t2 ^ "\n");*)
+            ((*TextIO.print ("lub top for " ^ showSType t1' ^ "; " ^ showSType t2' ^ " when called for " ^ showSType t1 ^ "; " ^ showSType t2 ^ ", that is, " ^ showSType (inlineSType s t1) ^ "; " ^ showSType (inlineSType s t2) ^ "\n");*)
             OBJstype)
 
       in
@@ -1085,6 +1081,10 @@ structure TypeRefinement = struct
                | _ => OBJstype
             )
       end
+     | visitExp s (PRIexp (ORprim,t,[vec1,vec2])) =
+         lub (s,visitExp s vec1, visitExp s vec2)
+     | visitExp s (PRIexp (ANDprim,t,[vec1,vec2])) =
+         lub (s,visitExp s vec1, visitExp s vec2)
      | visitExp s (PRIexp (GET_CON_ARGprim,t, es)) =
          let
             val [IDexp arg,_] = es
@@ -1149,6 +1149,13 @@ structure TypeRefinement = struct
       end
      | visitExp s (VEC2INTexp (NONE, e)) = (lub (s, BITstype (freshTVar s), visitExp s e); INTstype)
      | visitExp s (VEC2INTexp (SOME sz, e)) = (lub (s, BITstype (CONSTstype sz), visitExp s e); INTstype)
+     | visitExp s (INT2VECexp (0, e)) = (case e of
+          PRIexp (ORprim,_,[VEC2INTexp (NONE,e1),VEC2INTexp (NONE,e2)]) =>
+            lub (s, visitExp s e1, visitExp s e2)
+        | PRIexp (ANDprim,_,[VEC2INTexp (NONE,e1),VEC2INTexp (NONE,e2)]) =>
+            lub (s, visitExp s e1, visitExp s e2)
+        | _ => raise TypeOptBug
+      )
      | visitExp s (INT2VECexp (sz,e)) = (lub (s, INTstype, visitExp s e); BITstype (CONSTstype sz))
      | visitExp s (CLOSUREexp (t,sym,es)) =
          let
@@ -1205,11 +1212,11 @@ structure TypeRefinement = struct
         funcRes = res
       }) =
       let
-         (*val _ = msg ("visitDecl start " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ showSType (inlineSType s (symType s name)) ^ "\n")*)
+         (*val _ = msg ("visitDecl start " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ "\n")*)
          val _ = visitBlock s block
          fun argTypes args = map (fn (_,sym) => symType s sym) args
          val ty = FUNstype (symType s res, VOIDstype, argTypes clArgs @ argTypes args)
-         (*val _ = msg ("visitDecl basic type " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " : " ^ showSType (ty) ^ "\n")
+         (*val _ = msg ("visitDecl basic type " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " : " ^ showSType ty ^ ", that is, " ^ showSType (inlineSType s ty) ^ "\n")
          val _ = msg ("visitDecl end   " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " : " ^ showSType (inlineSType s ty) ^ "\n")*)
       in
          lub (s, symType s name, ty)
@@ -1580,12 +1587,11 @@ structure TypeRefinement = struct
 
    (* translate AST types to check that exports have expected types *)
 
-   fun trType (ta,dt,quantVars,conRef,_,s) (AST.MARKty {span=srcloc, tree=t}) =
-         trType (ta,dt,quantVars,conRef,srcloc,s)  t
+   fun trType s (AST.MARKty {span, tree=t}) = trType s  t
      | trType s (AST.BITty sz) = BOXstype (BITstype (CONSTstype (IntInf.toInt sz)))
-     | trType (ta,dt,quantVars,conRef,srcloc,s) (AST.NAMEDty (sym,args)) =
+     | trType (ta,dt,quantVars,conDef,boxedRec,s) (AST.NAMEDty (sym,args)) =
      let
-        val _ = TextIO.print ("looking up type " ^
+        (*val _ = TextIO.print ("looking up type " ^
            SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " with "
            ^ Int.toString (List.length args) ^ " arguments:\n")
         val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ Layout.tostring (AST.PP.ty ty) ^ "\n")) args
@@ -1593,24 +1599,26 @@ structure TypeRefinement = struct
         val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ Layout.tostring (AST.PP.ty ty) ^ "\n")) (SymMap.listItemsi ta)
         val _ = TextIO.print ("quantVars contains:\n")
         val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ showSType ty ^ "\n")) (SymMap.listItemsi quantVars)
-        val _ = TextIO.print ("conRef contains:\n")
-        val _ = List.app (fn (sym,(_,_,ty)) => TextIO.print (SymbolTable.getString(!SymbolTables.conTable, sym) ^ " : " ^ showSType ty ^ "\n")) (SymMap.listItemsi (!conRef))
+        val _ = TextIO.print ("conDef contains:\n")
+        val _ = List.app (fn (sym,(_,_,ty)) => TextIO.print (SymbolTable.getString(!SymbolTables.conTable, sym) ^ " : " ^ showSType ty ^ "\n")) (SymMap.listItemsi (!conDef))*)
      in
      (case SymMap.find (ta,sym) of
-          SOME ty => trType (List.foldl SymMap.insert' ta args,dt,quantVars,conRef,srcloc,s) ty
+          SOME ty => trType (List.foldl SymMap.insert' ta args,dt,quantVars,conDef,boxedRec,s) ty
         | NONE => (case SymMap.find (dt,sym) of
              SOME cons =>
                let
+                  (* the stype of an ADT is always OBJstype, however, if the
+                     export declaration sets a polymorphic parameter, we need
+                     to propagate this parameter to the constructor that
+                     mentions the parameter *)
                   val ta = List.foldl SymMap.insert' ta args
                   val dt = SymMap.insert (dt,sym,[]) (* avoid infinite recursion *)
-                  fun addConType ((cSym,NONE),sm) = sm
-                    | addConType ((cSym,SOME ty),sm) =
-                        SymMap.insert (sm,cSym,
-                           (srcloc,sym,trType (ta,dt,quantVars,conRef,srcloc,s) ty))
-                  val sm = List.foldl addConType SymMap.empty cons
-                  fun calcLub ((srcloc1,dSym1,t1),(srcloc2,dSym2,t2)) =
-                        (srcloc1,dSym1,lub (s,t1,t2))
-                  val _ = conRef := SymMap.unionWith calcLub (!conRef,sm)
+                  fun restrictConType (cSym,NONE) = ()
+                    | restrictConType (cSym,SOME ty) =
+                        (lub (s,SymMap.lookup (conDef,cSym),
+                               trType (ta,dt,quantVars,conDef,VOIDstype,s) ty)
+                        ;())
+                  val _ = List.app restrictConType cons
                in
                   OBJstype
                end
@@ -1622,14 +1630,15 @@ structure TypeRefinement = struct
         )
      )
      end
-     | trType s (AST.RECORDty fs) = RECORDstype (VOIDstype,map (fn (f,ty) => (true,f,trType s ty)) 
+     | trType (ta,dt,quantVars,conDef,boxedRec,s) (AST.RECORDty fs) =
+      RECORDstype (boxedRec,map (fn (f,ty) => (true,f,trType (ta,dt,quantVars,conDef,boxedRec,s) ty)) 
         (SymMap.listItemsi (List.foldl SymMap.insert' SymMap.empty fs)),false)
      | trType s (AST.FUNCTIONty (args,res)) = FUNstype (trType s res,VOIDstype,map (trType s) args)
      | trType s (AST.MONADty (res,inp,out)) = trType s res
      | trType s AST.INTty = BOXstype (INTstype)
      | trType s AST.UNITty = VOIDstype
      | trType s AST.STRINGty = STRINGstype
-
+                        
    fun compareTypes (VOIDstype,VOIDstype) = true
      | compareTypes (BOXstype t1,BOXstype t2) = compareTypes (t1,t2)
      | compareTypes (FUNstype (res1,clos1,args1), FUNstype (res2,clos2,args2)) =
@@ -1655,7 +1664,7 @@ structure TypeRefinement = struct
      | compareTypes (OBJstype,OBJstype) = true
      | compareTypes (t1,t2) = false (*(TextIO.print ("comparing " ^ showSType t1 ^ " with " ^ showSType t2 ^ "\n"); false)*)
 
-   fun setArgsToType (errs,ta,dt,conRef,es,s) (FUNCdecl {
+   fun setArgsToType (errs,ta,dt,conDef,es,s) (FUNCdecl {
         funcName = f,
         funcArgs = args,
         ...
@@ -1668,51 +1677,25 @@ structure TypeRefinement = struct
             | _ => SymbolTable.noSpan
          fun addTypeVars (sym,ta) = SymMap.insert (ta,sym,freshTVar s)
          val quantVars = foldl addTypeVars SymMap.empty quant
-         val targetType = trType (ta,dt,quantVars,conRef,srcloc,s) ty
-         val targetType = inlineSType s targetType
+         val targetType = trType (ta,dt,quantVars,conDef,OBJstype,s) ty
          val targetType = case targetType  of
             FUNstype a => FUNstype a
           | t => FUNstype (t,VOIDstype,[]) (* top-level constants are still functions *)
-         val originalType = inlineSType s (symType s f)
 
          val obtainedType = inlineSType s (lub (s, symType s f, targetType))
+
+         val targetType = inlineSType s targetType
+         val originalType = inlineSType s (symType s f)
       in
          if compareTypes (targetType,obtainedType) then () else
          Error.warningAt (errs, srcloc,  ["export declaration of " ^
             SymbolTable.getString(!SymbolTables.varTable, f) ^
             " does not fit C type\n",
-            "C type   " ^ showSType originalType ^ "\n",
-            "exported " ^ showSType targetType ^ "\n",
-            "combined " ^ showSType obtainedType ^ "\n"])
+            "\tC type   " ^ showSType originalType ^ "\n",
+            "\texported " ^ showSType targetType ^ "\n",
+            "\tcombined " ^ showSType obtainedType ^ "\n"])
       end)
      | setArgsToType _ _ = ()
-
-   fun setConArgToType (errs,ta,dt,cons,s) (CONdecl {
-         conName = name,
-         conTag = tag,
-         conArg = (_, argName),
-        ...
-      }) = (case SymMap.find (cons,tag) of
-           NONE => ()
-         | SOME (srcloc,dSym,targetType) =>
-      let
-         val targetType = inlineSType s targetType
-         val originalType = inlineSType s (symType s argName)
-
-         val obtainedType = lub (s, symType s argName, targetType)
-         val _ = lub (s, symType s name, FUNstype (OBJstype, VOIDstype, [symType s argName]))
-         val obtainedType = inlineSType s obtainedType
-      in
-         if compareTypes (targetType,obtainedType) then () else
-         Error.warningAt (errs, srcloc,  ["parameter to data type '" ^
-            SymbolTable.getString(!SymbolTables.typeTable, dSym) ^
-            "' in export declaration does not fit C type for constructor '" ^
-            SymbolTable.getString(!SymbolTables.conTable, tag) ^ "'\n",
-            "C type   " ^ showSType originalType ^ "\n",
-            "exported " ^ showSType targetType ^ "\n",
-            "combined " ^ showSType obtainedType ^ "\n"])
-      end)
-     | setConArgToType _ _ = ()
 
    fun mergeRecords s =
       let
@@ -1747,14 +1730,16 @@ structure TypeRefinement = struct
             origFields = fs,
             stateSym = stateSym
          }
-         fun visitDeclPrint state d = ((*debugOn:=(SymbolTable.toInt(getDeclName d)= 18570); TextIO.print ("type of XCHG args : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 18569)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
+         fun visitDeclPrint state d = ((*debugOn:=(SymbolTable.toInt(getDeclName d)= 440);*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
          (* unify the types of all records that have the same set of fields *)
          val _ = mergeRecords state
          (* set all arguments in functions and constructors to the type declared in the export list *)
-         val conRef = ref (SymMap.empty : (Error.span * SymbolTable.symid * stype) SymMap.map)
-         val _ = app (setArgsToType (errs,ta,dt,conRef,es,state)) ds
-         val _ = app (setConArgToType (errs,ta,dt,!conRef,state)) ds
+         val conDef = List.foldl (fn (d,sm) => case d of
+            CONdecl { conTag = tag, conArg = (_, argName), ... } =>
+               SymMap.insert (sm,tag, symType state argName)
+          | _ => sm) SymMap.empty ds
+         val _ = app (setArgsToType (errs,ta,dt,conDef,es,state)) ds
 
          (*val _ = showState es state*)
          (*val _ = debugOn := false
