@@ -1,4 +1,4 @@
-export = generalize{length, insn}
+export generalize : (insndata) -> asm-insn
 
 val generalize insn = asm-insn insn.length (string-from-rope-lit (pretty-mnemonic insn)) (generalize-ua (uarity-of insn.insn))
   
