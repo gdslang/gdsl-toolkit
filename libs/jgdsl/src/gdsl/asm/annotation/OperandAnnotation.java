@@ -24,4 +24,8 @@ public class OperandAnnotation extends Annotation {
     this.name = name;
     this.operand = operand;
   }
+
+  @Override public String toString () {
+    return "{Annotation " + name + " " + operand + "}";
+  }
 }

@@ -10,4 +10,8 @@ public class StringAnnotation extends Annotation {
   public StringAnnotation(String annotation) {
     this.annotation = annotation;
   }
+
+  @Override public String toString () {
+    return "{Annotation: " + annotation + "}";
+  }
 }

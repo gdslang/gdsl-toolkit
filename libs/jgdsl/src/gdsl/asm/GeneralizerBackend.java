@@ -140,5 +140,5 @@ public class GeneralizerBackend {
     return new OperandAnnotation((String)name, (Operand)operand);
   }
   
-  public native Instruction generalize();
+  public native Instruction generalize(long frontendPtr, long gdslStatePtr, long insnPtr);
 }

@@ -9,19 +9,23 @@ public class Bounded extends Operand {
     return boundary;
   }
   
-  private Operand opnd;
+  private Operand operand;
   
   public Operand getOpnd() {
-    return opnd;
+    return operand;
   }
 
   /**
    * @param boundary
-   * @param opnd
+   * @param operand
    */
-  public Bounded (Boundary boundary, Operand opnd) {
+  public Bounded (Boundary boundary, Operand operand) {
     super();
     this.boundary = boundary;
-    this.opnd = opnd;
+    this.operand = operand;
+  }
+
+  @Override public String toString () {
+    return operand + boundary.toString();
   }
 }

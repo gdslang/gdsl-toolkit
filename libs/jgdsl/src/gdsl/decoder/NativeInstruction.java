@@ -127,6 +127,6 @@ public class NativeInstruction {
   }
   
   public Instruction generalize() {
-    return new GeneralizerBackend().generalize();
+    return new GeneralizerBackend().generalize(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
   }
 }

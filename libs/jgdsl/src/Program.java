@@ -63,18 +63,27 @@ public class Program {
     buffer.put((byte) 0);
     buffer.put((byte) 0xc3);
     
-    for (long i = 0; i < 10000000; i++) {
-      sub(buffer);
-    }
-
-    System.gc();
+    Frontend[] frontends = Gdsl.getFrontends();
+    Gdsl gdsl = new Gdsl(frontends[0]);
+    gdsl.setCode(buffer, 0, 0);
     
-    while(true) {
-      int[] x = new int[18000];
-      x[99] = 33;
-      System.out.println(x[1]);
-      Thread.sleep(1000);
-    }
+    Decoder d = new Decoder(gdsl);
+    NativeInstruction nI = d.decodeOne();
+    
+    System.out.println(nI.generalize());
+    
+//    for (long i = 0; i < 10000000; i++) {
+//      sub(buffer);
+//    }
+//
+//    System.gc();
+//    
+//    while(true) {
+//      int[] x = new int[18000];
+//      x[99] = 33;
+//      System.out.println(x[1]);
+//      Thread.sleep(1000);
+//    }
 
 //    Decoder dec = new Decoder(gdsl);
 //    Instruction insn = dec.decodeOne();

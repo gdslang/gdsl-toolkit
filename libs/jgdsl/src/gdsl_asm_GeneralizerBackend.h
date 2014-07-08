@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     gdsl_asm_GeneralizerBackend
  * Method:    generalize
- * Signature: ()Lgdsl/asm/Instruction;
+ * Signature: (JJJ)Lgdsl/asm/Instruction;
  */
 JNIEXPORT jobject JNICALL Java_gdsl_asm_GeneralizerBackend_generalize
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 #ifdef __cplusplus
 }

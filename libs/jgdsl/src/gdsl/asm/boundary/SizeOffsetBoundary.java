@@ -22,4 +22,11 @@ public class SizeOffsetBoundary extends Boundary {
     this.size = size;
     this.offset = offset;
   }
+
+  @Override public String toString () {
+    if(offset > 0)
+      return "." + offset + "/" + size;
+    else
+      return "/" + size;
+  }
 }

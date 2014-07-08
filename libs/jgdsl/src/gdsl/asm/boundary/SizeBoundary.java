@@ -14,4 +14,8 @@ public class SizeBoundary extends Boundary {
     super();
     this.size = size;
   }
+
+  @Override public String toString () {
+    return "/" + size;
+  }
 }

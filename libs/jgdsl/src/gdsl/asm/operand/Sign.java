@@ -9,19 +9,23 @@ public class Sign extends Operand {
     return signedness;
   }
   
-  private Operand opnd;
+  private Operand operand;
   
   public Operand getOpnd() {
-    return opnd;
+    return operand;
   }
 
   /**
    * @param signedness
-   * @param opnd
+   * @param operand
    */
-  public Sign (Signedness signedness, Operand opnd) {
+  public Sign (Signedness signedness, Operand operand) {
     super();
     this.signedness = signedness;
-    this.opnd = opnd;
+    this.operand = operand;
+  }
+
+  @Override public String toString () {
+    return "(" + signedness + " " + operand + ")";
   }
 }

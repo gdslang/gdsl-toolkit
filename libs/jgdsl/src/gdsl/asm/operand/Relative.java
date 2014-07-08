@@ -14,4 +14,8 @@ public class Relative extends Operand {
     super();
     this.operand = operand;
   }
+
+  @Override public String toString () {
+    return "(? + " + operand  + ")";
+  }
 }

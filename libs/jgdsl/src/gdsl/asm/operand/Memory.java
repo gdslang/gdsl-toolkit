@@ -14,4 +14,8 @@ public class Memory extends Operand {
     super();
     this.pointer = pointer;
   }
+
+  @Override public String toString () {
+    return "*(" + pointer + ")";
+  }
 }

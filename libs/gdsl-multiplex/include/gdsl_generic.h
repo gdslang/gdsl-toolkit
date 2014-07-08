@@ -206,12 +206,12 @@ typedef struct {
 typedef unboxed_asm_insn_t* asm_insn_t;
 typedef struct {
   obj_t (*imm)(state_t,obj_t);
-  obj_t (*annotated)(state_t,obj_t,obj_t);
   obj_t (*opnd_register)(state_t,obj_t);
   obj_t (*memory)(state_t,obj_t);
   obj_t (*post_op)(state_t,obj_t,obj_t);
   obj_t (*pre_op)(state_t,obj_t,obj_t);
   obj_t (*rel)(state_t,obj_t);
+  obj_t (*annotated)(state_t,obj_t,obj_t);
   obj_t (*sum)(state_t,obj_t,obj_t);
   obj_t (*scale)(state_t,obj_t,obj_t);
   obj_t (*bounded)(state_t,obj_t,obj_t);

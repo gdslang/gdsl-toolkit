@@ -22,4 +22,8 @@ public class Scale extends Operand {
     this.factor = factor;
     this.rhs = rhs;
   }
+
+  @Override public String toString () {
+    return factor + "*(" + rhs + ")";
+  }
 }

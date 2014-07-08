@@ -36,6 +36,8 @@ struct frontend {
 		obj_t (*decode)(state_t state, int_t config);
 		int_t (*insn_length)(state_t state, obj_t insn);
 		int_t (*operands)(state_t state, obj_t insn);
+		obj_t (*generalize)(state_t state, obj_t insn);
+		obj_t (*asm_convert_insn)(state_t s, asm_callbacks_t cbs, asm_insn_t insn);
 		obj_t *(*pretty)(state_t state, obj_t insn);
 		obj_t *(*pretty_operand)(state_t state, obj_t insn, int_t i);
 		obj_t *(*pretty_mnemonic)(state_t state, obj_t insn);

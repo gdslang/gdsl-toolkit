@@ -14,4 +14,8 @@ public class Immediate extends Operand {
     super();
     this.value = value;
   }
+
+  @Override public String toString () {
+    return Long.toString(value);
+  }
 }

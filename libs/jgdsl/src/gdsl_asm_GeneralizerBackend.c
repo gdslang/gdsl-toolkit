@@ -9,11 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gdsl_generic.h>
-#include <util.h>
+#include <gdsl_multiplex.h>
+#include "util.h"
 
 static obj_t asm_insn(state_t state, int_t length, string_t mnemonic, obj_t annotations, obj_t opnds) {
-  return java_method_call(state, "insn", 4, java_string_create(state, mnemonic), (jobject)annotations,
-      (jobject)opnds);
+  return java_method_call(state, "insn", 4, java_long_create(state, length), java_string_create(state, mnemonic),
+      (jobject)annotations, (jobject)opnds);
 }
 
 // operand list
@@ -116,6 +117,37 @@ static obj_t asm_annotation_opnd(state_t state, string_t name, obj_t operand) {
   return java_method_call(state, "operand", 2, java_string_create(state, name), (jobject)operand);
 }
 
-JNIEXPORT jobject JNICALL Java_gdsl_asm_GeneralizerBackend_generalize(JNIEnv *env, jobject this, jobject backend) {
-  return NULL;
+JNIEXPORT jobject JNICALL Java_gdsl_asm_GeneralizerBackend_generalize(JNIEnv *env, jobject this, jlong frontendPtr,
+    jlong gdslStatePtr, jlong insnPtr) {
+  struct frontend *frontend = (struct frontend*)frontendPtr;
+  state_t state = (state_t)gdslStatePtr;
+  obj_t insn = (obj_t)insnPtr;
+
+  struct userdata ud;
+  ud.env = env;
+  ud.obj = this;
+  ud.frontend = frontend;
+
+  frontend->translator.rreil_cif_userdata_set(state, &ud);
+  rreil_cif_userdata_get = frontend->translator.rreil_cif_userdata_get;
+
+  unboxed_asm_opnds_callbacks_t asm_opnds_callbacks = {.opnds_next = &asm_opnds_next, .init = &asm_opnds_init};
+  unboxed_asm_opnd_callbacks_t asm_opnd_callbacks = {.opnd_register = &asm_register, .memory = &asm_memory, .imm =
+      &asm_imm, .post_op = &asm_post_op, .pre_op = &asm_pre_op, .rel = &asm_rel, .annotated = &asm_annotated, .sum =
+      &asm_sum, .scale = &asm_scale, .bounded = &asm_bounded, .sign = &asm_sign};
+  unboxed_asm_signedness_callbacks_t asm_signedness_callbacks = {.asm_signed = &asm_signed, .asm_unsigned =
+      &asm_unsigned};
+  unboxed_asm_boundary_callbacks_t asm_boundary_callbacks = {.sz = &asm_sz, .sz_o = &asm_sz_o};
+  unboxed_asm_annotations_callbacks_t asm_annotations_callbacks = {.annotations_next = &asm_annotations_next, .init =
+      &asm_annotations_init};
+  unboxed_asm_annotation_callbacks_t asm_annotation_callbacks = {.ann_string = &asm_annotation_string, .function =
+      &asm_annotation_function, .opnd = &asm_annotation_opnd};
+
+  unboxed_asm_callbacks_t asm_callbacks = {.insn = &asm_insn, .opnds = &asm_opnds_callbacks,
+      .opnd = &asm_opnd_callbacks, .signedness = &asm_signedness_callbacks, .boundary = &asm_boundary_callbacks,
+      .annotations = &asm_annotations_callbacks, .annotation = &asm_annotation_callbacks, };
+
+  obj_t g_insn = frontend->decoder.generalize(state, insn);
+
+  return (jobject)frontend->decoder.asm_convert_insn(state, &asm_callbacks, g_insn);
 }

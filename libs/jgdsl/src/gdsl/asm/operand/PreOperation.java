@@ -7,19 +7,23 @@ public class PreOperation extends Operand {
     return expression;
   }
   
-  public Operand opnd;
+  public Operand operand;
   
   public Operand getOpnd() {
-    return opnd;
+    return operand;
   }
 
   /**
    * @param expression
-   * @param opnd
+   * @param operand
    */
-  public PreOperation (Operand expression, Operand opnd) {
+  public PreOperation (Operand expression, Operand operand) {
     super();
     this.expression = expression;
-    this.opnd = opnd;
+    this.operand = operand;
+  }
+  
+  @Override public String toString () {
+    return "([" + operand + " := " + expression + "] " + operand + ")";
   }
 }

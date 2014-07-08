@@ -22,4 +22,8 @@ public class Sum extends Operand {
     this.lhs = lhs;
     this.rhs = rhs;
   }
+
+  @Override public String toString () {
+    return "(" + lhs + " + " + rhs + ")";
+  }
 }

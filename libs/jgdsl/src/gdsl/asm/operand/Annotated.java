@@ -24,4 +24,8 @@ public class Annotated extends Operand {
     this.annotation = annotation;
     this.operand = operand;
   }
+
+  @Override public String toString () {
+    return "(" + annotation + ":" + operand + ")";
+  }
 }
