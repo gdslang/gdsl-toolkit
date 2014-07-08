@@ -104,10 +104,7 @@ structure C = struct
          val () = Mangle.reset()
          val clos = Spec.get#declarations spec
          val exports = Spec.get#exports spec
-         fun exported f =
-            List.exists
-               (fn g => SymbolTable.eq_symid (f, g))
-               exports
+         fun exported f = SymMap.inDomain (exports, f)
 
          fun emitConTag tag =
             seq [str (Int.toString (ConInfo.toInt tag)),

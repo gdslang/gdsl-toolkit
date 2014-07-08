@@ -1,6 +1,12 @@
-export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn} insn-length{length}
-export = decoder-config
-export = operands{insn}
+export config-default : 2
+export config-mode64  : 2
+export config-default-opnd-sz-32 : 2
+export decode : (2) -> S insndata <{} => {}>
+export features-get : (insndata) -> int
+export typeof-opnd : (insndata,int) -> int
+export insn-length : (insndata) -> int
+export decoder-config : configuration[vec=2]
+export operands : (insndata) -> int
 
 val decoder-config =
  conf '01' "mode64" "decode x86-64 instructions" &*
@@ -736,10 +742,7 @@ type arity4 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd,opnd4:x86-opnd}
 
 type x86-insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:x86-insn}
 
-val insn-length insn = do
- insn <- return (@{fooooobarrrrrrr=42}insn);
- return insn.length
-end
+val insn-length insn = insn.length
 
 val operands x =
   case (uarity-of x.insn) of

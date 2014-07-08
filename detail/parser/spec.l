@@ -104,7 +104,12 @@
 <INITIAL>"in" => (T.KW_in);
 <INITIAL>"and" => (T.KW_and);
 <INITIAL>"or" => (T.KW_or);
+<INITIAL>"S" => (T.MONAD);
+<INITIAL>"<" => (T.SMALLER);
+<INITIAL>">" => (T.LARGER);
 <INITIAL>"<-" => (T.BIND);
+<INITIAL>"->" => (T.TO);
+<INITIAL>"=>" => (T.DOUBLE_TO);
 <INITIAL>"%" => (T.KW_mod);
 <INITIAL>"of" => (T.KW_of);
 <INITIAL>"[" => (T.LB);
@@ -121,6 +126,7 @@
 <INITIAL>"^" => (T.CONCAT);
 <INITIAL>"|" => (T.BAR);
 <INITIAL>":" => (T.COLON);
+<INITIAL>"()" => (T.UNIT);
 <INITIAL>"(" => (T.LP);
 <INITIAL>")" => (T.RP);
 <INITIAL>"+" => (T.PLUS);

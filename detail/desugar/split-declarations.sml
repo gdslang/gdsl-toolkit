@@ -28,7 +28,7 @@ end = struct
       val constructors = ref SymMap.empty
       val valuedecls = ref []
       val decodedecls = ref SymMap.empty
-      val exports = ref []
+      val exports = ref SymMap.empty
 
       fun insertDecode (n, pats, es) =
          decodedecls :=
@@ -53,7 +53,7 @@ end = struct
           | TYPEdecl d => typealias := d::(!typealias)
           | DECODEdecl d => insertDecode d
           | LETRECdecl d => valuedecls := d::(!valuedecls)
-          | EXPORTdecl es => exports := !exports@map #1 es
+          | EXPORTdecl (var,tvars,ty) => exports := SymMap.insert (!exports,var,(tvars,ty))
           | DATATYPEdecl (n, tvars, cons) =>
                (datatypes := (n, cons)::(!datatypes)
                ;updateConstructors (n, cons))

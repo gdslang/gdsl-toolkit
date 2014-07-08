@@ -33,7 +33,7 @@ structure Environment : sig
    val pushWidth : VarInfo.symid * environment -> environment
 
    (* For a function from a type containing several type variables to an
-   algoebraic data type, generate implications from the arguments of the
+   algebraic data type, generate implications from the arguments of the
    algebraic data type to the argument of this function. *)
    val genConstructorFlow : (bool * environment) -> environment
    
@@ -44,7 +44,7 @@ structure Environment : sig
 
     (*given an occurrence of a symbol at a position, push its type onto the
     stack; arguments are the symbol to look up, the position it occurred at,
-    wheather functions are represetned as sets of types and a
+    wheather functions are represented as sets of types and a
     tag indicating if this usage should be recorded (LetForw), if a
     non-instantiated type should be pushed (LetMono), or if the
     argument is to be instantiated/used normally.
@@ -142,9 +142,6 @@ structure Environment : sig
    val markAsStable : VarInfo.symid * environment -> environment
 
    val clearUses : VarInfo.symid * environment -> environment
-
-   val forceNoInputs : VarInfo.symid * VarInfo.symid list *
-                     environment -> VarInfo.symid list
 
     (*apply the Boolean function*)
    val meetBoolean : (BooleanDomain.bfun -> BooleanDomain.bfun) *
@@ -414,22 +411,32 @@ end = struct
             let
                val ty = TT.peekSymbol (kappa,tt)
                val (tStr, si) = showTypeSI (ty,si)
+               val vs = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (ty,BD.emptySet)
+               val bStr = if concisePrint then "" else
+                           ", flow:" ^ BD.showBFunPart (vs, TT.getFlow tt)
+               val vs = texpVarset (ty,TVar.empty)
+               val (sStr,si) = SC.toStringSI (TT.getSizes tt,SOME vs,si)
             in
                case debugSymbol of
                   (SOME _) => ("",si)
-                | NONE => (ST.getString(!SymbolTables.varTable, kappa) ^ ": " ^ tStr, si)
+                | NONE => (ST.getString(!SymbolTables.varTable, kappa) ^ ": " ^ tStr ^ bStr ^ sStr, si)
             end
         | toString (SINGLE {name}, tt, si) =
             let
                val ty = TT.peekSymbol (name,tt)
                val (tStr, si) = showTypeSI (ty,si)
+               val vs = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (ty,BD.emptySet)
+               val bStr = if concisePrint then "" else
+                           ", flow:" ^ BD.showBFunPart (vs, TT.getFlow tt)
+               val vs = texpVarset (ty,TVar.empty)
+               val (sStr,si) = SC.toStringSI (TT.getSizes tt,SOME vs,si)
                val visible = case debugSymbol of
                      NONE => true
                    | (SOME sid) => sid=SymbolTable.toInt name
             in
                if visible then
                   ("SYMBOL " ^ ST.getString(!SymbolTables.varTable, name) ^
-                  " : " ^ tStr, si)
+                  " : " ^ tStr ^ bStr ^ sStr, si)
                else
                   ("",si)
             end
@@ -446,11 +453,11 @@ end = struct
                  | prBTyOpt (true, sym, str, si) = let
                     val ty = TT.peekSymbol (sym,tt)
                     val (tStr, si) = showTypeSI (ty, si)
-                     val vs = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (ty,BD.emptySet)
-                     val bStr = if concisePrint then "" else
-                                 ", flow:" ^ BD.showBFunPart (vs, TT.getFlow tt)
-                     val vs = texpVarset (ty,TVar.empty)
-                     val (sStr,si) = SC.toStringSI (TT.getSizes tt,SOME vs,si)
+                    val vs = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (ty,BD.emptySet)
+                    val bStr = if concisePrint then "" else
+                                ", flow:" ^ BD.showBFunPart (vs, TT.getFlow tt)
+                    val vs = texpVarset (ty,TVar.empty)
+                    val (sStr,si) = SC.toStringSI (TT.getSizes tt,SOME vs,si)
                  in
                      (str ^ tStr ^ bStr ^ sStr, si)
                  end
@@ -1236,8 +1243,8 @@ end = struct
          env
       end
 
-   fun equateKappas env = equateKappasGeneric (env,true) 
-   fun equateKappasFlow env = equateKappasGeneric (env,false)
+   fun equateKappas env = equateKappasGeneric (env,false) 
+   fun equateKappasFlow env = equateKappasGeneric (env,true)
 
    fun flipKappas env =
          case Scope.unwrap env of
@@ -1410,32 +1417,6 @@ end = struct
          Scope.update (sym, setStable, env)
       end                                                         
    
-
-   fun forceNoInputs (sym, fields, env) =
-      let
-         val tt = Scope.getTypeTable env
-         val fs = case TT.peekSymbol (sym,tt) of
-              (MONAD (r,RECORD (_,_,fs),out)) => fs
-            | FUN (args,(MONAD (r,RECORD (_,_,fs),out))) =>
-               List.foldl (fn (arg,fs) => case arg of
-                    RECORD (_,_,fs') => fs' @ fs
-                  | _ => fs) fs args
-            | FUN (args,_) =>
-               List.foldl (fn (arg,fs) => case arg of
-                    RECORD (_,_,fs') => fs' @ fs
-                  | _ => fs) [] args
-            | _ => []
-         fun checkField bVar =
-            (case TT.modifyFlow (BD.meetVarZero bVar,tt) of _ => true)
-            handle (BD.Unsatisfiable bVars) => false
-      in
-         List.foldl (fn (RField { name = f, fty, exists = bVar},fs) =>
-            if List.exists (fn s => SymbolTable.eq_symid(s,f)) fields
-            then fs
-            else if checkField bVar then fs else f :: fs)
-         [] fs
-      end
-
    fun finalize _ = ()
    
 end

@@ -397,12 +397,11 @@ int main (int argc, char** argv) {
 #if defined(gdsl_decoder_config)
       obj_t config;
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
-        config = gdsl_conf_next(s,config)) {
+        config = gdsl_conf_next(s,config))
         if (strcmp(arg,gdsl_conf_short(s,config))==0) {
           decode_options |= gdsl_conf_data(s,config);
           break;
         }
-      }
       if (gdsl_has_conf(s,config)) continue;
 #endif
       if (strncmp(arg,"base=",5)==0) {
@@ -474,7 +473,7 @@ int main (int argc, char** argv) {
         printf("%llx:\n",address);
         fputs(str,stdout);
 #else
-        fputs("GDSL modules contain no semantic translation\n")
+        fputs("GDSL modules contain no semantic translation\n",stdout);
         return 1;
 #endif
       } else {
@@ -484,7 +483,7 @@ int main (int argc, char** argv) {
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
 #else
-        fputs("GDSL modules contain no decoder function\n")
+        fputs("GDSL modules contain no decoder function\n",stdout);
         return 1;
 #endif
       }

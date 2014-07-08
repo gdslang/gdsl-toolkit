@@ -3,8 +3,9 @@ structure Spec = struct
    type sym = SymbolTable.symid
    type exp = SpecAbstractTree.exp
    type ty = SpecAbstractTree.ty
+
    datatype 'a t = IN of
-      {exports: sym list,
+      {exports: (sym list * ty) SymMap.map,
        typealias: (sym * ty) list,
        datatypes: (sym * (sym * ty option) list) list,
        constructors: (sym * ty option) SymMap.map,
@@ -25,7 +26,7 @@ structure Spec = struct
       val is = seq [space, str "=", space]
       fun spec pA t =
          align
-            [seq [str "export: ", is, i (length (get #exports t))],
+            [seq [str "export: ", is, i (SymMap.numItems (get #exports t))],
              seq [str "typealiases: ", is, i (length (get #typealias t))],
              seq [str "datatypes: ", is, i (length (get #datatypes t))],
              seq [str "constructors: ", is, i (SymMap.numItems (get #constructors t))],

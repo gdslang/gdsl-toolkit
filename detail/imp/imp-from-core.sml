@@ -13,9 +13,12 @@ end = struct
    open Core
    open Imp
    
+   structure AST = SpecAbstractTree
+
    val constructors: (Spec.sym * Spec.ty option) SymMap.map ref = ref SymMap.empty
    val datatypes : (Spec.sym * (Spec.sym * Spec.ty option) list) list ref = ref []
-   
+   val typealias : (sym * AST.ty) list ref = ref []
+
    fun freeVars (Exp.LETVAL (s,b,e)) =
       SymSet.union (freeVars b,
          SymSet.difference (freeVars e, SymSet.singleton s))
@@ -68,7 +71,7 @@ end = struct
      | freeVars _ = SymSet.empty
 
 
-   type state = { exported : SymSet.set,
+   type state = { exports : (sym list * SpecAbstractTree.ty) SymMap.map,
                   globalExp : exp SymMap.map ref,
                   declVars : SymSet.set ref,
                   resVar : SymbolTable.symid,
@@ -94,7 +97,7 @@ end = struct
          val (tab, res) = SymbolTable.fresh (tab, Atom.atom (str ^ "Res"))
          val _ = SymbolTables.varTable := tab
          val s' = {
-               exported = #exported s,
+               exports = #exports s,
                globalExp = #globalExp s,
                declVars = #declVars s,
                resVar = res,
@@ -143,7 +146,7 @@ end = struct
       let
          val localDecls = ref SymSet.empty
          val s' = f {
-               exported = #exported s,
+               exports = #exports s,
                globalExp = #globalExp s,
                declVars = localDecls,
                resVar = #resVar s,
@@ -598,8 +601,7 @@ end = struct
       in
          fn body =>
             addDecl s (FUNCdecl {
-              funcIsConst = null stdArgs andalso null clArgs andalso
-               not (SymSet.member (#exported s,sym)),
+              funcIsConst = null stdArgs andalso null clArgs,
               funcClosure = clArgs,
               funcType = fType,
               funcName = sym,
@@ -609,20 +611,23 @@ end = struct
             })
       end
 
-   fun translate spec =
+   fun translate (errs,spec) =
       Spec.upd
          (fn clauses =>
             let
                val () = constructors := Spec.get#constructors spec
                val () = datatypes := Spec.get#datatypes spec
+               val () = typealias := Spec.get#typealias spec
+               val exports = Spec.get#exports spec
+
                val decls = ref ([] : decl list)
                val fields = ref (SymMap.empty : vtype SymMap.map)
                val globs = foldl (fn (sym,m) => SymMap.insert (m,sym,IDexp sym))
                               SymMap.empty
                               (SymMap.listKeys (!Primitives.prim_map) @
                                SymMap.listKeys (!Primitives.prim_val_map))
-               val exported = SymSet.fromList (Spec.get#exports spec)
-               val initialState = { exported = exported,
+
+               val initialState = { exports = exports,
                                     globalExp = ref globs,
                                     declVars = ref SymSet.empty,
                                     resVar = SymbolTable.unsafeFromInt 1,
@@ -636,11 +641,14 @@ end = struct
             in
                { decls = !decls,
                  fdecls = !fields,
-                 exports = Spec.get #exports spec,
-                 monad = OBJvtype }
+                 exports = exports,
+                 typealias = List.foldl SymMap.insert' SymMap.empty (!typealias),
+                 datatypes = List.foldl SymMap.insert' SymMap.empty (!datatypes),
+                 monad = OBJvtype,
+                 errs = errs }
             end) spec
 
-   fun dumpPre (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)
+   fun dumpPre (os, (_,spec)) = Pretty.prettyTo (os, Core.PP.spec spec)
    fun dumpPost (os, spec) = Pretty.prettyTo (os, Imp.PP.spec spec)
  
    val translate =
@@ -653,5 +661,8 @@ end = struct
           postExt="imp",
           postOutput=dumpPost}
 
-   fun run spec = CM.return (translate spec)
+   open CompilationMonad
+   infix >>=
+   fun run spec = getErrorStream >>= (fn errs =>
+                  return (translate (errs,spec)))
 end

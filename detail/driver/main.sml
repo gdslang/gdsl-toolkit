@@ -14,16 +14,17 @@ structure Main = struct
          ImpPasses.run >>=
          (*Desugar.run ast >>=
          CPSPasses.run >>= *)
-         CodegenPasses.run 
+         CodegenPasses.run
          )))
       fun run fps = let
          val ers = Error.mkErrStream'()
          val () = Controls.set (BasicControl.verbose, 1)
          val () = Stats.resetAll()
-      in
-         CompilationMonad.run ers (all fps >> return ())
+         val () = CompilationMonad.run ers (all fps >> return ())
             before
                Stats.report()
+      in
+         Error.report (TextIO.stdErr, ers)
       end
 
       fun allTc ins = 
