@@ -1,5 +1,6 @@
 export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn} insn-length{length}
 export = decoder-config
+export = operands{insn}
 
 val decoder-config =
  conf '01' "mode64" "decode x86-64 instructions" &*
@@ -739,6 +740,18 @@ val insn-length insn = do
  insn <- return (@{fooooobarrrrrrr=42}insn);
  return insn.length
 end
+
+val operands x =
+  case (uarity-of x.insn) of
+     UA0: 0
+   | UA1 x: 1
+   | UA2 x: 2
+   | UA3 x: 3
+   | UA4 x: 4
+   | UAF x: 1
+  end
+
+val operands-force-types x = pretty x +++ (show-int (operands x))
 
 type varity =
    VA0
