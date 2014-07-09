@@ -220,9 +220,8 @@ static inline int_t consume ## size(state_t s) {          \
   return res;                                             \
 }
 
-GEN_CONSUME(8);
-GEN_CONSUME(16);
-GEN_CONSUME(32);
+@consumes@
+
 
 static int_t vec_to_signed(state_t s, vec_t v) {
   unsigned int bit_size = sizeof(int_t)*8;

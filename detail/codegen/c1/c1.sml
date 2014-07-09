@@ -123,7 +123,8 @@ structure C1 = struct
                   allocFuncs : int AtomMap.map ref,
                   constSymbols : SymSet.set,
                   preDeclEmit : Layout.t list ref,
-                  stateType : Imp.vtype ref }
+                  stateType : Imp.vtype ref,
+                  consumeSizes : IntListSet.set ref }
 
    fun isVOIDvtype VOIDvtype = true
      | isVOIDvtype _ = false
@@ -265,7 +266,8 @@ structure C1 = struct
            constSymbols = #constSymbols s,
            recordMapping = #recordMapping s,
            preDeclEmit = #preDeclEmit s,
-           stateType = #stateType s } : state
+           stateType = #stateType s,
+           consumeSizes = #consumeSizes s } : state
       end
    fun registerSymbol (sym,s : state) = regSym (sym, !SymbolTables.varTable, s)
    fun registerFSymbol (sym,s : state) = regSym (sym, !SymbolTables.fieldTable, s)
@@ -284,7 +286,8 @@ structure C1 = struct
         constSymbols = #constSymbols s,
         recordMapping = #recordMapping s,
         preDeclEmit = #preDeclEmit s,
-        stateType = #stateType s } : state
+        stateType = #stateType s,
+        consumeSizes = #consumeSizes s } : state
 
    fun setSym (sym, atom, s : state) =
       { names = #names s,
@@ -300,7 +303,8 @@ structure C1 = struct
         constSymbols = #constSymbols s,
         recordMapping = #recordMapping s,
         preDeclEmit = #preDeclEmit s,
-        stateType = #stateType s } : state
+        stateType = #stateType s,
+        consumeSizes = #consumeSizes s } : state
 
    fun par arg = seq [str "(", arg, str ")"]
    fun list (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
@@ -858,9 +862,9 @@ structure C1 = struct
      (*| emitPrim s (RSEEKprim, [e],_) = seq [str "gdsl_rseek(s, ", emitExp s e, str ")"]*)
      | emitPrim s (DIVprim, [e1, e2],_) = seq [str "(", emitExp s e1, str ")/(", emitExp s e2, str ")"]
      | emitPrim s (IPGETprim, [],_) = str "gdsl_get_ip_offset(s)"
-     | emitPrim s (CONSUME8prim, [],_) = str "consume8(s)"
-     | emitPrim s (CONSUME16prim, [],_) = str "consume16(s)"
-     | emitPrim s (CONSUME32prim, [],_) = str "consume32(s)"
+     | emitPrim s (CONSUME8prim, [],_) = (addConsume s 8; str "consume8(s)")
+     | emitPrim s (CONSUME16prim, [],_) = (addConsume s 16; str "consume16(s)")
+     | emitPrim s (CONSUME32prim, [],_) = (addConsume s 32; str "consume32(s)")
      | emitPrim s (UNCONSUME8prim, [],_) = str "s->ip-=1"
      | emitPrim s (UNCONSUME16prim, [],_) = str "s->ip-=2"
      | emitPrim s (UNCONSUME32prim, [],_) = str "s->ip-=4"
@@ -887,7 +891,9 @@ structure C1 = struct
      | emitPrim s (GET_CON_ARGprim, [_,e],[FUNvtype (_,_,[t]),_]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->payload"]
      | emitPrim s (VOIDprim, [],_) = str "0 /* void value */"
      | emitPrim s _ = raise CodeGenBug
-     
+   
+   and addConsume s n = #consumeSizes s := IntListSet.add (!(#consumeSizes s),n)
+
    fun emitDecl s (inSCC,FUNCdecl {
         funcIsConst = true,
         funcClosure = clArgs,
@@ -896,7 +902,8 @@ structure C1 = struct
         funcArgs = args,
         funcBody = block,
         funcRes = res
-      }) = emitDecl s (inSCC,FUNCdecl {
+      }) = if SymSet.member(#exports s, name) then
+       emitDecl s (inSCC,FUNCdecl {
         funcIsConst = false,
         funcClosure = clArgs,
         funcType = ty,
@@ -906,7 +913,7 @@ structure C1 = struct
            constant *)
         funcBody = BASICblock ([],[ASSIGNstmt (SOME res,CALLexp (IDexp name,[]))]),
         funcRes = res
-      })
+      }) else seq []
      | emitDecl s (inSCC,FUNCdecl {
         funcIsConst = false,
         funcClosure = clArgs,
@@ -1153,7 +1160,8 @@ structure C1 = struct
                constSymbols = constSymbols,
                recordMapping = recordMapping,
                preDeclEmit = ref [],
-               stateType = ref OBJvtype
+               stateType = ref OBJvtype,
+               consumeSizes = ref IntListSet.empty
             } : state
          val s = foldl registerSymbol s (map (getDeclName o #2) ds)
          val funs = map (emitDecl s) ds
@@ -1173,7 +1181,8 @@ structure C1 = struct
                constSymbols = #constSymbols s,
                recordMapping = #recordMapping s,
                preDeclEmit = #preDeclEmit s,
-               stateType = #stateType s
+               stateType = #stateType s,
+               consumeSizes = #consumeSizes s
             } : state
          val funDeclsPublic = map (emitDecl s) 
             (List.filter (fn (_,d) => SymSet.member(exports, getDeclName d)) ds)
@@ -1199,6 +1208,9 @@ structure C1 = struct
                   (AtomMap.listItemsi (!(#allocFuncs s))))
          val state = emitType s (SOME "state", !(#stateType s))
          val path = Controls.get BasicControl.runtimePath
+         val consumes =  List.map
+             (fn i => seq [str "GEN_CONSUME(", PP.I i, str ");"])
+             (IntListSet.listItems (!(#consumeSizes s)))
          val _ =
             C1Templates.expandHeader path outputName [
                C1Templates.mkHook ("init", str (prefix ^ "init")),
@@ -1226,6 +1238,7 @@ structure C1 = struct
                (*C1Templates.mkHook ("rseek", str (prefix ^ "rseek")),*)
                C1Templates.mkHook ("err_tgt", str (prefix ^ "err_tgt")),
                C1Templates.mkHook ("get_error_message", str (prefix ^ "get_error_message")),
+               C1Templates.mkHook ("consumes", align consumes),
                C1Templates.mkHook ("reset_heap", str (prefix ^ "reset_heap")),
                C1Templates.mkHook ("heap_residency", str (prefix ^ "heap_residency")),
                C1Templates.mkHook ("merge_rope", str (prefix ^ "merge_rope")),
