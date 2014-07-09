@@ -1,28 +1,85 @@
-export = rreil-sem-stmts-head rreil-sem-stmts-tail rreil-sem-stmts-has-more
-   rreil-sem-varls-head rreil-sem-varls-tail rreil-sem-varls-has-more
-   rreil-cif-userdata-set rreil-cif-userdata-get{userdata}
-   rreil-convert-sem-varl{sem_varl, sem_id, offset, size, id}
-   rreil-convert-sem-stmt-manual{sem_exception, branch_hint, sem_stmt, sem_flop, sem_varl, sem_expr, sem_expr_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
-   rreil-convert-sem-stmts{sem_stmts, sem_exception, branch_hint, sem_stmt, sem_flop, sem_varls, sem_varl, sem_expr, sem_expr_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
+export rreil-convert-sem-stmts : (callbacks, sem_stmt) -> ()
 
-#type callbacks =
-#   SEM_ID_CBS of {virt_na:string_, virt_t:string_}
-
-type sem_id_callbacks = {shared:int, virt_t:int, arch:int}
-type sem_address_callbacks = {sem_address_:int}
-type sem_var_callbacks = {sem_var_:int}
-type sem_linear_callbacks = {sem_lin_var:int, sem_lin_imm:int, sem_lin_add:int, sem_lin_sub:int, sem_lin_scale:int}
-type sem_sexpr_callbacks = {sem_sexpr_lin:int, sem_sexpr_cmp:int, sem_sexpr_arb:int}
-type sem_expr_cmp_callbacks = {sem_cmpeq:int, sem_cmpneq:int, sem_cmples:int, sem_cmpleu:int, sem_cmplts:int, sem_cmpltu:int}
-type sem_expr_callbacks = {sem_sexpr:int, sem_mul:int, sem_div:int, sem_divs:int, sem_mod:int, sem_mods:int, sem_shl:int, sem_shr:int, sem_shrs:int, sem_and:int, sem_or:int, sem_xor:int, sem_sx:int, sem_zx:int}
-type sem_varl_callbacks = {sem_varl_:int}
-type sem_varls_callbacks = {sem_varls_next:int, sem_varls_init:int}
-type sem_flop_callbacks = {sem_flop_:int}
-type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int, sem_flop:int, sem_prim:int, sem_throw:int}
-type branch_hint_callbacks = {branch_hint_:int}
-type sem_exception_callbacks = {shared:int, arch:int}
-type sem_stmts_callbacks = {sem_stmts_next:int, sem_stmts_init:int}
-#type sem_stmts_list_callbacks = {list_next:int, list_init:int}
+type sem_id_callbacks = {
+  shared: (int) -> (),
+  virt_t: (int) -> (),
+  arch: (sem_id) -> ()
+}
+type sem_address_callbacks = {
+  sem_address_: (int, ()) -> ()
+}
+type sem_var_callbacks = {
+  sem_var_: ((), int) -> ()
+}
+type sem_linear_callbacks = {
+  sem_lin_var: (()) -> (),
+  sem_lin_imm: (int) -> (),
+  sem_lin_add: ((), ()) -> (),
+  sem_lin_sub: ((), ()) -> (),
+  sem_lin_scale: (int, ()) -> ()
+}
+type sem_sexpr_callbacks = {
+  sem_sexpr_lin: (()) -> (),
+  sem_sexpr_cmp: (()) -> (),
+  sem_sexpr_arb: (()) -> ()
+}
+type sem_expr_cmp_callbacks = {
+  sem_cmpeq: ((), ()) -> (),
+  sem_cmpneq: ((), ()) -> (),
+  sem_cmples: ((), ()) -> (),
+  sem_cmpleu: ((), ()) -> (),
+  sem_cmplts: ((), ()) -> (),
+  sem_cmpltu: ((), ()) -> ()
+}
+type sem_expr_callbacks = {
+  sem_sexpr: (()) -> (),
+  sem_mul: ((), ()) -> (),
+  sem_div: ((), ()) -> (),
+  sem_divs: ((), ()) -> (),
+  sem_mod: ((), ()) -> (),
+  sem_mods: ((), ()) -> (),
+  sem_shl: ((), ()) -> (),
+  sem_shr: ((), ()) -> (),
+  sem_shrs: ((), ()) -> (),
+  sem_and: ((), ()) -> (),
+  sem_or: ((), ()) -> (),
+  sem_xor: ((), ()) -> (),
+  sem_sx: (int, ()) -> (),
+  sem_zx: (int, ()) -> ()
+}
+type sem_varl_callbacks = {
+  sem_varl_: ((), int, int) -> ()
+}
+type sem_varls_callbacks = {
+  sem_varls_next: ((), ()) -> (),
+  sem_varls_init: (()) -> ()
+}
+type sem_flop_callbacks = {
+  sem_flop_: (int) -> ()
+}
+type sem_stmt_callbacks = {
+  sem_assign: (int, (), ()) -> (),
+  sem_load: (int, (), ()) -> (),
+  sem_store: (int, (), ()) -> (),
+  sem_ite: ((), (), ()) -> (),
+  sem_while: ((), ()) -> (),
+  sem_cbranch: ((), (), ()) -> (),
+  sem_branch: ((), ()) -> (),
+  sem_flop: ((), (), (), ()) -> (),
+  sem_prim: ((), (), ()) -> (),
+  sem_throw: (()) -> ()
+}
+type branch_hint_callbacks = {
+  branch_hint_: (int) -> ()
+}
+type sem_exception_callbacks = {
+  shared: (int) -> (),
+  arch: (()) -> ()
+}
+type sem_stmts_callbacks = {
+  sem_stmts_next: ((), ()) -> (),
+  sem_stmts_init: (()) -> ()
+}
 
 type callbacks = {
   sem_id:sem_id_callbacks,

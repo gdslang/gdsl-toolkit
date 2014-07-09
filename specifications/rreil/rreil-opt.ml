@@ -1,4 +1,5 @@
-export = decode-translate-block-optimized{insns} decode-translate-block-optimized-int{insns} decode-translate-block-optimized-int-insncb{insns}
+export decode-translate-block-optimized-int : (decoder-configuration, int, int) -> S opt-result <{} => {}>
+export decode-translate-block-optimized-int-insncb : (decoder-configuration, int, int, (), ((), insndata) -> ()) -> S opt-result <{} => {}>
 
 type sem_preservation =
    SEM_PRESERVATION_EVERYWHERE

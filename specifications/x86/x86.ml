@@ -1,12 +1,14 @@
-export config-default : 2
-export config-mode64  : 2
-export config-default-opnd-sz-32 : 2
-export decode : (2) -> S insndata <{} => {}>
+export config-default : decoder-configuration
+export config-mode64  : decoder-configuration
+export config-default-opnd-sz-32 : decoder-configuration
+export decode : (decoder-configuration) -> S insndata <{} => {}>
 export features-get : (insndata) -> int
 export typeof-opnd : (insndata,int) -> int
 export insn-length : (insndata) -> int
 export decoder-config : configuration[vec=2]
 export operands : (insndata) -> int
+
+type decoder-configuration = 2
 
 val decoder-config =
  conf '01' "mode64" "decode x86-64 instructions" &*

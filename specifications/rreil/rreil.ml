@@ -1,5 +1,5 @@
 # vim:ai:filetype=sml:ts=3:sw=3:expandtab
-export = rreil-stmts-count
+export rreil-stmts-count : (sem_stmts) -> int
 
 type sem_id =
    FLOATING_FLAGS

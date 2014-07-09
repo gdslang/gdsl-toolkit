@@ -4,7 +4,7 @@
 #   - arch-show-id
 #   - arch-show-exception
 
-export = rreil-pretty
+export rreil-pretty : (sem_stmt) -> rope
 
 val rreil-pretty-stmt s = rreil-show-stmt s
 val rreil-pretty ss = rreil-show-stmts ss
