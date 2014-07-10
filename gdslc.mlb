@@ -5,7 +5,7 @@ local
    $(SML_LIB)/smlnj-lib/PP/pp-lib.mlb
    $(SML_LIB)/smlnj-lib/Controls/controls-lib.mlb
    $(SML_LIB)/smlnj-lib/RegExp/regexp-lib.mlb
-   $(SML_LIB)/mllpt-lib/ml-lpt-lib.mlb
+   detail/external/mllpt-lib/ml-lpt-lib.mlb
    (*$(SML_LIB)/ml-lpt/lib/ml-lpt-lib.mlb*)
    $(SML_LIB)/basis/mlton.mlb
 in
