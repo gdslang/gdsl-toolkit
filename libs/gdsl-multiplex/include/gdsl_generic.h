@@ -216,6 +216,7 @@ typedef struct {
   obj_t (*scale)(state_t,obj_t,obj_t);
   obj_t (*bounded)(state_t,obj_t,obj_t);
   obj_t (*sign)(state_t,obj_t,obj_t);
+  obj_t (*composite)(state_t,obj_t);
 } unboxed_asm_opnd_callbacks_t;
 typedef unboxed_asm_opnd_callbacks_t* asm_opnd_callbacks_t;
 typedef struct {

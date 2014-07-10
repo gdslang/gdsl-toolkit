@@ -1,7 +1,7 @@
 export = asm-convert-insn{opnd, insn, annotations, opnds, boundary, annotation, immediate, length, mnemonic, annotations, opnds, signedness}
 
 type asm_opnds_callbacks = {opnds_next:int, init:int}
-type asm_opnd_callbacks = {opnd_register:int, memory:int, imm:int, post_op:int, pre_op:int, rel:int, annotated:int, sum:int, scale:int, bounded:int, sign:int}
+type asm_opnd_callbacks = {opnd_register:int, memory:int, imm:int, post_op:int, pre_op:int, rel:int, annotated:int, sum:int, scale:int, bounded:int, sign:int, composite:int}
 type asm_signedness_callbacks = {asm_signed:int, asm_unsigned:int}
 type asm_boundary_callbacks = {sz:int, sz_o:int}
 type asm_annotations_callbacks = {annotations_next:int, init:int}
@@ -40,6 +40,7 @@ val asm-convert-opnd cbs opnd = case opnd of
  | ASM_SCALE s: cbs.opnd.scale s.factor (asm-convert-opnd cbs s.rhs)
  | ASM_BOUNDED b: cbs.opnd.bounded (asm-convert-boundary cbs b.boundary) (asm-convert-opnd cbs b.opnd)
  | ASM_SIGN s: cbs.opnd.sign (asm-convert-signedness cbs s.signedness) (asm-convert-opnd cbs s.opnd)
+ | ASM_COMPOSITE c: cbs.opnd.composite (asm-convert-opnds cbs c)
 end
 
 val asm-convert-signedness cbs signedness = case signedness of

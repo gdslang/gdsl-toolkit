@@ -11,6 +11,7 @@ import gdsl.asm.boundary.SizeBoundary;
 import gdsl.asm.boundary.SizeOffsetBoundary;
 import gdsl.asm.operand.Annotated;
 import gdsl.asm.operand.Bounded;
+import gdsl.asm.operand.Composite;
 import gdsl.asm.operand.Immediate;
 import gdsl.asm.operand.Memory;
 import gdsl.asm.operand.Operand;
@@ -89,6 +90,12 @@ public class GeneralizerBackend {
   
   private Object sign(Object signedness, Object operand) {
     return new Sign((Signedness)signedness, (Operand)operand);
+  }
+  
+  private Object composite(Object operands_) {
+    @SuppressWarnings("unchecked")
+    ArrayList<Operand> operands = (ArrayList<Operand>)operands_;
+    return new Composite(operands.toArray(new Operand[0]));
   }
   
   // signedness

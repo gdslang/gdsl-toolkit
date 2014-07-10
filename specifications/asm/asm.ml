@@ -16,6 +16,7 @@ type asm-opnd =
  | ASM_SCALE of {factor:int, rhs:asm-opnd}
  | ASM_BOUNDED of {boundary: asm-boundary, opnd:asm-opnd}
  | ASM_SIGN of {signedness:asm-signedness, opnd:asm-opnd}
+ | ASM_COMPOSITE of asm-opnd-list
 
 type asm-signedness =
    ASM_SIGNED
@@ -51,6 +52,7 @@ val asm-annotated a opnd = ASM_ANNOTATED {ann=a, opnd=opnd}
 val asm-sum l r = ASM_SUM {lhs=l, rhs=r}
 val asm-scale f r = ASM_SCALE {factor=f, rhs=r}
 val asm-bounded b o = ASM_BOUNDED {boundary=b, opnd=o}
+val asm-composite c = ASM_COMPOSITE c
 
 val asm-boundary-sz sz = ASM_BOUNDARY_SZ sz
 val asm-boundary-sz-o sz o = ASM_BOUNDARY_SZ_O {size=sz, offset=o}
