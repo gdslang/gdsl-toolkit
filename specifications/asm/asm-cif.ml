@@ -1,14 +1,42 @@
-export = asm-convert-insn{opnd, insn, annotations, opnds, boundary, annotation, immediate, length, mnemonic, annotations, opnds, signedness}
+export asm-convert-insn: (asm_callbacks, asm-insn) -> ()
 
-type asm_opnds_callbacks = {opnds_next:int, init:int}
-type asm_opnd_callbacks = {opnd_register:int, memory:int, imm:int, post_op:int, pre_op:int, rel:int, annotated:int, sum:int, scale:int, bounded:int, sign:int}
-type asm_signedness_callbacks = {asm_signed:int, asm_unsigned:int}
-type asm_boundary_callbacks = {sz:int, sz_o:int}
-type asm_annotations_callbacks = {annotations_next:int, init:int}
-type asm_annotation_callbacks = {ann_string:int, function:int, opnd:int}
+type asm_opnds_callbacks = {
+  opnds_next: ((), ()) -> (),
+  init: (()) -> ()
+}
+type asm_opnd_callbacks = {
+  opnd_register: (string) -> (),
+  memory: (()) -> (),
+  imm: (int) -> (),
+  post_op: ((), ()) -> (),
+  pre_op: ((), ()) -> (),
+  rel: (()) -> (),
+  annotated: ((), ()) -> (),
+  sum: ((), ()) -> (),
+  scale: (int, ()) -> (),
+  bounded: ((), ()) -> (),
+  sign: ((), ()) -> ()
+}
+type asm_signedness_callbacks = {
+  asm_signed: (()) -> (),
+  asm_unsigned: (()) -> ()
+}
+type asm_boundary_callbacks = {
+  sz: (int) -> (),
+  sz_o: (int, int) -> ()
+}
+type asm_annotations_callbacks = {
+  annotations_next: ((), ()) -> (),
+  init: (()) -> ()
+}
+type asm_annotation_callbacks = {
+  ann_string: (string) -> (),
+  function: (string, ()) -> (),
+  opnd: (string, ()) -> ()
+}
 
 type asm_callbacks = {
-  insn:int,
+  insn: (int, string, (), ()) -> (),
   opnds:asm_opnds_callbacks,
   opnd:asm_opnd_callbacks,
   signedness:asm_signedness_callbacks,

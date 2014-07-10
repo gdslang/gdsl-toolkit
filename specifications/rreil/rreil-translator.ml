@@ -1,4 +1,7 @@
-export = translate{length, addr-sz, opnd-sz, lock, rep, repne, features, insn, mode64} decode-translate-block{insns} decode-translate-block-insns{insns} decode-translate-single{insns} decode-translate-super-block{insns} succ-pretty
+export translate: (insndata) -> S sem_stmts <{} => {}>
+export decode-translate-block: (decoder-configuration, int) -> S sem_stmts <{} => {}>
+export decode-translate-block-insns: (decoder-configuration, int, ((), insndata) -> ()) -> S sem_stmts <{} => {}>
+#decode-translate-single{insns} decode-translate-super-block{insns} succ-pretty
 
 val insn-append-default a b = a
 
@@ -16,15 +19,15 @@ val decode-translate-block-headless config limit insn-append = do
 end
 
 val decode-translate-block config limit = do
-   update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
+  update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
 	stmts <- decode-translate-block-headless config limit insn-append-default;
-   return (rreil-stmts-rev stmts)
+  return (rreil-stmts-rev stmts)
 end
 
 val decode-translate-block-insns config limit insn-append = do
-   update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
+  update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
 	stmts <- decode-translate-block-headless config limit insn-append;
-   return (rreil-stmts-rev stmts)
+  return (rreil-stmts-rev stmts)
 end
 
 val decode-translate-single config = decode-translate-block config 0

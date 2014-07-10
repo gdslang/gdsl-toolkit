@@ -1,4 +1,4 @@
-export = cleanup
+export cleanup: (sem_stmts) -> sem_stmts
 
 type stmt_option =
    STO_MORE of sem_stmts

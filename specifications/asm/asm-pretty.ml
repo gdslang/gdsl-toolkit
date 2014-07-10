@@ -1,4 +1,4 @@
-export = asm-pretty{mnemonic, opnds, annotations}
+export asm-pretty: (asm-insn) -> rope
 
 val asm-pretty ai = (from-string-lit ai.mnemonic) +++ show/asm-annotations ai.annotations -++ show/asm-opnds " " ai.opnds
 

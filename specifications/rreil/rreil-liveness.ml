@@ -2,18 +2,6 @@
 
 # LIVENESS based on fields
 
-export =
-   lv-kill
-   lv-kills
-   lv-gen
-   lv-gens
-   lv-union
-   lv-pretty
-   lv-analyze
-   liveness liveness_super{insns,succ_a,succ_b}
-#   lvstate-pretty
-#   lv-sweep-and-collect-upto-native-flow
-
 val visit-semvarls visitor-semvar set varls = case varls of
    SEM_VARLS_CONS c: lv-union (visitor-semvar set c.hd.size c.hd) (visit-semvarls visitor-semvar set c.tl)
  | SEM_VARLS_NIL: set
