@@ -34,7 +34,7 @@ in
   decode-translate-block-optimized-insncb config limit pres default-append
 end
 
-type opt_result = {
+type opt-result = {
   insns:int, rreil:sem_stmts
 }
 

@@ -742,7 +742,7 @@ type arity2 = {opnd1:x86-opnd,opnd2:x86-opnd}
 type arity3 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd}
 type arity4 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd,opnd4:x86-opnd}
 
-type x86-insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:x86-insn}
+type insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:x86-insn}
 
 val insn-length insn = insn.length
 

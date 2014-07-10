@@ -1,6 +1,6 @@
 # vim: filetype=sml:ts=3:sw=3:expandtab
 
-export translate: (insndata) -> S sem_stmts <{} => {}>
+#export translate: (insndata) -> S sem_stmts <{} => {}>
 
 type sem_exception =
    SEM_DIVISION_OVERFLOW
