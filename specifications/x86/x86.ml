@@ -2070,13 +2070,13 @@ val sib-without-index reg = do
     | '01':
       do
         rBP <- return (reg rex rexb '101'); # rBP
-  segmentation-set-for-base rBP;
+        segmentation-set-for-base rBP;
         return rBP
       end
     | '10':
       do
         rBP <- return (reg rex rexb '101'); # rBP
-  segmentation-set-for-base rBP;
+        segmentation-set-for-base rBP;
         return rBP
       end
    end

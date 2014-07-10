@@ -1085,7 +1085,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
 
    and infPat stenv (AST.MARKpat m) = reportError infPat stenv m
-     | infPat (st,env) (AST.LITpat lit) = (0, infLit (st,env) lit)
+     | infPat (st,env) (AST.INTpat lit) = (0, E.pushType (ZENO, env))
      | infPat (st,env) (AST.IDpat v) =
       let
          val (t, env) = E.pushLambdaVar' (v,env)
@@ -1134,6 +1134,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infPat (st,env) (AST.CONpat (c, NONE)) =
          (0, infExp (st,env) (AST.CONexp c))
+     | infPat (st,env) (AST.BITpat l) =
+         List.foldl (fn (b,(n,env)) => case infBitpat (st,env) b of
+                        (nArgs, env) => (n+nArgs, env)) (0, env) l
      | infPat (st,env) (AST.WILDpat) = (0, E.pushTop env)
    and infLit (st,env) (AST.INTlit i) = E.pushType (ZENO, env)
      | infLit (st,env) (AST.FLTlit f) = E.pushType (FLOAT, env)
