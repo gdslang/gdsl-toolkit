@@ -15,7 +15,8 @@ type asm_opnd_callbacks = {
   sum: ((), ()) -> (),
   scale: (int, ()) -> (),
   bounded: ((), ()) -> (),
-  sign: ((), ()) -> ()
+  sign: ((), ()) -> (),
+  composite: (()) -> ()
 }
 type asm_signedness_callbacks = {
   asm_signed: (()) -> (),
@@ -68,6 +69,7 @@ val asm-convert-opnd cbs opnd = case opnd of
  | ASM_SCALE s: cbs.opnd.scale s.factor (asm-convert-opnd cbs s.rhs)
  | ASM_BOUNDED b: cbs.opnd.bounded (asm-convert-boundary cbs b.boundary) (asm-convert-opnd cbs b.opnd)
  | ASM_SIGN s: cbs.opnd.sign (asm-convert-signedness cbs s.signedness) (asm-convert-opnd cbs s.opnd)
+ | ASM_COMPOSITE c: cbs.opnd.composite (asm-convert-opnds cbs c)
 end
 
 val asm-convert-signedness cbs signedness = case signedness of

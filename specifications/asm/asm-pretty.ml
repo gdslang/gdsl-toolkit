@@ -19,6 +19,7 @@ val show/asm-opnd opnd = case opnd of
  | ASM_SCALE s: show-int s.factor +++ "*" +++ show/asm-opnd s.rhs
  | ASM_BOUNDED b: show/asm-opnd b.opnd +++ show/asm-boundary b.boundary
  | ASM_SIGN s: show/asm-signedness s.signedness +++ "(" +++ show/asm-opnd s.opnd +++ ")"
+ | ASM_COMPOSITE c: show/asm-opnds ":" c
 end
 
 val show/asm-signedness s = case s of
