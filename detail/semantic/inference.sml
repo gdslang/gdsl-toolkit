@@ -1135,8 +1135,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infPat (st,env) (AST.CONpat (c, NONE)) =
          (0, infExp (st,env) (AST.CONexp c))
      | infPat (st,env) (AST.BITpat l) =
-         List.foldl (fn (b,(n,env)) => case infBitpat (st,env) b of
+      let
+         val (n,env) = List.foldl (fn (b,(n,env)) => case infBitpat (st,env) b of
                         (nArgs, env) => (n+nArgs, env)) (0, env) l
+         val env = List.foldl (fn (b,env) => infBitpatSize (st,env) b)
+                                 env l
+         val env = E.reduceToSum (List.length l,env)
+         val env = E.constToVec env
+      in
+         (n,env)
+      end
      | infPat (st,env) (AST.WILDpat) = (0, E.pushTop env)
    and infLit (st,env) (AST.INTlit i) = E.pushType (ZENO, env)
      | infLit (st,env) (AST.FLTlit f) = E.pushType (FLOAT, env)

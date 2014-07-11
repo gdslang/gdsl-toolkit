@@ -78,6 +78,9 @@ structure EnvironmentProfiling : sig
 
    (*stack: [..., tn, ..., t2, t1, t0] -> [..., SUM (tn,..t0)]*)
    val reduceToSum : int * environment -> environment
+
+   (*stack: [..., t] -> [..., |t|]*)
+   val constToVec : environment -> environment
    
    (*stack: [...,t1,t2,...,tn] -> [...,(t1, ... t n-1) -> tn]*)
    val reduceToFunction : environment * int -> environment
@@ -207,6 +210,7 @@ end = struct
    val pushLambdaVar = wrap (E.pushLambdaVar, otherData)
    val reduceToRecord = wrap (E.reduceToRecord, reduceData)
    val reduceToSum = wrap (E.reduceToSum, reduceData)
+   val constToVec = wrap (E.constToVec, reduceData)
    val reduceToFunction = wrap (E.reduceToFunction, reduceData)
    val reduceToResult = wrap (E.reduceToResult, reduceData)
    val return = wrap (E.return, otherData)

@@ -245,7 +245,7 @@ functor MkAst (Core: AST_CORE) = struct
                    align [str "else", indent 3 (exp elsee)]]
           | CASEexp (e, cs) =>
                align
-                  [seq [str "case", space, exp e, str "of"],
+                  [seq [str "case", space, exp e, space, str "of"],
                    indent 3 (alignPrefix (map casee cs, "| "))]
           | BINARYexp (e1, opid, e2) =>
                seq [exp e1, space, infixop opid, space, exp e2]
