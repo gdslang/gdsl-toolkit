@@ -1,84 +1,84 @@
-export rreil-convert-sem-stmts : (callbacks, sem_stmt) -> ()
+export rreil-convert-sem-stmts : (callbacks, sem_stmt) -> ptr
 
 type sem_id_callbacks = {
-  shared: (int) -> (),
-  virt_t: (int) -> (),
-  arch: (sem_id) -> ()
+  shared: (int) -> ptr,
+  virt_t: (int) -> ptr,
+  arch: (sem_id) -> ptr
 }
 type sem_address_callbacks = {
-  sem_address_: (int, ()) -> ()
+  sem_address_: (int, ptr) -> ptr
 }
 type sem_var_callbacks = {
-  sem_var_: ((), int) -> ()
+  sem_var_: (ptr, int) -> ptr
 }
 type sem_linear_callbacks = {
-  sem_lin_var: (()) -> (),
-  sem_lin_imm: (int) -> (),
-  sem_lin_add: ((), ()) -> (),
-  sem_lin_sub: ((), ()) -> (),
-  sem_lin_scale: (int, ()) -> ()
+  sem_lin_var: (ptr) -> ptr,
+  sem_lin_imm: (int) -> ptr,
+  sem_lin_add: (ptr, ptr) -> ptr,
+  sem_lin_sub: (ptr, ptr) -> ptr,
+  sem_lin_scale: (int, ptr) -> ptr
 }
 type sem_sexpr_callbacks = {
-  sem_sexpr_lin: (()) -> (),
-  sem_sexpr_cmp: (()) -> (),
-  sem_sexpr_arb: (()) -> ()
+  sem_sexpr_lin: (ptr) -> ptr,
+  sem_sexpr_cmp: (ptr) -> ptr,
+  sem_sexpr_arb: (ptr) -> ptr
 }
 type sem_expr_cmp_callbacks = {
-  sem_cmpeq: ((), ()) -> (),
-  sem_cmpneq: ((), ()) -> (),
-  sem_cmples: ((), ()) -> (),
-  sem_cmpleu: ((), ()) -> (),
-  sem_cmplts: ((), ()) -> (),
-  sem_cmpltu: ((), ()) -> ()
+  sem_cmpeq: (ptr, ptr) -> ptr,
+  sem_cmpneq: (ptr, ptr) -> ptr,
+  sem_cmples: (ptr, ptr) -> ptr,
+  sem_cmpleu: (ptr, ptr) -> ptr,
+  sem_cmplts: (ptr, ptr) -> ptr,
+  sem_cmpltu: (ptr, ptr) -> ptr
 }
 type sem_expr_callbacks = {
-  sem_sexpr: (()) -> (),
-  sem_mul: ((), ()) -> (),
-  sem_div: ((), ()) -> (),
-  sem_divs: ((), ()) -> (),
-  sem_mod: ((), ()) -> (),
-  sem_mods: ((), ()) -> (),
-  sem_shl: ((), ()) -> (),
-  sem_shr: ((), ()) -> (),
-  sem_shrs: ((), ()) -> (),
-  sem_and: ((), ()) -> (),
-  sem_or: ((), ()) -> (),
-  sem_xor: ((), ()) -> (),
-  sem_sx: (int, ()) -> (),
-  sem_zx: (int, ()) -> ()
+  sem_sexpr: (ptr) -> ptr,
+  sem_mul: (ptr, ptr) -> ptr,
+  sem_div: (ptr, ptr) -> ptr,
+  sem_divs: (ptr, ptr) -> ptr,
+  sem_mod: (ptr, ptr) -> ptr,
+  sem_mods: (ptr, ptr) -> ptr,
+  sem_shl: (ptr, ptr) -> ptr,
+  sem_shr: (ptr, ptr) -> ptr,
+  sem_shrs: (ptr, ptr) -> ptr,
+  sem_and: (ptr, ptr) -> ptr,
+  sem_or: (ptr, ptr) -> ptr,
+  sem_xor: (ptr, ptr) -> ptr,
+  sem_sx: (int, ptr) -> ptr,
+  sem_zx: (int, ptr) -> ptr
 }
 type sem_varl_callbacks = {
-  sem_varl_: ((), int, int) -> ()
+  sem_varl_: (ptr, int, int) -> ptr
 }
 type sem_varls_callbacks = {
-  sem_varls_next: ((), ()) -> (),
-  sem_varls_init: (()) -> ()
+  sem_varls_next: (ptr, ptr) -> ptr,
+  sem_varls_init: (ptr) -> ptr
 }
 type sem_flop_callbacks = {
-  sem_flop_: (int) -> ()
+  sem_flop_: (int) -> ptr
 }
 type sem_stmt_callbacks = {
-  sem_assign: (int, (), ()) -> (),
-  sem_load: (int, (), ()) -> (),
-  sem_store: (int, (), ()) -> (),
-  sem_ite: ((), (), ()) -> (),
-  sem_while: ((), ()) -> (),
-  sem_cbranch: ((), (), ()) -> (),
-  sem_branch: ((), ()) -> (),
-  sem_flop: ((), (), (), ()) -> (),
-  sem_prim: ((), (), ()) -> (),
-  sem_throw: (()) -> ()
+  sem_assign: (int, ptr, ptr) -> ptr,
+  sem_load: (int, ptr, ptr) -> ptr,
+  sem_store: (int, ptr, ptr) -> ptr,
+  sem_ite: (ptr, ptr, ptr) -> ptr,
+  sem_while: (ptr, ptr) -> ptr,
+  sem_cbranch: (ptr, ptr, ptr) -> ptr,
+  sem_branch: (ptr, ptr) -> ptr,
+  sem_flop: (ptr, ptr, ptr, ptr) -> ptr,
+  sem_prim: (ptr, ptr, ptr) -> ptr,
+  sem_throw: (ptr) -> ptr
 }
 type branch_hint_callbacks = {
-  branch_hint_: (int) -> ()
+  branch_hint_: (int) -> ptr
 }
 type sem_exception_callbacks = {
-  shared: (int) -> (),
-  arch: (()) -> ()
+  shared: (int) -> ptr,
+  arch: (ptr) -> ptr
 }
 type sem_stmts_callbacks = {
-  sem_stmts_next: ((), ()) -> (),
-  sem_stmts_init: (()) -> ()
+  sem_stmts_next: (ptr, ptr) -> ptr,
+  sem_stmts_init: (ptr) -> ptr
 }
 
 type callbacks = {
