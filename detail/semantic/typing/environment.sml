@@ -94,6 +94,9 @@ structure Environment : sig
    (*stack: [..., tn, ..., t2, t1, t0] -> [..., SUM (tn,..t0)]*)
    val reduceToSum : int * environment -> environment
 
+   (*stack: [..., t] -> [..., |t|]*)
+   val constToVec : environment -> environment
+
    (*stack: [...,(a1,..an) -> r,t1,t2,...,tn] -> [...,(a1,..an) -> r,{t1},{t2},...,{tn}]
       if ai is a set *)
    val expandArguments : environment * int -> environment
@@ -1090,6 +1093,18 @@ end = struct
       in
          rTS (n, [], 0, env)
       end
+
+   fun constToVec env =
+      let
+         val tt = Scope.getTypeTable env
+         val (kappa,env) =  case Scope.unwrap env of
+              (KAPPA {kappa}, env) => (kappa,env)
+            | _ => raise InferenceBug
+         val ty = TT.getSymbol (kappa,tt)
+         val _ = TT.addSymbol (kappa,VEC ty,tt)
+      in
+        Scope.wrap (KAPPA {kappa=kappa}, env)
+      end 
 
    fun expandArguments (env,nArgs) = if nArgs=0 then env else
       let
