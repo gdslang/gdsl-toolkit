@@ -18,7 +18,6 @@ structure DesugarDecode = struct
    end
 
    val tok = Atom.atom "tok"
-   val slice = Atom.atom "slice"
    val return = Atom.atom "return"
    val raisee = Atom.atom "raise"
 
@@ -57,17 +56,6 @@ structure DesugarDecode = struct
                (!SymbolTables.varTable, unconsume))
    in
       Exp.ACTION unconsume
-   end
-
-   fun sliceExp (tok, offs, sz) = let
-      open Exp
-      fun INT i = LIT (SpecAbstractTree.INTlit (IntInf.fromInt i))
-      val slice =
-         ID
-            (VarInfo.lookup
-               (!SymbolTables.varTable, slice))
-   in
-      APP (slice, [ID tok, INT offs, INT sz])
    end
 
    fun returnExp tok = let
@@ -191,7 +179,7 @@ structure DesugarDecode = struct
                                      offs + sz,
                                      Exp.BIND
                                        (n,
-                                        sliceExp (tok, offs, sz))::acc)
+                                        DT.sliceExp (tok, offs, sz))::acc)
                            end
          in
             if VS.length toks = 0

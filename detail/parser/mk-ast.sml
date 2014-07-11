@@ -104,9 +104,10 @@ functor MkAst (Core: AST_CORE) = struct
 
    and pat =
       MARKpat of pat mark
-    | LITpat of lit
+    | INTpat of IntInf.int
     | IDpat of var_bind
     | CONpat of con_use * pat option
+    | BITpat of bitpat list
     | WILDpat
 
    and lit =
@@ -215,10 +216,11 @@ functor MkAst (Core: AST_CORE) = struct
       and pat t =
          case t of
             MARKpat t' => pat (#tree t')
-          | LITpat l => lit l
+          | INTpat i => int i
           | IDpat n => var_bind n
           | CONpat (n, SOME p) => seq [con_use n, space, pat p]
           | CONpat (n, _) => con_use n
+          | BITpat bp => listex "'" "'" "" (map bitpat bp)
           | WILDpat => str "_"
 
       and lit t =

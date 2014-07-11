@@ -338,10 +338,11 @@ end = struct
       and convPat s p = 
          case p of
             PT.MARKpat m => AST.MARKpat (convMark convPat m)
-          | PT.LITpat lit => AST.LITpat (convLit s lit)
+          | PT.INTpat i => AST.INTpat i
           | PT.IDpat v => AST.IDpat (newVar (s,v))
           | PT.CONpat (c, SOME p) => AST.CONpat (useCon (s,c), SOME (convPat s p))
           | PT.CONpat (c, NONE) => AST.CONpat (useCon (s,c), NONE)
+          | PT.BITpat bp => AST.BITpat (map (convBitpat s) bp)
           | PT.WILDpat => AST.WILDpat
 
       and convLit s l =

@@ -162,13 +162,12 @@ TyBind
    ;
 
 DecodePat
-   : BitPat => (BitPat)
+   : BitPat => (mark PT.MARKdecodepat (FULL_SPAN, PT.BITdecodepat BitPat))
    | TokPat => (mark PT.MARKdecodepat (FULL_SPAN, PT.TOKENdecodepat TokPat))
    ;
 
 BitPat
-   : "'" PrimBitPat+ "'" =>
-      (mark PT.MARKdecodepat (FULL_SPAN, PT.BITdecodepat PrimBitPat))
+   : "'" PrimBitPat+ "'" => (PrimBitPat)
    ;
 
 TokPat
@@ -237,9 +236,10 @@ Cases
 
 Pat
    : "_" => (mark PT.MARKpat (FULL_SPAN, PT.WILDpat))
-   | Lit => (mark PT.MARKpat (FULL_SPAN, PT.LITpat Lit))
+   | Int => (mark PT.MARKpat (FULL_SPAN, PT.INTpat Int))
    | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat Name))
    | ConUse Pat? => (mark PT.MARKpat (FULL_SPAN, PT.CONpat (ConUse, Pat)))
+   | BitPat => (mark PT.MARKpat (FULL_SPAN, PT.BITpat BitPat))
    ;
 
 OrElseExp
