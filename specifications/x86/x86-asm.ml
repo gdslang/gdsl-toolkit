@@ -45,5 +45,3 @@ val generalize-segment-override so = case so of
 #   in f end
 end
 
-
-val fooo insn = asm-pretty (generalize insn)
