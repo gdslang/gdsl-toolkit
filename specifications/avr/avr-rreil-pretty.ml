@@ -1,4 +1,5 @@
-export = pretty-arch-id pretty-arch-exception
+export pretty-arch-id: (sem_id) -> rope
+export pretty-arch-exception: (sem_exception) -> rope
 
 val arch-show-id r =
   case r of

@@ -1,4 +1,4 @@
-export = translate
+#export = translate
 
 val sem-adc bo = do
   rd <- rval Unsigned bo.first;
@@ -1160,7 +1160,7 @@ val semantics insn =
   | XCH x: sem-xch x
 end
 
-val translate-avr insn = semantics insn
+val translate-avr insn = semantics insn.insn
 
 val translate insn = do
   update@{stack=SEM_NIL,tmp=0,lab=0};

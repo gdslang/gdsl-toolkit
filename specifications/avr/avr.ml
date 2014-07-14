@@ -1,4 +1,7 @@
-export = config-default decode
+export config-default: decoder-configuration
+export decode: (decoder-configuration) -> S insndata <{} => {}>
+
+type decoder-configuration = 0
 
 val d ['bit:1'] = do
  rd <- query $rd;

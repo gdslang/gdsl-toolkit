@@ -1,6 +1,6 @@
 # vim:ts=3:sw=3:expandtab
 
-export = pretty
+export pretty : (insndata) -> rope
 
 val pretty i = show/instruction i
 
