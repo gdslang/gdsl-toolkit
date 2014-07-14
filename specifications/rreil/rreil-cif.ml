@@ -1,9 +1,9 @@
-export rreil-convert-sem-stmts : (callbacks, sem_stmt) -> ptr
+export rreil-convert-sem-stmts : (callbacks, sem_stmts) -> ptr
 
 type sem_id_callbacks = {
   shared: (int) -> ptr,
   virt_t: (int) -> ptr,
-  arch: (sem_id) -> ptr
+  arch: (string) -> ptr
 }
 type sem_address_callbacks = {
   sem_address_: (int, ptr) -> ptr
@@ -21,7 +21,7 @@ type sem_linear_callbacks = {
 type sem_sexpr_callbacks = {
   sem_sexpr_lin: (ptr) -> ptr,
   sem_sexpr_cmp: (ptr) -> ptr,
-  sem_sexpr_arb: (ptr) -> ptr
+  sem_sexpr_arb: (()) -> ptr
 }
 type sem_expr_cmp_callbacks = {
   sem_cmpeq: (ptr, ptr) -> ptr,
@@ -52,7 +52,7 @@ type sem_varl_callbacks = {
 }
 type sem_varls_callbacks = {
   sem_varls_next: (ptr, ptr) -> ptr,
-  sem_varls_init: (ptr) -> ptr
+  sem_varls_init: (()) -> ptr
 }
 type sem_flop_callbacks = {
   sem_flop_: (int) -> ptr
@@ -66,7 +66,7 @@ type sem_stmt_callbacks = {
   sem_cbranch: (ptr, ptr, ptr) -> ptr,
   sem_branch: (ptr, ptr) -> ptr,
   sem_flop: (ptr, ptr, ptr, ptr) -> ptr,
-  sem_prim: (ptr, ptr, ptr) -> ptr,
+  sem_prim: (string, ptr, ptr) -> ptr,
   sem_throw: (ptr) -> ptr
 }
 type branch_hint_callbacks = {
@@ -74,11 +74,11 @@ type branch_hint_callbacks = {
 }
 type sem_exception_callbacks = {
   shared: (int) -> ptr,
-  arch: (ptr) -> ptr
+  arch: (string) -> ptr
 }
 type sem_stmts_callbacks = {
   sem_stmts_next: (ptr, ptr) -> ptr,
-  sem_stmts_init: (ptr) -> ptr
+  sem_stmts_init: (()) -> ptr
 }
 
 type callbacks = {
@@ -117,7 +117,7 @@ val rreil-cif-userdata-get = query $userdata
 val rreil-convert-sem-id cbs id = case id of
    FLOATING_FLAGS: cbs.sem_id.shared 0
  | VIRT_T t: cbs.sem_id.virt_t t
- | _: cbs.sem_id.arch id
+ | _: cbs.sem_id.arch (string-from-rope-lit (pretty-arch-id id))
 end
 
 val rreil-convert-sem-address cbs address = cbs.sem_address.sem_address_ address.size (rreil-convert-sem-linear cbs address.address)
@@ -213,7 +213,7 @@ type sem_exception =
 
 val rreil-convert-sem-exception cbs exception = case exception of
    SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared 0
- | _: cbs.sem_exception.arch exception
+ | _: cbs.sem_exception.arch (string-from-rope-lit (pretty-arch-exception exception))
 end
 
 val rreil-convert-sem-stmt cbs stmt = case stmt of

@@ -1,5 +1,5 @@
-export example_a : (()) -> S sem_stmts <{} => {}>
-export example_b : (()) -> S sem_stmts <{} => {}>
+export example_a : S sem_stmts <{} => {}>
+export example_b : S sem_stmts <{} => {}>
 
 val example_a = do
   update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};

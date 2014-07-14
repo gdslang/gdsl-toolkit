@@ -1,5 +1,5 @@
 export decode-translate-block-optimized-int : (decoder-configuration, int, int) -> S opt-result <{} => {}>
-export decode-translate-block-optimized-int-insncb : (decoder-configuration, int, int, (), ((), insndata) -> ()) -> S opt-result <{} => {}>
+export decode-translate-block-optimized-int-insncb : (decoder-configuration, int, int, ptr, (ptr, insndata) -> ptr) -> S opt-result <{} => {}>
 
 type sem_preservation =
    SEM_PRESERVATION_EVERYWHERE
@@ -35,7 +35,8 @@ in
 end
 
 type opt-result = {
-  insns:int, rreil:sem_stmts
+  insns: ptr,
+  rreil: sem_stmts
 }
 
 val decode-translate-block-optimized-int-insncb config limit pres insns-initv insn-append = do
@@ -52,5 +53,5 @@ end
 val decode-translate-block-optimized-int config limit pres = let
   val default-append a b = a
 in
-  decode-translate-block-optimized-int-insncb config limit pres {} default-append
+  decode-translate-block-optimized-int-insncb config limit pres PTR default-append
 end
