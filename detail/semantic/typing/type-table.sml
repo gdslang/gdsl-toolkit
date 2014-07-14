@@ -1209,6 +1209,7 @@ end = struct
          fun delRef (v,LEAF (kOpt,syms)) =
             let
                val newSet = SymSet.delete (syms,sym)
+               handle _ => (TextIO.print ("delSymbol: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " does not have type var " ^ #1 (TVar.varToString (v,TVar.emptyShowInfo)) ^ "\n"); raise TypeTableError)
                val kOpt = if SymSet.isEmpty newSet then
                   (unusedTVars := TVar.add (v,!unusedTVars)
                   ;case kOpt of SOME sym =>
@@ -1335,11 +1336,13 @@ end = struct
          val st = #symTable table
 
          (* track all updates to the table so that we can revert them in case of a type error *)
-         val undoSet = ref ([] : (int * typeinfo) list)
+         val undoTISet = ref ([] : (int * typeinfo) list)
+         val undoSTSet = ref ([] : (SymbolTable.symid * entry) list)
+
          fun ttSetLocal (v,t) = 
             let
                val idx = TVar.toIdx (ttFind (tt,v))
-               val _ = undoSet := (idx,DA.sub (tt,idx)):: !undoSet
+               val _ = undoTISet := (idx,DA.sub (tt,idx)):: !undoTISet
                val _ = DA.update (tt,idx,t)
             in
                ()
@@ -1625,6 +1628,7 @@ end = struct
                      val (fpStr, si) = Path.toStringSI (fp,si)
                      val _ = TextIO.print ("renaming " ^ vBadStr ^ " to " ^ vGoodStr ^ " in " ^ fpStr ^ "\n")*)
 
+                     val _ = undoSTSet := (sym,{ flow = fp, info = idx }) :: !undoSTSet
                      val fp = Path.renameVariable (vVar,rVar,fp)
                      val _ = HT.insert st (sym, {flow = fp, info = idx})
                   in
@@ -1655,6 +1659,8 @@ end = struct
                let
                   val { flow = fp, info = index } = HT.lookup st sym
                      handle IndexError => (TextIO.print ("getExpandInfoForSym: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
+                  val _ = undoSTSet := (sym,{ flow = fp, info = index }) :: !undoSTSet
+
                   val (fp, expandInfo) = Path.insertSteps (fp,vVar,stepsLeafList)
                   val _ = HT.insert st (sym, { flow = fp, info = index })
                in
@@ -1682,7 +1688,8 @@ end = struct
    in
       fixpoint [(v1,v2)]
          handle S.UnificationFailure str =>
-            (List.app (fn (v,t) => DA.update (tt,v,t)) (!undoSet)
+            (List.app (fn (v,t) => DA.update (tt,v,t)) (!undoTISet)
+            ;List.app (fn (s,e) => HT.insert st (s,e)) (!undoSTSet)
             ;raise S.UnificationFailure str)
    end
          

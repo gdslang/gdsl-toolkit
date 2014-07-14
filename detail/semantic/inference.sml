@@ -1246,7 +1246,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    fun checkExports _ (AST.MARKdecl {span=s, tree=t},env) = checkExports s (t,env)
      | checkExports s (AST.EXPORTdecl (sym,_,_),env) =
-        checkExport (s,sym,SymMap.lookup (exportTypes,sym),env)
+        checkExport (s,sym,case SymMap.find (exportTypes,sym) of SOME ty => ty | NONE =>
+           (TextIO.print ("can't find exported type of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^"\n"); raise TypeError),env)
      | checkExports s (_,env) = env
    val toplevelEnv = List.foldl (checkExports SymbolTable.noSpan) toplevelEnv ast
    

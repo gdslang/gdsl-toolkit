@@ -2,7 +2,7 @@ export asm-convert-insn: (asm_callbacks, asm-insn) -> ptr
 
 type asm_opnds_callbacks = {
   opnds_next: (ptr, ptr) -> ptr,
-  init: (ptr) -> ptr
+  init: (()) -> ptr
 }
 type asm_opnd_callbacks = {
   opnd_register: (string) -> ptr,
@@ -19,8 +19,8 @@ type asm_opnd_callbacks = {
   composite: (ptr) -> ptr
 }
 type asm_signedness_callbacks = {
-  asm_signed: (ptr) -> ptr,
-  asm_unsigned: (ptr) -> ptr
+  asm_signed: (()) -> ptr,
+  asm_unsigned: (()) -> ptr
 }
 type asm_boundary_callbacks = {
   sz: (int) -> ptr,
@@ -28,7 +28,7 @@ type asm_boundary_callbacks = {
 }
 type asm_annotations_callbacks = {
   annotations_next: (ptr, ptr) -> ptr,
-  init: (ptr) -> ptr
+  init: (()) -> ptr
 }
 type asm_annotation_callbacks = {
   ann_string: (string) -> ptr,
