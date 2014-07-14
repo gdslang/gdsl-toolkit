@@ -50,7 +50,7 @@ val show/instruction insn = let
     | UA3 a: mnemonic -++ show/ternop a
    end
 in
-   traverse show/ua insn
+   traverse show/ua insn.insn
 end
 
 val show/register r =

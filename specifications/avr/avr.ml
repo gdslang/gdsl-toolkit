@@ -518,7 +518,10 @@ val config-default = ''
 
 val decode config = do
   update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
-  /
+  idx-before <- idxget;
+  insn <- /;
+  idx-after <- idxget;
+  return {length=(idx-after - idx-before), insn=insn}
 end
 
 val force-int-for-decode-config = decode config-default
@@ -553,6 +556,8 @@ type operand =
 type ternop = {first:operand,second:operand,third:operand}
 type binop = {first:operand,second:operand}
 type unop = {operand:operand}
+
+type insndata = {length:int, insn:instruction}
 
 type instruction =
    ADC of binop
