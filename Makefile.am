@@ -165,7 +165,8 @@ GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 
 GDSL_BASIS = \
 	$(srcdir)/specifications/basis/prelude.ml \
-	$(srcdir)/specifications/basis/selectors.ml 
+	$(srcdir)/specifications/basis/tree-set.ml \
+	$(srcdir)/specifications/basis/bbtree.ml
 
 GDSL_ASM = \
 	$(srcdir)/specifications/asm/asm-cif.ml \
@@ -210,12 +211,12 @@ GDSL_MIPSSEM = \
 
 GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/fmap.ml \
-	$(srcdir)/specifications/basis/bbtree.ml \
 	$(srcdir)/specifications/rreil/rreil.ml \
 	$(srcdir)/specifications/rreil/rreil-examples.ml \
 	$(srcdir)/specifications/rreil/rreil-cif.ml \
 	$(srcdir)/specifications/rreil/rreil-pretty.ml \
 	$(srcdir)/specifications/rreil/rreil-liveness.ml \
+	$(srcdir)/specifications/rreil/rreil-forward-subst.ml \
 	$(srcdir)/specifications/rreil/rreil-cleanup.ml \
   $(srcdir)/specifications/rreil/rreil-opt.ml \
   $(srcdir)/specifications/rreil/rreil-translator.ml
