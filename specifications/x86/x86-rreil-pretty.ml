@@ -75,7 +75,6 @@ end
 
 val pretty-arch-id r = arch-show-id r
 
-val arch-show-exception exception =
-   case exception of
-      SEM_DIVISION_OVERFLOW: "{Exception: Division overflow}"
-   end
+val pretty-arch-exception exception = case exception of
+   SEM_DIVISION_OVERFLOW: "{Exception: Division overflow}"
+end

@@ -148,5 +148,5 @@ val rreil-show-id id =
 val rreil-show-exception exception =
    case exception of
       SEM_DIVISION_BY_ZERO: "{Exception: Division by zero}"
-    | _: arch-show-exception exception
+    | _: pretty-arch-exception exception
    end
