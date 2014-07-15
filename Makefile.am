@@ -189,7 +189,7 @@ GDSL_X86SEM = \
 
 GDSL_AVR = \
 	$(srcdir)/specifications/avr/avr.ml \
-	$(srcdir)/specifications/avr/avr-util.ml \
+	$(srcdir)/specifications/avr/avr-traverse.ml \
 	$(srcdir)/specifications/avr/avr-pretty.ml
 
 GDSL_AVRSEM = \
