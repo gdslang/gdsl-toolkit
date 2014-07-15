@@ -1,7 +1,7 @@
-export cleanup: (sem_stmts) -> S sem_stmts <{} => {}>
+export cleanup: (sem_stmt_list) -> S sem_stmt_list <{} => {}>
 
 type stmt_option =
-   STO_MORE of sem_stmts
+   STO_MORE of sem_stmt_list
  | STO_SOME of sem_stmt
  | STO_NONE
 

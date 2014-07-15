@@ -36,7 +36,7 @@ end
 
 type opt-result = {
   insns: insn_list_obj,
-  rreil: sem_stmts
+  rreil: sem_stmt_list
 }
 
 val decode-translate-block-optimized-int-insncb config limit pres insns-initv insn-append = do
