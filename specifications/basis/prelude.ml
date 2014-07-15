@@ -206,4 +206,4 @@ val forceConfType x =
      x
    end
 
-type ptr = PTR
+type obj = OBJ

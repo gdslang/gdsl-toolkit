@@ -527,8 +527,6 @@ val decode config = do
   return {length=(idx-after - idx-before), insn=insn}
 end
 
-val force-int-for-decode-config = decode config-default
-
 type side-effect =
    NONE
  | INCR of int

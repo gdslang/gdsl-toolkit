@@ -25,8 +25,6 @@ val decode config = do
   /
 end
 
-val force-int-for-decode-config = decode config-default
-
 type imm =
    IMM16 of 16
 

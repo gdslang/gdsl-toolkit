@@ -1,5 +1,5 @@
 # vim:ai:filetype=sml:ts=3:sw=3:expandtab
-export rreil-stmts-count : (sem_stmts) -> int
+export rreil-stmts-count : (sem_stmt_list) -> int
 
 type sem_id =
    FLOATING_FLAGS
@@ -56,8 +56,8 @@ type sem_expr =
 
 type sem_varl = {id:sem_id, offset:int, size:int}
 
-type sem_varls =
-   SEM_VARLS_CONS of {hd:sem_varl, tl:sem_varls}
+type sem_varl_list =
+   SEM_VARLS_CONS of {hd:sem_varl, tl:sem_varl_list}
  | SEM_VARLS_NIL
 
 type sem_flop =
@@ -69,12 +69,12 @@ type sem_stmt =
    SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr} #size denotes the size of right-hand side operands
  | SEM_LOAD of {size:int, lhs:sem_var, address:sem_address}
  | SEM_STORE of {size:int, address:sem_address, rhs:sem_linear}
- | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmts, else_branch:sem_stmts}
- | SEM_WHILE of {cond:sem_sexpr, body:sem_stmts}
+ | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmt_list, else_branch:sem_stmt_list}
+ | SEM_WHILE of {cond:sem_sexpr, body:sem_stmt_list}
  | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}
  | SEM_BRANCH of {hint:branch_hint, target:sem_address}
- | SEM_FLOP of {op:sem_flop, flags:sem_var, lhs:sem_varl, rhs:sem_varls}
- | SEM_PRIM of {op:string, lhs:sem_varls, rhs:sem_varls}
+ | SEM_FLOP of {op:sem_flop, flags:sem_var, lhs:sem_varl, rhs:sem_varl_list}
+ | SEM_PRIM of {op:string, lhs:sem_varl_list, rhs:sem_varl_list}
  | SEM_THROW of sem_exception
 
 type branch_hint =
@@ -82,8 +82,8 @@ type branch_hint =
   | HINT_CALL
   | HINT_RET
 
-type sem_stmts =
-   SEM_CONS of {hd:sem_stmt, tl:sem_stmts}
+type sem_stmt_list =
+   SEM_CONS of {hd:sem_stmt, tl:sem_stmt_list}
  | SEM_NIL
 
 val rreil-stmts-rev stmts =
