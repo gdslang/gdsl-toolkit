@@ -108,8 +108,7 @@ Program
 
 Decl
    : "export" Qid TyVars ":" Ty => (markDecl (FULL_SPAN, PT.EXPORTdecl (Qid,TyVars,Ty)))
-   | "type" Name TyVars "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, TyVars, ConDecls)))
-   | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
+   | "type" Name TyVars "=" TyDef => (TyDef (Name, TyVars))
    | "val" Name Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
    | "val" Sym Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
    | "val" (MID Name => ((MID,Name)))* "=" Exp => (
@@ -131,6 +130,12 @@ TyVars
    : "[" Name ("," Name)* "]" => (Name :: SR)
    | (* empty *) => ([])
    ;
+
+TyDef
+   : ConDecls => (fn (name,tvars) => markDecl (FULL_SPAN, PT.DATATYPEdecl (name, tvars, ConDecls)))
+   | Ty => (fn (name,tvars) => markDecl (FULL_SPAN, PT.TYPEdecl (name, Ty)))
+   ;
+
 ConDecls
    : ConDecl ("|" ConDecl)* => (ConDecl::SR)
    ;
@@ -141,6 +146,8 @@ ConDecl
 
 Ty
    : Int => (mark PT.MARKty (FULL_SPAN, PT.BITty Int))
+   | "|" Int "|" => (mark PT.MARKty (FULL_SPAN, PT.BITty Int))
+   | "|" Qid "|" => (mark PT.MARKty (FULL_SPAN, PT.NAMEDty (Qid,[])))
    | Qid =>
          (mark PT.MARKty (FULL_SPAN, PT.NAMEDty (Qid,[])))
    | Qid "[" TyBind ("," TyBind)* "]"=>
