@@ -749,13 +749,9 @@ structure TypeRefinement = struct
    val debugOn = ref false
    fun msg str = if !debugOn then TextIO.print str else ()
    
-   (* This flag determines if we infer which variables contain records with
+   (* This flag determines if we infer that variables contain records with
       a fixed set of fields (i.e. those records where update functions never
-      add but only replace fields). Unfortunately, the design of imp uses
-      functions rather than expressions to extract and update records.
-      This means that it is not easily possible to emit code that
-      differs between selecting a field from a varidadic record and a fixed
-      record. Hence, this flag must stay false for now. *)
+      add but only replace fields). *)
    val genFixedRecords = ref true
 
    exception TypeOptBug
@@ -1154,7 +1150,7 @@ structure TypeRefinement = struct
             lub (s, visitExp s e1, visitExp s e2)
         | PRIexp (ANDprim,_,[VEC2INTexp (NONE,e1),VEC2INTexp (NONE,e2)]) =>
             lub (s, visitExp s e1, visitExp s e2)
-        | _ => raise TypeOptBug
+        | e => (lub (s, INTstype, visitExp s e); BITstype VOIDstype)
       )
      | visitExp s (INT2VECexp (sz,e)) = (lub (s, INTstype, visitExp s e); BITstype (CONSTstype sz))
      | visitExp s (CLOSUREexp (t,sym,es)) =
@@ -1615,9 +1611,11 @@ structure TypeRefinement = struct
                   val dt = SymMap.insert (dt,sym,[]) (* avoid infinite recursion *)
                   fun restrictConType (cSym,NONE) = ()
                     | restrictConType (cSym,SOME ty) =
-                        (lub (s,SymMap.lookup (conDef,cSym),
-                               trType (ta,dt,quantVars,conDef,VOIDstype,s) ty)
-                        ;())
+                       case SymMap.find (conDef,cSym) of
+                          SOME conTy => ignore
+                            (lub (s,conTy,
+                               trType (ta,dt,quantVars,conDef,VOIDstype,s) ty))
+                        | NONE => () (* only live constructors are in this map *)
                   val _ = List.app restrictConType cons
                in
                   OBJstype
@@ -1671,7 +1669,7 @@ structure TypeRefinement = struct
       }) = (case SymMap.find (es,f) of NONE => () | SOME (quant,ty) =>
       let
          (*val _ = TextIO.print ("setArgsToType for export " ^
-            SymbolTable.getString(!SymbolTables.varTable, f) ^ "\n") *)
+            SymbolTable.getString(!SymbolTables.varTable, f) ^ "\n")*)
          val srcloc = case ty of
               (AST.MARKty {span=s, tree}) => s
             | _ => SymbolTable.noSpan
