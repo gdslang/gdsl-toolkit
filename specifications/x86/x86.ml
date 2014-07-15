@@ -28,30 +28,31 @@ end
 val force-int-for-decode-config = decode config-default
 
 val main config = do
-   t <- query $tab;
-   update
-      @{mode64=test-opt config-mode64 config,
-        repne='0',
-        rep='0',
-        rex='0',
-        rexw='0',
-        rexb='0',
-        rexr='0',
-        rexx='0',
-        addrsz='0',
-        opndsz='0',
-        lock='0',
-        segment=SEG_NONE,
-        default-operand-size=if test-opt config-default-opnd-sz-32 config then 32 else 16,
-        ptrty=32, #TODO: check
-        ~tab};
-
-   idx-before <- idxget;
-   instr <- p64;
-   idx-after <- idxget;
-
-   update @{tab=t};
-   return (@{length=(idx-after - idx-before)} instr)
+  t <- query $tab;
+  update @{
+    mode64=test-opt config-mode64 config,
+    repne='0',
+    rep='0',
+    rex='0',
+    rexw='0',
+    rexb='0',
+    rexr='0',
+    rexx='0',
+    addrsz='0',
+    opndsz='0',
+    lock='0',
+    segment=SEG_NONE,
+    default-operand-size=if test-opt config-default-opnd-sz-32 config then 32 else 16,
+    ptrty=32, #TODO: check
+    ~tab
+  };
+  
+  idx-before <- idxget;
+  instr <- p64;
+  idx-after <- idxget;
+  
+  update @{tab=t};
+  return (@{length=(idx-after - idx-before), config=config} instr)
 end
 
 val complement v = not v
@@ -742,7 +743,7 @@ type arity2 = {opnd1:x86-opnd,opnd2:x86-opnd}
 type arity3 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd}
 type arity4 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd,opnd4:x86-opnd}
 
-type insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:x86-insn}
+type insndata = {length:int,features:19,config:decoder-configuration,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:x86-insn}
 
 val insn-length insn = insn.length
 
