@@ -1,4 +1,7 @@
 export rreil-convert-sem-stmt-list : (callbacks, sem_stmt_list) -> sem_stmt_list_obj
+export rreil-cif-userdata-set: (obj) -> S () <{} => {userdata: obj}>
+export rreil-cif-userdata-get: S obj <{userdata: obj} => {userdata: obj}>
+
 
 type sem_id_callbacks = {
   shared: (int) -> sem_id_obj,
