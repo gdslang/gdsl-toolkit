@@ -1,5 +1,7 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
+export select_live: S sem_stmt_list <{live: sem_stmt_list} => {live: sem_stmt_list}>
+
 # LIVENESS based on fields
 
 val visit-semvarls visitor-semvar set varls = case varls of
@@ -205,6 +207,8 @@ val live-stack-backup-and-reset = do
   update @{live=SEM_NIL,maybelive=SEM_NIL};
 	return {live=live,maybelive=maybelive}
 end
+
+val select_live = query $live
 
 val live-stack-restore backup = update @{live=backup.live,maybelive=backup.maybelive}
 

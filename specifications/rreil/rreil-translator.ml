@@ -1,21 +1,22 @@
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 export decode-translate-block: (decoder-configuration, int) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
 export decode-translate-block-insns: (decoder-configuration, int, (insn_list_obj, insndata) -> insn_list_obj) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
+export select_ins_count: S int <{ins_count: int} => {ins_count: int}>
 #decode-translate-single{insns} decode-translate-super-block{insns} succ-pretty
 
 val insn-append-default a b = a
 
 val decode-translate-block-headless config limit insn-append = do
-   insn <- decode config;
-   insns <- query $insns;
-   update @{insns=insn-append insns insn};
-   translate-block-single insn;
-   jmp <- query $foundJump;
-   idx <- idxget;
-   if jmp or (idx >= limit) then
-     query $stack
-   else
-     decode-translate-block-headless config limit insn-append
+  insn <- decode config;
+  insns <- query $insns;
+  update @{insns=insn-append insns insn};
+  translate-block-single insn;
+  jmp <- query $foundJump;
+  idx <- idxget;
+  if jmp or (idx >= limit) then
+    query $stack
+  else
+    decode-translate-block-headless config limit insn-append
 end
 
 val decode-translate-block config limit = do
@@ -29,6 +30,8 @@ val decode-translate-block-insns config limit insn-append = do
 	stmts <- decode-translate-block-headless config limit insn-append;
   return (rreil-stmts-rev stmts)
 end
+
+val select_ins_count = query $ins_count
 
 val decode-translate-single config = decode-translate-block config 0
 

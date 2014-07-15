@@ -206,4 +206,6 @@ val forceConfType x =
      x
    end
 
+# Type for the representation of user-defined data structures exchanged through
+# the native interface
 type obj = OBJ
