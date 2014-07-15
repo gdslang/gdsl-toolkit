@@ -1,7 +1,7 @@
 export asm-convert-insn: (asm_callbacks, asm-insn) -> insn_obj
 
-type asm_opnds_callbacks = {
-  opnds_next: (opnd_obj, opnd_list_obj) -> opnd_list_obj,
+type asm_opnd_list_callbacks = {
+  opnd_list_next: (opnd_obj, opnd_list_obj) -> opnd_list_obj,
   init: (()) -> opnd_list_obj
 }
 type asm_opnd_callbacks = {
@@ -26,8 +26,8 @@ type asm_boundary_callbacks = {
   sz: (int) -> boundary_obj,
   sz_o: (int, int) -> boundary_obj
 }
-type asm_annotations_callbacks = {
-  annotations_next: (annotation_obj, annotation_list_obj) -> annotation_list_obj,
+type asm_annotation_list_callbacks = {
+  annotation_list_next: (annotation_obj, annotation_list_obj) -> annotation_list_obj,
   init: (()) -> annotation_list_obj
 }
 type asm_annotation_callbacks = {
@@ -38,11 +38,11 @@ type asm_annotation_callbacks = {
 
 type asm_callbacks = {
   insn: (int, string, annotation_list_obj, opnd_list_obj) -> insn_obj,
-  opnds:asm_opnds_callbacks,
+  opnd_list:asm_opnd_list_callbacks,
   opnd:asm_opnd_callbacks,
   signedness:asm_signedness_callbacks,
   boundary:asm_boundary_callbacks,
-  annotations:asm_annotations_callbacks,
+  annotation_list:asm_annotation_list_callbacks,
   annotation:asm_annotation_callbacks
 }
 
@@ -59,10 +59,10 @@ val asm-convert-insn cbs insn = cbs.insn insn.length insn.mnemonic (asm-convert-
 val asm-convert-opnds cbs opnds = let
   val convert-inner list opnds = case opnds of
      ASM_OPNDS_NIL: list
-   | ASM_OPNDS_CONS next: convert-inner (cbs.opnds.opnds_next (asm-convert-opnd cbs next.hd) list) next.tl
+   | ASM_OPNDS_CONS next: convert-inner (cbs.opnd_list.opnd_list_next (asm-convert-opnd cbs next.hd) list) next.tl
   end
 in
-  convert-inner (cbs.opnds.init void) opnds
+  convert-inner (cbs.opnd_list.init void) opnds
 end
 
 val asm-convert-opnd cbs opnd = case opnd of
@@ -93,10 +93,10 @@ end
 val asm-convert-annotations cbs anns = let
   val convert-inner list anns = case anns of
      ASM_ANNS_NIL: list
-   | ASM_ANNS_CONS next: convert-inner (cbs.annotations.annotations_next (asm-convert-annotation cbs next.hd) list) next.tl
+   | ASM_ANNS_CONS next: convert-inner (cbs.annotation_list.annotation_list_next (asm-convert-annotation cbs next.hd) list) next.tl
   end
 in
-  convert-inner (cbs.annotations.init void) anns
+  convert-inner (cbs.annotation_list.init void) anns
 end
 
 val asm-convert-annotation cbs ann = case ann of
