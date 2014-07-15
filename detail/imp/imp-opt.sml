@@ -2196,6 +2196,8 @@ structure DeadFunctions = struct
      | visitExp s (RECORDexp (rs,t,fs)) = RECORDexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (SELECTexp (rs,t,f,e)) = SELECTexp (rs,t,f,visitExp s e)
      | visitExp s (UPDATEexp (rs,t,fs,e)) = UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs,visitExp s e)
+     | visitExp s (LITexp (t,CONlit tag)) = (#refdTags s := SymSet.add (!(#refdTags s),tag); LITexp (t,CONlit tag))
+     | visitExp s (LITexp l) = LITexp l
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
@@ -2203,7 +2205,6 @@ structure DeadFunctions = struct
      | visitExp s (CLOSUREexp (t,sym,es)) = (refSym s sym; CLOSUREexp (t,(applyReplace (s,sym)),map (visitExp s) es))
      | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b, t, visitExp s e)
      | visitExp s (EXECexp (t, e)) = EXECexp (t, visitExp s e)
-     | visitExp s e = e
 
    fun visitDecl s (FUNCdecl {
         funcIsConst = isConst,
@@ -2250,10 +2251,10 @@ structure DeadFunctions = struct
          fun fixpoint _ =
             let
                val reachable = List.filter (fn d => SymSet.member (!(#referenced s),getDeclName d)) ds
-               val oldSize = SymSet.numItems (!(#referenced s))
+               val oldSize = SymSet.numItems (!(#referenced s)) + SymSet.numItems (!(#refdTags s))
                val reachable = map (visitDecl s) reachable
                val _ = app (visitCDecl s) reachable
-               val newSize = SymSet.numItems (!(#referenced s))
+               val newSize = SymSet.numItems (!(#referenced s)) + SymSet.numItems (!(#refdTags s))
             in
                if newSize>oldSize then fixpoint () else reachable
             end
