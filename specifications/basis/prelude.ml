@@ -205,3 +205,5 @@ val forceConfType x =
    in
      x
    end
+
+type obj = OBJ

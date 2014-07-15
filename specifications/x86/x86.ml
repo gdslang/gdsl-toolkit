@@ -25,8 +25,6 @@ val decode config = do
    main config
 end
 
-val force-int-for-decode-config = decode config-default
-
 val main config = do
   t <- query $tab;
   update @{
@@ -695,8 +693,6 @@ in
   end
 end
 
-val typeof-opnd-force-types x = pretty x +++ (show-int (typeof-opnd x 0))
-
 type flowopnd =
    REL8 of 8
  | REL16 of 16
@@ -756,8 +752,6 @@ val operands x =
    | UA4 x: 4
    | UAF x: 1
   end
-
-val operands-force-types x = pretty x +++ (show-int (operands x))
 
 type varity =
    VA0

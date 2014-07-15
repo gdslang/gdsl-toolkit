@@ -213,9 +213,6 @@ in
   cbs.sem_flop.sem_flop_ enum
 end
 
-type sem_exception =
-   FIX_INTERFACE of int
-
 val rreil-convert-sem-exception cbs exception = case exception of
    SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared 0
  | _: cbs.sem_exception.arch (string-from-rope-lit (pretty-arch-exception exception))

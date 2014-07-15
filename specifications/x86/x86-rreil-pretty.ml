@@ -79,8 +79,3 @@ val arch-show-exception exception =
    case exception of
       SEM_DIVISION_OVERFLOW: "{Exception: Division overflow}"
    end
-
-val pretty-arch-exception exception = case exception of
-   FIX_INTERFACE i: case 0 of 1: "" end
- | _: arch-show-exception exception
-end

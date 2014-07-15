@@ -323,8 +323,4 @@ val pretty-operand x i =
      end
   end
 
-val pretty-operand-force-types x = pretty x +++ (pretty-operand x 0)
-
 val pretty-mnemonic x = show/mnemonic x.insn
-
-val pretty-mnemonic-force-types x = pretty x +++ (pretty-mnemonic x)
