@@ -403,7 +403,7 @@ end = struct
    val runSane = false
 
    (*restrict which symbols toString prints*)
-   val debugSymbol : int option = NONE (*SOME 821*)
+   val debugSymbol : int option = NONE (*SOME 839*)
 
    type index = TVar.tvar
 
@@ -1372,12 +1372,12 @@ end = struct
 
                val v1 = ttFind (tt,v1)
                val v2 = ttFind (tt,v2)
-               val _ = if TVar.eq (v1,v2) then () else
-                  unifyTT (v1, v2, ttGet (tt,v1), ttGet (tt,v2))
+               val _ = unifyTT (v1, v2, ttGet (tt,v1), ttGet (tt,v2))
             in
                fixpoint pairs
             end
          and unifyTT (v1, v2, LEAF (kOpt1,symSet1), LEAF (kOpt2,symSet2)) =
+               if TVar.eq (v1,v2) then () else
                let
                   val _ = if not unifyVerbose then () else TextIO.print ("unifying LEAFs\n")
                   val symSet12 = SymSet.union (symSet1,symSet2)
@@ -1405,7 +1405,9 @@ end = struct
                in
                   ()
                end
-           | unifyTT (v1, v2, TERM t1, TERM t2) = (if not unifyVerbose then () else TextIO.print ("unifying TERM/TERM " ^ #1 (showTypeTermSI (t1,TVar.emptyShowInfo)) ^ "="  ^ #1 (showTypeTermSI (t2,TVar.emptyShowInfo)) ^ "\n"); genPairs (v1,v2, t1,t2))
+           | unifyTT (v1, v2, TERM t1, TERM t2) = 
+              if TVar.eq (v1,v2) then () else
+              (if not unifyVerbose then () else TextIO.print ("unifying TERM/TERM " ^ #1 (showTypeTermSI (t1,TVar.emptyShowInfo)) ^ "="  ^ #1 (showTypeTermSI (t2,TVar.emptyShowInfo)) ^ "\n"); genPairs (v1,v2, t1,t2))
            | unifyTT (v1, v2, LEAF (NONE,symSet), TERM t2) = substVar (v1,symSet,v2,t2)
            | unifyTT (v1, v2, TERM t1, LEAF (NONE,symSet)) = substVar (v2,symSet,v1,t1)
            | unifyTT _ = raise TypeTableError
@@ -1723,6 +1725,9 @@ end = struct
 
    fun equateSymbolsFlow (sym1,sym2,table : table) =
       let
+         val _ = if SOME (SymbolTable.toInt sym1)=debugSymbol orelse SOME (SymbolTable.toInt sym2)=debugSymbol then (
+               TextIO.print ("equateSymbolsFlow " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ ":\n" ^ #1 (toStringSI ([sym1,sym2],[],table,TVar.emptyShowInfo)) ^ "\nend of type\n")
+            ) else ()
          val _ = if not verbose then () else
             TextIO.print ("equateSymbolsFlow " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ "\n")
          val st = #symTable table
