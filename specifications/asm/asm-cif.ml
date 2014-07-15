@@ -1,43 +1,43 @@
-export asm-convert-insn: (asm_callbacks, asm-insn) -> ptr
+export asm-convert-insn: (asm_callbacks, asm-insn) -> insn_obj
 
 type asm_opnds_callbacks = {
-  opnds_next: (ptr, ptr) -> ptr,
-  init: (()) -> ptr
+  opnds_next: (opnd_obj, opnd_list_obj) -> opnd_list_obj,
+  init: (()) -> opnd_list_obj
 }
 type asm_opnd_callbacks = {
-  opnd_register: (string) -> ptr,
-  memory: (ptr) -> ptr,
-  imm: (int) -> ptr,
-  post_op: (ptr, ptr) -> ptr,
-  pre_op: (ptr, ptr) -> ptr,
-  rel: (ptr) -> ptr,
-  annotated: (ptr, ptr) -> ptr,
-  sum: (ptr, ptr) -> ptr,
-  scale: (int, ptr) -> ptr,
-  bounded: (ptr, ptr) -> ptr,
-  sign: (ptr, ptr) -> ptr,
-  composite: (ptr) -> ptr
+  opnd_register: (string) -> opnd_obj,
+  memory: (opnd_obj) -> opnd_obj,
+  imm: (int) -> opnd_obj,
+  post_op: (opnd_obj, opnd_obj) -> opnd_obj,
+  pre_op: (opnd_obj, opnd_obj) -> opnd_obj,
+  rel: (opnd_obj) -> opnd_obj,
+  annotated: (annotation_obj, opnd_obj) -> opnd_obj,
+  sum: (opnd_obj, opnd_obj) -> opnd_obj,
+  scale: (int, opnd_obj) -> opnd_obj,
+  bounded: (boundary_obj, opnd_obj) -> opnd_obj,
+  sign: (signedness_obj, opnd_obj) -> opnd_obj,
+  composite: (opnd_list_obj) -> opnd_obj
 }
 type asm_signedness_callbacks = {
-  asm_signed: (()) -> ptr,
-  asm_unsigned: (()) -> ptr
+  asm_signed: (()) -> signedness_obj,
+  asm_unsigned: (()) -> signedness_obj
 }
 type asm_boundary_callbacks = {
-  sz: (int) -> ptr,
-  sz_o: (int, int) -> ptr
+  sz: (int) -> boundary_obj,
+  sz_o: (int, int) -> boundary_obj
 }
 type asm_annotations_callbacks = {
-  annotations_next: (ptr, ptr) -> ptr,
-  init: (()) -> ptr
+  annotations_next: (annotation_obj, annotation_list_obj) -> annotation_list_obj,
+  init: (()) -> annotation_list_obj
 }
 type asm_annotation_callbacks = {
-  ann_string: (string) -> ptr,
-  function: (string, ptr) -> ptr,
-  opnd: (string, ptr) -> ptr
+  ann_string: (string) -> annotation_obj,
+  function: (string, opnd_list_obj) -> annotation_obj,
+  opnd: (string, opnd_obj) -> annotation_obj
 }
 
 type asm_callbacks = {
-  insn: (int, string, ptr, ptr) -> ptr,
+  insn: (int, string, annotation_list_obj, opnd_list_obj) -> insn_obj,
   opnds:asm_opnds_callbacks,
   opnd:asm_opnd_callbacks,
   signedness:asm_signedness_callbacks,
@@ -45,6 +45,14 @@ type asm_callbacks = {
   annotations:asm_annotations_callbacks,
   annotation:asm_annotation_callbacks
 }
+
+type insn_obj = INSN_OBJ
+type opnd_list_obj = OPND_LIST_OBJ
+type opnd_obj = OPND_OBJ
+type signedness_obj = SIGNEDNESS_OBJ
+type boundary_obj = BOUNDARY_OBJ
+type annotation_list_obj = ANNOTATION_LIST_OBJ
+type annotation_obj = ANNOTATION_OBJ
 
 val asm-convert-insn cbs insn = cbs.insn insn.length insn.mnemonic (asm-convert-annotations cbs insn.annotations) (asm-convert-opnds cbs insn.opnds)
 

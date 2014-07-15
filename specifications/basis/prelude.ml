@@ -205,5 +205,3 @@ val forceConfType x =
    in
      x
    end
-
-type ptr = PTR

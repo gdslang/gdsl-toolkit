@@ -1,6 +1,6 @@
 export translate: (insndata) -> S sem_stmts <{} => {}>
-export decode-translate-block: (decoder-configuration, int) -> S sem_stmts <{insns: ptr} => {insns: ptr}>
-export decode-translate-block-insns: (decoder-configuration, int, (ptr, insndata) -> ptr) -> S sem_stmts <{insns: ptr} => {insns: ptr}>
+export decode-translate-block: (decoder-configuration, int) -> S sem_stmts <{insns: insn_list_obj} => {insns: insn_list_obj}>
+export decode-translate-block-insns: (decoder-configuration, int, (insn_list_obj, insndata) -> insn_list_obj) -> S sem_stmts <{insns: insn_list_obj} => {insns: insn_list_obj}>
 #decode-translate-single{insns} decode-translate-super-block{insns} succ-pretty
 
 val insn-append-default a b = a
