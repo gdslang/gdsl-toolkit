@@ -30,7 +30,6 @@
 #include <string>
 
 using gdsl::block;
-using gdsl::preservation;
 
 using namespace gdsl::rreil;
 
@@ -133,7 +132,7 @@ void demo_block(gdsl::gdsl &g) {
   uint8_t buffer[] = {0x00, 0x00, 0x00, 0x00, 0xc3};
   g.set_code((char*)buffer, sizeof(buffer), 0);
 
-  block b = g.decode_translate_block(gdsl::BLOCK, LONG_MAX);
+  block b = g.decode_translate_block(gdsl::preservation::BLOCK, LONG_MAX);
 
   auto insns = b.get_instructions();
 

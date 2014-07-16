@@ -1,12 +1,12 @@
-export decode-translate-block-optimized-int : (decoder-configuration, int, int) -> S opt-result <{} => {}>
-export decode-translate-block-optimized-int-insncb : (decoder-configuration, int, int, insn_list_obj, (insn_list_obj, insndata) -> insn_list_obj) -> S opt-result <{} => {}>
+export decode-translate-block-optimized : (decoder-configuration, int, int) -> S opt-result <{} => {}>
+export decode-translate-block-optimized-insncb : (decoder-configuration, int, int, insn_list_obj, (insn_list_obj, insndata) -> insn_list_obj) -> S opt-result <{} => {}>
 
 type sem_preservation =
    SEM_PRESERVATION_EVERYWHERE
  | SEM_PRESERVATION_BLOCK
  | SEM_PRESERVATION_CONTEXT
 
-val decode-translate-block-optimized-insncb config limit pres insn-append = case pres of
+val decode-translate-block-optimized-insncb-inner config limit pres insn-append = case pres of
    SEM_PRESERVATION_EVERYWHERE: do
      translated <- decode-translate-block-insns config limit insn-append;
      clean <- cleanup translated;
@@ -28,10 +28,10 @@ val decode-translate-block-optimized-insncb config limit pres insn-append = case
    end
 end
 
-val decode-translate-block-optimized config limit pres = let
+val decode-translate-block-optimized-inner config limit pres = let
   val default-append a b = a
 in
-  decode-translate-block-optimized-insncb config limit pres default-append
+  decode-translate-block-optimized-insncb-inner config limit pres default-append
 end
 
 type opt-result = {
@@ -39,21 +39,24 @@ type opt-result = {
   rreil: sem_stmt_list
 }
 
-val decode-translate-block-optimized-int-insncb config limit pres insns-initv insn-append = do
+val decode-translate-block-optimized-insncb config limit pres insns-initv insn-append = do
+#  limit <- return (limit + 0);
+#  pres <- return (pres + 0);
+
   update @{insns=insns-initv};
   rreil <- case pres of
-     0: decode-translate-block-optimized-insncb config limit SEM_PRESERVATION_EVERYWHERE insn-append
-   | 1: decode-translate-block-optimized-insncb config limit SEM_PRESERVATION_BLOCK insn-append
-   | 2: decode-translate-block-optimized-insncb config limit SEM_PRESERVATION_CONTEXT insn-append
+     0: decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_EVERYWHERE insn-append
+   | 1: decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_BLOCK insn-append
+   | 2: decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_CONTEXT insn-append
   end;
   insns <- query $insns;
   return {rreil=rreil, insns=insns}
 end
 
-val decode-translate-block-optimized-int config limit pres = let
+val decode-translate-block-optimized config limit pres = let
   val default-append a b = a
 in
-  decode-translate-block-optimized-int-insncb config limit pres INSN_LIST_OBJ default-append
+  decode-translate-block-optimized-insncb config limit pres INSN_LIST_OBJ default-append
 end
 
 type insn_list_obj = INSN_LIST_OBJ

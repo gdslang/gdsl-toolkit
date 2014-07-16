@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
       fprintf(stderr, "translate failed: %s\n", gdsl_get_error_message(state));
       break;
     }
-    obj_t rreil = gdsl_translate(state, insn);
+    /*obj_t rreil = */gdsl_translate(state, insn);
 
 //		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 //		puts(fmt);

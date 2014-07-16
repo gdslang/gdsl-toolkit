@@ -6,6 +6,8 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include <gdsl_elf.h>
 #include <gelf.h>
 #include <sys/types.h>

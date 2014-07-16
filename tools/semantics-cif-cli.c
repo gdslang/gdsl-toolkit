@@ -48,7 +48,7 @@ static obj_t asm_opnds_next(state_t state, obj_t next, obj_t list) {
   return indent;
 }
 
-static obj_t asm_opnds_init(state_t state, obj_t nothing) {
+static obj_t asm_opnds_init(state_t state) {
   printf("> init operands\n");
   return (state_t)0;
 }
@@ -157,7 +157,7 @@ static obj_t asm_annotations_next(state_t state, obj_t next, obj_t list) {
   return indent;
 }
 
-static obj_t asm_annotations_init(state_t state, obj_t nothing) {
+static obj_t asm_annotations_init(state_t state) {
   printf("> init annotations\n");
   return (state_t)0;
 }
@@ -190,7 +190,7 @@ static obj_t asm_annotation_opnd(state_t state, string_t name, obj_t opnd) {
 //}
 static obj_t shared(state_t state, int_t con) {
   switch(con) {
-    case FLOATING_FLAGS: {
+    case ID_FLOATING_FLAGS: {
       printf("> FLOATING_FLAGS\n");
       break;
     }
@@ -201,23 +201,23 @@ static obj_t virt_t(state_t state, int_t t) {
   printf("> t%lld\n", t);
   return (obj_t)0;
 }
-static obj_t arch(state_t state, obj_t id) {
-  printf("> %s\n", gdsl_merge_rope(state, gdsl_pretty_arch_id(state, id)));
+static obj_t arch(state_t state, string_t id) {
+  printf("> %s\n", id);
   return (obj_t)0;
 }
 
 // sem_exception
 static obj_t exception_shared(state_t state, int_t con) {
   switch(con) {
-    case DIVISION_BY_ZERO: {
+    case EXCEPTION_DIVISION_BY_ZERO: {
       printf("> DIVISION_BY_ZERO\n");
       break;
     }
   }
   return (obj_t)0;
 }
-static obj_t exception_arch(state_t state, obj_t ex) {
-  printf("> exception_arch#%s\n", gdsl_merge_rope(state, gdsl_pretty_arch_exception(state, ex)));
+static obj_t exception_arch(state_t state, string_t ex) {
+  printf("> exception_arch#%s\n", ex);
   return (obj_t)0;
 }
 
@@ -529,7 +529,7 @@ static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
   printf("> sem_sexpr_cmp\n");
   return indent;
 }
-static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
+static obj_t sem_sexpr_arb(state_t state) {
   printf("> sem_sexpr_arb\n");
   return (obj_t)0;
 }
@@ -651,7 +651,7 @@ static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
   printf("> sem_varls_next\n");
   return indent;
 }
-static obj_t sem_varls_init(state_t state, obj_t nothing) {
+static obj_t sem_varls_init(state_t state) {
   printf("> sem_varls_init\n");
   return (obj_t)0;
 }
@@ -716,7 +716,7 @@ static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs, obj_
   printf("> sem_flop\n");
   return indent;
 }
-static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
+static obj_t sem_prim(state_t state, string_t op, obj_t lhs, obj_t rhs) {
   obj_t indent = indent_binary(lhs, rhs);
   printf("> sem_prim %s\n", (string_t)op);
   return indent;
@@ -750,7 +750,7 @@ static obj_t sem_stmts_next(state_t state, obj_t next, obj_t list) {
   printf("> next statement\n\n");
   return indent;
 }
-static obj_t sem_stmts_init(state_t state, obj_t nothing) {
+static obj_t sem_stmts_init(state_t state) {
   printf("> init\n");
   return (obj_t)0;
 }
@@ -771,30 +771,30 @@ int main(int argc, char** argv) {
 
   printf("\n");
 
-  unboxed_asm_opnds_callbacks_t asm_opnds_callbacks = {.opnds_next = &asm_opnds_next, .init = &asm_opnds_init};
+  unboxed_asm_opnd_list_callbacks_t asm_opnd_list_callbacks = {.opnd_list_next = &asm_opnds_next, .init = &asm_opnds_init};
   unboxed_asm_opnd_callbacks_t asm_opnd_callbacks = {.opnd_register = &asm_register, .memory = &asm_memory, .imm =
       &asm_imm, .post_op = &asm_post_op, .pre_op = &asm_pre_op, .rel = &asm_rel, .annotated = &asm_annotated, .sum =
       &asm_sum, .scale = &asm_scale, .bounded = &asm_bounded, .sign = &asm_sign, .composite = &asm_composite};
   unboxed_asm_signedness_callbacks_t asm_signedness_callbacks = {.asm_signed = &asm_signed, .asm_unsigned = &asm_unsigned};
   unboxed_asm_boundary_callbacks_t asm_boundary_callbacks = {.sz = &asm_sz, .sz_o = &asm_sz_o};
-  unboxed_asm_annotations_callbacks_t asm_annotations_callbacks = {.annotations_next = &asm_annotations_next, .init =
+  unboxed_asm_annotation_list_callbacks_t asm_annotation_list_callbacks = {.annotation_list_next = &asm_annotations_next, .init =
       &asm_annotations_init};
   unboxed_asm_annotation_callbacks_t asm_annotation_callbacks = {.ann_string = &asm_annotation_string, .function =
       &asm_annotation_function, .opnd = &asm_annotation_opnd};
 
   unboxed_asm_callbacks_t asm_callbacks = {
       .insn = &asm_insn,
-      .opnds = &asm_opnds_callbacks,
+      .opnd_list = &asm_opnd_list_callbacks,
       .opnd = &asm_opnd_callbacks,
       .signedness = &asm_signedness_callbacks,
       .boundary = &asm_boundary_callbacks,
-      .annotations = &asm_annotations_callbacks,
+      .annotation_list = &asm_annotation_list_callbacks,
       .annotation = &asm_annotation_callbacks,
   };
 
   obj_t generic_insn = gdsl_generalize(state, insn);
 
-  obj_t ginsn_convert = gdsl_asm_convert_insn(state, &asm_callbacks, generic_insn);
+  /*obj_t ginsn_converted = */gdsl_asm_convert_insn(state, &asm_callbacks, generic_insn);
 
   printf("---------------------------\n\n");
 
@@ -827,7 +827,7 @@ int main(int argc, char** argv) {
 
   unboxed_sem_varl_callbacks_t sem_varl_callbacks = {.sem_varl_ = &sem_varl};
 
-  unboxed_sem_varls_callbacks_t sem_varls_callbacks = {.sem_varls_next = &sem_varls_next, .sem_varls_init =
+  unboxed_sem_varl_list_callbacks_t sem_varl_list_callbacks = {.sem_varl_list_next = &sem_varls_next, .sem_varl_list_init =
       &sem_varls_init};
 
   unboxed_sem_flop_callbacks_t sem_flop_callbacks = {.sem_flop_ = &sem_flop};
@@ -843,14 +843,14 @@ int main(int argc, char** argv) {
 //			.list_next = &list_next
 //	};
 
-  unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {.sem_stmts_next = &sem_stmts_next, .sem_stmts_init =
+  unboxed_sem_stmt_list_callbacks_t sem_stmt_list_callbacks = {.sem_stmt_list_next = &sem_stmts_next, .sem_stmt_list_init =
       &sem_stmts_init};
 
   unboxed_callbacks_t callbacks = {.sem_id = &sem_id_callbacks, .sem_address = &sem_address_callbacks, .sem_var =
       &sem_var_callbacks, .sem_linear = &sem_linear_callbacks, .sem_sexpr = &sem_sexpr_callbacks, .sem_expr_cmp =
-      &sem_expr_cmp_callbacks, .sem_expr = &sem_expr_callbacks, .sem_varl = &sem_varl_callbacks, .sem_varls =
-      &sem_varls_callbacks, .sem_flop = &sem_flop_callbacks, .sem_stmt = &sem_stmt_callbacks, .branch_hint =
-      &branch_hint_callbacks, .sem_exception = &sem_exception_callbacks, .sem_stmts = &sem_stmts_callbacks};
+      &sem_expr_cmp_callbacks, .sem_expr = &sem_expr_callbacks, .sem_varl = &sem_varl_callbacks, .sem_varl_list =
+      &sem_varl_list_callbacks, .sem_flop = &sem_flop_callbacks, .sem_stmt = &sem_stmt_callbacks, .branch_hint =
+      &branch_hint_callbacks, .sem_exception = &sem_exception_callbacks, .sem_stmt_list = &sem_stmt_list_callbacks};
 
 //		config.callbacks.sem_stmts.sem_cons = &sem_cons;
 //		config.callbacks.sem_stmts.sem_nil = &sem_nil;
@@ -863,7 +863,7 @@ int main(int argc, char** argv) {
 //		stmts_rest = gdsl_rreil_sem_stmts_tail(state, stmts_rest);
 //	}
 
-  gdsl_rreil_convert_sem_stmts(state, &callbacks, rreil);
+  gdsl_rreil_convert_sem_stmt_list(state, &callbacks, rreil);
 
   gdsl_destroy(state);
   free(buffer);

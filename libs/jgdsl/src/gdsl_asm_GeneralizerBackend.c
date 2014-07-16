@@ -23,7 +23,7 @@ static obj_t asm_opnds_next(state_t state, obj_t next, obj_t list) {
   return java_method_call(state, "opnds_next", 2, (jobject)next, (jobject)list);
 }
 
-static obj_t asm_opnds_init(state_t state, obj_t nothing) {
+static obj_t asm_opnds_init(state_t state) {
   return java_method_call(state, "opnds_init", 0);
 }
 
@@ -42,11 +42,11 @@ static obj_t asm_imm(state_t state, int_t imm) {
 }
 
 static obj_t asm_post_op(state_t state, obj_t expr, obj_t opnd) {
-  return java_method_call(state, "post_op", (jobject)expr, (jobject)opnd);
+  return java_method_call(state, "post_op", 2, (jobject)expr, (jobject)opnd);
 }
 
 static obj_t asm_pre_op(state_t state, obj_t expr, obj_t opnd) {
-  return java_method_call(state, "pre_op", (jobject)expr, (jobject)opnd);
+  return java_method_call(state, "pre_op", 2, (jobject)expr, (jobject)opnd);
 }
 
 static obj_t asm_rel(state_t state, obj_t operand) {
@@ -78,12 +78,11 @@ static obj_t asm_composite(state_t state, obj_t opnds) {
 }
 
 // signedness
-
-static obj_t asm_signed(state_t state, obj_t nothing) {
+static obj_t asm_signed(state_t state) {
   return java_method_call(state, "signed", 0);
 }
 
-static obj_t asm_unsigned(state_t state, obj_t nothing) {
+static obj_t asm_unsigned(state_t state) {
   return java_method_call(state, "unsigned", 0);
 }
 
@@ -103,7 +102,7 @@ static obj_t asm_annotations_next(state_t state, obj_t next, obj_t list) {
   return java_method_call(state, "annotations_next", 2, (jobject)next, (jobject)list);
 }
 
-static obj_t asm_annotations_init(state_t state, obj_t nothing) {
+static obj_t asm_annotations_init(state_t state) {
   return java_method_call(state, "annotations_init", 0);
 }
 
@@ -135,21 +134,21 @@ JNIEXPORT jobject JNICALL Java_gdsl_asm_GeneralizerBackend_generalize(JNIEnv *en
   frontend->translator.rreil_cif_userdata_set(state, &ud);
   rreil_cif_userdata_get = frontend->translator.rreil_cif_userdata_get;
 
-  unboxed_asm_opnds_callbacks_t asm_opnds_callbacks = {.opnds_next = &asm_opnds_next, .init = &asm_opnds_init};
+  unboxed_asm_opnd_list_callbacks_t asm_opnd_list_callbacks = {.opnd_list_next = &asm_opnds_next, .init = &asm_opnds_init};
   unboxed_asm_opnd_callbacks_t asm_opnd_callbacks = {.opnd_register = &asm_register, .memory = &asm_memory, .imm =
       &asm_imm, .post_op = &asm_post_op, .pre_op = &asm_pre_op, .rel = &asm_rel, .annotated = &asm_annotated, .sum =
       &asm_sum, .scale = &asm_scale, .bounded = &asm_bounded, .sign = &asm_sign, .composite = &asm_composite};
   unboxed_asm_signedness_callbacks_t asm_signedness_callbacks = {.asm_signed = &asm_signed, .asm_unsigned =
       &asm_unsigned};
   unboxed_asm_boundary_callbacks_t asm_boundary_callbacks = {.sz = &asm_sz, .sz_o = &asm_sz_o};
-  unboxed_asm_annotations_callbacks_t asm_annotations_callbacks = {.annotations_next = &asm_annotations_next, .init =
+  unboxed_asm_annotation_list_callbacks_t asm_annotation_list_callbacks = {.annotation_list_next = &asm_annotations_next, .init =
       &asm_annotations_init};
   unboxed_asm_annotation_callbacks_t asm_annotation_callbacks = {.ann_string = &asm_annotation_string, .function =
       &asm_annotation_function, .opnd = &asm_annotation_opnd};
 
-  unboxed_asm_callbacks_t asm_callbacks = {.insn = &asm_insn, .opnds = &asm_opnds_callbacks,
+  unboxed_asm_callbacks_t asm_callbacks = {.insn = &asm_insn, .opnd_list = &asm_opnd_list_callbacks,
       .opnd = &asm_opnd_callbacks, .signedness = &asm_signedness_callbacks, .boundary = &asm_boundary_callbacks,
-      .annotations = &asm_annotations_callbacks, .annotation = &asm_annotation_callbacks, };
+      .annotation_list = &asm_annotation_list_callbacks, .annotation = &asm_annotation_callbacks, };
 
   obj_t g_insn = frontend->decoder.generalize(state, insn);
 

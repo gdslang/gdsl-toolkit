@@ -20,17 +20,31 @@ typedef uint64_t vec_data_t;
  * RReil defintions
  */
 
-#define FLOATING_FLAGS 0
+enum id_shared {
+  ID_FLOATING_FLAGS = 0
+};
 
-#define HINT_JUMP 0
-#define HINT_CALL 1
-#define HINT_RET 2
+enum branch_hint {
+  BRANCH_HINT_JUMP = 0,
+  BRANCH_HINT_CALL = 1,
+  BRANCH_HINT_RET = 2
+};
 
-#define DIVISION_BY_ZERO 0
+enum exception {
+  EXCEPTION_DIVISION_BY_ZERO = 0
+};
 
-#define FADD 0
-#define FSUB 1
-#define FMUL 2
+enum flop {
+  FLOP_FADD = 0,
+  FLOP_FSUB = 1,
+  FLOP_FMUL = 2
+};
+
+enum preservation {
+  PRESERVATION_EVERYWHERE = 0,
+  PRESERVATION_BLOCK = 1,
+  PRESERVATION_CONTEXT = 2
+};
 
 /**
  * Interface data structures
@@ -48,7 +62,7 @@ typedef int_t con_tag_t;
 typedef struct {
   obj_t (*sem_sexpr_lin)(state_t,obj_t);
   obj_t (*sem_sexpr_cmp)(state_t,obj_t);
-  obj_t (*sem_sexpr_arb)();
+  obj_t (*sem_sexpr_arb)(state_t);
 } unboxed_sem_sexpr_callbacks_t;
 typedef unboxed_sem_sexpr_callbacks_t* sem_sexpr_callbacks_t;
 typedef struct {
@@ -109,7 +123,7 @@ typedef struct {
 typedef unboxed_sem_varl_callbacks_t* sem_varl_callbacks_t;
 typedef struct {
   obj_t (*sem_varl_list_next)(state_t,obj_t,obj_t);
-  obj_t (*sem_varl_list_init)();
+  obj_t (*sem_varl_list_init)(state_t);
 } unboxed_sem_varl_list_callbacks_t;
 typedef unboxed_sem_varl_list_callbacks_t* sem_varl_list_callbacks_t;
 typedef struct {
@@ -136,7 +150,7 @@ typedef struct {
 typedef unboxed_sem_exception_callbacks_t* sem_exception_callbacks_t;
 typedef struct {
   obj_t (*sem_stmt_list_next)(state_t,obj_t,obj_t);
-  obj_t (*sem_stmt_list_init)();
+  obj_t (*sem_stmt_list_init)(state_t);
 } unboxed_sem_stmt_list_callbacks_t;
 typedef unboxed_sem_stmt_list_callbacks_t* sem_stmt_list_callbacks_t;
 typedef struct {
@@ -194,17 +208,17 @@ typedef struct {
 } unboxed_asm_boundary_callbacks_t;
 typedef unboxed_asm_boundary_callbacks_t* asm_boundary_callbacks_t;
 typedef struct {
-  obj_t (*asm_signed)();
-  obj_t (*asm_unsigned)();
+  obj_t (*asm_signed)(state_t);
+  obj_t (*asm_unsigned)(state_t);
 } unboxed_asm_signedness_callbacks_t;
 typedef unboxed_asm_signedness_callbacks_t* asm_signedness_callbacks_t;
 typedef struct {
   obj_t (*opnd_list_next)(state_t,obj_t,obj_t);
-  obj_t (*init)();
+  obj_t (*init)(state_t);
 } unboxed_asm_opnd_list_callbacks_t;
 typedef unboxed_asm_opnd_list_callbacks_t* asm_opnd_list_callbacks_t;
 typedef struct {
-  obj_t (*init)();
+  obj_t (*init)(state_t);
   obj_t (*annotation_list_next)(state_t,obj_t,obj_t);
 } unboxed_asm_annotation_list_callbacks_t;
 typedef unboxed_asm_annotation_list_callbacks_t* asm_annotation_list_callbacks_t;
