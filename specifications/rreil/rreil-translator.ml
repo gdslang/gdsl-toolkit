@@ -1,4 +1,3 @@
-export translate: (insndata) -> S sem_stmt_list <{} => {}>
 export decode-translate-block: (decoder-configuration, int) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
 export decode-translate-single: (decoder-configuration) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
 export decode-translate-block-insns: (decoder-configuration, int, (insn_list_obj, insndata) -> insn_list_obj) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
@@ -11,7 +10,7 @@ val insn-append-default a b = a
 val decode-translate-block-headless config limit insn-append = do
   insn <- decode config;
   insns <- query $insns;
-  update @{insns=insn-append insns (@{length=insn.length + 0, addr-sz=insn.addr-sz + 0, opnd-sz=insn.opnd-sz + 0}insn)};
+  update @{insns=insn-append insns insn};
   translate-block-single insn;
   jmp <- query $foundJump;
   idx <- idxget;

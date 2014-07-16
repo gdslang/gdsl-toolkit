@@ -733,6 +733,7 @@ end
 
 val features-get insndata = (zx insndata.features)
 
+
 type flow1 = {opnd1:flowopnd}
 type arity1 = {opnd1:x86-opnd}
 type arity2 = {opnd1:x86-opnd,opnd2:x86-opnd}
@@ -740,6 +741,9 @@ type arity3 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd}
 type arity4 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd,opnd4:x86-opnd}
 
 type insndata = {length:int,features:19,config:decoder-configuration,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:x86-insn}
+#val insndata-decouple id = {length=id.length + 0, features=id.features,
+#config=id.config, opnd-sz=id.opnd-sz + 0, addr-sz=id.addr-sz + 0, rep=id.rep,
+#repne=id.repne, lock=id.lock, insn=id.insn}
 
 val insn-length insn = insn.length
 
