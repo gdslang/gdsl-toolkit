@@ -2,9 +2,9 @@ export translate: (insndata) -> S sem_stmt_list <{} => {}>
 export decode-translate-block: (decoder-configuration, int) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
 export decode-translate-single: (decoder-configuration) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
 export decode-translate-block-insns: (decoder-configuration, int, (insn_list_obj, insndata) -> insn_list_obj) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
-export decode-translate-super-block: (decoder-configuration, int) -> S translate-result <{} => {}>
+export decode-translate-super-block: (decoder-configuration, int) -> S translate-result <{insns: insn_list_obj} => {insns: insn_list_obj}>
 export select_ins_count: S int <{ins_count: int} => {ins_count: int}>
-#succ-pretty
+export succ-pretty: (stmts_option, string) -> rope
 
 val insn-append-default a b = a
 

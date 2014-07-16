@@ -1,8 +1,15 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
 export select_live: S sem_stmt_list <{live: sem_stmt_list} => {live: sem_stmt_list}>
+export liveness: (sem_stmt_list) -> S lv-state-t <{} => {}>
+export liveness_super: (translate-result) -> S lv-super-result <{} => {}>
+export lv-pretty: (lv-state-t) -> rope
 
 # LIVENESS based on fields
+
+type interval = {lo: int, hi: int}
+type id_intervals = {id: sem_id, fields: bbtree[a=interval]}
+type lv-state-t = bbtree[a=id_intervals]
 
 val visit-semvarls visitor-semvar set varls = case varls of
    SEM_VARLS_CONS c: lv-union (visitor-semvar set c.hd.size c.hd) (visit-semvarls visitor-semvar set c.tl)
@@ -445,7 +452,7 @@ val liveness instructions = do
   return lv-state.greedy 
 end
 
-type lv-super-result = {initial:stmts_option, after:int}
+type lv-super-result = {initial:lv-state-t, after:lv-state-t}
 
 val liveness_super data = let
   val lv-option-analyze live-registers option =

@@ -95,7 +95,7 @@ static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
   jobject ret = java_method_call(state, "sem_sexpr_cmp", 1, (jobject)this);
   return (obj_t)ret;
 }
-static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
+static obj_t sem_sexpr_arb(state_t state) {
   jobject ret = java_method_call(state, "sem_sexpr_arb", 0);
   return (obj_t)ret;
 }
@@ -200,7 +200,7 @@ static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
   jobject ret = java_method_call(state, "sem_varls_next", 2, (jobject)next, (jobject)list);
   return (obj_t)ret;
 }
-static obj_t sem_varls_init(state_t state, obj_t nothing) {
+static obj_t sem_varls_init(state_t state) {
   jobject ret = java_method_call(state, "sem_varls_init", 0);
   return (obj_t)ret;
 }
@@ -299,7 +299,7 @@ static obj_t sem_stmts_next(state_t state, obj_t next, obj_t list) {
   jobject ret = java_method_call(state, "sem_stmts_next", 2, (jobject)next, (jobject)list);
   return (obj_t)ret;
 }
-static obj_t sem_stmts_init(state_t state, obj_t nothing) {
+static obj_t sem_stmts_init(state_t state) {
   jobject ret = java_method_call(state, "sem_stmts_init", 0);
   return (obj_t)ret;
 }

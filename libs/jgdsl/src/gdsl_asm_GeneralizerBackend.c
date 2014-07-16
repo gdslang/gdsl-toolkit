@@ -23,7 +23,7 @@ static obj_t asm_opnds_next(state_t state, obj_t next, obj_t list) {
   return java_method_call(state, "opnds_next", 2, (jobject)next, (jobject)list);
 }
 
-static obj_t asm_opnds_init(state_t state, obj_t nothing) {
+static obj_t asm_opnds_init(state_t state) {
   return java_method_call(state, "opnds_init", 0);
 }
 
@@ -42,11 +42,11 @@ static obj_t asm_imm(state_t state, int_t imm) {
 }
 
 static obj_t asm_post_op(state_t state, obj_t expr, obj_t opnd) {
-  return java_method_call(state, "post_op", (jobject)expr, (jobject)opnd);
+  return java_method_call(state, "post_op", 2, (jobject)expr, (jobject)opnd);
 }
 
 static obj_t asm_pre_op(state_t state, obj_t expr, obj_t opnd) {
-  return java_method_call(state, "pre_op", (jobject)expr, (jobject)opnd);
+  return java_method_call(state, "pre_op", 2, (jobject)expr, (jobject)opnd);
 }
 
 static obj_t asm_rel(state_t state, obj_t operand) {
@@ -78,11 +78,11 @@ static obj_t asm_composite(state_t state, obj_t opnds) {
 }
 
 // signedness
-static obj_t asm_signed(state_t state, obj_t nothing) {
+static obj_t asm_signed(state_t state) {
   return java_method_call(state, "signed", 0);
 }
 
-static obj_t asm_unsigned(state_t state, obj_t nothing) {
+static obj_t asm_unsigned(state_t state) {
   return java_method_call(state, "unsigned", 0);
 }
 
@@ -102,7 +102,7 @@ static obj_t asm_annotations_next(state_t state, obj_t next, obj_t list) {
   return java_method_call(state, "annotations_next", 2, (jobject)next, (jobject)list);
 }
 
-static obj_t asm_annotations_init(state_t state, obj_t nothing) {
+static obj_t asm_annotations_init(state_t state) {
   return java_method_call(state, "annotations_init", 0);
 }
 
