@@ -11,7 +11,7 @@ val insn-append-default a b = a
 val decode-translate-block-headless config limit insn-append = do
   insn <- decode config;
   insns <- query $insns;
-  update @{insns=insn-append insns insn};
+  update @{insns=insn-append insns (@{length=insn.length + 0, addr-sz=insn.addr-sz + 0, opnd-sz=insn.opnd-sz + 0}insn)};
   translate-block-single insn;
   jmp <- query $foundJump;
   idx <- idxget;

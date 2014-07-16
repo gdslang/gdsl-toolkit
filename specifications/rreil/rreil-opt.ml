@@ -40,6 +40,9 @@ type opt-result = {
 }
 
 val decode-translate-block-optimized-insncb config limit pres insns-initv insn-append = do
+#  limit <- return (limit + 0);
+#  pres <- return (pres + 0);
+
   update @{insns=insns-initv};
   rreil <- case pres of
      0: decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_EVERYWHERE insn-append
