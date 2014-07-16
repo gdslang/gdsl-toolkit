@@ -520,7 +520,7 @@ std::vector<gdsl::rreil::statement*>* gdsl::rreil_builder::convert(obj_t rreil) 
     throw gdsl_exception("convert() failed", string(frontend_glob.generic.get_error_message(g->get_state())));
 
   callbacks_t cbs = rreil_gdrr_builder_callbacks_get(g->get_state());
-  auto v = (std::vector<statement*> *)frontend_glob.translator.rreil_convert_sem_stmts(g->get_state(), cbs, rreil);
+  auto v = (std::vector<statement*> *)frontend_glob.translator.rreil_convert_sem_stmt_list(g->get_state(), cbs, rreil);
 
   free(cbs);
 

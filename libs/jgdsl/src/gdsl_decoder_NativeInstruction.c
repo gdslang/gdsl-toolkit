@@ -23,7 +23,8 @@ JNIEXPORT jlong JNICALL Java_gdsl_decoder_NativeInstruction_size(JNIEnv *env, jo
   if(setjmp(*frontend->generic.err_tgt(state)))
   THROW_GDSL_EXCEPTION_RET(0)
 
-  int_t s = frontend->decoder.insn_length(state, insn);
+  //int_t s = frontend->decoder.insn_length(state, insn);
+  int_t s = 0;
 
   return (jlong)s;
 }
@@ -51,7 +52,8 @@ JNIEXPORT jint JNICALL Java_gdsl_decoder_NativeInstruction_operands(JNIEnv *env,
   if(setjmp(*frontend->generic.err_tgt(state)))
   THROW_GDSL_EXCEPTION_RET(0)
 
-  return (jint)frontend->decoder.operands(state, insn);
+  //return (jint)frontend->decoder.operands(state, insn);
+  return 0;
 }
 
 JNIEXPORT jstring JNICALL Java_gdsl_decoder_NativeInstruction_prettyOperand(JNIEnv *env, jobject this, jlong frontendPtr,
@@ -63,7 +65,8 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_NativeInstruction_prettyOperand(JNIE
   if(setjmp(*frontend->generic.err_tgt(state)))
   THROW_GDSL_EXCEPTION_RET(NULL)
 
-  string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty_operand(state, insn, (int_t)operand));
+  //string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty_operand(state, insn, (int_t)operand));
+  string_t str = ":-(";
 
   return (*env)->NewStringUTF(env, str);
 }
@@ -77,7 +80,8 @@ JNIEXPORT jint JNICALL Java_gdsl_decoder_NativeInstruction_operandType(JNIEnv *e
   if(setjmp(*frontend->generic.err_tgt(state)))
   THROW_GDSL_EXCEPTION_RET(0)
 
-  int_t type = frontend->decoder.typeof_opnd(state, insn, (int_t)operand);
+  //int_t type = frontend->decoder.typeof_opnd(state, insn, (int_t)operand);
+  int_t type = 0;
 
   return type;
 }
@@ -91,7 +95,8 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_NativeInstruction_mnemonic(JNIEnv *e
   if(setjmp(*frontend->generic.err_tgt(state)))
   THROW_GDSL_EXCEPTION_RET(NULL)
 
-  string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty_mnemonic(state, insn));
+  //string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty_mnemonic(state, insn));
+  string_t str = "";
 
   return (*env)->NewStringUTF(env, str);
 }

@@ -69,13 +69,13 @@ int main(int argc, char** argv) {
   string_t fmt = frontend.generic.merge_rope(state, frontend.decoder.pretty(state, insn));
   puts(fmt);
 
-  printf("Mnemonic: %s\n", frontend.generic.merge_rope(state, frontend.decoder.pretty_mnemonic(state, insn)));
-  int_t operands = frontend.decoder.operands(state, insn);
-  printf("Number of operands: %lld\n", operands);
-  for(int_t i = 0; i < operands; ++i) {
-    printf("Operand %lld (type: %lld): %s\n", i, frontend.decoder.typeof_opnd(state, insn, i),
-        frontend.generic.merge_rope(state, frontend.decoder.pretty_operand(state, insn, i)));
-  }
+  //printf("Mnemonic: %s\n", frontend.generic.merge_rope(state, frontend.decoder.pretty_mnemonic(state, insn)));
+  //int_t operands = frontend.decoder.operands(state, insn);
+  //printf("Number of operands: %lld\n", operands);
+  //for(int_t i = 0; i < operands; ++i) {
+  //  printf("Operand %lld (type: %lld): %s\n", i, frontend.decoder.typeof_opnd(state, insn, i),
+  //      frontend.generic.merge_rope(state, frontend.decoder.pretty_operand(state, insn, i)));
+  //}
 
   printf("---------------------------\n");
 

@@ -375,7 +375,7 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, 
 //	return NULL;
 
   BUILD_CALLBACKS
-  return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
+  return frontend->translator.rreil_convert_sem_stmt_list(state, &callbacks, rreil);
 }
 
 struct insn_collection {
@@ -411,7 +411,7 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
   coll.length = 0;
   coll.size = 0;
 
-  opt_result_t opt_result = frontend->translator.decode_translate_block_optimized_int_insncb(state, config, limit,
+  opt_result_t opt_result = frontend->translator.decode_translate_block_optimized_insncb(state, config, limit,
       preservation, &coll, &insn_cb);
 
   jlongArray instructions = (*env)->NewLongArray(env, coll.length);
@@ -430,7 +430,7 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
   rreil_cif_userdata_get = frontend->translator.rreil_cif_userdata_get;
 
   BUILD_CALLBACKS
-  jobject converted_rreil = frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
+  jobject converted_rreil = frontend->translator.rreil_convert_sem_stmt_list(state, &callbacks, rreil);
 
   jclass TranslatedBlock = (*env)->FindClass(env, "gdsl/translator/TranslatedBlockRaw");
   jmethodID TranslatedBlock_ctor = (*env)->GetMethodID(env, TranslatedBlock, "<init>",

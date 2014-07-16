@@ -37,6 +37,7 @@ public class NativeInstruction {
    * 
    * @return the size of the instruction
    */
+  @Deprecated
   public long getSize () {
     return size(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
   }
@@ -77,6 +78,7 @@ public class NativeInstruction {
    * 
    * @return the number of operands
    */
+  @Deprecated
   public int operands () {
     return operands(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
   }
@@ -89,6 +91,7 @@ public class NativeInstruction {
    * @param operand the operand to print
    * @return the string representation of the operand
    */
+  @Deprecated
   public String operandToString (int operand) {
     return prettyOperand(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr(), operand);
   }
@@ -101,6 +104,7 @@ public class NativeInstruction {
    * @param operand the index of the respective operand
    * @return the {@link OperandType} object
    */
+  @Deprecated
   public OperandType operandType(int operand) {
     return OperandType.fromGdslId(operandType(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr(), operand));
   }
@@ -112,6 +116,7 @@ public class NativeInstruction {
    * 
    * @return the mnemonic of the instruction
    */
+  @Deprecated
   public String mnemonic () {
     return mnemonic(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
   }

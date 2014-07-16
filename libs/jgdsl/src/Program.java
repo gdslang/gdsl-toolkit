@@ -53,15 +53,17 @@ public class Program {
 
   public static void main (String[] args) throws Throwable {
     ByteBuffer buffer = ByteBuffer.allocateDirect(8);
-    buffer.put((byte) 0);
-    buffer.put((byte) 0);
-    buffer.put((byte) 0);
-    buffer.put((byte) 0);
-    buffer.put((byte) 0xc3);
-    
-    buffer.put((byte) 0);
-    buffer.put((byte) 0);
-    buffer.put((byte) 0xc3);
+//    buffer.put((byte) 0);
+//    buffer.put((byte) 0);
+//    buffer.put((byte) 0);
+//    buffer.put((byte) 0);
+//    buffer.put((byte) 0xc3);
+//    
+//    buffer.put((byte) 0);
+//    buffer.put((byte) 0);
+//    buffer.put((byte) 0xc3);
+    buffer.put((byte)0x07);
+    buffer.put((byte)0x96);
     
     Frontend[] frontends = Gdsl.getFrontends();
     Gdsl gdsl = new Gdsl(frontends[0]);
@@ -71,6 +73,8 @@ public class Program {
     NativeInstruction nI = d.decodeOne();
     
     System.out.println(nI.generalize());
+
+    System.out.println("+++++++++++++++++++++++++++++");
     
 //    for (long i = 0; i < 10000000; i++) {
 //      sub(buffer);
@@ -96,13 +100,13 @@ public class Program {
 //    }
 //    System.out.println("-----");
 //
-//    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
+    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
+
+    IRReilCollection<IStatement> stmts = t.translate(nI);
 //
-//    IRReilCollection<IStatement> stmts = t.translate(insn);
-//
-//    for (int i = 0; i < stmts.size(); i++) {
-//      System.out.println(stmts.get(i));
-//    }
+    for (int i = 0; i < stmts.size(); i++) {
+      System.out.println(stmts.get(i));
+    }
 //
 //    gdsl.resetHeap();
 //    gdsl.destroyFrontend();
