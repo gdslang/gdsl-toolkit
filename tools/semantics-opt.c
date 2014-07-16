@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <gdsl.h>
+#include <gdsl_generic.h>
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -21,7 +22,7 @@
 #define NANOS 1000000000LL
 
 struct options {
-  long preservation;
+  enum preservation preservation;
   char elf;
   char *file;
   size_t offset;
@@ -35,7 +36,7 @@ enum p_option {
 static char args_parse(int argc, char **argv, struct options *options) {
   options->elf = 0;
   options->file = NULL;
-  options->preservation = CON_SEM_PRESERVATION_EVERYWHERE;
+  options->preservation = PRESERVATION_EVERYWHERE;
   options->offset = 0;
   options->length = 0;
 
@@ -66,15 +67,15 @@ static char args_parse(int argc, char **argv, struct options *options) {
       }
       case OPTION_PRESERVATION: {
         if(!strcmp("everywhere", optarg)) {
-          options->preservation = CON_SEM_PRESERVATION_EVERYWHERE;
+          options->preservation = PRESERVATION_EVERYWHERE;
           break;
         }
         if(!strcmp("block", optarg)) {
-          options->preservation = CON_SEM_PRESERVATION_BLOCK;
+          options->preservation = PRESERVATION_BLOCK;
           break;
         }
         if(!strcmp("context", optarg)) {
-          options->preservation = CON_SEM_PRESERVATION_CONTEXT;
+          options->preservation = PRESERVATION_CONTEXT;
           break;
         }
         return 2;

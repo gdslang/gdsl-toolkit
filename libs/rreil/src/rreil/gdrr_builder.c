@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <gdsl.h>
-//#include <gdsl_generic.h>
+#include <gdsl_generic.h>
 #include <rreil/rreil.h>
 
 #ifdef GDSL_X86
@@ -17,11 +17,12 @@
 #endif
 
 // sem_id
-static obj_t shared(state_t state, string_t pretty_id) {
+static obj_t shared(state_t state, int_t eid) {
   struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
   id->type = RREIL_ID_TYPE_SHARED;
-  switch(con) {
-    case FLOATING_FLAGS: {
+  id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
+  switch(eid) {
+    case RREIL_ID_SHARED_FLOATING_FLAGS: {
       id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
       break;
     }
@@ -43,7 +44,7 @@ obj_t sem_id_arch(state_t state, string_t pretty_id) {
   return id;
 }
 #else
-obj_t sem_id_arch(state_t state, obj_t gid) {
+obj_t sem_id_arch(state_t state, string_t pretty_id) {
   struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
   id->type = RREIL_ID_TYPE_ARCH;
   id->arch = -1;
@@ -52,35 +53,31 @@ obj_t sem_id_arch(state_t state, obj_t gid) {
 #endif
 
 // sem_exception
-static obj_t exception_shared(state_t state, string_t pretty_exp) {
+static obj_t exception_shared(state_t state, int_t eexp) {
   struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
   exception->type = RREIL_EXCEPTION_TYPE_SHARED;
-  exception->shared = RREIL_EXCEPTION_SHARED_DIVISION_BY_ZERO;
-  /*
-   * Todo: Fix
-   */
-//  switch(con) {
-//    case DIVISION_BY_ZERO: {
-//      exception->type = RREIL_EXCEPTION_SHARED_DIVISION_BY_ZERO;
-//      break;
-//    }
-//    default: {
-//      free(exception);
-//      return NULL;
-//    }
-//  }
+  switch(eexp) {
+    case EXCEPTION_DIVISION_BY_ZERO: {
+      exception->shared = RREIL_EXCEPTION_SHARED_DIVISION_BY_ZERO;
+      break;
+    }
+    default: {
+      free(exception);
+      return NULL;
+    }
+  }
   return (obj_t)exception;
 }
 
 #ifdef GDSL_X86
-obj_t exception_arch(state_t state, obj_t ex) {
+obj_t exception_arch(state_t state, string_t ex) {
   struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
   exception->type = RREIL_EXCEPTION_TYPE_X86;
-  exception->x86 = x86_exception_from_name(gdsl_merge_rope(state, gdsl_pretty_arch_exception(state, ex)));
+  exception->x86 = x86_exception_from_name(ex);
   return exception;
 }
 #else
-obj_t exception_arch(state_t state, obj_t ex_rope) {
+obj_t exception_arch(state_t state, string_t ex_rope) {
   struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
   exception->type = RREIL_EXCEPTION_TYPE_ARCH;
   exception->arch = -1;
@@ -335,15 +332,15 @@ static obj_t sem_varls_init(state_t state, obj_t nothing) {
 static obj_t sem_flop(state_t state, int_t con) {
   enum rreil_flop *rreil_flop = (enum rreil_flop*)malloc(sizeof(enum rreil_flop));
   switch(con) {
-    case FADD: {
+    case FLOP_FADD: {
       *rreil_flop = RREIL_FLOP_SEM_FADD;
       break;
     }
-    case FSUB: {
+    case FLOP_FSUB: {
       *rreil_flop = RREIL_FLOP_SEM_FSUB;
       break;
     }
-    case FMUL: {
+    case FLOP_FMUL: {
       *rreil_flop = RREIL_FLOP_SEM_FMUL;
       break;
     }
@@ -415,7 +412,7 @@ static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs, obj_
   statement->flop.rhs = (struct rreil_variable_limited_tuple*)rhs;
   return (obj_t)statement;
 }
-static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
+static obj_t sem_prim(state_t state, string_t op, obj_t lhs, obj_t rhs) {
   struct rreil_statement *statement = (struct rreil_statement*)malloc(sizeof(struct rreil_statement));
   statement->type = RREIL_STATEMENT_TYPE_PRIM;
   statement->prim.op = (char*)op;
@@ -430,19 +427,19 @@ static obj_t sem_throw(state_t state, obj_t exception) {
   return (obj_t)statement;
 }
 
-// sem_branch_hint
+// branch_hint
 static obj_t branch_hint(state_t state, int_t con) {
   enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(sizeof(enum rreil_branch_hint));
   switch(con) {
-    case HINT_JUMP: {
+    case BRANCH_HINT_JUMP: {
       *hint = RREIL_BRANCH_HINT_JUMP;
       break;
     }
-    case HINT_CALL: {
+    case BRANCH_HINT_CALL: {
       *hint = RREIL_BRANCH_HINT_CALL;
       break;
     }
-    case HINT_RET: {
+    case BRANCH_HINT_RET: {
       *hint = RREIL_BRANCH_HINT_RET;
       break;
     }
@@ -494,8 +491,8 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 
   unboxed_sem_varl_callbacks_t sem_varl_callbacks = {.sem_varl_ = &sem_varl};
 
-  unboxed_sem_varl_list_callbacks_t sem_varls_callbacks = {.sem_varl_list_next = &sem_varls_next, .sem_varl_list_init =
-      &sem_varls_init};
+  unboxed_sem_varl_list_callbacks_t sem_varl_list_callbacks = {.sem_varl_list_next = &sem_varls_next,
+      .sem_varl_list_init = &sem_varls_init};
 
   unboxed_sem_flop_callbacks_t sem_flop_callbacks = {.sem_flop_ = &sem_flop};
 
@@ -510,8 +507,8 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 //			.list_next = &list_next
 //	};
 
-  unboxed_sem_stmt_list_callbacks_t sem_stmts_callbacks = {.sem_stmt_list_next = &sem_stmts_next, .sem_stmt_list_init =
-      &sem_stmts_init};
+  unboxed_sem_stmt_list_callbacks_t sem_stmt_list_callbacks = {.sem_stmt_list_next = &sem_stmts_next,
+      .sem_stmt_list_init = &sem_stmts_init};
 
   struct unboxed_callbacks {
     unboxed_callbacks_t callbacks;
@@ -524,12 +521,12 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
     unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks;
     unboxed_sem_expr_callbacks_t sem_expr_callbacks;
     unboxed_sem_varl_callbacks_t sem_varl_callbacks;
-    unboxed_sem_varl_list_callbacks_t sem_varls_callbacks;
+    unboxed_sem_varl_list_callbacks_t sem_varl_list_callbacks;
     unboxed_sem_flop_callbacks_t sem_flop_callbacks;
     unboxed_sem_stmt_callbacks_t sem_stmt_callbacks;
     unboxed_branch_hint_callbacks_t branch_hint_callbacks;
     unboxed_sem_exception_callbacks_t sem_exception_callbacks;
-    unboxed_sem_stmt_list_callbacks_t sem_stmts_callbacks;
+    unboxed_sem_stmt_list_callbacks_t sem_stmt_list_callbacks;
   };
 
   struct unboxed_callbacks *callbacks_heap = (struct unboxed_callbacks*)malloc(sizeof(struct unboxed_callbacks));
@@ -541,21 +538,21 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
   callbacks_heap->sem_expr_cmp_callbacks = sem_expr_cmp_callbacks;
   callbacks_heap->sem_expr_callbacks = sem_expr_callbacks;
   callbacks_heap->sem_varl_callbacks = sem_varl_callbacks;
-  callbacks_heap->sem_varls_callbacks = sem_varls_callbacks;
+  callbacks_heap->sem_varl_list_callbacks = sem_varl_list_callbacks;
   callbacks_heap->sem_flop_callbacks = sem_flop_callbacks;
   callbacks_heap->sem_stmt_callbacks = sem_stmt_callbacks;
   callbacks_heap->branch_hint_callbacks = branch_hint_callbacks;
   callbacks_heap->sem_exception_callbacks = sem_exception_callbacks;
-  callbacks_heap->sem_stmts_callbacks = sem_stmts_callbacks;
+  callbacks_heap->sem_stmt_list_callbacks = sem_stmt_list_callbacks;
 
   unboxed_callbacks_t callbacks = {.sem_id = &callbacks_heap->sem_id_callbacks, .sem_address =
       &callbacks_heap->sem_address_callbacks, .sem_var = &callbacks_heap->sem_var_callbacks, .sem_linear =
       &callbacks_heap->sem_linear_callbacks, .sem_sexpr = &callbacks_heap->sem_sexpr_callbacks, .sem_expr_cmp =
       &callbacks_heap->sem_expr_cmp_callbacks, .sem_expr = &callbacks_heap->sem_expr_callbacks, .sem_varl =
-      &callbacks_heap->sem_varl_callbacks, .sem_varls = &callbacks_heap->sem_varls_callbacks, .sem_flop =
+      &callbacks_heap->sem_varl_callbacks, .sem_varl_list = &callbacks_heap->sem_varl_list_callbacks, .sem_flop =
       &callbacks_heap->sem_flop_callbacks, .sem_stmt = &callbacks_heap->sem_stmt_callbacks, .branch_hint =
-      &callbacks_heap->branch_hint_callbacks, .sem_exception = &callbacks_heap->sem_exception_callbacks, .sem_stmts =
-      &callbacks_heap->sem_stmts_callbacks};
+      &callbacks_heap->branch_hint_callbacks, .sem_exception = &callbacks_heap->sem_exception_callbacks,
+      .sem_stmt_list = &callbacks_heap->sem_stmt_list_callbacks};
 
   callbacks_heap->callbacks = callbacks;
 

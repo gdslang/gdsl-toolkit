@@ -119,8 +119,12 @@ type sem_exception_obj = SEM_EXCEPTION_OBJ
 val rreil-cif-userdata-set userdata = update@{userdata=userdata}
 val rreil-cif-userdata-get = query $userdata
 
+val id_shared_enum s = case s of
+   FLOATING_FLAGS: 0
+end
+
 val rreil-convert-sem-id cbs id = case id of
-   FLOATING_FLAGS: cbs.sem_id.shared 0
+   FLOATING_FLAGS: cbs.sem_id.shared (id_shared_enum id)
  | VIRT_T t: cbs.sem_id.virt_t t
  | _: cbs.sem_id.arch (string-from-rope-lit (pretty-arch-id id))
 end
@@ -169,15 +173,13 @@ val rreil-convert-sem-expr cbs expr = case expr of
  | SEM_ZX s: cbs.sem_expr.sem_zx s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
 end
 
-val rreil-convert-branch-hint cbs hint = let
-  val enum = case hint of
-     HINT_JUMP: 0
-   | HINT_CALL: 1
-   | HINT_RET: 2 
+val branch_hint_enum hint = case hint of
+   HINT_JUMP: 0
+ | HINT_CALL: 1
+ | HINT_RET: 2 
 end
-in
-  cbs.branch_hint.branch_hint_ enum
-end
+
+val rreil-convert-branch-hint cbs hint = cbs.branch_hint.branch_hint_ (branch_hint_enum hint)
 
 val rreil-convert-sem-varl cbs varl = cbs.sem_varl.sem_varl_ (rreil-convert-sem-id cbs varl.id) varl.offset varl.size
 
@@ -203,18 +205,20 @@ val rreil-sem-varl-list-has-more varls = case varls of
  | SEM_VARLS_NIL: '0'
 end
 
-val rreil-convert-sem-flop cbs flop = let
-  val enum = case flop of
-     SEM_FADD: 0
-   | SEM_FSUB: 1
-   | SEM_FMUL: 2 
-  end
-in
-  cbs.sem_flop.sem_flop_ enum
+val flop_enum flop = case flop of
+   SEM_FADD: 0
+ | SEM_FSUB: 1
+ | SEM_FMUL: 2 
+end
+
+val rreil-convert-sem-flop cbs flop = cbs.sem_flop.sem_flop_ (flop_enum flop)
+
+val exception_enum e = case e of
+   SEM_DIVISION_BY_ZERO: 0
 end
 
 val rreil-convert-sem-exception cbs exception = case exception of
-   SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared 0
+   SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared (exception_enum exception)
  | _: cbs.sem_exception.arch (string-from-rope-lit (pretty-arch-exception exception))
 end
 
@@ -231,18 +235,18 @@ val rreil-convert-sem-stmt cbs stmt = case stmt of
  | SEM_THROW p: cbs.sem_stmt.sem_throw (rreil-convert-sem-exception cbs p)
 end
 
-val rreil-convert-sem-stmt-manual cbs stmt = case stmt of
-   SEM_ASSIGN s: cbs.sem_stmt.sem_assign s.size (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-expr cbs s.rhs)
- | SEM_LOAD l: cbs.sem_stmt.sem_load l.size (rreil-convert-sem-var cbs l.lhs) (rreil-convert-sem-address cbs l.address)
- | SEM_STORE s: cbs.sem_stmt.sem_store s.size (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-linear cbs s.rhs)
- | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) i.then_branch i.else_branch
- | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) w.body
- | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)
- | SEM_BRANCH b: cbs.sem_stmt.sem_branch (rreil-convert-branch-hint cbs b.hint) (rreil-convert-sem-address cbs b.target)
- | SEM_FLOP f: cbs.sem_stmt.sem_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.lhs) f.rhs
- | SEM_PRIM p: cbs.sem_stmt.sem_prim p.op p.lhs p.rhs
- | SEM_THROW p: cbs.sem_stmt.sem_throw (rreil-convert-sem-exception cbs p)
-end
+#val rreil-convert-sem-stmt-manual cbs stmt = case stmt of
+#   SEM_ASSIGN s: cbs.sem_stmt.sem_assign s.size (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-expr cbs s.rhs)
+# | SEM_LOAD l: cbs.sem_stmt.sem_load l.size (rreil-convert-sem-var cbs l.lhs) (rreil-convert-sem-address cbs l.address)
+# | SEM_STORE s: cbs.sem_stmt.sem_store s.size (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-linear cbs s.rhs)
+# | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) i.then_branch i.else_branch
+# | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) w.body
+# | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)
+# | SEM_BRANCH b: cbs.sem_stmt.sem_branch (rreil-convert-branch-hint cbs b.hint) (rreil-convert-sem-address cbs b.target)
+# | SEM_FLOP f: cbs.sem_stmt.sem_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.lhs) f.rhs
+# | SEM_PRIM p: cbs.sem_stmt.sem_prim p.op p.lhs p.rhs
+# | SEM_THROW p: cbs.sem_stmt.sem_throw (rreil-convert-sem-exception cbs p)
+#end
 
 val rreil-convert-sem-stmt-list cbs stmts = let
   val convert-inner list stmts = case stmts of

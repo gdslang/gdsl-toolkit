@@ -1,8 +1,10 @@
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 export decode-translate-block: (decoder-configuration, int) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
+export decode-translate-single: (decoder-configuration) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
 export decode-translate-block-insns: (decoder-configuration, int, (insn_list_obj, insndata) -> insn_list_obj) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
+export decode-translate-super-block: (decoder-configuration, int) -> S translate-result <{} => {}>
 export select_ins_count: S int <{ins_count: int} => {ins_count: int}>
-#decode-translate-single{insns} decode-translate-super-block{insns} succ-pretty
+#succ-pretty
 
 val insn-append-default a b = a
 
@@ -86,7 +88,11 @@ type stmts_option =
    SO_SOME of sem_stmt_list
  | SO_NONE
 
-type translate-result = {insns:int, succ_a:int, succ_b:int}
+type translate-result = {
+  insns:sem_stmt_list,
+  succ_a:stmts_option,
+  succ_b:stmts_option
+}
 
 val decode-translate-super-block-insncb config limit insn-append = let
   val translate-block-at idx = do
