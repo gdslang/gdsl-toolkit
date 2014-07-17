@@ -59,14 +59,14 @@ end end
 
 type linear_option =
    LIN_SOME of sem_linear
- | NONE
+ | LIN_NONE
 
 val update-state state stmt = let
-  val update-expr size expr = NONE
+  val update-expr size expr = LIN_NONE
 
 in case stmt of
    SEM_ASSIGN a: case update-expr a.rhs a.size of
-      NONE: state
+      LIN_NONE: state
    end
  | s: state
 end end
