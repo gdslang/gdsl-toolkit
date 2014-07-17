@@ -1,5 +1,6 @@
 export config-default: decoder-configuration
 export decode: (decoder-configuration) -> S insndata <{} => {}>
+export decoder-config : configuration[vec=decoder-configuration]
 
 type decoder-configuration = 0
 

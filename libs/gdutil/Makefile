@@ -5,7 +5,7 @@ INCDS=-Iinclude -I$(MLTK)/include
 CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 LIBRARY=libgdutil.a
-SOURCES=stack.c util.c gdsl_elf.c
+SOURCES=stack.c util.c gdsl_elf.c decoder_config.c
 
 all: pre-build $(LIBRARY)
 
