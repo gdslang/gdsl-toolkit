@@ -629,7 +629,14 @@ structure Simplify = struct
        | e => INVOKEexp (t, e, map (visitExp s) es)
       )
      | visitExp s (RECORDexp (rs,t,fs)) = RECORDexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs)
-     | visitExp s (SELECTexp (rs,t,f,e)) = SELECTexp (rs,t,f,visitExp s e)
+     | visitExp s (SELECTexp (rs,t,f,e)) = (case visitExp s e of
+           RECORDexp (_,t,fs) => (
+            case List.find (fn (name,e) => SymbolTable.eq_symid (f,name)) fs of
+                 SOME (name,e) => e 
+               | NONE => raise SimplifierBug
+            )
+         | e => SELECTexp (rs,t,f,e)
+      )
      | visitExp s (UPDATEexp (rs,t,fs,e)) =
         if List.null fs then visitExp s e else
         UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs,visitExp s e)
@@ -1673,8 +1680,9 @@ structure TypeRefinement = struct
      )
      end
      | trType (ta,dt,quantVars,conDef,boxedRec,s) (AST.RECORDty fs) =
-      RECORDstype (boxedRec,map (fn (f,ty) => (true,f,trType (ta,dt,quantVars,conDef,boxedRec,s) ty)) 
-        (SymMap.listItemsi (List.foldl SymMap.insert' SymMap.empty fs)),false)
+      RECORDstype (boxedRec,map (fn (f,ty) =>
+            (true,f,trType (ta,dt,quantVars,conDef,boxedRec,s) ty))
+            (sortFields fs), false)
      | trType s (AST.FUNCTIONty (args,res)) = FUNstype (trType s res,VOIDstype,map (trType s) args)
      | trType s (AST.MONADty (res,inp,out)) = trType s res
      | trType s AST.INTty = BOXstype (INTstype)
@@ -2498,6 +2506,155 @@ structure DeadVariables = struct
          val _ = app addPure ds
       in
          { decls = map visitDecl ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs }
+      end
+   
+end
+
+structure UnboxConstructorPayload = struct
+   val name = "unbox-constructor-payload"
+
+   open Imp
+   structure AST = SpecAbstractTree
+   
+   type state = { newLocals : arg list ref,
+                  prependStmt : stmt list ref,
+                  conArgTypes : AST.ty SymMap.map }
+
+   fun declareVar (s : state) arg = (#newLocals s := arg :: !(#newLocals s))
+   fun addStmt (s : state) stmt = (#prependStmt s := stmt :: !(#prependStmt s))
+
+   fun visitBlock (s : state) (BASICblock (decls,stmts)) =
+      let
+         fun processStmt (s, []) = []
+           | processStmt (s, stmt :: stmts) =
+            let
+               val stmt = visitStmt s stmt
+               val newStmts = List.rev (!(#prependStmt s))
+               val _ = #prependStmt s := []
+            in
+               newStmts @ stmt :: processStmt (s, stmts)
+            end
+         val sLocal = {
+            newLocals = ref [],
+            prependStmt = ref [],
+            conArgTypes = #conArgTypes s
+         }
+         val stmts = processStmt (sLocal, stmts)
+         val decls = decls @ (!(#newLocals sLocal))
+      in
+         BASICblock (decls, stmts)
+      end
+   
+   and visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
+     | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
+     | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
+
+   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   
+   and visitExp s (IDexp sym) = (IDexp sym)
+     | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
+     | visitExp s (CALLexp (IDexp sym,[e])) =
+        (case SymMap.find (#conArgTypes s, sym) of
+           NONE => CALLexp (IDexp sym, [visitExp s e])
+         | SOME ty =>
+         let
+            val e = visitExp s e
+            fun assignToSym (IDexp sym) = sym
+              | assignToSym e =
+               let
+                  val tab = !SymbolTables.varTable
+                  val (tab, sym) = SymbolTable.fresh (tab, Atom.atom "payload")
+                  val _ = SymbolTables.varTable := tab
+                  val _ = declareVar s (OBJvtype,sym)
+                  val _ = addStmt s (ASSIGNstmt (SOME sym,e))
+               in
+                  sym
+               end
+            fun convert (AST.MARKty {tree=t,span},e) = convert (t,e)
+              | convert (AST.BITty i,e) =
+                 BOXexp (VECvtype,
+                    INT2VECexp (IntInf.toInt i,
+                       VEC2INTexp (SOME (IntInf.toInt i),
+                          UNBOXexp (VECvtype,e))))
+              | convert (AST.INTty,e) =
+                 BOXexp (INTvtype, UNBOXexp (INTvtype,e))
+              | convert (AST.RECORDty fsDecl,RECORDexp (rSym,rTy,fsDef)) =
+              let
+                 val fTypes = List.foldl SymMap.insert' SymMap.empty fsDecl
+                 fun filterFields ((f,e)::fs) = (case SymMap.find (fTypes,f) of
+                         NONE => filterFields fs
+                       | SOME ty => (f,convert (ty,e)) :: filterFields fs
+                     )
+                   | filterFields [] = []
+                 
+                 val fsDef = filterFields fsDef
+                 val rTy = case rTy of
+                    RECORDvtype (b,fs) =>
+                       RECORDvtype (b,List.filter (fn (f,_) => SymMap.inDomain (fTypes,f)) fs)
+                  | _ => rTy
+              in
+                 RECORDexp (rSym,rTy,fsDef)
+              end
+              | convert (_,e) = e
+         in
+            CALLexp (IDexp sym, [convert (ty,e)])
+         end
+        )
+     | visitExp s (CALLexp (e,es)) = CALLexp (visitExp s e, map (visitExp s) es)
+     | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (t,visitExp s e, map (visitExp s) es)
+     | visitExp s (RECORDexp (rs,t,fs)) = RECORDexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (SELECTexp (rs,t,f,e)) = SELECTexp (rs,t,f,visitExp s e)
+     | visitExp s (UPDATEexp (rs,t,fs,e)) = UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs,visitExp s e)
+     | visitExp s (LITexp l) = LITexp l
+     | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
+     | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
+     | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
+     | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
+     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
+     | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b, t, visitExp s e)
+     | visitExp s (EXECexp (t, e)) = EXECexp (t, visitExp s e)
+
+   fun visitDecl s (FUNCdecl {
+        funcIsConst = isConst,
+        funcClosure = clArgs,
+        funcType = vtype,
+        funcName = name,
+        funcArgs = args,
+        funcBody = body,
+        funcRes = res
+      }) = (FUNCdecl {
+        funcIsConst = isConst,
+        funcClosure = clArgs,
+        funcType = vtype,
+        funcName = name,
+        funcArgs = args,
+        funcBody = visitBlock s body,
+        funcRes = res
+      })
+     | visitDecl s d = d
+
+     fun visitCDecl s (CONdecl {
+        conName = name,
+        conTag = tag,
+        ...
+        },sm) = SymMap.insert (sm,name,SymMap.lookup (s,tag))
+       | visitCDecl s (d,sm) = sm
+
+   fun run { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } =
+      let
+         fun addConstr ((conTag, SOME ty), sm) = SymMap.insert (sm,conTag,ty)
+           | addConstr ((conTag, NONE), sm) = sm
+         fun addDatatype (conList,sm) = List.foldl addConstr sm conList
+         val conTagToType = SymMap.foldl addDatatype SymMap.empty dt
+         val conToType = foldl (visitCDecl conTagToType) SymMap.empty ds
+         val s = {
+            newLocals = ref [],
+            prependStmt = ref [],
+            conArgTypes = conToType
+         } : state
+         val ds = map (visitDecl s) ds
+      in
+         { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs }
       end
    
 end

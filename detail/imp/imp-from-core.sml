@@ -493,8 +493,7 @@ end = struct
            | trans acc res ((f,e) :: es) = (case trExpr s e of
               (stmts, e') => trans (acc @ stmts) (res @ [(f,e')]) es)
          val (stmts, unsortedFields) = trans [] [] fs
-         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
-         val fields = ListMergeSort.uniqueSort fieldCmp unsortedFields
+         val fields = sortFields unsortedFields
          val _ = app (fn (f,e) => addField s f) fs
       in
          (stmts, RECORDexp (symDum, OBJvtype, fields))
@@ -507,8 +506,7 @@ end = struct
            | trans acc res ((f,e) :: es) = (case trExpr s e of
               (stmts, e') => trans (acc @ stmts) (res @ [(f,e')]) es)
          val (stmts, unsortedUpdates) = trans [] [] us
-         fun updateCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
-         val updates = ListMergeSort.uniqueSort updateCmp unsortedUpdates
+         val updates = sortFields unsortedUpdates
          val clSym = addUpdate s (map #1 updates)
          val fTypeCl = FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) updates)
       in
@@ -638,12 +636,15 @@ end = struct
                                    }
                val bogusExp = Exp.LIT (SpecAbstractTree.INTlit 42)
                val _ = trExpr initialState (Exp.LETREC (clauses, bogusExp))
+               fun mergeDatatype ((dt,cons),sm) = case SymMap.find (sm,dt) of
+                    NONE => SymMap.insert (sm,dt,cons)
+                  | SOME existing => SymMap.insert (sm,dt,existing @ cons)
             in
                { decls = !decls,
                  fdecls = !fields,
                  exports = exports,
                  typealias = List.foldl SymMap.insert' SymMap.empty (!typealias),
-                 datatypes = List.foldl SymMap.insert' SymMap.empty (!datatypes),
+                 datatypes = List.foldl mergeDatatype SymMap.empty (!datatypes),
                  monad = OBJvtype,
                  errs = errs }
             end) spec

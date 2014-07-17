@@ -6,6 +6,7 @@ structure TypeRefinementPass = MkIMPPass (TypeRefinement)
 structure SwitchReducePass = MkIMPPass (SwitchReduce)
 structure DeadFunctionsPass = MkIMPPass (DeadFunctions)
 structure DeadVariablesPass = MkIMPPass (DeadVariables)
+structure UnboxConstructorPayloadPass = MkIMPPass (UnboxConstructorPayload)
 
 structure ImpPasses : sig
    val run:
@@ -28,6 +29,7 @@ end = struct
       SimplifyPass.run >>=
       ActionClosuresPass.run >>=
       SimplifyPass.run >>=
+      UnboxConstructorPayloadPass.run >>=
       TypeRefinementPass.run >>=
       SimplifyPass.run >>=
       SwitchReducePass.run >>=

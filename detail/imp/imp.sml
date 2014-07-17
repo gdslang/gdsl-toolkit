@@ -5,6 +5,14 @@ structure Imp = struct
    
    type sym = SymbolTable.symid
 
+   (* Sort the fields in a record. *)
+   fun sortFields fs =
+      let
+         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
+      in
+         ListMergeSort.uniqueSort fieldCmp fs
+      end
+   
    (* types of values *)
    datatype vtype =
          VOIDvtype
@@ -12,7 +20,7 @@ structure Imp = struct
        | INTvtype
        | STRINGvtype
        | OBJvtype
-       | RECORDvtype of bool * (SymbolTable.symid * vtype) list (* record with a fixed set of fields, boolean is true if record should be boxed *)
+       | RECORDvtype of bool * (SymbolTable.symid * vtype) list (* record with a fixed set of fields (ordered by sortFields), boolean is true if record should be boxed *)
        | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *)
        | MONADvtype of vtype (* result of monadic action *) 
 
