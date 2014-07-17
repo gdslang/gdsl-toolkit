@@ -25,10 +25,6 @@ std::string gdsl::instruction::to_string() {
   return s.str();
 }
 
-int_t gdsl::instruction::length() {
-  return g->insn_length(native);
-}
-
 std::vector<gdsl::rreil::statement*>* gdsl::instruction::translate() {
   return g->translate(native);
 }

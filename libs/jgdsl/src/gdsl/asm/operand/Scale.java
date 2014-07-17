@@ -1,5 +1,7 @@
 package gdsl.asm.operand;
 
+import gdsl.asm.Visitor;
+
 public class Scale extends Operand {
   private long factor;
   
@@ -25,5 +27,9 @@ public class Scale extends Operand {
 
   @Override public String toString () {
     return factor + "*(" + rhs + ")";
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

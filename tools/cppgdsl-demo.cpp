@@ -136,9 +136,9 @@ void demo_block(gdsl::gdsl &g) {
 
   auto insns = b.get_instructions();
 
-  printf("Instructions (total length: %lld):\n", b.length());
-  for(gdsl::instruction i : *insns)
-    printf("%s /length: %lld\n", i.to_string().c_str(), i.length());
+//  printf("Instructions (total length: %lld):\n", b.length());
+//  for(gdsl::instruction i : *insns)
+//    printf("%s /length: %lld\n", i.to_string().c_str(), i.length());
 
   g.reset_heap();
 

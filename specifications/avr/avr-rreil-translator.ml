@@ -1,4 +1,4 @@
-#export = translate
+export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
 val sem-adc bo = do
   rd <- rval Unsigned bo.first;

@@ -4,6 +4,13 @@ import gdsl.Gdsl;
 import gdsl.HeapExpiredException;
 import gdsl.asm.Instruction;
 import gdsl.asm.GeneralizerBackend;
+import gdsl.asm.Visitor;
+import gdsl.asm.operand.Immediate;
+import gdsl.asm.operand.Memory;
+import gdsl.asm.operand.Register;
+import gdsl.asm.operand.Relative;
+import gdsl.asm.operand.Scale;
+import gdsl.asm.operand.Sum;
 
 /**
  * This class represents a decoded instruction.
@@ -37,11 +44,10 @@ public class NativeInstruction {
    * 
    * @return the size of the instruction
    */
+  @Deprecated
   public long getSize () {
-    return size(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
+    return generalize().getLength();
   }
-  
-  private native long size(long frontendPtr, long gdslStatePtr, long insnPtr);
   
   /**
    * Get the associated {@link Gdsl} object
@@ -77,11 +83,10 @@ public class NativeInstruction {
    * 
    * @return the number of operands
    */
+  @Deprecated
   public int operands () {
-    return operands(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
+    return generalize().getOperands().length;
   }
-
-  private native int operands (long frontendPtr, long gdslStatePtr, long insnPtr);
 
   /**
    * Print an operand
@@ -89,11 +94,10 @@ public class NativeInstruction {
    * @param operand the operand to print
    * @return the string representation of the operand
    */
+  @Deprecated
   public String operandToString (int operand) {
-    return prettyOperand(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr(), operand);
+    return generalize().getOperands()[operand].toString();
   }
-
-  private native String prettyOperand (long frontendPtr, long gdslStatePtr, long insnPtr, int operand);
   
   /**
    * Get the {@link OperandType} of an operand
@@ -101,23 +105,27 @@ public class NativeInstruction {
    * @param operand the index of the respective operand
    * @return the {@link OperandType} object
    */
+  @Deprecated
   public OperandType operandType(int operand) {
-    return OperandType.fromGdslId(operandType(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr(), operand));
+    OperandTypeVisitor otv = new OperandTypeVisitor();
+    generalize().accept(otv);
+    
+    if(!otv.getVisited())
+      throw new RuntimeException("Unable to determine the operand type");
+    
+    return otv.getOperandType();
   }
   
-  private native int operandType(long frontendPtr, long gdslStatePtr, long insnPtr, int operand);
-
   /**
    * Get the mnemonic of the instruction
    * 
    * @return the mnemonic of the instruction
    */
+  @Deprecated
   public String mnemonic () {
-    return mnemonic(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
+    return generalize().getMnemonic();
   }
 
-  private native String mnemonic (long frontendPtr, long gdslStatePtr, long insnPtr);
-  
   @Override protected void finalize () throws Throwable {
     /*
      * Todo: finally

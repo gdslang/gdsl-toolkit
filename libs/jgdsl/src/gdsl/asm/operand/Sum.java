@@ -1,5 +1,7 @@
 package gdsl.asm.operand;
 
+import gdsl.asm.Visitor;
+
 public class Sum extends Operand {
   private Operand lhs;
   
@@ -25,5 +27,9 @@ public class Sum extends Operand {
 
   @Override public String toString () {
     return "(" + lhs + " + " + rhs + ")";
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

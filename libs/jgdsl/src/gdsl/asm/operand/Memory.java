@@ -1,5 +1,7 @@
 package gdsl.asm.operand;
 
+import gdsl.asm.Visitor;
+
 public class Memory extends Operand {
   private Operand pointer;
   
@@ -17,5 +19,9 @@ public class Memory extends Operand {
 
   @Override public String toString () {
     return "*(" + pointer + ")";
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

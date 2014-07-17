@@ -1,5 +1,6 @@
 package gdsl.asm.operand;
 
+import gdsl.asm.Visitor;
 import gdsl.asm.boundary.Boundary;
 
 public class Bounded extends Operand {
@@ -11,7 +12,7 @@ public class Bounded extends Operand {
   
   private Operand operand;
   
-  public Operand getOpnd() {
+  public Operand getOperand() {
     return operand;
   }
 
@@ -27,5 +28,9 @@ public class Bounded extends Operand {
 
   @Override public String toString () {
     return operand + boundary.toString();
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

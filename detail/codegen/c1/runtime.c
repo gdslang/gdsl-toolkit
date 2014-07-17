@@ -13,6 +13,7 @@
 
 
 struct state {
+  void* userdata;      /* a pointer to arbitrary data */
   char* heap_base;    /* the beginning of the heap */
   char* heap_limit;   /* first byte beyond the heap buffer */
   char* heap;         /* current top of the heap */

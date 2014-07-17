@@ -9,6 +9,10 @@
 
 #include <stdint.h>
 
+struct state {
+  void *userdata; /* a pointer to arbitary data */
+};
+
 /* data types used in decoder programs */
 typedef void* obj_t;
 typedef struct state* state_t;

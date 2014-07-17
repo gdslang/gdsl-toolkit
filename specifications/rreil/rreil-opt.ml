@@ -1,5 +1,5 @@
-export decode-translate-block-optimized : (decoder-configuration, int, int) -> S opt-result <{} => {}>
-export decode-translate-block-optimized-insncb : (decoder-configuration, int, int, insn_list_obj, (insn_list_obj, insndata) -> insn_list_obj) -> S opt-result <{} => {}>
+export decode-translate-block-optimized: (decoder-configuration, int, int) -> S sem_stmt_list <{} => {}>
+export decode-translate-block-optimized-insncb: (decoder-configuration, int, int, insn_list_obj, (insn_list_obj, insndata) -> insn_list_obj) -> S opt-result <{} => {}>
 
 type sem_preservation =
    SEM_PRESERVATION_EVERYWHERE
@@ -55,8 +55,9 @@ end
 
 val decode-translate-block-optimized config limit pres = let
   val default-append a b = a
-in
-  decode-translate-block-optimized-insncb config limit pres INSN_LIST_OBJ default-append
-end
+in do
+  result <- decode-translate-block-optimized-insncb config limit pres INSN_LIST_OBJ default-append;
+  return result.rreil
+end end
 
 type insn_list_obj = INSN_LIST_OBJ

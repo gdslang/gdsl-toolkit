@@ -7,7 +7,7 @@ export int-max : int
 export has-conf[vec] : (configuration[vec]) -> 1
 export conf-short[vec] : (configuration[vec]) -> string
 export conf-long[vec] : (configuration[vec]) -> string
-export conf-data[vec] : (configuration[vec]) -> vec
+export conf-data[vec] : (configuration[vec]) -> int
 export conf-next[vec] : (configuration[vec]) -> configuration[vec]
 
 type rope = RopeLeaf of { rope-size : int, rope-string: string }
@@ -167,7 +167,7 @@ end
 
 val conf-data co =
   case co of
-    CONF c : $confData c
+    CONF c : zx ($confData c)
 end                                     
 
 val conf-next co =

@@ -107,15 +107,8 @@ block gdsl::gdsl::decode_translate_block(preservation pres, int_t limit) {
     throw gdsl_exception("decode_translate_block() failed", string(frontend->native().generic.get_error_message(gdsl_state)));
 
   gdsl_insns cls = {this, new std::vector<instruction>()};
-  obj_t rreil = frontend->native().translator.decode_translate_block_optimized_int_insncb(gdsl_state,
+  obj_t rreil = frontend->native().translator.decode_translate_block_optimized_insncb(gdsl_state,
       frontend->native().decoder.config_default(gdsl_state), limit, pres, &cls, insn_cb)->rreil;
   std::vector<rreil::statement*> *statements = convert(rreil);
   return block(cls.instructions, statements);
-}
-
-int_t gdsl::gdsl::insn_length(obj_t insn) {
-  if(setjmp(*frontend->native().generic.err_tgt(gdsl_state)))
-    throw gdsl_exception("insn_length() failed", string(frontend->native().generic.get_error_message(gdsl_state)));
-
-  return frontend->native().decoder.insn_length(gdsl_state, insn);
 }

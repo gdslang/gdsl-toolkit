@@ -1,5 +1,7 @@
 package gdsl.asm.boundary;
 
+import gdsl.asm.Visitor;
+
 public class SizeOffsetBoundary extends Boundary {
   private long size;
   
@@ -28,5 +30,9 @@ public class SizeOffsetBoundary extends Boundary {
       return "." + offset + "/" + size;
     else
       return "/" + size;
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

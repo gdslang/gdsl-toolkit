@@ -1,7 +1,4 @@
 export rreil-convert-sem-stmt-list : (callbacks, sem_stmt_list) -> sem_stmt_list_obj
-export rreil-cif-userdata-set: (obj) -> S () <{} => {userdata: obj}>
-export rreil-cif-userdata-get: S obj <{userdata: obj} => {userdata: obj}>
-
 
 type sem_id_callbacks = {
   shared: (int) -> sem_id_obj,
@@ -115,9 +112,6 @@ type sem_stmt_obj = SEM_STMT_OBJ
 type sem_stmt_list_obj = SEM_STMT_LIST_OBJ
 type branch_hint_obj = BRANCH_OBJ
 type sem_exception_obj = SEM_EXCEPTION_OBJ
-
-val rreil-cif-userdata-set userdata = update@{userdata=userdata}
-val rreil-cif-userdata-get = query $userdata
 
 val id_shared_enum s = case s of
    FLOATING_FLAGS: 0

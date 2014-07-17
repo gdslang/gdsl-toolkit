@@ -1,6 +1,7 @@
 package gdsl.asm.operand;
 
 import gdsl.asm.Signedness;
+import gdsl.asm.Visitor;
 
 public class Sign extends Operand {
   private Signedness signedness;
@@ -11,7 +12,7 @@ public class Sign extends Operand {
   
   private Operand operand;
   
-  public Operand getOpnd() {
+  public Operand getOperand() {
     return operand;
   }
 
@@ -27,5 +28,9 @@ public class Sign extends Operand {
 
   @Override public String toString () {
     return "(" + signedness + " " + operand + ")";
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

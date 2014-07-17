@@ -35,21 +35,26 @@ public class Instruction {
     this.annotations = annotations;
     this.operands = operands;
   }
-  
+
   @Override public String toString () {
     StringBuilder sB = new StringBuilder(mnemonic);
-    sB.append(" [");
-    for (int i = 0; i < annotations.length; i++) {
-      if(i > 0)
-        sB.append(", ");
-      sB.append(annotations[i]);
+    if (annotations.length > 0) {
+      sB.append(" [");
+      for (int i = 0; i < annotations.length; i++) {
+        if (i > 0)
+          sB.append(", ");
+        sB.append(annotations[i]);
+      }
+      sB.append("]");
     }
-    sB.append("] ");
     for (int i = 0; i < operands.length; i++) {
-      if(i > 0)
-        sB.append(" ");
+      sB.append(" ");
       sB.append(operands[i]);
     }
     return sB.toString();
+  }
+  
+  public void accept(Visitor v) {
+    v.visit(this);
   }
 }

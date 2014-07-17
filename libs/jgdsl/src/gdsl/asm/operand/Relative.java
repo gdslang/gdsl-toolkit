@@ -1,5 +1,7 @@
 package gdsl.asm.operand;
 
+import gdsl.asm.Visitor;
+
 public class Relative extends Operand {
   private Operand operand;
   
@@ -17,5 +19,9 @@ public class Relative extends Operand {
 
   @Override public String toString () {
     return "(? + " + operand  + ")";
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

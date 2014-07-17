@@ -29,7 +29,6 @@ public:
   std::string to_string();
   friend ostream& operator<< (ostream &out, instruction &_this);
 
-  int_t length();
   std::vector<rreil::statement*> *translate();
 
   obj_t get_native() const {
