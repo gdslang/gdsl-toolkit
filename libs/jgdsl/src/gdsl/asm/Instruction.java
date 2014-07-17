@@ -53,4 +53,8 @@ public class Instruction {
     }
     return sB.toString();
   }
+  
+  public void accept(Visitor v) {
+    v.visit(this);
+  }
 }

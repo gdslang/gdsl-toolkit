@@ -1,5 +1,7 @@
 package gdsl.asm.annotation;
 
+import gdsl.asm.Visitor;
+
 public class StringAnnotation extends Annotation {
   private String annotation;
   
@@ -13,5 +15,9 @@ public class StringAnnotation extends Annotation {
 
   @Override public String toString () {
     return "{Annotation: " + annotation + "}";
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

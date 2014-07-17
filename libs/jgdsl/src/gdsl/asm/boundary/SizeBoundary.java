@@ -1,5 +1,7 @@
 package gdsl.asm.boundary;
 
+import gdsl.asm.Visitor;
+
 public class SizeBoundary extends Boundary {
   private long size;
   
@@ -17,5 +19,9 @@ public class SizeBoundary extends Boundary {
 
   @Override public String toString () {
     return "/" + size;
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

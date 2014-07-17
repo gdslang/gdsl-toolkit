@@ -1,5 +1,7 @@
 package gdsl.asm.operand;
 
+import gdsl.asm.Visitor;
+
 public class PostOperation extends Operand {
   private Operand expression;
   
@@ -9,7 +11,7 @@ public class PostOperation extends Operand {
   
   public Operand operand;
   
-  public Operand getOpnd() {
+  public Operand getOperand() {
     return operand;
   }
 
@@ -25,5 +27,9 @@ public class PostOperation extends Operand {
 
   @Override public String toString () {
     return "(" + operand + " [" + operand + " := " + expression + "])";
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

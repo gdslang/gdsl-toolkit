@@ -1,5 +1,7 @@
 package gdsl.asm.operand;
 
+import gdsl.asm.Visitor;
+
 public class Composite extends Operand {
   private Operand[] operands;
   
@@ -19,6 +21,10 @@ public class Composite extends Operand {
       sB.append(operands[i]);
     }
     return sB.toString();
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 
 }

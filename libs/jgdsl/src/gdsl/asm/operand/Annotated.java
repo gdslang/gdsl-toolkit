@@ -1,5 +1,6 @@
 package gdsl.asm.operand;
 
+import gdsl.asm.Visitor;
 import gdsl.asm.annotation.Annotation;
 
 public class Annotated extends Operand {
@@ -27,5 +28,9 @@ public class Annotated extends Operand {
 
   @Override public String toString () {
     return "(" + annotation + ":" + operand + ")";
+  }
+
+  @Override public void accept (Visitor v) {
+    v.visit(this);
   }
 }

@@ -47,10 +47,12 @@ public enum OperandType {
    * 
    * @return the GDSL identification number
    */
+  @Deprecated
   public int getGdslId () {
     return gdslId;
   }
   
+  @Deprecated
   private OperandType(int gdslId) {
     this.gdslId = gdslId;
   }
@@ -62,6 +64,7 @@ public enum OperandType {
    * @param gdslId the GDSL indentification number
    * @return the {@link OperandType} object
    */
+  @Deprecated
   public static OperandType fromGdslId(int gdslId) {
     if(gdslId == Immediate.gdslId)
       return Immediate;
