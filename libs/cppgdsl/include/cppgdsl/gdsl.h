@@ -44,7 +44,6 @@ public:
    */
   instruction decode();
   std::string pretty_instruction(obj_t insn);
-  int_t insn_length(obj_t insn);
 
   /*
    * translator

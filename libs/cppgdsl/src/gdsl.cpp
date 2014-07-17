@@ -112,11 +112,3 @@ block gdsl::gdsl::decode_translate_block(preservation pres, int_t limit) {
   std::vector<rreil::statement*> *statements = convert(rreil);
   return block(cls.instructions, statements);
 }
-
-int_t gdsl::gdsl::insn_length(obj_t insn) {
-  if(setjmp(*frontend->native().generic.err_tgt(gdsl_state)))
-    throw gdsl_exception("insn_length() failed", string(frontend->native().generic.get_error_message(gdsl_state)));
-
-  //return frontend->native().decoder.insn_length(gdsl_state, insn);
-  return 0;
-}

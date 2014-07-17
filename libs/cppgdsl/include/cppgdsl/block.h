@@ -24,8 +24,6 @@ public:
   block(std::vector<instruction> *instructions, std::vector<rreil::statement*> *statements);
   ~block();
 
-  int_t length();
-
   std::vector<instruction> const *get_instructions() const {
     return instructions;
   }

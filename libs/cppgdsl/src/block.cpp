@@ -15,10 +15,3 @@ gdsl::block::block(std::vector<instruction> *instructions, std::vector<rreil::st
 gdsl::block::~block() {
   delete instructions;
 }
-
-int_t gdsl::block::length() {
-  int_t r = 0;
-  for (size_t i = 0; i < instructions->size(); ++i)
-    r += instructions->at(i).length();
-  return r;
-}
