@@ -131,8 +131,7 @@ JNIEXPORT jobject JNICALL Java_gdsl_asm_GeneralizerBackend_generalize(JNIEnv *en
   ud.obj = this;
   ud.frontend = frontend;
 
-  frontend->translator.rreil_cif_userdata_set(state, &ud);
-  rreil_cif_userdata_get = frontend->translator.rreil_cif_userdata_get;
+  state->userdata = &ud;
 
   unboxed_asm_opnd_list_callbacks_t asm_opnd_list_callbacks = {.opnd_list_next = &asm_opnds_next, .init = &asm_opnds_init};
   unboxed_asm_opnd_callbacks_t asm_opnd_callbacks = {.opnd_register = &asm_register, .memory = &asm_memory, .imm =

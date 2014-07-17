@@ -34,11 +34,6 @@ struct userdata {
   struct frontend *frontend;
 };
 
-/*
- * Todo: Horrible hack
- */
-void *(*rreil_cif_userdata_get)(state_t state);
-
 extern jobject java_method_call(state_t state, char *name, int numargs, ...);
 extern jobject java_long_create(state_t state, long int x);
 extern jstring java_string_create(state_t state, char *x);

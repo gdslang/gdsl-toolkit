@@ -367,8 +367,7 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, 
   ud.obj = this;
   ud.frontend = frontend;
 
-  frontend->translator.rreil_cif_userdata_set(state, &ud);
-  rreil_cif_userdata_get = frontend->translator.rreil_cif_userdata_get;
+  state->userdata = &ud;
 
 //	char *fmt = frontend->generic.merge_rope(state, frontend->translator.pretty(state, rreil));
 //	puts(fmt);
@@ -426,8 +425,7 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
   ud.obj = this;
   ud.frontend = frontend;
 
-  frontend->translator.rreil_cif_userdata_set(state, &ud);
-  rreil_cif_userdata_get = frontend->translator.rreil_cif_userdata_get;
+  state->userdata = &ud;
 
   BUILD_CALLBACKS
   jobject converted_rreil = frontend->translator.rreil_convert_sem_stmt_list(state, &callbacks, rreil);

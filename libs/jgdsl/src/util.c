@@ -26,7 +26,7 @@ char handle_frontend_getter_error(JNIEnv *env, char error) {
 jobject java_method_call(state_t state, char *name, int numargs, ...) {
   if(numargs > 4) return NULL; //Todo: Handle error
 
-  struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
+  struct userdata *ud = (struct userdata*)state->userdata;
 
   jclass class = (*ud->env)->GetObjectClass(ud->env, ud->obj);
 
@@ -91,7 +91,7 @@ jobject java_method_call(state_t state, char *name, int numargs, ...) {
 }
 
 jobject java_long_create(state_t state, long int x) {
-  struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
+  struct userdata *ud = (struct userdata*)state->userdata;
 
   jclass class = (*ud->env)->FindClass(ud->env, "java/lang/Long");
   jmethodID method_id = (*ud->env)->GetMethodID(ud->env, class, "<init>", "(J)V");
@@ -101,7 +101,7 @@ jobject java_long_create(state_t state, long int x) {
 }
 
 jstring java_string_create(state_t state, char *x) {
-  struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
+  struct userdata *ud = (struct userdata*)state->userdata;
   jstring str = (*ud->env)->NewStringUTF(ud->env, x);
   return str;
 }
