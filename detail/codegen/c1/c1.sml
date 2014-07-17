@@ -1108,7 +1108,7 @@ structure C1 = struct
          val _ = genClosureSet := AtomSet.empty
          val _ = invokeClosureSet := AtomSet.empty
 
-         val { decls = ds, fdecls = fs, exports, typealias, datatypes,
+         val { decls = ds, fdecls = fs, exports = _, typealias, datatypes,
                monad = mt, errs } = Spec.get #declarations spec
          val ds = sortTopologically ds
          
@@ -1163,6 +1163,7 @@ structure C1 = struct
                stateType = ref OBJvtype,
                consumeSizes = ref IntListSet.empty
             } : state
+
          val s = foldl registerSymbol s (map (getDeclName o #2) ds)
          val funs = map (emitDecl s) ds
          val const_decl = map (emitConstDecl s) ds

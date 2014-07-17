@@ -8,10 +8,12 @@ export succ-pretty: (stmts_option, string) -> rope
 
 val insn-append-default a b = a
 
+type insndataD = INSNDATA of insndata
+
 val decode-translate-block-headless config limit insn-append = do
   insn <- decode config;
   insns <- query $insns;
-  update @{insns=insn-append insns (@{length=insn.length + 0, addr-sz=insn.addr-sz + 0, opnd-sz=insn.opnd-sz + 0}insn)};
+  update @{insns=insn-append insns (@{length=insn.length + 0, addr-sz=insn.addr-sz + 0, opnd-sz=insn.opnd-sz + 0} (case INSNDATA insn of INSNDATA insn : insn end))};
   translate-block-single insn;
   jmp <- query $foundJump;
   idx <- idxget;
