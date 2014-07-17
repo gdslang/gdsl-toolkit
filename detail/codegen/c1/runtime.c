@@ -466,7 +466,7 @@ int main (int argc, char** argv) {
         obj_t rreil = gdsl_decode_translate_block_optimized(s,
           decode_options,
           gdsl_int_max(s),
-          CON_SEM_PRESERVATION_CONTEXT);
+          2);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
         printf("%llx:\n",address);
