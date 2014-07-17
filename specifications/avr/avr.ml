@@ -3,6 +3,9 @@ export decode: (decoder-configuration) -> S insndata <{} => {}>
 
 type decoder-configuration = 0
 
+val decoder-config = END
+val config-default = ''
+
 val d ['bit:1'] = do
  rd <- query $rd;
  update@{rd=rd ^ bit}
@@ -516,8 +519,6 @@ val / ['1001010110101000'] = nullop WDR
 ### XCH
 ###  - Exchange
 val / ['1001001 d d d d d 0100'] = binop XCH /Z rd5
-
-val config-default = ''
 
 val decode config = do
   update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};

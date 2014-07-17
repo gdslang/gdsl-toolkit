@@ -33,6 +33,10 @@ struct frontend {
 
 	struct {
 		int_t (*config_default)(state_t state);
+		int_t (*has_conf)(state_t state, obj_t config);
+		int_t (*conf_next)(state_t state, obj_t config);
+		int_t (*conf_short)(state_t state, obj_t config);
+		int_t (*conf_long)(state_t state, obj_t config);
 		obj_t (*decode)(state_t state, int_t config);
 		obj_t (*generalize)(state_t state, obj_t insn);
 		obj_t (*asm_convert_insn)(state_t s, asm_callbacks_t cbs, asm_insn_t insn);

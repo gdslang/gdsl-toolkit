@@ -5,7 +5,7 @@ export decode : (decoder-configuration) -> S insndata <{} => {}>
 export features-get : (insndata) -> int
 export typeof-opnd : (insndata,int) -> int
 export insn-length : (insndata) -> int
-export decoder-config : configuration[vec=2]
+export decoder-config : configuration[vec=decoder-configuration]
 export operands : (insndata) -> int
 
 type decoder-configuration = 2
