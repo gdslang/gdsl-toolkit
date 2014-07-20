@@ -4,20 +4,15 @@ package gdsl.plugin.gDSL.impl;
 
 import gdsl.plugin.gDSL.AExp;
 import gdsl.plugin.gDSL.GDSLPackage;
-import gdsl.plugin.gDSL.MExp;
 
 import java.util.Collection;
 
-import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
 
 import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
-
-import org.eclipse.emf.ecore.impl.ENotificationImpl;
-import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 import org.eclipse.emf.ecore.util.EDataTypeEList;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
@@ -30,45 +25,34 @@ import org.eclipse.emf.ecore.util.InternalEList;
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.AExpImpl#getMexp <em>Mexp</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.AExpImpl#getSign <em>Sign</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.AExpImpl#getMexps <em>Mexps</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.AExpImpl#getSym <em>Sym</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.AExpImpl#getAexps <em>Aexps</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
+public class AExpImpl extends RExpImpl implements AExp
 {
   /**
-   * The cached value of the '{@link #getMexp() <em>Mexp</em>}' containment reference.
+   * The cached value of the '{@link #getSym() <em>Sym</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getMexp()
+   * @see #getSym()
    * @generated
    * @ordered
    */
-  protected MExp mexp;
+  protected EList<String> sym;
 
   /**
-   * The cached value of the '{@link #getSign() <em>Sign</em>}' attribute list.
+   * The cached value of the '{@link #getAexps() <em>Aexps</em>}' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getSign()
+   * @see #getAexps()
    * @generated
    * @ordered
    */
-  protected EList<String> sign;
-
-  /**
-   * The cached value of the '{@link #getMexps() <em>Mexps</em>}' containment reference list.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @see #getMexps()
-   * @generated
-   * @ordered
-   */
-  protected EList<MExp> mexps;
+  protected EList<AExp> aexps;
 
   /**
    * <!-- begin-user-doc -->
@@ -96,9 +80,13 @@ public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public MExp getMexp()
+  public EList<String> getSym()
   {
-    return mexp;
+    if (sym == null)
+    {
+      sym = new EDataTypeEList<String>(String.class, this, GDSLPackage.AEXP__SYM);
+    }
+    return sym;
   }
 
   /**
@@ -106,65 +94,13 @@ public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public NotificationChain basicSetMexp(MExp newMexp, NotificationChain msgs)
+  public EList<AExp> getAexps()
   {
-    MExp oldMexp = mexp;
-    mexp = newMexp;
-    if (eNotificationRequired())
+    if (aexps == null)
     {
-      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.AEXP__MEXP, oldMexp, newMexp);
-      if (msgs == null) msgs = notification; else msgs.add(notification);
+      aexps = new EObjectContainmentEList<AExp>(AExp.class, this, GDSLPackage.AEXP__AEXPS);
     }
-    return msgs;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public void setMexp(MExp newMexp)
-  {
-    if (newMexp != mexp)
-    {
-      NotificationChain msgs = null;
-      if (mexp != null)
-        msgs = ((InternalEObject)mexp).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.AEXP__MEXP, null, msgs);
-      if (newMexp != null)
-        msgs = ((InternalEObject)newMexp).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.AEXP__MEXP, null, msgs);
-      msgs = basicSetMexp(newMexp, msgs);
-      if (msgs != null) msgs.dispatch();
-    }
-    else if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.AEXP__MEXP, newMexp, newMexp));
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EList<String> getSign()
-  {
-    if (sign == null)
-    {
-      sign = new EDataTypeEList<String>(String.class, this, GDSLPackage.AEXP__SIGN);
-    }
-    return sign;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EList<MExp> getMexps()
-  {
-    if (mexps == null)
-    {
-      mexps = new EObjectContainmentEList<MExp>(MExp.class, this, GDSLPackage.AEXP__MEXPS);
-    }
-    return mexps;
+    return aexps;
   }
 
   /**
@@ -177,10 +113,8 @@ public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
   {
     switch (featureID)
     {
-      case GDSLPackage.AEXP__MEXP:
-        return basicSetMexp(null, msgs);
-      case GDSLPackage.AEXP__MEXPS:
-        return ((InternalEList<?>)getMexps()).basicRemove(otherEnd, msgs);
+      case GDSLPackage.AEXP__AEXPS:
+        return ((InternalEList<?>)getAexps()).basicRemove(otherEnd, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
   }
@@ -195,12 +129,10 @@ public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
   {
     switch (featureID)
     {
-      case GDSLPackage.AEXP__MEXP:
-        return getMexp();
-      case GDSLPackage.AEXP__SIGN:
-        return getSign();
-      case GDSLPackage.AEXP__MEXPS:
-        return getMexps();
+      case GDSLPackage.AEXP__SYM:
+        return getSym();
+      case GDSLPackage.AEXP__AEXPS:
+        return getAexps();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -216,16 +148,13 @@ public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
   {
     switch (featureID)
     {
-      case GDSLPackage.AEXP__MEXP:
-        setMexp((MExp)newValue);
+      case GDSLPackage.AEXP__SYM:
+        getSym().clear();
+        getSym().addAll((Collection<? extends String>)newValue);
         return;
-      case GDSLPackage.AEXP__SIGN:
-        getSign().clear();
-        getSign().addAll((Collection<? extends String>)newValue);
-        return;
-      case GDSLPackage.AEXP__MEXPS:
-        getMexps().clear();
-        getMexps().addAll((Collection<? extends MExp>)newValue);
+      case GDSLPackage.AEXP__AEXPS:
+        getAexps().clear();
+        getAexps().addAll((Collection<? extends AExp>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -241,14 +170,11 @@ public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
   {
     switch (featureID)
     {
-      case GDSLPackage.AEXP__MEXP:
-        setMexp((MExp)null);
+      case GDSLPackage.AEXP__SYM:
+        getSym().clear();
         return;
-      case GDSLPackage.AEXP__SIGN:
-        getSign().clear();
-        return;
-      case GDSLPackage.AEXP__MEXPS:
-        getMexps().clear();
+      case GDSLPackage.AEXP__AEXPS:
+        getAexps().clear();
         return;
     }
     super.eUnset(featureID);
@@ -264,12 +190,10 @@ public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
   {
     switch (featureID)
     {
-      case GDSLPackage.AEXP__MEXP:
-        return mexp != null;
-      case GDSLPackage.AEXP__SIGN:
-        return sign != null && !sign.isEmpty();
-      case GDSLPackage.AEXP__MEXPS:
-        return mexps != null && !mexps.isEmpty();
+      case GDSLPackage.AEXP__SYM:
+        return sym != null && !sym.isEmpty();
+      case GDSLPackage.AEXP__AEXPS:
+        return aexps != null && !aexps.isEmpty();
     }
     return super.eIsSet(featureID);
   }
@@ -285,8 +209,8 @@ public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
     if (eIsProxy()) return super.toString();
 
     StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (sign: ");
-    result.append(sign);
+    result.append(" (sym: ");
+    result.append(sym);
     result.append(')');
     return result.toString();
   }

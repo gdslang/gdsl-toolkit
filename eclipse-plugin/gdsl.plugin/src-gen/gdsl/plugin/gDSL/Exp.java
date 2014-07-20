@@ -2,6 +2,9 @@
  */
 package gdsl.plugin.gDSL;
 
+import org.eclipse.emf.common.util.EList;
+
+import org.eclipse.emf.ecore.EObject;
 
 /**
  * <!-- begin-user-doc -->
@@ -11,8 +14,9 @@ package gdsl.plugin.gDSL;
  * <p>
  * The following features are supported:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.Exp#getCaseExp <em>Case Exp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Exp#getName <em>Name</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.Exp#getMid <em>Mid</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Exp#getCaseExps <em>Case Exps</em>}</li>
  * </ul>
  * </p>
  *
@@ -20,58 +24,64 @@ package gdsl.plugin.gDSL;
  * @model
  * @generated
  */
-public interface Exp extends ValueDecl
+public interface Exp extends EObject
 {
   /**
-   * Returns the value of the '<em><b>Case Exp</b></em>' containment reference.
+   * Returns the value of the '<em><b>Name</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Case Exp</em>' containment reference isn't clear,
+   * If the meaning of the '<em>Name</em>' containment reference isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Case Exp</em>' containment reference.
-   * @see #setCaseExp(CaseExp)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getExp_CaseExp()
+   * @return the value of the '<em>Name</em>' containment reference.
+   * @see #setName(CaseExp)
+   * @see gdsl.plugin.gDSL.GDSLPackage#getExp_Name()
    * @model containment="true"
    * @generated
    */
-  CaseExp getCaseExp();
+  CaseExp getName();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.Exp#getCaseExp <em>Case Exp</em>}' containment reference.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.Exp#getName <em>Name</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Case Exp</em>' containment reference.
-   * @see #getCaseExp()
+   * @param value the new value of the '<em>Name</em>' containment reference.
+   * @see #getName()
    * @generated
    */
-  void setCaseExp(CaseExp value);
+  void setName(CaseExp value);
 
   /**
-   * Returns the value of the '<em><b>Mid</b></em>' attribute.
+   * Returns the value of the '<em><b>Mid</b></em>' attribute list.
+   * The list contents are of type {@link java.lang.String}.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Mid</em>' attribute isn't clear,
+   * If the meaning of the '<em>Mid</em>' attribute list isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Mid</em>' attribute.
-   * @see #setMid(String)
+   * @return the value of the '<em>Mid</em>' attribute list.
    * @see gdsl.plugin.gDSL.GDSLPackage#getExp_Mid()
-   * @model
+   * @model unique="false"
    * @generated
    */
-  String getMid();
+  EList<String> getMid();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.Exp#getMid <em>Mid</em>}' attribute.
+   * Returns the value of the '<em><b>Case Exps</b></em>' containment reference list.
+   * The list contents are of type {@link gdsl.plugin.gDSL.CaseExp}.
    * <!-- begin-user-doc -->
+   * <p>
+   * If the meaning of the '<em>Case Exps</em>' containment reference list isn't clear,
+   * there really should be more of a description here...
+   * </p>
    * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Mid</em>' attribute.
-   * @see #getMid()
+   * @return the value of the '<em>Case Exps</em>' containment reference list.
+   * @see gdsl.plugin.gDSL.GDSLPackage#getExp_CaseExps()
+   * @model containment="true"
    * @generated
    */
-  void setMid(String value);
+  EList<CaseExp> getCaseExps();
 
 } // Exp

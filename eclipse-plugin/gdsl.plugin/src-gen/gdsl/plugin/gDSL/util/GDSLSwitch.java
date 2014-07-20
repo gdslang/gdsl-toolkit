@@ -125,13 +125,6 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
-      case GDSLPackage.CON_DECLS:
-      {
-        ConDecls conDecls = (ConDecls)theEObject;
-        T result = caseConDecls(conDecls);
-        if (result == null) result = defaultCase(theEObject);
-        return result;
-      }
       case GDSLPackage.CON_DECL:
       {
         ConDecl conDecl = (ConDecl)theEObject;
@@ -146,13 +139,6 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
-      case GDSLPackage.TY_ELEMENT:
-      {
-        TyElement tyElement = (TyElement)theEObject;
-        T result = caseTyElement(tyElement);
-        if (result == null) result = defaultCase(theEObject);
-        return result;
-      }
       case GDSLPackage.TY_BIND:
       {
         TyBind tyBind = (TyBind)theEObject;
@@ -160,26 +146,10 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
-      case GDSLPackage.DECODE_PAT:
+      case GDSLPackage.TY_ELEMENT:
       {
-        DecodePat decodePat = (DecodePat)theEObject;
-        T result = caseDecodePat(decodePat);
-        if (result == null) result = defaultCase(theEObject);
-        return result;
-      }
-      case GDSLPackage.BIT_PAT:
-      {
-        BitPat bitPat = (BitPat)theEObject;
-        T result = caseBitPat(bitPat);
-        if (result == null) result = caseDecodePat(bitPat);
-        if (result == null) result = defaultCase(theEObject);
-        return result;
-      }
-      case GDSLPackage.TOK_PAT:
-      {
-        TokPat tokPat = (TokPat)theEObject;
-        T result = caseTokPat(tokPat);
-        if (result == null) result = caseDecodePat(tokPat);
+        TyElement tyElement = (TyElement)theEObject;
+        T result = caseTyElement(tyElement);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -187,7 +157,6 @@ public class GDSLSwitch<T> extends Switch<T>
       {
         Exp exp = (Exp)theEObject;
         T result = caseExp(exp);
-        if (result == null) result = caseValueDecl(exp);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -210,13 +179,6 @@ public class GDSLSwitch<T> extends Switch<T>
       {
         MonadicExp monadicExp = (MonadicExp)theEObject;
         T result = caseMonadicExp(monadicExp);
-        if (result == null) result = defaultCase(theEObject);
-        return result;
-      }
-      case GDSLPackage.CASES:
-      {
-        Cases cases = (Cases)theEObject;
-        T result = caseCases(cases);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -254,6 +216,11 @@ public class GDSLSwitch<T> extends Switch<T>
       {
         AExp aExp = (AExp)theEObject;
         T result = caseAExp(aExp);
+        if (result == null) result = caseRExp(aExp);
+        if (result == null) result = caseAndAlsoExp(aExp);
+        if (result == null) result = caseOrElseExp(aExp);
+        if (result == null) result = caseClosedExp(aExp);
+        if (result == null) result = caseCaseExp(aExp);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -261,6 +228,26 @@ public class GDSLSwitch<T> extends Switch<T>
       {
         MExp mExp = (MExp)theEObject;
         T result = caseMExp(mExp);
+        if (result == null) result = caseAExp(mExp);
+        if (result == null) result = caseRExp(mExp);
+        if (result == null) result = caseAndAlsoExp(mExp);
+        if (result == null) result = caseOrElseExp(mExp);
+        if (result == null) result = caseClosedExp(mExp);
+        if (result == null) result = caseCaseExp(mExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.SELECT_EXP:
+      {
+        SelectExp selectExp = (SelectExp)theEObject;
+        T result = caseSelectExp(selectExp);
+        if (result == null) result = caseMExp(selectExp);
+        if (result == null) result = caseAExp(selectExp);
+        if (result == null) result = caseRExp(selectExp);
+        if (result == null) result = caseAndAlsoExp(selectExp);
+        if (result == null) result = caseOrElseExp(selectExp);
+        if (result == null) result = caseClosedExp(selectExp);
+        if (result == null) result = caseCaseExp(selectExp);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -268,6 +255,14 @@ public class GDSLSwitch<T> extends Switch<T>
       {
         ApplyExp applyExp = (ApplyExp)theEObject;
         T result = caseApplyExp(applyExp);
+        if (result == null) result = caseSelectExp(applyExp);
+        if (result == null) result = caseMExp(applyExp);
+        if (result == null) result = caseAExp(applyExp);
+        if (result == null) result = caseRExp(applyExp);
+        if (result == null) result = caseAndAlsoExp(applyExp);
+        if (result == null) result = caseOrElseExp(applyExp);
+        if (result == null) result = caseClosedExp(applyExp);
+        if (result == null) result = caseCaseExp(applyExp);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -275,6 +270,15 @@ public class GDSLSwitch<T> extends Switch<T>
       {
         AtomicExp atomicExp = (AtomicExp)theEObject;
         T result = caseAtomicExp(atomicExp);
+        if (result == null) result = caseApplyExp(atomicExp);
+        if (result == null) result = caseSelectExp(atomicExp);
+        if (result == null) result = caseMExp(atomicExp);
+        if (result == null) result = caseAExp(atomicExp);
+        if (result == null) result = caseRExp(atomicExp);
+        if (result == null) result = caseAndAlsoExp(atomicExp);
+        if (result == null) result = caseOrElseExp(atomicExp);
+        if (result == null) result = caseClosedExp(atomicExp);
+        if (result == null) result = caseCaseExp(atomicExp);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -409,22 +413,6 @@ public class GDSLSwitch<T> extends Switch<T>
   }
 
   /**
-   * Returns the result of interpreting the object as an instance of '<em>Con Decls</em>'.
-   * <!-- begin-user-doc -->
-   * This implementation returns null;
-   * returning a non-null result will terminate the switch.
-   * <!-- end-user-doc -->
-   * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Con Decls</em>'.
-   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-   * @generated
-   */
-  public T caseConDecls(ConDecls object)
-  {
-    return null;
-  }
-
-  /**
    * Returns the result of interpreting the object as an instance of '<em>Con Decl</em>'.
    * <!-- begin-user-doc -->
    * This implementation returns null;
@@ -457,22 +445,6 @@ public class GDSLSwitch<T> extends Switch<T>
   }
 
   /**
-   * Returns the result of interpreting the object as an instance of '<em>Ty Element</em>'.
-   * <!-- begin-user-doc -->
-   * This implementation returns null;
-   * returning a non-null result will terminate the switch.
-   * <!-- end-user-doc -->
-   * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Ty Element</em>'.
-   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-   * @generated
-   */
-  public T caseTyElement(TyElement object)
-  {
-    return null;
-  }
-
-  /**
    * Returns the result of interpreting the object as an instance of '<em>Ty Bind</em>'.
    * <!-- begin-user-doc -->
    * This implementation returns null;
@@ -489,49 +461,17 @@ public class GDSLSwitch<T> extends Switch<T>
   }
 
   /**
-   * Returns the result of interpreting the object as an instance of '<em>Decode Pat</em>'.
+   * Returns the result of interpreting the object as an instance of '<em>Ty Element</em>'.
    * <!-- begin-user-doc -->
    * This implementation returns null;
    * returning a non-null result will terminate the switch.
    * <!-- end-user-doc -->
    * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Decode Pat</em>'.
+   * @return the result of interpreting the object as an instance of '<em>Ty Element</em>'.
    * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
    * @generated
    */
-  public T caseDecodePat(DecodePat object)
-  {
-    return null;
-  }
-
-  /**
-   * Returns the result of interpreting the object as an instance of '<em>Bit Pat</em>'.
-   * <!-- begin-user-doc -->
-   * This implementation returns null;
-   * returning a non-null result will terminate the switch.
-   * <!-- end-user-doc -->
-   * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Bit Pat</em>'.
-   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-   * @generated
-   */
-  public T caseBitPat(BitPat object)
-  {
-    return null;
-  }
-
-  /**
-   * Returns the result of interpreting the object as an instance of '<em>Tok Pat</em>'.
-   * <!-- begin-user-doc -->
-   * This implementation returns null;
-   * returning a non-null result will terminate the switch.
-   * <!-- end-user-doc -->
-   * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Tok Pat</em>'.
-   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-   * @generated
-   */
-  public T caseTokPat(TokPat object)
+  public T caseTyElement(TyElement object)
   {
     return null;
   }
@@ -596,22 +536,6 @@ public class GDSLSwitch<T> extends Switch<T>
    * @generated
    */
   public T caseMonadicExp(MonadicExp object)
-  {
-    return null;
-  }
-
-  /**
-   * Returns the result of interpreting the object as an instance of '<em>Cases</em>'.
-   * <!-- begin-user-doc -->
-   * This implementation returns null;
-   * returning a non-null result will terminate the switch.
-   * <!-- end-user-doc -->
-   * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Cases</em>'.
-   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-   * @generated
-   */
-  public T caseCases(Cases object)
   {
     return null;
   }
@@ -692,6 +616,22 @@ public class GDSLSwitch<T> extends Switch<T>
    * @generated
    */
   public T caseMExp(MExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Select Exp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Select Exp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseSelectExp(SelectExp object)
   {
     return null;
   }

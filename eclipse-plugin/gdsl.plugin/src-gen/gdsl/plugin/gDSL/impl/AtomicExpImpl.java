@@ -19,7 +19,6 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
-import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 import org.eclipse.emf.ecore.util.EDataTypeEList;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
@@ -34,7 +33,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.impl.AtomicExpImpl#getId <em>Id</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.AtomicExpImpl#getFields <em>Fields</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.AtomicExpImpl#getExp <em>Exp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.AtomicExpImpl#getExpr <em>Expr</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.AtomicExpImpl#getExps <em>Exps</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.AtomicExpImpl#getValDecl <em>Val Decl</em>}</li>
  * </ul>
@@ -42,7 +41,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
  *
  * @generated
  */
-public class AtomicExpImpl extends MinimalEObjectImpl.Container implements AtomicExp
+public class AtomicExpImpl extends ApplyExpImpl implements AtomicExp
 {
   /**
    * The cached value of the '{@link #getId() <em>Id</em>}' attribute list.
@@ -65,14 +64,14 @@ public class AtomicExpImpl extends MinimalEObjectImpl.Container implements Atomi
   protected EList<Field> fields;
 
   /**
-   * The cached value of the '{@link #getExp() <em>Exp</em>}' containment reference.
+   * The cached value of the '{@link #getExpr() <em>Expr</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getExp()
+   * @see #getExpr()
    * @generated
    * @ordered
    */
-  protected Exp exp;
+  protected Exp expr;
 
   /**
    * The cached value of the '{@link #getExps() <em>Exps</em>}' containment reference list.
@@ -148,9 +147,9 @@ public class AtomicExpImpl extends MinimalEObjectImpl.Container implements Atomi
    * <!-- end-user-doc -->
    * @generated
    */
-  public Exp getExp()
+  public Exp getExpr()
   {
-    return exp;
+    return expr;
   }
 
   /**
@@ -158,13 +157,13 @@ public class AtomicExpImpl extends MinimalEObjectImpl.Container implements Atomi
    * <!-- end-user-doc -->
    * @generated
    */
-  public NotificationChain basicSetExp(Exp newExp, NotificationChain msgs)
+  public NotificationChain basicSetExpr(Exp newExpr, NotificationChain msgs)
   {
-    Exp oldExp = exp;
-    exp = newExp;
+    Exp oldExpr = expr;
+    expr = newExpr;
     if (eNotificationRequired())
     {
-      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.ATOMIC_EXP__EXP, oldExp, newExp);
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.ATOMIC_EXP__EXPR, oldExpr, newExpr);
       if (msgs == null) msgs = notification; else msgs.add(notification);
     }
     return msgs;
@@ -175,20 +174,20 @@ public class AtomicExpImpl extends MinimalEObjectImpl.Container implements Atomi
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setExp(Exp newExp)
+  public void setExpr(Exp newExpr)
   {
-    if (newExp != exp)
+    if (newExpr != expr)
     {
       NotificationChain msgs = null;
-      if (exp != null)
-        msgs = ((InternalEObject)exp).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.ATOMIC_EXP__EXP, null, msgs);
-      if (newExp != null)
-        msgs = ((InternalEObject)newExp).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.ATOMIC_EXP__EXP, null, msgs);
-      msgs = basicSetExp(newExp, msgs);
+      if (expr != null)
+        msgs = ((InternalEObject)expr).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.ATOMIC_EXP__EXPR, null, msgs);
+      if (newExpr != null)
+        msgs = ((InternalEObject)newExpr).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.ATOMIC_EXP__EXPR, null, msgs);
+      msgs = basicSetExpr(newExpr, msgs);
       if (msgs != null) msgs.dispatch();
     }
     else if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.ATOMIC_EXP__EXP, newExp, newExp));
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.ATOMIC_EXP__EXPR, newExpr, newExpr));
   }
 
   /**
@@ -231,8 +230,8 @@ public class AtomicExpImpl extends MinimalEObjectImpl.Container implements Atomi
     {
       case GDSLPackage.ATOMIC_EXP__FIELDS:
         return ((InternalEList<?>)getFields()).basicRemove(otherEnd, msgs);
-      case GDSLPackage.ATOMIC_EXP__EXP:
-        return basicSetExp(null, msgs);
+      case GDSLPackage.ATOMIC_EXP__EXPR:
+        return basicSetExpr(null, msgs);
       case GDSLPackage.ATOMIC_EXP__EXPS:
         return ((InternalEList<?>)getExps()).basicRemove(otherEnd, msgs);
       case GDSLPackage.ATOMIC_EXP__VAL_DECL:
@@ -255,8 +254,8 @@ public class AtomicExpImpl extends MinimalEObjectImpl.Container implements Atomi
         return getId();
       case GDSLPackage.ATOMIC_EXP__FIELDS:
         return getFields();
-      case GDSLPackage.ATOMIC_EXP__EXP:
-        return getExp();
+      case GDSLPackage.ATOMIC_EXP__EXPR:
+        return getExpr();
       case GDSLPackage.ATOMIC_EXP__EXPS:
         return getExps();
       case GDSLPackage.ATOMIC_EXP__VAL_DECL:
@@ -284,8 +283,8 @@ public class AtomicExpImpl extends MinimalEObjectImpl.Container implements Atomi
         getFields().clear();
         getFields().addAll((Collection<? extends Field>)newValue);
         return;
-      case GDSLPackage.ATOMIC_EXP__EXP:
-        setExp((Exp)newValue);
+      case GDSLPackage.ATOMIC_EXP__EXPR:
+        setExpr((Exp)newValue);
         return;
       case GDSLPackage.ATOMIC_EXP__EXPS:
         getExps().clear();
@@ -315,8 +314,8 @@ public class AtomicExpImpl extends MinimalEObjectImpl.Container implements Atomi
       case GDSLPackage.ATOMIC_EXP__FIELDS:
         getFields().clear();
         return;
-      case GDSLPackage.ATOMIC_EXP__EXP:
-        setExp((Exp)null);
+      case GDSLPackage.ATOMIC_EXP__EXPR:
+        setExpr((Exp)null);
         return;
       case GDSLPackage.ATOMIC_EXP__EXPS:
         getExps().clear();
@@ -342,8 +341,8 @@ public class AtomicExpImpl extends MinimalEObjectImpl.Container implements Atomi
         return id != null && !id.isEmpty();
       case GDSLPackage.ATOMIC_EXP__FIELDS:
         return fields != null && !fields.isEmpty();
-      case GDSLPackage.ATOMIC_EXP__EXP:
-        return exp != null;
+      case GDSLPackage.ATOMIC_EXP__EXPR:
+        return expr != null;
       case GDSLPackage.ATOMIC_EXP__EXPS:
         return exps != null && !exps.isEmpty();
       case GDSLPackage.ATOMIC_EXP__VAL_DECL:

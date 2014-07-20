@@ -110,11 +110,6 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createExportAdapter();
       }
       @Override
-      public Adapter caseConDecls(ConDecls object)
-      {
-        return createConDeclsAdapter();
-      }
-      @Override
       public Adapter caseConDecl(ConDecl object)
       {
         return createConDeclAdapter();
@@ -125,29 +120,14 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createTyAdapter();
       }
       @Override
-      public Adapter caseTyElement(TyElement object)
-      {
-        return createTyElementAdapter();
-      }
-      @Override
       public Adapter caseTyBind(TyBind object)
       {
         return createTyBindAdapter();
       }
       @Override
-      public Adapter caseDecodePat(DecodePat object)
+      public Adapter caseTyElement(TyElement object)
       {
-        return createDecodePatAdapter();
-      }
-      @Override
-      public Adapter caseBitPat(BitPat object)
-      {
-        return createBitPatAdapter();
-      }
-      @Override
-      public Adapter caseTokPat(TokPat object)
-      {
-        return createTokPatAdapter();
+        return createTyElementAdapter();
       }
       @Override
       public Adapter caseExp(Exp object)
@@ -168,11 +148,6 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
       public Adapter caseMonadicExp(MonadicExp object)
       {
         return createMonadicExpAdapter();
-      }
-      @Override
-      public Adapter caseCases(Cases object)
-      {
-        return createCasesAdapter();
       }
       @Override
       public Adapter caseOrElseExp(OrElseExp object)
@@ -198,6 +173,11 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
       public Adapter caseMExp(MExp object)
       {
         return createMExpAdapter();
+      }
+      @Override
+      public Adapter caseSelectExp(SelectExp object)
+      {
+        return createSelectExpAdapter();
       }
       @Override
       public Adapter caseApplyExp(ApplyExp object)
@@ -347,21 +327,6 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
   }
 
   /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.ConDecls <em>Con Decls</em>}'.
-   * <!-- begin-user-doc -->
-   * This default implementation returns null so that we can easily ignore cases;
-   * it's useful to ignore a case when inheritance will catch all the cases anyway.
-   * <!-- end-user-doc -->
-   * @return the new adapter.
-   * @see gdsl.plugin.gDSL.ConDecls
-   * @generated
-   */
-  public Adapter createConDeclsAdapter()
-  {
-    return null;
-  }
-
-  /**
    * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.ConDecl <em>Con Decl</em>}'.
    * <!-- begin-user-doc -->
    * This default implementation returns null so that we can easily ignore cases;
@@ -392,21 +357,6 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
   }
 
   /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.TyElement <em>Ty Element</em>}'.
-   * <!-- begin-user-doc -->
-   * This default implementation returns null so that we can easily ignore cases;
-   * it's useful to ignore a case when inheritance will catch all the cases anyway.
-   * <!-- end-user-doc -->
-   * @return the new adapter.
-   * @see gdsl.plugin.gDSL.TyElement
-   * @generated
-   */
-  public Adapter createTyElementAdapter()
-  {
-    return null;
-  }
-
-  /**
    * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.TyBind <em>Ty Bind</em>}'.
    * <!-- begin-user-doc -->
    * This default implementation returns null so that we can easily ignore cases;
@@ -422,46 +372,16 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
   }
 
   /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.DecodePat <em>Decode Pat</em>}'.
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.TyElement <em>Ty Element</em>}'.
    * <!-- begin-user-doc -->
    * This default implementation returns null so that we can easily ignore cases;
    * it's useful to ignore a case when inheritance will catch all the cases anyway.
    * <!-- end-user-doc -->
    * @return the new adapter.
-   * @see gdsl.plugin.gDSL.DecodePat
+   * @see gdsl.plugin.gDSL.TyElement
    * @generated
    */
-  public Adapter createDecodePatAdapter()
-  {
-    return null;
-  }
-
-  /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.BitPat <em>Bit Pat</em>}'.
-   * <!-- begin-user-doc -->
-   * This default implementation returns null so that we can easily ignore cases;
-   * it's useful to ignore a case when inheritance will catch all the cases anyway.
-   * <!-- end-user-doc -->
-   * @return the new adapter.
-   * @see gdsl.plugin.gDSL.BitPat
-   * @generated
-   */
-  public Adapter createBitPatAdapter()
-  {
-    return null;
-  }
-
-  /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.TokPat <em>Tok Pat</em>}'.
-   * <!-- begin-user-doc -->
-   * This default implementation returns null so that we can easily ignore cases;
-   * it's useful to ignore a case when inheritance will catch all the cases anyway.
-   * <!-- end-user-doc -->
-   * @return the new adapter.
-   * @see gdsl.plugin.gDSL.TokPat
-   * @generated
-   */
-  public Adapter createTokPatAdapter()
+  public Adapter createTyElementAdapter()
   {
     return null;
   }
@@ -522,21 +442,6 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createMonadicExpAdapter()
-  {
-    return null;
-  }
-
-  /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Cases <em>Cases</em>}'.
-   * <!-- begin-user-doc -->
-   * This default implementation returns null so that we can easily ignore cases;
-   * it's useful to ignore a case when inheritance will catch all the cases anyway.
-   * <!-- end-user-doc -->
-   * @return the new adapter.
-   * @see gdsl.plugin.gDSL.Cases
-   * @generated
-   */
-  public Adapter createCasesAdapter()
   {
     return null;
   }
@@ -612,6 +517,21 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createMExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.SelectExp <em>Select Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.SelectExp
+   * @generated
+   */
+  public Adapter createSelectExpAdapter()
   {
     return null;
   }

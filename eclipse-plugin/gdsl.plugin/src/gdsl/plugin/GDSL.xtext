@@ -8,14 +8,12 @@ Model:
 	decl += Decl (';'? decl += Decl)*
 ;
 
-//*****************************
 Decl:
 	DeclGranularity | DeclExport | DeclType | DeclVal
 ;
 
-//*****************************
 DeclGranularity:
-	name='granularity' '=' granularity=Int
+	name='granularity' '=' granularity=INTEGER
 ;
 
 DeclExport:
@@ -23,184 +21,142 @@ DeclExport:
 ;
 
 DeclType:
-	'type' name=Name (
-		('=' =>value=ConDecls | value=Ty) | 
-		('[' attrName+=Name (',' attrName+=Name)* ']' '=' value=ConDecls)
-	)
+	'type' name=ID 
+	(('=' (=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) | value=Ty))
+	| ('[' attr+=ID (',' attr+=ID)* ']' '=' (conDecl+=ConDecl ('|' conDecl+=ConDecl)*)))
 ;
 
 DeclVal:
-	'val' (name=Name | =>name=SYM) (attr += Name)* '=' exp=Exp |
-	'val' (mid+=MIXID attr+=Name)* '=' exp=Exp |
-	'val' name=Name '[' (decPat+=DecodePat (decPat+=DecodePat)*)? ']' (('=' exp=Exp) | (PIPE exps+=Exp '=' exps+=Exp)+)
+	'val'
+	(=>((name=ID | =>name=SYM) (attr += ID)* '=' exp=Exp) |
+	((mid+=MID attr+=ID)* '=' exp=Exp) |
+	( name=ID '[' decPat+=DECODEPAT* ']' (('=' exp=Exp) | ('|' exps+=Exp '=' exps+=Exp)+) ) )
 ;
 
-
-//*****************************
 Export:
-	name=Qid ('{' attrName+=Name (',' attrName+=Name)* '}')?
-;
-
-ConDecls:
-	conDecls+=ConDecl (PIPE conDecls+=ConDecl)*
+	name=[DeclVal] ('{' attr+=ID (',' attr+=ID)* '}')?
 ;
 
 ConDecl:
-	name=ConBind ('of' ty=Ty)?
+	name=CONS ('of' ty=Ty)?
 ;
 
 Ty:
-	value=Int |
-	PIPE value=Int PIPE |
-	value=Qid ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
+	value=INTEGER |
+	'|' value=INTEGER '|' |
+	(decl=[DeclType] | type='int') ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
 	'{' elements+=TyElement (',' elements+=TyElement)* '}'
 ;
 
-TyElement:
-	name=Name ':' value=Ty
-;
-
 TyBind:
-	key=Qid ('=' value=Ty)?
+	name=ID ('=' value=Ty)?
 ;
 
-DecodePat:
-	BitPat | TokPat
-;
-
-BitPat:
-	"'"  bitpat+=PrimBitPat (bitpat+=PrimBitPat)* "'"
-;
-
-TokPat:
-	tokPat = (Int | Qid)
+TyElement:
+	name=ID ':' value=Ty
 ;
 
 Exp: 
-	caseExp=CaseExp | mid=MIXID caseExp=CaseExp
+	name=CaseExp | (mid+=MID caseExps+=CaseExp)+
 ;
 
 CaseExp:
 	ClosedExp |
-	'case' closedExp=ClosedExp 'of' cases=Cases 'end'
+	name='case' closedExp=ClosedExp 'of' (pat+=PAT ':' exp+=Exp ('|' pat+=PAT ':' exp+=Exp)*) 'end'
 ;
 
 ClosedExp:
 	OrElseExp |
-	'if' ifCaseExp=CaseExp 'then' thenCaseExp=CaseExp 'else' elseCaseExp=CaseExp |
-	'do' doExp+=MonadicExp (';' doExp+=MonadicExp)* 'end'
+	name='if' ifCaseExp=CaseExp 'then' thenCaseExp=CaseExp 'else' elseCaseExp=CaseExp |
+	name='do' doExp+=MonadicExp (';' doExp+=MonadicExp)* 'end'
 ;
 
 MonadicExp:
 	=>exp=Exp |
-	name=Name '<-' exp=Exp
-;
-
-Cases:
-	pat+=Pat ':' exp+=Exp (PIPE pat+=Pat ':' exp+=Exp)*
+	name=ID '<-' exp=Exp
 ;
 
 OrElseExp:
-	AndAlsoExp ({OrElseExp.left=current} 'or' right+=AndAlsoExp)*
+	AndAlsoExp ({OrElseExp.left=current} name='or' right+=AndAlsoExp)*
 ;
 
 AndAlsoExp:
-	RExp ({AndAlsoExp.left=current} 'and' right+=RExp)*
+	RExp ({AndAlsoExp.left=current} name='and' right+=RExp)*
 ;
 
 RExp:
-	aexp=AExp (=>sym+=SYM aexps+=AExp)*
+	AExp (=>sym+=SYM aexps+=AExp)*
 ;
 
 AExp:
-	mexp=MExp (sign+=('+'|'-') mexps+=MExp)*
+	MExp (sign+=('+'|'-') mexps+=MExp)*
 ;
 
 MExp:
-	applyexps+=ApplyExp ('^' applyexps+=ApplyExp)*
+	SelectExp (symbol+=('*'|'%') applyexps+=ApplyExp)*
+;
+
+SelectExp:
+	ApplyExp ('^' applyexps+=ApplyExp)*
 ;
 
 ApplyExp:
-	(neg?='~')? =>exp=AtomicExp
+	'~' AtomicExp |
+	=>(atomicExp+=AtomicExp)+
 ;
 
 AtomicExp:
-	{AtomicExp} Lit |
-	{AtomicExp} String |
-	=>id+=Qid (=>DOT id+=Qid)* |
-	{AtomicExp} ConUse |
-	'@' '{' fields+=Field (',' fields+=Field)* '}' |
-	{AtomicExp} '$' Qid |
-	'(' exp=Exp ')' (=>DOT id+=Qid)* |
-	{AtomicExp} '{' (id+=Name '=' exps+=Exp (=>id+=Name '=' exps+=Exp)*)? '}' |
-	'let' valDecl+=ValueDecl+ 'in' exp=Exp 'end'
+	name=LIT |
+	name=STRING |
+	=>(name=CONS) |
+	name=ID (=>DOT id+=ID)* |
+	name='@' '{' fields+=Field (',' fields+=Field)* '}' |
+	'$' name=ID |
+	'(' expr=Exp ')' (=>DOT id+=ID)* |
+	{AtomicExp} '{' (id+=ID '=' exps+=Exp (',' id+=ID '=' exps+=Exp)*)? '}' |
+	name='let' valDecl+=ValueDecl+ 'in' expr=Exp 'end'
 ;
 
 Field:
-	name=Name '=' exp=Exp |
-	'~' name=Name
+	name=ID '=' exp=Exp |
+	'~' name=ID
 ;
 
 ValueDecl:
-	'val' Name Name* '=' Exp
+	'val' name=ID ids+=ID* '=' exp=Exp
 ;
 
-String:
-	'"' STRCHAR* '"'
-;
+DECODEPAT: "'"BITPAT+"'" | TOKPAT;
+TOKPAT: INTEGER | ID;
+BITPAT: BINARY | (ID (BITPATORINT)?);
+BITPATORINT: (':' POSINT) | ('@' BINARY);
+PAT: USCORE | LIT | =>CONS PAT? | ID ;
+LIT: INTEGER | "'"BINARY?"'";
+ID: CONS | ID_WO_CONS | SLASH;
+MID: MIXID | USCORE;
+SYM: USCORE| SLASH | BS | DOT | SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT;
+INTEGER: POSINT | NEGINT;
+POSINT: POSINT_WO_DUALS | DUALS;
+BINARY: DUALS | BINS | BS | DOT;
 
-//DataType Rules
-Pat: '_' | Lit | =>Name | ConUse Pat?;
-Lit: Int | "'" BITSTR? "'";
-PrimBitPat: =>BITSTR | (Qid (BitPatOrInt)?);
-BitPatOrInt: (':' POSINT) | ('@' BITSTR);
-Int: POSINT | NEGINT;
-Name: ID;
-ConBind: CONS;
-ConUse: CONS;
-Qid: ID;
+terminal USCORE:'_';
+terminal SLASH:'/';
+terminal BS:'\\';
+terminal DOT:'.';
+terminal SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT: (CHARSYM|OTHERSYM)+;
+terminal MIXID:'_'(USCORE|IDCHAR)*;
+terminal CONS:('A'..'Z') (USCORE|IDCHAR)*;
+terminal ID_WO_CONS:('A'..'Z'|'a'..'z'|'/') (USCORE|IDCHAR)*;
+terminal STRING:'"' ( '\\'('b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\') | !('\\'|'"') )* '"';
+terminal fragment IDCHAR:('A'..'Z'|'a'..'z'|'/'|'0'..'9'|CHARSYM);
+terminal fragment CHARSYM:/*'_'|*/'-'|'?'/*|"'"*/|'!';
+terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'/*|'#'*/|'*';
+terminal DUALS: ('0'|'1')+;
+terminal BINS:('0'|'1'|'\\'|'.'|'|')*;
+terminal POSINT_WO_DUALS: ('0'..'9')+|('0x'('A'..'F'|'a'..'f'|'0'..'9')+);
+terminal NEGINT: '~'('0'..'9')+;
 
-POSINT: NUM | HEXNUM;
-NEGINT: '~' NUM;
-NUM: =>DIG+;
-HEXNUM: '0x' =>HEXDIGIT+;
-SYMID: SYM+;
-BITSTR: =>BINARY+;
-MIXID: '_' =>IDCHAR+;
-CONS: ULETTER =>IDCHAR*;
-
-ID: LETTER =>IDCHAR*;
-STRCHAR: LETTER; //TODO
-HEXDIGIT: DIG | HEXCHAR;
-HEXCHAR: LHEXCHAR | UHEXCHAR;
-ULETTER: UHEXCHAR | UNHEXCHAR;
-LETTER: LHEXCHAR | LNHEXCHAR | ULETTER | SLASH;
-IDCHAR: LETTER | DIG | CHARSYM;
-BINARY: BINDIG | BS | DOT | PIPE;
-DIG: BINDIG | NBINDIG;
-SYM: BS | SLASH | DOT | CHARSYM | OTHERSYM;
-
-
-//Terminal symbols	
-
-//terminal BITSTRIDCHAR: 'bistridchar';//LETTER | DIG | '_' | '-' | '?' | '!';
-//terminal BITSTRID: 'bitstrid';//LETTER BITSTRIDCHAR*;
-//terminal ESC: 'esc';//'\\' (('a'|'b'|'f'|'n'|'r'|'t'|'v'|'\\'|'\"') | (DIG DIG DIG));
-//terminal SGOOD: 'sgoodtodo'; //TODO
-
-terminal BINDIG: '0'|'1';
-terminal NBINDIG: ('2'..'9');
-terminal LHEXCHAR: ('a'..'f');
-terminal UHEXCHAR: ('A'..'F');
-terminal LNHEXCHAR: ('g'..'z');
-terminal UNHEXCHAR: ('G'..'Z');
-terminal BS: '\\';
-terminal SLASH: '/';
-terminal DOT: '.';
-terminal PIPE: '|';
-terminal CHARSYM: '_'|'-'|'?'|"'"|'!';
-terminal OTHERSYM: '%'|'&'|'$'|'+'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'#'|'*';
-
-terminal WS: (' '|'\t'|'\r'|'\n')+; //TODO
+terminal WS: (' '|'\t'|'\r'|'\n')+;
 terminal ML_COMMENT	: '(*' -> '*)';
 terminal SL_COMMENT 	: '#' !('\n')* '\n';
+

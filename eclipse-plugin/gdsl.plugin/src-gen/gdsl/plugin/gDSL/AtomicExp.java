@@ -4,8 +4,6 @@ package gdsl.plugin.gDSL;
 
 import org.eclipse.emf.common.util.EList;
 
-import org.eclipse.emf.ecore.EObject;
-
 /**
  * <!-- begin-user-doc -->
  * A representation of the model object '<em><b>Atomic Exp</b></em>'.
@@ -16,7 +14,7 @@ import org.eclipse.emf.ecore.EObject;
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.AtomicExp#getId <em>Id</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.AtomicExp#getFields <em>Fields</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.AtomicExp#getExp <em>Exp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.AtomicExp#getExpr <em>Expr</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.AtomicExp#getExps <em>Exps</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.AtomicExp#getValDecl <em>Val Decl</em>}</li>
  * </ul>
@@ -26,7 +24,7 @@ import org.eclipse.emf.ecore.EObject;
  * @model
  * @generated
  */
-public interface AtomicExp extends EObject
+public interface AtomicExp extends ApplyExp
 {
   /**
    * Returns the value of the '<em><b>Id</b></em>' attribute list.
@@ -61,30 +59,30 @@ public interface AtomicExp extends EObject
   EList<Field> getFields();
 
   /**
-   * Returns the value of the '<em><b>Exp</b></em>' containment reference.
+   * Returns the value of the '<em><b>Expr</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Exp</em>' containment reference isn't clear,
+   * If the meaning of the '<em>Expr</em>' containment reference isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Exp</em>' containment reference.
-   * @see #setExp(Exp)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getAtomicExp_Exp()
+   * @return the value of the '<em>Expr</em>' containment reference.
+   * @see #setExpr(Exp)
+   * @see gdsl.plugin.gDSL.GDSLPackage#getAtomicExp_Expr()
    * @model containment="true"
    * @generated
    */
-  Exp getExp();
+  Exp getExpr();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.AtomicExp#getExp <em>Exp</em>}' containment reference.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.AtomicExp#getExpr <em>Expr</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Exp</em>' containment reference.
-   * @see #getExp()
+   * @param value the new value of the '<em>Expr</em>' containment reference.
+   * @see #getExpr()
    * @generated
    */
-  void setExp(Exp value);
+  void setExpr(Exp value);
 
   /**
    * Returns the value of the '<em><b>Exps</b></em>' containment reference list.

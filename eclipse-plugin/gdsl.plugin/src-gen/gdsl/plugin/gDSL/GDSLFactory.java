@@ -86,15 +86,6 @@ public interface GDSLFactory extends EFactory
   Export createExport();
 
   /**
-   * Returns a new object of class '<em>Con Decls</em>'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return a new object of class '<em>Con Decls</em>'.
-   * @generated
-   */
-  ConDecls createConDecls();
-
-  /**
    * Returns a new object of class '<em>Con Decl</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -113,15 +104,6 @@ public interface GDSLFactory extends EFactory
   Ty createTy();
 
   /**
-   * Returns a new object of class '<em>Ty Element</em>'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return a new object of class '<em>Ty Element</em>'.
-   * @generated
-   */
-  TyElement createTyElement();
-
-  /**
    * Returns a new object of class '<em>Ty Bind</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -131,31 +113,13 @@ public interface GDSLFactory extends EFactory
   TyBind createTyBind();
 
   /**
-   * Returns a new object of class '<em>Decode Pat</em>'.
+   * Returns a new object of class '<em>Ty Element</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return a new object of class '<em>Decode Pat</em>'.
+   * @return a new object of class '<em>Ty Element</em>'.
    * @generated
    */
-  DecodePat createDecodePat();
-
-  /**
-   * Returns a new object of class '<em>Bit Pat</em>'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return a new object of class '<em>Bit Pat</em>'.
-   * @generated
-   */
-  BitPat createBitPat();
-
-  /**
-   * Returns a new object of class '<em>Tok Pat</em>'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return a new object of class '<em>Tok Pat</em>'.
-   * @generated
-   */
-  TokPat createTokPat();
+  TyElement createTyElement();
 
   /**
    * Returns a new object of class '<em>Exp</em>'.
@@ -192,15 +156,6 @@ public interface GDSLFactory extends EFactory
    * @generated
    */
   MonadicExp createMonadicExp();
-
-  /**
-   * Returns a new object of class '<em>Cases</em>'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return a new object of class '<em>Cases</em>'.
-   * @generated
-   */
-  Cases createCases();
 
   /**
    * Returns a new object of class '<em>Or Else Exp</em>'.
@@ -246,6 +201,15 @@ public interface GDSLFactory extends EFactory
    * @generated
    */
   MExp createMExp();
+
+  /**
+   * Returns a new object of class '<em>Select Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Select Exp</em>'.
+   * @generated
+   */
+  SelectExp createSelectExp();
 
   /**
    * Returns a new object of class '<em>Apply Exp</em>'.

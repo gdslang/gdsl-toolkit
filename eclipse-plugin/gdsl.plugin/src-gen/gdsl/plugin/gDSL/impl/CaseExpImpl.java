@@ -3,18 +3,26 @@
 package gdsl.plugin.gDSL.impl;
 
 import gdsl.plugin.gDSL.CaseExp;
-import gdsl.plugin.gDSL.Cases;
 import gdsl.plugin.gDSL.ClosedExp;
+import gdsl.plugin.gDSL.Exp;
 import gdsl.plugin.gDSL.GDSLPackage;
+
+import java.util.Collection;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
+
+import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
+
+import org.eclipse.emf.ecore.util.EDataTypeEList;
+import org.eclipse.emf.ecore.util.EObjectContainmentEList;
+import org.eclipse.emf.ecore.util.InternalEList;
 
 /**
  * <!-- begin-user-doc -->
@@ -23,8 +31,10 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
  * <p>
  * The following features are implemented:
  * <ul>
+ *   <li>{@link gdsl.plugin.gDSL.impl.CaseExpImpl#getName <em>Name</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.CaseExpImpl#getClosedExp <em>Closed Exp</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.CaseExpImpl#getCases <em>Cases</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.CaseExpImpl#getPat <em>Pat</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.CaseExpImpl#getExp <em>Exp</em>}</li>
  * </ul>
  * </p>
  *
@@ -32,6 +42,26 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
  */
 public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
 {
+  /**
+   * The default value of the '{@link #getName() <em>Name</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getName()
+   * @generated
+   * @ordered
+   */
+  protected static final String NAME_EDEFAULT = null;
+
+  /**
+   * The cached value of the '{@link #getName() <em>Name</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getName()
+   * @generated
+   * @ordered
+   */
+  protected String name = NAME_EDEFAULT;
+
   /**
    * The cached value of the '{@link #getClosedExp() <em>Closed Exp</em>}' containment reference.
    * <!-- begin-user-doc -->
@@ -43,14 +73,24 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
   protected ClosedExp closedExp;
 
   /**
-   * The cached value of the '{@link #getCases() <em>Cases</em>}' containment reference.
+   * The cached value of the '{@link #getPat() <em>Pat</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getCases()
+   * @see #getPat()
    * @generated
    * @ordered
    */
-  protected Cases cases;
+  protected EList<String> pat;
+
+  /**
+   * The cached value of the '{@link #getExp() <em>Exp</em>}' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getExp()
+   * @generated
+   * @ordered
+   */
+  protected EList<Exp> exp;
 
   /**
    * <!-- begin-user-doc -->
@@ -71,6 +111,29 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
   protected EClass eStaticClass()
   {
     return GDSLPackage.Literals.CASE_EXP;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public String getName()
+  {
+    return name;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setName(String newName)
+  {
+    String oldName = name;
+    name = newName;
+    if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.CASE_EXP__NAME, oldName, name));
   }
 
   /**
@@ -126,9 +189,13 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public Cases getCases()
+  public EList<String> getPat()
   {
-    return cases;
+    if (pat == null)
+    {
+      pat = new EDataTypeEList<String>(String.class, this, GDSLPackage.CASE_EXP__PAT);
+    }
+    return pat;
   }
 
   /**
@@ -136,37 +203,13 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public NotificationChain basicSetCases(Cases newCases, NotificationChain msgs)
+  public EList<Exp> getExp()
   {
-    Cases oldCases = cases;
-    cases = newCases;
-    if (eNotificationRequired())
+    if (exp == null)
     {
-      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.CASE_EXP__CASES, oldCases, newCases);
-      if (msgs == null) msgs = notification; else msgs.add(notification);
+      exp = new EObjectContainmentEList<Exp>(Exp.class, this, GDSLPackage.CASE_EXP__EXP);
     }
-    return msgs;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public void setCases(Cases newCases)
-  {
-    if (newCases != cases)
-    {
-      NotificationChain msgs = null;
-      if (cases != null)
-        msgs = ((InternalEObject)cases).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.CASE_EXP__CASES, null, msgs);
-      if (newCases != null)
-        msgs = ((InternalEObject)newCases).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.CASE_EXP__CASES, null, msgs);
-      msgs = basicSetCases(newCases, msgs);
-      if (msgs != null) msgs.dispatch();
-    }
-    else if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.CASE_EXP__CASES, newCases, newCases));
+    return exp;
   }
 
   /**
@@ -181,8 +224,8 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
     {
       case GDSLPackage.CASE_EXP__CLOSED_EXP:
         return basicSetClosedExp(null, msgs);
-      case GDSLPackage.CASE_EXP__CASES:
-        return basicSetCases(null, msgs);
+      case GDSLPackage.CASE_EXP__EXP:
+        return ((InternalEList<?>)getExp()).basicRemove(otherEnd, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
   }
@@ -197,10 +240,14 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
   {
     switch (featureID)
     {
+      case GDSLPackage.CASE_EXP__NAME:
+        return getName();
       case GDSLPackage.CASE_EXP__CLOSED_EXP:
         return getClosedExp();
-      case GDSLPackage.CASE_EXP__CASES:
-        return getCases();
+      case GDSLPackage.CASE_EXP__PAT:
+        return getPat();
+      case GDSLPackage.CASE_EXP__EXP:
+        return getExp();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -210,16 +257,25 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
    * <!-- end-user-doc -->
    * @generated
    */
+  @SuppressWarnings("unchecked")
   @Override
   public void eSet(int featureID, Object newValue)
   {
     switch (featureID)
     {
+      case GDSLPackage.CASE_EXP__NAME:
+        setName((String)newValue);
+        return;
       case GDSLPackage.CASE_EXP__CLOSED_EXP:
         setClosedExp((ClosedExp)newValue);
         return;
-      case GDSLPackage.CASE_EXP__CASES:
-        setCases((Cases)newValue);
+      case GDSLPackage.CASE_EXP__PAT:
+        getPat().clear();
+        getPat().addAll((Collection<? extends String>)newValue);
+        return;
+      case GDSLPackage.CASE_EXP__EXP:
+        getExp().clear();
+        getExp().addAll((Collection<? extends Exp>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -235,11 +291,17 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
   {
     switch (featureID)
     {
+      case GDSLPackage.CASE_EXP__NAME:
+        setName(NAME_EDEFAULT);
+        return;
       case GDSLPackage.CASE_EXP__CLOSED_EXP:
         setClosedExp((ClosedExp)null);
         return;
-      case GDSLPackage.CASE_EXP__CASES:
-        setCases((Cases)null);
+      case GDSLPackage.CASE_EXP__PAT:
+        getPat().clear();
+        return;
+      case GDSLPackage.CASE_EXP__EXP:
+        getExp().clear();
         return;
     }
     super.eUnset(featureID);
@@ -255,12 +317,35 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
   {
     switch (featureID)
     {
+      case GDSLPackage.CASE_EXP__NAME:
+        return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
       case GDSLPackage.CASE_EXP__CLOSED_EXP:
         return closedExp != null;
-      case GDSLPackage.CASE_EXP__CASES:
-        return cases != null;
+      case GDSLPackage.CASE_EXP__PAT:
+        return pat != null && !pat.isEmpty();
+      case GDSLPackage.CASE_EXP__EXP:
+        return exp != null && !exp.isEmpty();
     }
     return super.eIsSet(featureID);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  @Override
+  public String toString()
+  {
+    if (eIsProxy()) return super.toString();
+
+    StringBuffer result = new StringBuffer(super.toString());
+    result.append(" (name: ");
+    result.append(name);
+    result.append(", pat: ");
+    result.append(pat);
+    result.append(')');
+    return result.toString();
   }
 
 } //CaseExpImpl

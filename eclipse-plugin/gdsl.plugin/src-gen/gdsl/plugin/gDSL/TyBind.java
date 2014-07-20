@@ -12,7 +12,7 @@ import org.eclipse.emf.ecore.EObject;
  * <p>
  * The following features are supported:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.TyBind#getKey <em>Key</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.TyBind#getName <em>Name</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.TyBind#getValue <em>Value</em>}</li>
  * </ul>
  * </p>
@@ -24,30 +24,30 @@ import org.eclipse.emf.ecore.EObject;
 public interface TyBind extends EObject
 {
   /**
-   * Returns the value of the '<em><b>Key</b></em>' attribute.
+   * Returns the value of the '<em><b>Name</b></em>' attribute.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Key</em>' attribute isn't clear,
+   * If the meaning of the '<em>Name</em>' attribute isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Key</em>' attribute.
-   * @see #setKey(String)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getTyBind_Key()
+   * @return the value of the '<em>Name</em>' attribute.
+   * @see #setName(String)
+   * @see gdsl.plugin.gDSL.GDSLPackage#getTyBind_Name()
    * @model
    * @generated
    */
-  String getKey();
+  String getName();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.TyBind#getKey <em>Key</em>}' attribute.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.TyBind#getName <em>Name</em>}' attribute.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Key</em>' attribute.
-   * @see #getKey()
+   * @param value the new value of the '<em>Name</em>' attribute.
+   * @see #getName()
    * @generated
    */
-  void setKey(String value);
+  void setName(String value);
 
   /**
    * Returns the value of the '<em><b>Value</b></em>' containment reference.

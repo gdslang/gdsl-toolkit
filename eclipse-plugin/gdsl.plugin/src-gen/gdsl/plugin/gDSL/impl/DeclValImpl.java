@@ -3,7 +3,6 @@
 package gdsl.plugin.gDSL.impl;
 
 import gdsl.plugin.gDSL.DeclVal;
-import gdsl.plugin.gDSL.DecodePat;
 import gdsl.plugin.gDSL.Exp;
 import gdsl.plugin.gDSL.GDSLPackage;
 
@@ -73,14 +72,14 @@ public class DeclValImpl extends DeclImpl implements DeclVal
   protected EList<String> mid;
 
   /**
-   * The cached value of the '{@link #getDecPat() <em>Dec Pat</em>}' containment reference list.
+   * The cached value of the '{@link #getDecPat() <em>Dec Pat</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @see #getDecPat()
    * @generated
    * @ordered
    */
-  protected EList<DecodePat> decPat;
+  protected EList<String> decPat;
 
   /**
    * The cached value of the '{@link #getExps() <em>Exps</em>}' containment reference list.
@@ -194,11 +193,11 @@ public class DeclValImpl extends DeclImpl implements DeclVal
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<DecodePat> getDecPat()
+  public EList<String> getDecPat()
   {
     if (decPat == null)
     {
-      decPat = new EObjectContainmentEList<DecodePat>(DecodePat.class, this, GDSLPackage.DECL_VAL__DEC_PAT);
+      decPat = new EDataTypeEList<String>(String.class, this, GDSLPackage.DECL_VAL__DEC_PAT);
     }
     return decPat;
   }
@@ -229,8 +228,6 @@ public class DeclValImpl extends DeclImpl implements DeclVal
     {
       case GDSLPackage.DECL_VAL__EXP:
         return basicSetExp(null, msgs);
-      case GDSLPackage.DECL_VAL__DEC_PAT:
-        return ((InternalEList<?>)getDecPat()).basicRemove(otherEnd, msgs);
       case GDSLPackage.DECL_VAL__EXPS:
         return ((InternalEList<?>)getExps()).basicRemove(otherEnd, msgs);
     }
@@ -285,7 +282,7 @@ public class DeclValImpl extends DeclImpl implements DeclVal
         return;
       case GDSLPackage.DECL_VAL__DEC_PAT:
         getDecPat().clear();
-        getDecPat().addAll((Collection<? extends DecodePat>)newValue);
+        getDecPat().addAll((Collection<? extends String>)newValue);
         return;
       case GDSLPackage.DECL_VAL__EXPS:
         getExps().clear();
@@ -363,6 +360,8 @@ public class DeclValImpl extends DeclImpl implements DeclVal
     result.append(attr);
     result.append(", mid: ");
     result.append(mid);
+    result.append(", decPat: ");
+    result.append(decPat);
     result.append(')');
     return result.toString();
   }

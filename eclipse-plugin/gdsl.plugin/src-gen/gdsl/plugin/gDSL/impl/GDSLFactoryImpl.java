@@ -71,24 +71,20 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.DECL_TYPE: return createDeclType();
       case GDSLPackage.DECL_VAL: return createDeclVal();
       case GDSLPackage.EXPORT: return createExport();
-      case GDSLPackage.CON_DECLS: return createConDecls();
       case GDSLPackage.CON_DECL: return createConDecl();
       case GDSLPackage.TY: return createTy();
-      case GDSLPackage.TY_ELEMENT: return createTyElement();
       case GDSLPackage.TY_BIND: return createTyBind();
-      case GDSLPackage.DECODE_PAT: return createDecodePat();
-      case GDSLPackage.BIT_PAT: return createBitPat();
-      case GDSLPackage.TOK_PAT: return createTokPat();
+      case GDSLPackage.TY_ELEMENT: return createTyElement();
       case GDSLPackage.EXP: return createExp();
       case GDSLPackage.CASE_EXP: return createCaseExp();
       case GDSLPackage.CLOSED_EXP: return createClosedExp();
       case GDSLPackage.MONADIC_EXP: return createMonadicExp();
-      case GDSLPackage.CASES: return createCases();
       case GDSLPackage.OR_ELSE_EXP: return createOrElseExp();
       case GDSLPackage.AND_ALSO_EXP: return createAndAlsoExp();
       case GDSLPackage.REXP: return createRExp();
       case GDSLPackage.AEXP: return createAExp();
       case GDSLPackage.MEXP: return createMExp();
+      case GDSLPackage.SELECT_EXP: return createSelectExp();
       case GDSLPackage.APPLY_EXP: return createApplyExp();
       case GDSLPackage.ATOMIC_EXP: return createAtomicExp();
       case GDSLPackage.FIELD: return createField();
@@ -180,17 +176,6 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public ConDecls createConDecls()
-  {
-    ConDeclsImpl conDecls = new ConDeclsImpl();
-    return conDecls;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
   public ConDecl createConDecl()
   {
     ConDeclImpl conDecl = new ConDeclImpl();
@@ -213,17 +198,6 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public TyElement createTyElement()
-  {
-    TyElementImpl tyElement = new TyElementImpl();
-    return tyElement;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
   public TyBind createTyBind()
   {
     TyBindImpl tyBind = new TyBindImpl();
@@ -235,32 +209,10 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public DecodePat createDecodePat()
+  public TyElement createTyElement()
   {
-    DecodePatImpl decodePat = new DecodePatImpl();
-    return decodePat;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public BitPat createBitPat()
-  {
-    BitPatImpl bitPat = new BitPatImpl();
-    return bitPat;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public TokPat createTokPat()
-  {
-    TokPatImpl tokPat = new TokPatImpl();
-    return tokPat;
+    TyElementImpl tyElement = new TyElementImpl();
+    return tyElement;
   }
 
   /**
@@ -305,17 +257,6 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     MonadicExpImpl monadicExp = new MonadicExpImpl();
     return monadicExp;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public Cases createCases()
-  {
-    CasesImpl cases = new CasesImpl();
-    return cases;
   }
 
   /**
@@ -371,6 +312,17 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     MExpImpl mExp = new MExpImpl();
     return mExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public SelectExp createSelectExp()
+  {
+    SelectExpImpl selectExp = new SelectExpImpl();
+    return selectExp;
   }
 
   /**

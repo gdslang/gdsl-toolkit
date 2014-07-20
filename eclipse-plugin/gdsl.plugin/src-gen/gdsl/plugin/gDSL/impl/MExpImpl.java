@@ -2,7 +2,6 @@
  */
 package gdsl.plugin.gDSL.impl;
 
-import gdsl.plugin.gDSL.ApplyExp;
 import gdsl.plugin.gDSL.GDSLPackage;
 import gdsl.plugin.gDSL.MExp;
 
@@ -15,8 +14,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
-import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
-
+import org.eclipse.emf.ecore.util.EDataTypeEList;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.InternalEList;
 
@@ -27,23 +25,34 @@ import org.eclipse.emf.ecore.util.InternalEList;
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.MExpImpl#getApplyexps <em>Applyexps</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.MExpImpl#getSign <em>Sign</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.MExpImpl#getMexps <em>Mexps</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class MExpImpl extends MinimalEObjectImpl.Container implements MExp
+public class MExpImpl extends AExpImpl implements MExp
 {
   /**
-   * The cached value of the '{@link #getApplyexps() <em>Applyexps</em>}' containment reference list.
+   * The cached value of the '{@link #getSign() <em>Sign</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getApplyexps()
+   * @see #getSign()
    * @generated
    * @ordered
    */
-  protected EList<ApplyExp> applyexps;
+  protected EList<String> sign;
+
+  /**
+   * The cached value of the '{@link #getMexps() <em>Mexps</em>}' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getMexps()
+   * @generated
+   * @ordered
+   */
+  protected EList<MExp> mexps;
 
   /**
    * <!-- begin-user-doc -->
@@ -71,13 +80,27 @@ public class MExpImpl extends MinimalEObjectImpl.Container implements MExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<ApplyExp> getApplyexps()
+  public EList<String> getSign()
   {
-    if (applyexps == null)
+    if (sign == null)
     {
-      applyexps = new EObjectContainmentEList<ApplyExp>(ApplyExp.class, this, GDSLPackage.MEXP__APPLYEXPS);
+      sign = new EDataTypeEList<String>(String.class, this, GDSLPackage.MEXP__SIGN);
     }
-    return applyexps;
+    return sign;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EList<MExp> getMexps()
+  {
+    if (mexps == null)
+    {
+      mexps = new EObjectContainmentEList<MExp>(MExp.class, this, GDSLPackage.MEXP__MEXPS);
+    }
+    return mexps;
   }
 
   /**
@@ -90,8 +113,8 @@ public class MExpImpl extends MinimalEObjectImpl.Container implements MExp
   {
     switch (featureID)
     {
-      case GDSLPackage.MEXP__APPLYEXPS:
-        return ((InternalEList<?>)getApplyexps()).basicRemove(otherEnd, msgs);
+      case GDSLPackage.MEXP__MEXPS:
+        return ((InternalEList<?>)getMexps()).basicRemove(otherEnd, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
   }
@@ -106,8 +129,10 @@ public class MExpImpl extends MinimalEObjectImpl.Container implements MExp
   {
     switch (featureID)
     {
-      case GDSLPackage.MEXP__APPLYEXPS:
-        return getApplyexps();
+      case GDSLPackage.MEXP__SIGN:
+        return getSign();
+      case GDSLPackage.MEXP__MEXPS:
+        return getMexps();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -123,9 +148,13 @@ public class MExpImpl extends MinimalEObjectImpl.Container implements MExp
   {
     switch (featureID)
     {
-      case GDSLPackage.MEXP__APPLYEXPS:
-        getApplyexps().clear();
-        getApplyexps().addAll((Collection<? extends ApplyExp>)newValue);
+      case GDSLPackage.MEXP__SIGN:
+        getSign().clear();
+        getSign().addAll((Collection<? extends String>)newValue);
+        return;
+      case GDSLPackage.MEXP__MEXPS:
+        getMexps().clear();
+        getMexps().addAll((Collection<? extends MExp>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -141,8 +170,11 @@ public class MExpImpl extends MinimalEObjectImpl.Container implements MExp
   {
     switch (featureID)
     {
-      case GDSLPackage.MEXP__APPLYEXPS:
-        getApplyexps().clear();
+      case GDSLPackage.MEXP__SIGN:
+        getSign().clear();
+        return;
+      case GDSLPackage.MEXP__MEXPS:
+        getMexps().clear();
         return;
     }
     super.eUnset(featureID);
@@ -158,10 +190,29 @@ public class MExpImpl extends MinimalEObjectImpl.Container implements MExp
   {
     switch (featureID)
     {
-      case GDSLPackage.MEXP__APPLYEXPS:
-        return applyexps != null && !applyexps.isEmpty();
+      case GDSLPackage.MEXP__SIGN:
+        return sign != null && !sign.isEmpty();
+      case GDSLPackage.MEXP__MEXPS:
+        return mexps != null && !mexps.isEmpty();
     }
     return super.eIsSet(featureID);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  @Override
+  public String toString()
+  {
+    if (eIsProxy()) return super.toString();
+
+    StringBuffer result = new StringBuffer(super.toString());
+    result.append(" (sign: ");
+    result.append(sign);
+    result.append(')');
+    return result.toString();
   }
 
 } //MExpImpl

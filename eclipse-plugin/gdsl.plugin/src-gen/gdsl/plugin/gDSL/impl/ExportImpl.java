@@ -2,6 +2,7 @@
  */
 package gdsl.plugin.gDSL.impl;
 
+import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.Export;
 import gdsl.plugin.gDSL.GDSLPackage;
 
@@ -12,6 +13,7 @@ import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
@@ -26,7 +28,7 @@ import org.eclipse.emf.ecore.util.EDataTypeEList;
  * The following features are implemented:
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.impl.ExportImpl#getName <em>Name</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.ExportImpl#getAttrName <em>Attr Name</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.ExportImpl#getAttr <em>Attr</em>}</li>
  * </ul>
  * </p>
  *
@@ -35,34 +37,24 @@ import org.eclipse.emf.ecore.util.EDataTypeEList;
 public class ExportImpl extends MinimalEObjectImpl.Container implements Export
 {
   /**
-   * The default value of the '{@link #getName() <em>Name</em>}' attribute.
+   * The cached value of the '{@link #getName() <em>Name</em>}' reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @see #getName()
    * @generated
    * @ordered
    */
-  protected static final String NAME_EDEFAULT = null;
+  protected DeclVal name;
 
   /**
-   * The cached value of the '{@link #getName() <em>Name</em>}' attribute.
+   * The cached value of the '{@link #getAttr() <em>Attr</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getName()
+   * @see #getAttr()
    * @generated
    * @ordered
    */
-  protected String name = NAME_EDEFAULT;
-
-  /**
-   * The cached value of the '{@link #getAttrName() <em>Attr Name</em>}' attribute list.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @see #getAttrName()
-   * @generated
-   * @ordered
-   */
-  protected EList<String> attrName;
+  protected EList<String> attr;
 
   /**
    * <!-- begin-user-doc -->
@@ -90,7 +82,27 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
    * <!-- end-user-doc -->
    * @generated
    */
-  public String getName()
+  public DeclVal getName()
+  {
+    if (name != null && name.eIsProxy())
+    {
+      InternalEObject oldName = (InternalEObject)name;
+      name = (DeclVal)eResolveProxy(oldName);
+      if (name != oldName)
+      {
+        if (eNotificationRequired())
+          eNotify(new ENotificationImpl(this, Notification.RESOLVE, GDSLPackage.EXPORT__NAME, oldName, name));
+      }
+    }
+    return name;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public DeclVal basicGetName()
   {
     return name;
   }
@@ -100,9 +112,9 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setName(String newName)
+  public void setName(DeclVal newName)
   {
-    String oldName = name;
+    DeclVal oldName = name;
     name = newName;
     if (eNotificationRequired())
       eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.EXPORT__NAME, oldName, name));
@@ -113,13 +125,13 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<String> getAttrName()
+  public EList<String> getAttr()
   {
-    if (attrName == null)
+    if (attr == null)
     {
-      attrName = new EDataTypeEList<String>(String.class, this, GDSLPackage.EXPORT__ATTR_NAME);
+      attr = new EDataTypeEList<String>(String.class, this, GDSLPackage.EXPORT__ATTR);
     }
-    return attrName;
+    return attr;
   }
 
   /**
@@ -133,9 +145,10 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
     switch (featureID)
     {
       case GDSLPackage.EXPORT__NAME:
-        return getName();
-      case GDSLPackage.EXPORT__ATTR_NAME:
-        return getAttrName();
+        if (resolve) return getName();
+        return basicGetName();
+      case GDSLPackage.EXPORT__ATTR:
+        return getAttr();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -152,11 +165,11 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
     switch (featureID)
     {
       case GDSLPackage.EXPORT__NAME:
-        setName((String)newValue);
+        setName((DeclVal)newValue);
         return;
-      case GDSLPackage.EXPORT__ATTR_NAME:
-        getAttrName().clear();
-        getAttrName().addAll((Collection<? extends String>)newValue);
+      case GDSLPackage.EXPORT__ATTR:
+        getAttr().clear();
+        getAttr().addAll((Collection<? extends String>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -173,10 +186,10 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
     switch (featureID)
     {
       case GDSLPackage.EXPORT__NAME:
-        setName(NAME_EDEFAULT);
+        setName((DeclVal)null);
         return;
-      case GDSLPackage.EXPORT__ATTR_NAME:
-        getAttrName().clear();
+      case GDSLPackage.EXPORT__ATTR:
+        getAttr().clear();
         return;
     }
     super.eUnset(featureID);
@@ -193,9 +206,9 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
     switch (featureID)
     {
       case GDSLPackage.EXPORT__NAME:
-        return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
-      case GDSLPackage.EXPORT__ATTR_NAME:
-        return attrName != null && !attrName.isEmpty();
+        return name != null;
+      case GDSLPackage.EXPORT__ATTR:
+        return attr != null && !attr.isEmpty();
     }
     return super.eIsSet(featureID);
   }
@@ -211,10 +224,8 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
     if (eIsProxy()) return super.toString();
 
     StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (name: ");
-    result.append(name);
-    result.append(", attrName: ");
-    result.append(attrName);
+    result.append(" (attr: ");
+    result.append(attr);
     result.append(')');
     return result.toString();
   }

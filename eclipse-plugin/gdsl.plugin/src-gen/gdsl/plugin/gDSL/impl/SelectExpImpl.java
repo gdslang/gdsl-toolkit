@@ -2,9 +2,9 @@
  */
 package gdsl.plugin.gDSL.impl;
 
-import gdsl.plugin.gDSL.Cases;
-import gdsl.plugin.gDSL.Exp;
+import gdsl.plugin.gDSL.ApplyExp;
 import gdsl.plugin.gDSL.GDSLPackage;
+import gdsl.plugin.gDSL.SelectExp;
 
 import java.util.Collection;
 
@@ -15,54 +15,52 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
-import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
-
 import org.eclipse.emf.ecore.util.EDataTypeEList;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.InternalEList;
 
 /**
  * <!-- begin-user-doc -->
- * An implementation of the model object '<em><b>Cases</b></em>'.
+ * An implementation of the model object '<em><b>Select Exp</b></em>'.
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.CasesImpl#getPat <em>Pat</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.CasesImpl#getExp <em>Exp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.SelectExpImpl#getSymbol <em>Symbol</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.SelectExpImpl#getApplyexps <em>Applyexps</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
+public class SelectExpImpl extends MExpImpl implements SelectExp
 {
   /**
-   * The cached value of the '{@link #getPat() <em>Pat</em>}' attribute list.
+   * The cached value of the '{@link #getSymbol() <em>Symbol</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getPat()
+   * @see #getSymbol()
    * @generated
    * @ordered
    */
-  protected EList<String> pat;
+  protected EList<String> symbol;
 
   /**
-   * The cached value of the '{@link #getExp() <em>Exp</em>}' containment reference list.
+   * The cached value of the '{@link #getApplyexps() <em>Applyexps</em>}' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getExp()
+   * @see #getApplyexps()
    * @generated
    * @ordered
    */
-  protected EList<Exp> exp;
+  protected EList<ApplyExp> applyexps;
 
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    */
-  protected CasesImpl()
+  protected SelectExpImpl()
   {
     super();
   }
@@ -75,7 +73,7 @@ public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
   @Override
   protected EClass eStaticClass()
   {
-    return GDSLPackage.Literals.CASES;
+    return GDSLPackage.Literals.SELECT_EXP;
   }
 
   /**
@@ -83,13 +81,13 @@ public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<String> getPat()
+  public EList<String> getSymbol()
   {
-    if (pat == null)
+    if (symbol == null)
     {
-      pat = new EDataTypeEList<String>(String.class, this, GDSLPackage.CASES__PAT);
+      symbol = new EDataTypeEList<String>(String.class, this, GDSLPackage.SELECT_EXP__SYMBOL);
     }
-    return pat;
+    return symbol;
   }
 
   /**
@@ -97,13 +95,13 @@ public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<Exp> getExp()
+  public EList<ApplyExp> getApplyexps()
   {
-    if (exp == null)
+    if (applyexps == null)
     {
-      exp = new EObjectContainmentEList<Exp>(Exp.class, this, GDSLPackage.CASES__EXP);
+      applyexps = new EObjectContainmentEList<ApplyExp>(ApplyExp.class, this, GDSLPackage.SELECT_EXP__APPLYEXPS);
     }
-    return exp;
+    return applyexps;
   }
 
   /**
@@ -116,8 +114,8 @@ public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
   {
     switch (featureID)
     {
-      case GDSLPackage.CASES__EXP:
-        return ((InternalEList<?>)getExp()).basicRemove(otherEnd, msgs);
+      case GDSLPackage.SELECT_EXP__APPLYEXPS:
+        return ((InternalEList<?>)getApplyexps()).basicRemove(otherEnd, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
   }
@@ -132,10 +130,10 @@ public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
   {
     switch (featureID)
     {
-      case GDSLPackage.CASES__PAT:
-        return getPat();
-      case GDSLPackage.CASES__EXP:
-        return getExp();
+      case GDSLPackage.SELECT_EXP__SYMBOL:
+        return getSymbol();
+      case GDSLPackage.SELECT_EXP__APPLYEXPS:
+        return getApplyexps();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -151,13 +149,13 @@ public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
   {
     switch (featureID)
     {
-      case GDSLPackage.CASES__PAT:
-        getPat().clear();
-        getPat().addAll((Collection<? extends String>)newValue);
+      case GDSLPackage.SELECT_EXP__SYMBOL:
+        getSymbol().clear();
+        getSymbol().addAll((Collection<? extends String>)newValue);
         return;
-      case GDSLPackage.CASES__EXP:
-        getExp().clear();
-        getExp().addAll((Collection<? extends Exp>)newValue);
+      case GDSLPackage.SELECT_EXP__APPLYEXPS:
+        getApplyexps().clear();
+        getApplyexps().addAll((Collection<? extends ApplyExp>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -173,11 +171,11 @@ public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
   {
     switch (featureID)
     {
-      case GDSLPackage.CASES__PAT:
-        getPat().clear();
+      case GDSLPackage.SELECT_EXP__SYMBOL:
+        getSymbol().clear();
         return;
-      case GDSLPackage.CASES__EXP:
-        getExp().clear();
+      case GDSLPackage.SELECT_EXP__APPLYEXPS:
+        getApplyexps().clear();
         return;
     }
     super.eUnset(featureID);
@@ -193,10 +191,10 @@ public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
   {
     switch (featureID)
     {
-      case GDSLPackage.CASES__PAT:
-        return pat != null && !pat.isEmpty();
-      case GDSLPackage.CASES__EXP:
-        return exp != null && !exp.isEmpty();
+      case GDSLPackage.SELECT_EXP__SYMBOL:
+        return symbol != null && !symbol.isEmpty();
+      case GDSLPackage.SELECT_EXP__APPLYEXPS:
+        return applyexps != null && !applyexps.isEmpty();
     }
     return super.eIsSet(featureID);
   }
@@ -212,10 +210,10 @@ public class CasesImpl extends MinimalEObjectImpl.Container implements Cases
     if (eIsProxy()) return super.toString();
 
     StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (pat: ");
-    result.append(pat);
+    result.append(" (symbol: ");
+    result.append(symbol);
     result.append(')');
     return result.toString();
   }
 
-} //CasesImpl
+} //SelectExpImpl

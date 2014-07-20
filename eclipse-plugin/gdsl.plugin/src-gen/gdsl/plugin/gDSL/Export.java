@@ -15,7 +15,7 @@ import org.eclipse.emf.ecore.EObject;
  * The following features are supported:
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.Export#getName <em>Name</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.Export#getAttrName <em>Attr Name</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Export#getAttr <em>Attr</em>}</li>
  * </ul>
  * </p>
  *
@@ -26,45 +26,45 @@ import org.eclipse.emf.ecore.EObject;
 public interface Export extends EObject
 {
   /**
-   * Returns the value of the '<em><b>Name</b></em>' attribute.
+   * Returns the value of the '<em><b>Name</b></em>' reference.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Name</em>' attribute isn't clear,
+   * If the meaning of the '<em>Name</em>' reference isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Name</em>' attribute.
-   * @see #setName(String)
+   * @return the value of the '<em>Name</em>' reference.
+   * @see #setName(DeclVal)
    * @see gdsl.plugin.gDSL.GDSLPackage#getExport_Name()
    * @model
    * @generated
    */
-  String getName();
+  DeclVal getName();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.Export#getName <em>Name</em>}' attribute.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.Export#getName <em>Name</em>}' reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Name</em>' attribute.
+   * @param value the new value of the '<em>Name</em>' reference.
    * @see #getName()
    * @generated
    */
-  void setName(String value);
+  void setName(DeclVal value);
 
   /**
-   * Returns the value of the '<em><b>Attr Name</b></em>' attribute list.
+   * Returns the value of the '<em><b>Attr</b></em>' attribute list.
    * The list contents are of type {@link java.lang.String}.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Attr Name</em>' attribute list isn't clear,
+   * If the meaning of the '<em>Attr</em>' attribute list isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Attr Name</em>' attribute list.
-   * @see gdsl.plugin.gDSL.GDSLPackage#getExport_AttrName()
+   * @return the value of the '<em>Attr</em>' attribute list.
+   * @see gdsl.plugin.gDSL.GDSLPackage#getExport_Attr()
    * @model unique="false"
    * @generated
    */
-  EList<String> getAttrName();
+  EList<String> getAttr();
 
 } // Export

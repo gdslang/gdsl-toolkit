@@ -6,13 +6,22 @@ import gdsl.plugin.gDSL.CaseExp;
 import gdsl.plugin.gDSL.Exp;
 import gdsl.plugin.gDSL.GDSLPackage;
 
+import java.util.Collection;
+
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
+
+import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
+import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
+
+import org.eclipse.emf.ecore.util.EDataTypeEList;
+import org.eclipse.emf.ecore.util.EObjectContainmentEList;
+import org.eclipse.emf.ecore.util.InternalEList;
 
 /**
  * <!-- begin-user-doc -->
@@ -21,44 +30,45 @@ import org.eclipse.emf.ecore.impl.ENotificationImpl;
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.ExpImpl#getCaseExp <em>Case Exp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.ExpImpl#getName <em>Name</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.ExpImpl#getMid <em>Mid</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.ExpImpl#getCaseExps <em>Case Exps</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class ExpImpl extends ValueDeclImpl implements Exp
+public class ExpImpl extends MinimalEObjectImpl.Container implements Exp
 {
   /**
-   * The cached value of the '{@link #getCaseExp() <em>Case Exp</em>}' containment reference.
+   * The cached value of the '{@link #getName() <em>Name</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getCaseExp()
+   * @see #getName()
    * @generated
    * @ordered
    */
-  protected CaseExp caseExp;
+  protected CaseExp name;
 
   /**
-   * The default value of the '{@link #getMid() <em>Mid</em>}' attribute.
+   * The cached value of the '{@link #getMid() <em>Mid</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @see #getMid()
    * @generated
    * @ordered
    */
-  protected static final String MID_EDEFAULT = null;
+  protected EList<String> mid;
 
   /**
-   * The cached value of the '{@link #getMid() <em>Mid</em>}' attribute.
+   * The cached value of the '{@link #getCaseExps() <em>Case Exps</em>}' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getMid()
+   * @see #getCaseExps()
    * @generated
    * @ordered
    */
-  protected String mid = MID_EDEFAULT;
+  protected EList<CaseExp> caseExps;
 
   /**
    * <!-- begin-user-doc -->
@@ -86,9 +96,9 @@ public class ExpImpl extends ValueDeclImpl implements Exp
    * <!-- end-user-doc -->
    * @generated
    */
-  public CaseExp getCaseExp()
+  public CaseExp getName()
   {
-    return caseExp;
+    return name;
   }
 
   /**
@@ -96,13 +106,13 @@ public class ExpImpl extends ValueDeclImpl implements Exp
    * <!-- end-user-doc -->
    * @generated
    */
-  public NotificationChain basicSetCaseExp(CaseExp newCaseExp, NotificationChain msgs)
+  public NotificationChain basicSetName(CaseExp newName, NotificationChain msgs)
   {
-    CaseExp oldCaseExp = caseExp;
-    caseExp = newCaseExp;
+    CaseExp oldName = name;
+    name = newName;
     if (eNotificationRequired())
     {
-      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.EXP__CASE_EXP, oldCaseExp, newCaseExp);
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.EXP__NAME, oldName, newName);
       if (msgs == null) msgs = notification; else msgs.add(notification);
     }
     return msgs;
@@ -113,20 +123,20 @@ public class ExpImpl extends ValueDeclImpl implements Exp
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setCaseExp(CaseExp newCaseExp)
+  public void setName(CaseExp newName)
   {
-    if (newCaseExp != caseExp)
+    if (newName != name)
     {
       NotificationChain msgs = null;
-      if (caseExp != null)
-        msgs = ((InternalEObject)caseExp).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.EXP__CASE_EXP, null, msgs);
-      if (newCaseExp != null)
-        msgs = ((InternalEObject)newCaseExp).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.EXP__CASE_EXP, null, msgs);
-      msgs = basicSetCaseExp(newCaseExp, msgs);
+      if (name != null)
+        msgs = ((InternalEObject)name).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.EXP__NAME, null, msgs);
+      if (newName != null)
+        msgs = ((InternalEObject)newName).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.EXP__NAME, null, msgs);
+      msgs = basicSetName(newName, msgs);
       if (msgs != null) msgs.dispatch();
     }
     else if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.EXP__CASE_EXP, newCaseExp, newCaseExp));
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.EXP__NAME, newName, newName));
   }
 
   /**
@@ -134,8 +144,12 @@ public class ExpImpl extends ValueDeclImpl implements Exp
    * <!-- end-user-doc -->
    * @generated
    */
-  public String getMid()
+  public EList<String> getMid()
   {
+    if (mid == null)
+    {
+      mid = new EDataTypeEList<String>(String.class, this, GDSLPackage.EXP__MID);
+    }
     return mid;
   }
 
@@ -144,12 +158,13 @@ public class ExpImpl extends ValueDeclImpl implements Exp
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setMid(String newMid)
+  public EList<CaseExp> getCaseExps()
   {
-    String oldMid = mid;
-    mid = newMid;
-    if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.EXP__MID, oldMid, mid));
+    if (caseExps == null)
+    {
+      caseExps = new EObjectContainmentEList<CaseExp>(CaseExp.class, this, GDSLPackage.EXP__CASE_EXPS);
+    }
+    return caseExps;
   }
 
   /**
@@ -162,8 +177,10 @@ public class ExpImpl extends ValueDeclImpl implements Exp
   {
     switch (featureID)
     {
-      case GDSLPackage.EXP__CASE_EXP:
-        return basicSetCaseExp(null, msgs);
+      case GDSLPackage.EXP__NAME:
+        return basicSetName(null, msgs);
+      case GDSLPackage.EXP__CASE_EXPS:
+        return ((InternalEList<?>)getCaseExps()).basicRemove(otherEnd, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
   }
@@ -178,10 +195,12 @@ public class ExpImpl extends ValueDeclImpl implements Exp
   {
     switch (featureID)
     {
-      case GDSLPackage.EXP__CASE_EXP:
-        return getCaseExp();
+      case GDSLPackage.EXP__NAME:
+        return getName();
       case GDSLPackage.EXP__MID:
         return getMid();
+      case GDSLPackage.EXP__CASE_EXPS:
+        return getCaseExps();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -191,16 +210,22 @@ public class ExpImpl extends ValueDeclImpl implements Exp
    * <!-- end-user-doc -->
    * @generated
    */
+  @SuppressWarnings("unchecked")
   @Override
   public void eSet(int featureID, Object newValue)
   {
     switch (featureID)
     {
-      case GDSLPackage.EXP__CASE_EXP:
-        setCaseExp((CaseExp)newValue);
+      case GDSLPackage.EXP__NAME:
+        setName((CaseExp)newValue);
         return;
       case GDSLPackage.EXP__MID:
-        setMid((String)newValue);
+        getMid().clear();
+        getMid().addAll((Collection<? extends String>)newValue);
+        return;
+      case GDSLPackage.EXP__CASE_EXPS:
+        getCaseExps().clear();
+        getCaseExps().addAll((Collection<? extends CaseExp>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -216,11 +241,14 @@ public class ExpImpl extends ValueDeclImpl implements Exp
   {
     switch (featureID)
     {
-      case GDSLPackage.EXP__CASE_EXP:
-        setCaseExp((CaseExp)null);
+      case GDSLPackage.EXP__NAME:
+        setName((CaseExp)null);
         return;
       case GDSLPackage.EXP__MID:
-        setMid(MID_EDEFAULT);
+        getMid().clear();
+        return;
+      case GDSLPackage.EXP__CASE_EXPS:
+        getCaseExps().clear();
         return;
     }
     super.eUnset(featureID);
@@ -236,10 +264,12 @@ public class ExpImpl extends ValueDeclImpl implements Exp
   {
     switch (featureID)
     {
-      case GDSLPackage.EXP__CASE_EXP:
-        return caseExp != null;
+      case GDSLPackage.EXP__NAME:
+        return name != null;
       case GDSLPackage.EXP__MID:
-        return MID_EDEFAULT == null ? mid != null : !MID_EDEFAULT.equals(mid);
+        return mid != null && !mid.isEmpty();
+      case GDSLPackage.EXP__CASE_EXPS:
+        return caseExps != null && !caseExps.isEmpty();
     }
     return super.eIsSet(featureID);
   }
