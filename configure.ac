@@ -15,10 +15,15 @@ AC_PROG_INSTALL()
 AC_ARG_VAR(SMLNJ)
 AC_PATH_PROG(SMLNJ, sml, ["not-found"])
 
-if test [$SMLNJ == "not-found"]; then
-    echo "You must install SML/NJ."
+AC_ARG_VAR(MLTON)
+AC_PATH_PROG(MLTON, mlton, ["not-found"])
+
+if test [$SMLNJ == "not-found" -a $MLTON == "not-found"]; then
+    echo "You must install either SML/NJ or mlton."
     exit 1
 fi
+
+AM_CONDITIONAL([HAVE_MLTON],[test x$MLTON != "xnot-found"])
 
 AC_ARG_VAR(MLULEX)
 AC_PATH_PROG(MLULEX, ml-ulex, ["not-found"])

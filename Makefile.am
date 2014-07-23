@@ -50,6 +50,7 @@ endif
 # the gdsl compiler
 
 SMLNJ = @SMLNJ@
+MLTON = @MLTON@
 MLULEX = @MLULEX@
 MLANTLR = @MLANTLR@
 
@@ -137,13 +138,29 @@ GDSLC_SML_FILES = \
 
 JAR=jgdsl.jar
 
+GDSLC_DEP = detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
+GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
+
+if HAVE_MLTON
+
+$(builddir)/gdslc: $(srcdir)/gdslc.mlb
+	$(MLTON) $(srcdir)/gdslc.mlb
+
+GDSLC_DEP += $(builddir)/gdslc
+GDSLC = $(builddir)/gdslc
+
+else
+
 $(builddir)/gdslc-image: $(srcdir)/gdsl.cm $(GDSLC_SML_FILES)
 	echo 'CM.make("'$(srcdir)/gdsl.cm'"); SMLofNJ.exportFn ("'$@'",Main.njMain);' | $(SMLNJ)
 	cd $(builddir) && rm -f gdslc-image && $(LN_S) $@.* gdslc-image
 
 CLEANFILES += $(builddir)/gdslc-image
+GDSLC_DEP += $(builddir)/gdslc-image
 
 GDSLC = $(SMLNJ) @SMLload=$(builddir)/gdslc-image
+
+endif
 
 
 RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
@@ -157,9 +174,6 @@ RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
 
 %.g.sml	: %.g
 	$(MLANTLR) $<
-
-GDSLC_DEP = $(builddir)/gdslc-image detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
-GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 
 # the decoders
 

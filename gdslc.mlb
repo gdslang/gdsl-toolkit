@@ -49,7 +49,7 @@ in
          detail/semantic/typing/substitutions.sml
          detail/semantic/typing/type-table.sml
          detail/semantic/typing/environment.sml
-         detail/semantic/typing/environment-profiling.sml
+         (*detail/semantic/typing/environment-profiling.sml*)
 
          detail/spec/spec.sml
          detail/spec/core.sml
