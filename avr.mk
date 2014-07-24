@@ -1,1 +1,1 @@
-export GDSL_AVR=1
+export GDSL_ARCH=avr

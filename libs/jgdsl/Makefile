@@ -7,9 +7,6 @@ LIBFLAGS=$(LIBDS) $(LIBS)
 INCDS=-Iinclude -I$(MLTK)/include
 
 DEFINES=-DRELAXEDFATAL
-ifdef GDSL_X86
-DEFINES+=-DGDSL_X86
-endif
 
 CFLAGS=-std=c11 -g3 -fPIC -shared -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 

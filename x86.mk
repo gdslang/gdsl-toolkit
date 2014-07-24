@@ -1,1 +1,1 @@
-export GDSL_X86=1
+export GDSL_ARCH=x86
