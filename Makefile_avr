@@ -5,7 +5,7 @@ MLTONFLAGS=
 CFLAGS=-g3 -fPIC -Wall -Iinclude
 LFLAGS=-shared
 
-export GDSL_AVR := 1
+include avr.mk
 
 #GDSL=gdsl
 GDSL_MEX=_manual

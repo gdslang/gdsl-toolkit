@@ -1,5 +1,4 @@
-export GDSL:=gdsl
-export MANAGED:=1
+include config.mk
 
 archs:=x86 avr mips
 
