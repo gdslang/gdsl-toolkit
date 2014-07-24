@@ -97,8 +97,6 @@ val rreil-stmts-rev stmts =
       lp stmts SEM_NIL
    end
 
-val _var x = {id=x,offset=0}
-val _var x _offset o = {id=x, offset=o}
 val at-offset v o = @{offset=o} v
 val var x = SEM_LIN_VAR x
 val varl sz x = @{size=sz}x
@@ -160,7 +158,7 @@ val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
 val /BRANCH hint address = SEM_BRANCH{hint=hint,target=address}
 val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
-val /BFLOP sz op r a b = SEM_FLOP{op=op,flags=_var FLOATING_FLAGS,lhs=varl-from-var sz r,rhs=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))}
+val /BFLOP sz op r a b = SEM_FLOP{op=op,flags={id=FLOATING_FLAGS, offset=0},lhs=varl-from-var sz r,rhs=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))}
 val /PRIM op lhs rhs = SEM_PRIM{op=op,lhs=lhs,rhs=rhs}
 val /THROW exception = SEM_THROW exception
 

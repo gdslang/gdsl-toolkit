@@ -1,9 +1,6 @@
 # vim: filetype=sml:ts=3:sw=3:expandtab
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
-type sem_exception =
-   SEM_DIVISION_OVERFLOW
-
 type sem_writeback =
    SEM_WRITE_VAR of {size:int, id:sem_var}
  | SEM_WRITE_MEM of {size:int, address:sem_linear, segment:seg_override}
@@ -102,6 +99,17 @@ in
        else
          SEM_LIN_ADD {opnd1=seg-sem s,opnd2=address}
   end
+end
+
+val rflags = do
+  flags <- return {id=Sem_FLAGS,offset=0,size=64};
+
+  #Set missing bits according to manual
+  mov 1 (at-offset flags 1) (imm 1);
+  mov 1 (at-offset flags 3) (imm 0);
+  mov 1 (at-offset flags 5) (imm 0);
+
+  return flags
 end
 
 #IA-32e => 64 bit real addresses

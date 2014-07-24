@@ -169,14 +169,13 @@ GDSL_X86 = \
 	$(srcdir)/specifications/x86/x86-traverse.ml \
 	$(srcdir)/specifications/x86/x86-pretty.ml \
 	$(srcdir)/specifications/x86/x86-asm.ml \
-	$(srcdir)/specifications/x86-tester/x86-pretty-simple.ml
+	$(srcdir)/specifications/x86/x86-semantics-mapping.ml \
+	$(srcdir)/specifications/x86/x86-semantics-mapping-pretty.ml
 
 GDSL_X86SEM = \
-	$(srcdir)/specifications/x86/x86-rreil-pretty.ml \
 	$(srcdir)/specifications/x86/x86-rreil-translator.ml \
 	$(srcdir)/specifications/x86/x86-rreil-translator-a-l.ml \
 	$(srcdir)/specifications/x86/x86-rreil-translator-m-z.ml \
-	$(srcdir)/specifications/x86/x86-rreil-registermapping.ml \
 	$(srcdir)/specifications/x86/x86-liveness.ml
 
 GDSL_AVR = \
@@ -213,13 +212,13 @@ GDSL_RREIL = \
   $(srcdir)/specifications/rreil/rreil-opt.ml \
   $(srcdir)/specifications/rreil/rreil-translator.ml
 
-if X86_RREIL
+#if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 nodist_include_HEADERS += gdsl-x86-rreil.h
 libjgdsl_la_LIBADD += libgdsl-x86-rreil.la
 #semantics_opt_LDADD += libgdsl-x86-rreil.la
 CLEANFILES += gdsl-x86-rreil.c gdsl-x86-rreil.h
-endif
+#endif
 libgdsl_x86_rreil_la_SOURCES =
 nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
 libgdsl_x86_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
@@ -228,12 +227,12 @@ GS_X86_RREIL = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM
 gdsl-x86-rreil.c: $(GDSLC_DEP) $(GS_X86_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86_RREIL)
 
-if X86
+#if X86
 lib_LTLIBRARIES += libgdsl-x86.la
 #decoder_cli_LDADD += libgdsl-x86.la
 nodist_include_HEADERS += gdsl-x86.h
 CLEANFILES += gdsl-x86.c gdsl-x86.h
-endif
+#endif
 libgdsl_x86_la_SOURCES =
 nodist_libgdsl_x86_la_SOURCES = gdsl-x86.c
 libgdsl_x86_la_DEPENDENCIES = $(GDSLC_DEP)
@@ -242,13 +241,13 @@ GS_X86 = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86)
 gdsl-x86.c: $(GDSLC_DEP) $(GS_X86)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86)
 
-if AVR_RREIL
+#if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
 libjgdsl_la_LIBADD += libgdsl-avr-rreil.la
 #semantics_opt_LDADD += libgdsl-avr-rreil.la
 nodist_include_HEADERS += gdsl-avr-rreil.h
 CLEANFILES += gdsl-avr-rreil.c gdsl-avr-rreil.h
-endif
+#endif
 libgdsl_avr_rreil_la_SOURCES =
 nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
 libgdsl_avr_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
@@ -257,12 +256,12 @@ GS_AVR_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSE
 gdsl-avr-rreil.c: $(GDSLC_DEP) $(GS_AVR_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
 
-if AVR
+#if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
 #decoder_cli_LDADD += libgdsl-avr.la
 nodist_include_HEADERS += gdsl-avr.h
 CLEANFILES += gdsl-avr.c gdsl-avr.h
-endif
+#endif
 libgdsl_avr_la_SOURCES =
 nodist_libgdsl_avr_la_SOURCES = gdsl-avr.c
 libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
