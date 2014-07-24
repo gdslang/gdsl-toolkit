@@ -1,4 +1,4 @@
-LIBS=gdutil gdsl-multiplex gdwrap readhex rreil jgdsl cppgdsl
+LIBS=gdutil gdsl-multiplex gdwrap readhex cgdsl jgdsl cppgdsl
 
 #eq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
 #$(if $(call eq,$GDSL_ARCH,x86), \
