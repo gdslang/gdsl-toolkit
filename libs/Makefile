@@ -1,13 +1,17 @@
-LIBS=gdutil gdsl-multiplex gdwrap readhex rreil jgdsl cppgdsl
+LIBS=gdutil gdsl-multiplex gdwrap readhex cgdsl jgdsl cppgdsl
 
-#ifndef MANAGED
-#GDSL_AVR:=1
-#GDSL_X86:=1
-#endif
+#eq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
+#$(if $(call eq,$GDSL_ARCH,x86), \
+#LIBS+=x86 x86-tester x86-generator \
+#)
 
-ifdef GDSL_X86
-LIBS+=x86 x86-tester x86-generator 
+ifeq ($(GDSL_ARCH),x86)
+LIBS+=x86 x86-tester x86-generator
 endif
+
+#$(info $(call eq,x86,99))
+
+$(info $(LIBS))
 
 .PHONY all: $(LIBS)
 

@@ -89,7 +89,7 @@ void rreil_id_print(FILE *stream, struct rreil_id *id) {
 		}
 #else
 			case RREIL_ID_TYPE_ARCH: {
-				fprintf(stream, "arch#%u", id->arch);
+				fprintf(stream, "%s", id->arch);
 			}
 #endif
 	}
@@ -113,7 +113,7 @@ void rreil_exception_print(FILE *stream, struct rreil_exception *exception) {
 		}
 #else
 			case RREIL_EXCEPTION_TYPE_ARCH: {
-				fprintf(stream, "{Exception: arch#%u}", exception->arch);
+				fprintf(stream, "{Exception: %s}", exception->arch);
 			}
 #endif
 	}

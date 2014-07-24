@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <gdsl.h>
 #include <gdsl_generic.h>
 #include <rreil/rreil.h>
@@ -20,7 +21,6 @@
 static obj_t shared(state_t state, int_t eid) {
   struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
   id->type = RREIL_ID_TYPE_SHARED;
-  id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
   switch(eid) {
     case RREIL_ID_SHARED_FLOATING_FLAGS: {
       id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
@@ -47,7 +47,8 @@ obj_t sem_id_arch(state_t state, string_t pretty_id) {
 obj_t sem_id_arch(state_t state, string_t pretty_id) {
   struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
   id->type = RREIL_ID_TYPE_ARCH;
-  id->arch = -1;
+  id->arch = (char*)malloc(strlen(pretty_id) + 1);
+  strcpy(id->arch, pretty_id);
   return id;
 }
 #endif
@@ -77,10 +78,10 @@ obj_t exception_arch(state_t state, string_t ex) {
   return exception;
 }
 #else
-obj_t exception_arch(state_t state, string_t ex_rope) {
+obj_t exception_arch(state_t state, string_t ex) {
   struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
-  exception->type = RREIL_EXCEPTION_TYPE_ARCH;
-  exception->arch = -1;
+  exception->arch = (char*)malloc(strlen(ex) + 1);
+  strcpy(exception->arch, ex);;
   return exception;
 }
 #endif

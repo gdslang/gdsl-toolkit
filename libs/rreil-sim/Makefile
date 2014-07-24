@@ -4,9 +4,10 @@ CC=gcc
 INCDS=-Iinclude -I$(MLTK)/include
 
 DEFINES=-DRELAXEDFATAL
-#ifdef GDSL_X86
-DEFINES+=-DGDSL_X86
-#endif
+ifdef GDSL_ARCH
+UPPER_ARCH = $(shell echo $(GDSL_ARCH) | tr a-z A-Z)
+DEFINES+=-DGDSL_$(UPPER_ARCH)
+endif
 
 CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 

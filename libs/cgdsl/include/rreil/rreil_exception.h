@@ -38,7 +38,7 @@ struct rreil_exception {
 #ifdef GDSL_X86
 			enum x86_exception x86;
 #else
-			uint32_t arch;
+			char *arch;
 #endif
 		};
 	};

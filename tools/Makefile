@@ -14,12 +14,11 @@ LIBDS=-L../lib
 #$(info $(MANAGED))
 
 DEFINES=-DRELAXEDFATAL
-ifdef GDSL_X86
-DEFINES+=-DGDSL_X86
+ifdef GDSL_ARCH
+UPPER_ARCH = $(shell echo $(GDSL_ARCH) | tr a-z A-Z)
+DEFINES+=-DGDSL_$(UPPER_ARCH)
 endif
 
-ifdef GDSL_X86
-endif
 LIBS +=-lgdsl -lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil -lelf
 LIBS_MULT +=-lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil -lelf
 
@@ -94,7 +93,7 @@ liveness-sweep: liveness-sweep.o
 liveness-sweep.o: liveness-sweep.c
 	$(CC) $(CFLAGS) liveness-sweep.c -o $@
 
-ifdef GDSL_X86
+ifeq ($(GDSL_ARCH),x86)
 ### x86-test-runner
 x86-test-runner:
 	$(MAKE) -C $@
