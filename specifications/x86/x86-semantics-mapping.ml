@@ -1,5 +1,8 @@
 # This file maps syntactic registers to semantic registers used in RREIL.
 
+val _var x = {id=x,offset=0}
+val _var x _offset o = {id=x, offset=o}
+
 # define functions that generate EFLAGS variables
 val fCF = return (_var Sem_FLAGS _offset 0)
 val fPF = return (_var Sem_FLAGS _offset 2)
@@ -17,16 +20,6 @@ val fLEU = return (_var VIRT_LEU)
 val fLTS = return (_var VIRT_LTS)
 #val fLTU = return (_var VIRT_LTU)
 
-val rflags = do
-  flags <- return {id=Sem_FLAGS,offset=0,size=64};
-
-  #Set missing bits according to manual
-  mov 1 (at-offset flags 1) (imm 1);
-  mov 1 (at-offset flags 3) (imm 0);
-  mov 1 (at-offset flags 5) (imm 0);
-
-  return flags
-end
 
 type sem_id
    = Sem_IP
@@ -356,3 +349,7 @@ val register-by-size modifier reg-unsized size =
         | 64: RSP
        end
   end
+
+
+type sem_exception =
+   SEM_DIVISION_OVERFLOW

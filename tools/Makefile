@@ -11,6 +11,8 @@ LIBDS=-L../lib
 #GDSL_X86:=1
 #endif
 
+#$(info $(MANAGED))
+
 DEFINES=-DRELAXEDFATAL
 ifdef GDSL_X86
 DEFINES+=-DGDSL_X86
