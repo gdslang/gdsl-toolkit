@@ -10,4 +10,4 @@ val arch-show-id r =
 
 val pretty-arch-id r = arch-show-id r
 
-val pretty-arch-exception exception = arch-show-exception exception
+val pretty-arch-exception exception = case 0 of 1: "" end
