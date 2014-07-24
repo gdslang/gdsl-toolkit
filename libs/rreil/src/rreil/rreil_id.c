@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <rreil/rreil_id.h>
 
 char rreil_id_equals(struct rreil_id *a, struct rreil_id *b) {
@@ -25,7 +26,7 @@ char rreil_id_equals(struct rreil_id *a, struct rreil_id *b) {
 		}
 #else
 		case RREIL_ID_TYPE_ARCH: {
-			return a->arch == b->arch;
+			return !strcmp(a->arch, b->arch);
 		}
 #endif
 	}
@@ -56,7 +57,7 @@ char rreil_id_compare(struct rreil_id *a, struct rreil_id *b) {
 		}
 #else
 		case RREIL_ID_TYPE_ARCH: {
-			return compare_long_unsinged(a->arch, b->arch);
+			return strcmp(a->arch, b->arch);
 		}
 #endif
 	}

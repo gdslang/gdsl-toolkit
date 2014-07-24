@@ -32,10 +32,20 @@ void rreil_comparator_free(struct rreil_comparator *comparator) {
 }
 
 void rreil_id_free(struct rreil_id *id) {
+#ifndef GDSL_X86
+  if(id->type == RREIL_ID_TYPE_ARCH) {
+    free(id->arch);
+  }
+#endif
 	free(id);
 }
 
 void rreil_exception_free(struct rreil_exception *exception) {
+#ifndef GDSL_X86
+  if(exception->type == RREIL_EXCEPTION_TYPE_ARCH) {
+    free(exception->arch);
+  }
+#endif
 	free(exception);
 }
 

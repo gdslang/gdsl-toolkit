@@ -16,34 +16,34 @@
 #endif
 
 enum rreil_id_type {
-	RREIL_ID_TYPE_SHARED, RREIL_ID_TYPE_TEMPORARY,
+  RREIL_ID_TYPE_SHARED, RREIL_ID_TYPE_TEMPORARY,
 #ifdef GDSL_X86
-	RREIL_ID_TYPE_X86
+  RREIL_ID_TYPE_X86
 #else
-	RREIL_ID_TYPE_ARCH
+  RREIL_ID_TYPE_ARCH
 #endif
 };
 
 enum rreil_id_shared {
-	RREIL_ID_SHARED_FLOATING_FLAGS
+  RREIL_ID_SHARED_FLOATING_FLAGS
 };
 
 #define RREIL_ID_SHARED_COUNT (RREIL_ID_SHARED_FLOATING_FLAGS + 1)
 #define RREIL_ID_TEMPORARY_COUNT 32
 
 struct rreil_id {
-	enum rreil_id_type type;
-	union {
-		enum rreil_id_shared shared;
-		union {
+  enum rreil_id_type type;
+  union {
+    enum rreil_id_shared shared;
+    union {
 #ifdef GDSL_X86
-			enum x86_id x86;
+      enum x86_id x86;
 #else
-			uint32_t arch;
+      char *arch;
 #endif
-		};
-		long long unsigned temporary;
-	};
+    };
+    long long unsigned temporary;
+  };
 };
 
 extern char rreil_id_equals(struct rreil_id *a, struct rreil_id *b);
