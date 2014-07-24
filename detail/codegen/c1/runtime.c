@@ -433,8 +433,8 @@ int main (int argc, char** argv) {
   /* fill the buffer, either in binary from file or as sequence
      of hex bytes separated by space or newlines */
   if (file) {
-    ssize_t bytes_read = fread(blob, 1, BUF_SIZE, file);
-    if (bytes_read<0) return 1;
+    size_t bytes_read = fread(blob, 1, BUF_SIZE, file);
+    if (bytes_read == 0) return 1;
     buf_size = bytes_read;
   } else {
     for (i=0;i<buf_size;i++) {
