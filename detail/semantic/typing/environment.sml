@@ -1153,7 +1153,7 @@ end = struct
             (UnificationFailure (Clash, "function is applied to incorrect number of arguments"))
       end
 
-   fun reduceToFunction (env,nArgs) = if nArgs=0 then env else
+   fun reduceToFunction (env,nArgs) =
       let
          val tt = Scope.getTypeTable env
          val (tRes, env) = case Scope.unwrap env of

@@ -1009,7 +1009,7 @@ structure TypeRefinement = struct
                   (VARstype xRoot, VARstype yRoot) => ecr
                 | (VARstype xRoot, t) => t
                 | (t, VARstype yRoot) => t
-                | (t1,t2) => if !iter>30 then OBJstype else lub (t1,t2)
+                | (t1,t2) => if !iter>60 then OBJstype else lub (t1,t2)
 
                val _ = if !debugOn then TextIO.print ("lub: unify " ^ Int.toString x ^ " and " ^ Int.toString y ^ ", ty = " ^ showSType ty ^ "\n" ^ showSTypes s [x,y]) else ()
 
