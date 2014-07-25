@@ -30,10 +30,4 @@ public class ResourceUnavailableException extends RuntimeException {
   public ResourceUnavailableException (String message, Throwable cause) {
     super(message, cause);
   }
-
-  public ResourceUnavailableException (String message, Throwable cause, boolean enableSuppression,
-      boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
-  }
-
 }
