@@ -318,34 +318,50 @@ GS_AVR = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_AVR)
 gdsl-avr.c: $(GDSLC_DEP) $(GS_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR)
 
-##if MIPS_RREIL
-#lib_LTLIBRARIES += libgdsl-mips-rreil.la
-##libjgdsl_la_LIBADD += libgdsl-mips-rreil.la
-##semantics_opt_LDADD += libgdsl-mips-rreil.la
-#nodist_include_HEADERS += gdsl-mips-rreil.h
-#CLEANFILES += gdsl-mips-rreil.c gdsl-mips-rreil.h
-##endif
-#libgdsl_mips_rreil_la_SOURCES =
-#nodist_libgdsl_mips_rreil_la_SOURCES = gdsl-mips-rreil.c
-#libgdsl_mips_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
-#
-#GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS) $(GDSL_RREIL) $(GDSL_MIPSSEM)
-#gdsl-mips-rreil.c: $(GDSLC_DEP) $(GS_MIPS_RREIL)
-#	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS_RREIL)
-#
-#if MIPS
-#lib_LTLIBRARIES += libgdsl-mips.la
-##decoder_cli_LDADD += libgdsl-mips.la
-#nodist_include_HEADERS += gdsl-mips.h
-#CLEANFILES += gdsl-mips.c gdsl-mips.h
+#if MIPS_RREIL
+lib_LTLIBRARIES += libgdsl-mips-rreil.la
+#libjgdsl_la_LIBADD += libgdsl-mips-rreil.la
+#semantics_opt_LDADD += libgdsl-mips-rreil.la
+nodist_include_HEADERS += gdsl-mips-rreil.h
+CLEANFILES += gdsl-mips-rreil.c gdsl-mips-rreil.h
 #endif
-#libgdsl_mips_la_SOURCES =
-#nodist_libgdsl_mips_la_SOURCES = gdsl-mips.c
-#libgdsl_mips_la_DEPENDENCIES = $(GDSLC_DEP)
-#
-#GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS)
-#gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
-#	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
+libgdsl_mips_rreil_la_SOURCES =
+nodist_libgdsl_mips_rreil_la_SOURCES = gdsl-mips-rreil.c
+libgdsl_mips_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
+if INSTALL_AUXBINS
+bin_PROGRAMS += gdsl_mips_rreil_demo
+endif
+if BUILD_AUXBINS
+noinst_PROGRAMS += gdsl_mips_rreil_demo
+endif
+gdsl_mips_rreil_demo_SOURCES = gdsl-mips-rreil.c
+gdsl_mips_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
+
+GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS) $(GDSL_RREIL) $(GDSL_MIPSSEM)
+gdsl-mips-rreil.c: $(GDSLC_DEP) $(GS_MIPS_RREIL)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS_RREIL)
+
+#if MIPS
+lib_LTLIBRARIES += libgdsl-mips.la
+#decoder_cli_LDADD += libgdsl-mips.la
+nodist_include_HEADERS += gdsl-mips.h
+CLEANFILES += gdsl-mips.c gdsl-mips.h
+#endif
+libgdsl_mips_la_SOURCES =
+nodist_libgdsl_mips_la_SOURCES = gdsl-mips.c
+libgdsl_mips_la_DEPENDENCIES = $(GDSLC_DEP)
+if INSTALL_AUXBINS
+bin_PROGRAMS += gdsl_mips_demo
+endif
+if BUILD_AUXBINS
+noinst_PROGRAMS += gdsl_mips_demo
+endif
+gdsl_mips_demo_SOURCES = gdsl-mips.c
+gdsl_mips_demo_CFLAGS = -std=c99 -DWITHMAIN
+
+GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS)
+gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
 
 #if HAVE_RREIL
 JSOURCES = src/Program.java \
