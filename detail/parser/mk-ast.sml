@@ -44,18 +44,22 @@ functor MkAst (Core: AST_CORE) = struct
 
    datatype decl =
       MARKdecl of decl mark
-    | GRANULARITYdecl of IntInf.int
     | TYPEdecl of syn_bind * ty
-    | DATATYPEdecl of con_bind * ty_bind list * (con_bind * ty option) list
+    | DATATYPEdecl of ty_bind * ty_bind list * (con_bind * ty option) list
     | DECODEdecl of var_bind * decodepat list * (exp, (exp * exp) list) Sum.t
     | LETRECdecl of var_bind * var_bind list * exp
-    | EXPORTdecl of (var_use * field_bind list) list (* exported symbol with record fields that are supplied by caller *)
+    | EXPORTdecl of var_use * ty_bind list * ty
 
    and ty =
       MARKty of ty mark
     | BITty of IntInf.int
     | NAMEDty of syn_use * (ty_use * ty) list
     | RECORDty of (field_bind * ty) list
+    | FUNCTIONty of ty list * ty
+    | MONADty of ty * ty * ty
+    | INTty
+    | UNITty
+    | STRINGty
 
    and exp =
       MARKexp of exp mark
@@ -95,14 +99,15 @@ functor MkAst (Core: AST_CORE) = struct
 
    and tokpat =
       MARKtokpat of tokpat mark
-    | TOKtokpat of IntInf.int
+    | TOKtokpat of int * IntInf.int (* first int is size in bits *)
     | NAMEDtokpat of var_use
 
    and pat =
       MARKpat of pat mark
-    | LITpat of lit
+    | INTpat of IntInf.int
     | IDpat of var_bind
     | CONpat of con_use * pat option
+    | BITpat of bitpat list
     | WILDpat
 
    and lit =
@@ -123,22 +128,17 @@ functor MkAst (Core: AST_CORE) = struct
       and decl t =
          case t of
             MARKdecl t' => decl (#tree t')
-          | GRANULARITYdecl i => seq [str "granularity", is, space, int i]
-          | EXPORTdecl es =>
-            let
-               fun export_decl (v,[]) = var_use v
-                 | export_decl (v,fs) = seq ([var_use v, str "{"] @
-                     separate (map field_bind fs, ",") @ [str "}"])
-            in
-               seq
-                  [str "export", is, space,
-                   seq (separate (map export_decl es, " "))]
-            end
+          | EXPORTdecl (v,[],t) =>
+            seq [str "export", space, var_use v, space, str ":", space, ty t]
+          | EXPORTdecl (v,tvars,t) =>
+            seq [str "export", space, var_use v, space, 
+                str "[", seq (separate (map ty_bind tvars, ",")), str "]",
+                space, str ":", space, ty t]
           | TYPEdecl (t, tyexp) =>
                seq [str "type", space, syn_bind t, space, ty tyexp]
           | DATATYPEdecl (t, tvars, decls) =>
                align
-                  [seq ([str "type", space, con_bind t] @
+                  [seq ([str "type", space, ty_bind t] @
                      (if List.null tvars then [] else [str "[",
                         seq (separate (map ty_bind tvars, ",")), str "]"])),
                    indent 3 (alignPrefix (map condecl decls, "| "))]
@@ -169,7 +169,7 @@ functor MkAst (Core: AST_CORE) = struct
       and decodepat t =
          case t of
             MARKdecodepat t' => decodepat (#tree t')
-          | BITdecodepat bp => listex "'" "'" " " (map bitpat bp)
+          | BITdecodepat bp => listex "'" "'" "" (map bitpat bp)
           | TOKENdecodepat tp => tokpat tp
 
       and bitpat t =
@@ -182,7 +182,8 @@ functor MkAst (Core: AST_CORE) = struct
       and tokpat t =
          case t of
             MARKtokpat t' => tokpat (#tree t')
-          | TOKtokpat tok => str (IntInf.fmt StringCvt.HEX tok)
+          | TOKtokpat (size,tok) =>
+             seq [str "0x", str (IntInf.fmt StringCvt.HEX tok), str ":", str (Int.toString size)]
           | NAMEDtokpat n => var_use n
 
       and guardedexp gexp = tuple2 (exp, exp) gexp
@@ -201,16 +202,25 @@ functor MkAst (Core: AST_CORE) = struct
                (if List.null args then [] else [str "[",
                         seq (separate (map tyArgs args, ",")), str "]"]))
           | RECORDty fields => list (map (tuple2 (field_bind, ty)) fields)
+          | FUNCTIONty (ts,t) => seq [str "(",
+               seq (separate (map ty ts, ",")), str ")",
+               space, str "->", space, ty t]
+          | MONADty (res,inp,out) => seq [str "S", space,
+               ty res, space, str "<", ty inp, space, str "=>", space, ty out, str ">"]
+          | INTty => str "int"
+          | UNITty => str "()"
+          | STRINGty => str "string"
 
       and tyArgs (tvName, t) = seq [Core.ty_use tvName, str "=", ty t]
 
       and pat t =
          case t of
             MARKpat t' => pat (#tree t')
-          | LITpat l => lit l
+          | INTpat i => int i
           | IDpat n => var_bind n
           | CONpat (n, SOME p) => seq [con_use n, space, pat p]
           | CONpat (n, _) => con_use n
+          | BITpat bp => listex "'" "'" "" (map bitpat bp)
           | WILDpat => str "_"
 
       and lit t =
@@ -235,7 +245,7 @@ functor MkAst (Core: AST_CORE) = struct
                    align [str "else", indent 3 (exp elsee)]]
           | CASEexp (e, cs) =>
                align
-                  [seq [str "case", space, exp e, str "of"],
+                  [seq [str "case", space, exp e, space, str "of"],
                    indent 3 (alignPrefix (map casee cs, "| "))]
           | BINARYexp (e1, opid, e2) =>
                seq [exp e1, space, infixop opid, space, exp e2]

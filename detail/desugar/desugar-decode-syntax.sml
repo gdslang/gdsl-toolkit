@@ -8,8 +8,6 @@ structure DesugarDecode = struct
 
    open DT 
 
-   val granularity: int ref = ref 8
-   
    fun insert (map, k, i) = let
       val s =
          case StringMap.find (map, k) of
@@ -20,7 +18,6 @@ structure DesugarDecode = struct
    end
 
    val tok = Atom.atom "tok"
-   val slice = Atom.atom "slice"
    val return = Atom.atom "return"
    val raisee = Atom.atom "raise"
 
@@ -38,9 +35,9 @@ structure DesugarDecode = struct
       sym before SymbolTables.varTable := tab
    end
 
-   fun consumeTok () = let
+   fun consumeTok (granularity) = let
       val tok = freshTok ()
-      val tokSz = Int.toString(!granularity)
+      val tokSz = Int.toString(granularity)
       val consume = Atom.atom("consume"^tokSz)
       val consume =
          Exp.ID
@@ -50,8 +47,8 @@ structure DesugarDecode = struct
       (tok, Exp.BIND (tok, consume))
    end
 
-   fun unconsumeTok () = let
-      val tokSz = Int.toString(!granularity)
+   fun unconsumeTok (granularity) = let
+      val tokSz = Int.toString(granularity)
       val unconsume = Atom.atom("unconsume"^tokSz)
       val unconsume =
          Exp.ID
@@ -59,17 +56,6 @@ structure DesugarDecode = struct
                (!SymbolTables.varTable, unconsume))
    in
       Exp.ACTION unconsume
-   end
-
-   fun sliceExp (tok, offs, sz) = let
-      open Exp
-      fun INT i = LIT (SpecAbstractTree.INTlit (IntInf.fromInt i))
-      val slice =
-         ID
-            (VarInfo.lookup
-               (!SymbolTables.varTable, slice))
-   in
-      APP (slice, [ID tok, INT offs, INT sz])
    end
 
    fun returnExp tok = let
@@ -83,7 +69,7 @@ structure DesugarDecode = struct
    end
 
    fun buildEquivClass decls = let
-      fun buildEquiv (i, (toks, _), map) =
+      fun buildEquiv (i, (toks, _, _), map) =
          insert
             (map,
              if VS.length toks = 0
@@ -96,7 +82,7 @@ structure DesugarDecode = struct
 
    fun isBacktrackPattern p = String.size p = 0
 
-   fun layoutDecls (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
+   fun layoutDecls (decls: (Pat.t list VS.slice * toksize * Exp.t) VS.slice) = let
       open Layout Pretty
       fun pats ps = vector (VS.map (fn ps => list (map DT.PP.pat ps)) ps)
    in
@@ -104,9 +90,14 @@ structure DesugarDecode = struct
          [str "decls:", 
           vector (VS.map
             (fn pse =>
-               tuple2 (pats, DT.PP.exp) pse) decls),
+               tuple3 (pats, str o Int.toString, DT.PP.exp) pse) decls),
           str " "]
    end
+
+   fun getGranularity (decls: (Pat.t list VS.slice * toksize * Exp.t) VS.slice) =
+   if VS.length decls = 0 
+      then raise Fail "empty pattern detected"
+      else #2 (VS.sub (decls, 0))
 
    fun desugar ds = let
       fun isCatchAll [] = true
@@ -116,35 +107,35 @@ structure DesugarDecode = struct
             List.all (fn c => c= #".") (String.explode str)
         | isCatchAll _ = false
 
-      fun lp (hasDefault, ds, acc) =
+      fun lp (hasDefault, size, ds, acc) =
          case ds of
             [] => if hasDefault then rev acc else
-                     rev ((toVec [], raisingDecodeSequenceMatchFailure ()) :: acc)
-          | (toks, e)::ds => lp (hasDefault orelse isCatchAll toks,
-                                 ds, (toVec toks, e)::acc)
+                     rev ((toVec [], size, raisingDecodeSequenceMatchFailure ()) :: acc)
+          | (toks, size, e)::ds => lp (hasDefault orelse isCatchAll toks,
+                                 size, ds, (toVec toks, size, e)::acc)
    in
-      desugarCases (toVec (lp (false, ds, [])))
+      desugarCases (toVec (lp (false, 8, ds, [])))
    end
 
-   and desugarCases (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
+   and desugarCases (decls: (Pat.t list VS.slice * toksize * Exp.t) VS.slice) = let
       fun grabExp () = 
          if VS.length decls = 0 
             then raise Fail "empty pattern detected"
          else if VS.length decls > 1 
             then raise Fail ("overlapping pattern detected for " ^
-               VS.foldl (fn ((pats,e),str) => 
+               VS.foldl (fn ((pats,_,e),str) => 
                   VS.foldl (fn (pl,str) => Layout.tostring (DesugaredTree.PP.tokpat pl) ^ str) "" pats ^
                   " => " ^ Layout.tostring (Core.PP.layout e) ^ "\n" ^ str) "" decls
                )
-         else #2 (VS.sub (decls, 0))
-      fun isEmpty (vs, _) = VS.length vs = 0
+         else #3 (VS.sub (decls, 0))
+      fun isEmpty (vs, _, _) = VS.length vs = 0
       val bottom = VS.all isEmpty decls
    in
       if bottom
          then grabExp ()
       else
          let
-            val (tok, bindTok) = consumeTok ()
+            val (tok, bindTok) = consumeTok (getGranularity decls)
          in
             Exp.SEQ
                [bindTok,
@@ -167,7 +158,7 @@ structure DesugarDecode = struct
       fun genBindSlices indices = let
          open DT.Pat
          fun grabSlices (i, acc) = let
-            val (toks, e) = VS.sub (decls, i)
+            val (toks, granularity, e) = VS.sub (decls, i)
             fun grab (pats, offs, acc) =
                case pats of
                   [] => acc
@@ -178,7 +169,7 @@ structure DesugarDecode = struct
                            let
                               val sz = size pat
                            in
-                              if offs = 0 andalso sz = !granularity
+                              if offs = 0 andalso sz = granularity
                                  then
                                     grab (ps, offs + sz,
                                        Exp.BIND (n, returnExp tok)::acc)
@@ -188,7 +179,7 @@ structure DesugarDecode = struct
                                      offs + sz,
                                      Exp.BIND
                                        (n,
-                                        sliceExp (tok, offs, sz))::acc)
+                                        DT.sliceExp (tok, offs, sz))::acc)
                            end
          in
             if VS.length toks = 0
@@ -206,9 +197,9 @@ structure DesugarDecode = struct
                (case Set.listItems ix of
                   [i] => 
                      let
-                        val (_,e) = VS.sub (decls,i)
+                        val (_,granularity,e) = VS.sub (decls,i)
                      in
-                        Exp.SEQ [unconsumeTok(),Exp.ACTION e]
+                        Exp.SEQ [unconsumeTok granularity,Exp.ACTION e]
                      end
                 | is => (Pretty.prettyTo (TextIO.stdOut, layoutDecls (toVec (map (fn i => VS.sub (decls,i)) is)));
                          raise Fail "desugarCases.bug.overlappingBacktrackPattern"))
@@ -220,9 +211,9 @@ structure DesugarDecode = struct
                (case Set.listItems ix of
                   [i] => 
                      let
-                        val (tok,e) = VS.sub (decls,i)
+                        val (tok,granularity,e) = VS.sub (decls,i)
                      in
-                        (tok, Exp.SEQ [unconsumeTok(), Exp.ACTION e])::ds
+                        (tok, granularity, Exp.SEQ [unconsumeTok granularity, Exp.ACTION e])::ds
                      end
                 | _ => raise Fail "desugarCases.bug.overlappingBacktrackPattern")
 
@@ -235,16 +226,16 @@ structure DesugarDecode = struct
 
       fun stepDown indices = let
          fun nextIdx (i, acc) = let
-            val (toks, e) = VS.sub (decls, i)
+            val (toks, granularity, e) = VS.sub (decls, i)
          in
             if VS.length toks = 0
-               then (toVec [], e)::acc
-            else (VS.subslice (toks, 1, NONE), e)::acc
+               then (toVec [], granularity, e)::acc
+            else (VS.subslice (toks, 1, NONE), granularity, e)::acc
          end
          val decls = Set.foldl nextIdx [] indices
          val decls = 
             case decls of
-               [(toks,e)] =>
+               [(toks,_,e)] =>
                   if VS.length toks = 0 orelse isFullWildcard toks
                      then decls
                   else extendBacktrackPath decls
@@ -287,9 +278,6 @@ end = struct
       Spec.upd
          (fn (vs, ds) =>
             let
-               val _ =
-                  DesugarDecode.granularity := 
-                     IntInf.toInt (Spec.get#granularity t)
                val vss = desugar ds
             in
                vs@vss

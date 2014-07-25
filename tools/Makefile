@@ -1,6 +1,7 @@
 # vim: noexpandtab
 
 CC=gcc
+CPPC=clang++
 #CC=clang
 MAKE=make
 LIBDS=-L../lib
@@ -17,18 +18,18 @@ endif
 
 ifdef GDSL_X86
 endif
-LIBS+=-lgdsl -lelf -lrt -lreadhex -lgdsl-multiplex -ldl -lutil
+LIBS +=-lgdsl -lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil -lelf
+LIBS_MULT +=-lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil -lelf
 
 LIBFLAGS=$(LIBDS) $(LIBS)
+LIB_MULTFLAGS=$(LIBDS) $(LIBS_MULT)
 LDFLAGS=
 INCDS=-I../include
 CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(DEFINES) $(INCDS)
+CPPFLAGS=-c -std=c++11 -ggdb3 $(DEFINES) $(INCDS)
 
 PROJECTS=
-EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep semantics-opt liveness-sweep
-ifdef GDSL_X86
-PROJECTS+=x86-test-runner x86-test-stats-runner xed-cmp
-endif
+EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep semantics-opt liveness-sweep cppgdsl-demo
 
 .PHONY: $(PROJECTS) clean-projects
 
@@ -61,6 +62,14 @@ semantics-cif-cli: semantics-cif-cli.o
 
 semantics-cif-cli.o: semantics-cif-cli.c
 	$(CC) $(CFLAGS) semantics-cif-cli.c -o $@
+	
+### cppgdsl-demo
+
+cppgdsl-demo: cppgdsl-demo.o
+	$(CPPC) $(LDFLAGS) cppgdsl-demo.o -lcppgdsl $(LIB_MULTFLAGS) -o $@
+
+cppgdsl-demo.o: cppgdsl-demo.cpp
+	$(CPPC) $(CPPFLAGS) cppgdsl-demo.cpp -o $@
 
 ### sweep
 sweep: sweep.o

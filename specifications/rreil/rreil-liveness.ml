@@ -1,18 +1,15 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
+export select_live: S sem_stmt_list <{live: sem_stmt_list} => {live: sem_stmt_list}>
+export liveness: (sem_stmt_list) -> S lv-state-t <{} => {}>
+export liveness_super: (translate-result) -> S lv-super-result <{} => {}>
+export lv-pretty: (lv-state-t) -> rope
+
 # LIVENESS based on fields
 
-export =
-   lv-kill
-   lv-kills
-   lv-gen
-   lv-gens
-   lv-union
-   lv-pretty
-   lv-analyze
-   liveness liveness_super{insns,succ_a,succ_b}
-#   lvstate-pretty
-#   lv-sweep-and-collect-upto-native-flow
+type interval = {lo: int, hi: int}
+type id_intervals = {id: sem_id, fields: bbtree[a=interval]}
+type lv-state-t = bbtree[a=id_intervals]
 
 val visit-semvarls visitor-semvar set varls = case varls of
    SEM_VARLS_CONS c: lv-union (visitor-semvar set c.hd.size c.hd) (visit-semvarls visitor-semvar set c.tl)
@@ -22,12 +19,19 @@ end
 val lv-kill kills stmt =
    let
       val visit-semvar kills sz x = fmap-add-range kills x.id sz x.offset
+      val size-lhs size rhs = case rhs of
+         SEM_SEXPR s: case s of
+            SEM_SEXPR_CMP c: 1
+          | _: size
+         end
+       | _: size
+      end
 
       val visit-stmt kills stmt =
          case stmt of
-            SEM_ASSIGN x: visit-semvar kills x.size x.lhs
+            SEM_ASSIGN x: visit-semvar kills (size-lhs x.size x.rhs) x.lhs
           | SEM_LOAD x: visit-semvar kills x.size x.lhs
-					| SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
+			 | SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
           | SEM_FLOP x: visit-semvar kills x.lhs.size x.lhs
           | SEM_PRIM x: visit-semvarls visit-semvar kills x.lhs
           | _ : kills
@@ -112,25 +116,20 @@ val lv-gen gens stmt =
             SEM_ASSIGN x: visit-expr x.size gens x.rhs
           | SEM_LOAD x: visit-address gens x.address
           | SEM_STORE x: lv-union (visit-address gens x.address) (visit-lin gens x.size x.rhs)
-					| SEM_WHILE x: visit-sexpr 1 gens x.cond
-					| SEM_ITE x: visit-sexpr 1 gens x.cond
-					| SEM_BRANCH x: visit-address gens x.target
-					| SEM_CBRANCH x: visit-flow 1 gens x
+			 | SEM_WHILE x: visit-sexpr 1 gens x.cond
+			 | SEM_ITE x: visit-sexpr 1 gens x.cond
+			 | SEM_BRANCH x: visit-address gens x.target
+			 | SEM_CBRANCH x: visit-flow 1 gens x
           | SEM_FLOP x: lv-union (visit-semvar gens (sizeof-id x.flags.id) x.flags) (visit-semvarls visit-semvar gens x.rhs)
           | SEM_PRIM x: visit-semvarls visit-semvar gens x.rhs
           | SEM_THROW x: gens
-#          | SEM_LABEL x: gens
-#          | SEM_IF_GOTO_LABEL x: visit-lin gens 1 x.cond
-#          | SEM_IF_GOTO x: visit-flow gens x
-#          | SEM_CALL x: visit-flow gens x
-#          | SEM_RETURN x: visit-flow gens x
          end
    in
       visit-stmt gens stmt
    end
 
-val lv-gen1 stmt = lv-gen (fmap-empty {}) stmt
-val lv-kill1 stmt = lv-kill (fmap-empty {}) stmt
+val lv-gen1 stmt = lv-gen fmap-empty stmt
+val lv-kill1 stmt = lv-kill fmap-empty stmt
 
 val lv-gens stmts =
    let
@@ -140,7 +139,7 @@ val lv-gens stmts =
           | _ : gens
          end
    in
-      visit (fmap-empty {}) stmts
+      visit fmap-empty stmts
    end
 
 val lv-kills stmts =
@@ -151,7 +150,7 @@ val lv-kills stmts =
           | _ : kills
          end
    in
-      visit (fmap-empty {}) stmts
+      visit fmap-empty stmts
    end
 
 val lv-union a b =
@@ -192,7 +191,7 @@ val lv-any-live? state kill =
                l or fitree-any-overlapping?
                   (fmap-get-orelse
                      state
-                     {id=x.id, fields=fitree-empty{}}).fields
+                     {id=x.id, fields=fitree-empty}).fields
                   i
          in
             fitree-fold overlaps-interval? '0' x.fields
@@ -216,29 +215,9 @@ val live-stack-backup-and-reset = do
 	return {live=live,maybelive=maybelive}
 end
 
-val live-stack-restore backup = update @{live=backup.live,maybelive=backup.maybelive}
+val select_live = query $live
 
-#val lv-sweep-and-collect-upto-native-flow =
-#   let
-#      val sweep =
-#         do insn <- decode;
-#            semantics insn;
-#            stack <- query $stack;
-#            case stack of
-#               SEM_CONS x:
-#                  case x.hd of
-#                     SEM_IF_GOTO x: return stack 
-#                   | SEM_CALL x: return stack
-#                   | SEM_RETURN x: return stack
-#                   | _ : sweep
-#                  end
-#            end
-#         end 
-#   in
-#      do update@{stack=SEM_NIL,tmp=0,lab=0};
-#         sweep
-#      end
-#   end
+val live-stack-restore backup = update @{live=backup.live,maybelive=backup.maybelive}
 
 val lv-analyze initial-live stack =
    let
@@ -248,8 +227,8 @@ val lv-analyze initial-live stack =
           | SEM_CONS x: let
               val cont kill cont-state =
                  if lv-any-live? state.greedy kill
-                    then
-                       do lv-push-live x.hd;
+                    then do 
+                          lv-push-live x.hd;
                           sweep x.tl cont-state
                        end
                  else if lv-any-live? state.conservative kill
@@ -272,7 +251,7 @@ val lv-analyze initial-live stack =
 							 		backup <- live-stack-backup-and-reset;
 
 							 		body-rev <- return (rreil-stmts-rev y.body);
-							 		body-state <- sweep body-rev (lvstate-empty (fmap-empty {}) body-rev);
+							 		body-state <- sweep body-rev (lvstate-empty fmap-empty body-rev);
 							 		state-new <- return (lvstate-union-conservative state body-state);
 
 							 		maybelive <- query $maybelive;
@@ -339,7 +318,10 @@ val lv-analyze initial-live stack =
 							   end
                | SEM_ASSIGN y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
                | SEM_FLOP y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
-               | SEM_PRIM y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
+               | SEM_PRIM y: do
+                   lv-push-live x.hd;
+                   sweep x.tl (lvstate-eval state x.hd)
+                 end
                | SEM_THROW y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
               end
             end
@@ -402,7 +384,7 @@ val lvstate-eval state stmt =
                (lv-difference state kill)
                (if lv-any-live? state kill
                    then gen
-                else fmap-empty {})
+                else fmap-empty)
 
       val eval kill gen =
          {greedy=lvstate-eval-greedy state.greedy kill gen,
@@ -429,7 +411,7 @@ val lvstate-eval state stmt =
 #               (lv-difference state kill)
 #               (if lv-any-live? state kill
 #                   then gen
-#                else fmap-empty {})
+#                else fmap-empty)
 #
 #      val eval =
 #         {greedy=lvstate-eval-greedy state.greedy (lv-kill1 ite-greedy) (lv-gen1 ite-greedy),
@@ -440,9 +422,9 @@ val lvstate-eval state stmt =
 
 val lvstate-empty initial-live stmts =
    {greedy=initial-live,
-    conservative=lv-union (lv-kills stmts) (fmap-empty {})}
+    conservative=lv-union (lv-kills stmts) fmap-empty}
 
-val lvstate-pretty state = lv-pretty state.greedy
+#val lvstate-pretty state = lv-pretty state.greedy
 
 ## Map labels to (liveness) states
 
@@ -454,7 +436,7 @@ val lmap-update t x = lmap-add-with lmap-value-merge t x
 #val lmap-get-orelse t x = bbtree-get-orelse lmap-lt? t x
 #val lmap-union a b = bbtree-union lmap-lt? a b
 #val lmap-contains? t x = bbtree-contains? lmap-lt? t x
-val lmap-empty x = bbtree-empty x
+val lmap-empty = bbtree-empty
 #val lmap-size t = bbtree-size t
 #val lmap-fold f s t = bbtree-fold f s t
 #val lmap-pretty t = 
@@ -466,12 +448,11 @@ val lmap-empty x = bbtree-empty x
 
 
 val liveness instructions = do
-  live-registers <- registers-live-map;
-  lv-state <- lv-analyze live-registers (rreil-stmts-rev instructions);
+  lv-state <- lv-analyze registers-live-map (rreil-stmts-rev instructions);
   return lv-state.greedy 
 end
 
-type lv-super-result = {initial:stmts_option, after:int}
+type lv-super-result = {initial:lv-state-t, after:lv-state-t}
 
 val liveness_super data = let
   val lv-option-analyze live-registers option =
@@ -480,7 +461,7 @@ val liveness_super data = let
 			   state <- lv-analyze live-registers (rreil-stmts-rev stmts);
 				 return state.greedy
 			 end
-		 | SO_NONE: return (fmap-empty {})
+     | SO_NONE: return fmap-empty
 		end
 
 	val lv-some-succ live-registers = do
@@ -489,15 +470,13 @@ val liveness_super data = let
 		return (lv-union lv-succ-a lv-succ-b)
 	end
 in do
-  live-registers <- registers-live-map;
-	live-registers <-
-	  case data.succ_a of
+	live-registers <- case data.succ_a of
 		   SO_NONE:
 		  	  case data.succ_b of
-	  	 		   SO_NONE: return live-registers
-	  	 		 | SO_SOME a: lv-some-succ live-registers
+	  	 		   SO_NONE: return registers-live-map
+	  	 		 | SO_SOME a: lv-some-succ registers-live-map
 	  	 	  end
-		 | SO_SOME a: lv-some-succ live-registers
+		 | SO_SOME a: lv-some-succ registers-live-map
 		end
 	;
   lv-state <- lv-analyze live-registers (rreil-stmts-rev data.insns);

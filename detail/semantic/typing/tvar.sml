@@ -7,6 +7,12 @@ structure TVar : sig
    val eq : (tvar * tvar) -> bool
    val compare : tvar * tvar -> order
 
+   val hash : tvar -> word
+   val toIdx : tvar -> int
+   val fromIdx : int -> tvar
+   val set : Word.word -> unit
+   val get : unit -> Word.word
+   
    (*displaying type variables*)
    type varmap
    val emptyShowInfo : varmap
@@ -26,23 +32,30 @@ structure TVar : sig
    val difference : set * set -> set
    val member : set * tvar -> bool
    val isEmpty : set -> bool
+   val app : (tvar -> unit) -> set -> unit
    val setToString : set * varmap -> (string * varmap)
 
 end = struct
 
-   val explicitPrint : bool = false
+   val explicitPrint : bool = true
    
    datatype tvar = TVAR of int
 
    fun eq (TVAR v1, TVAR v2) = v1=v2
    fun compare (TVAR v1, TVAR v2) = Int.compare (v1,v2)
 
-   val tvarGenerator = ref 0
+   fun hash (TVAR v) = Word.fromInt v
+   fun toIdx (TVAR v) = v
+   fun fromIdx v = (TVAR v)
+
+   val tvarGenerator = ref (Word.fromInt 0)
+   fun get () = !tvarGenerator
+   fun set n = (tvarGenerator := n; ())
 
    fun freshTVar () = let
      val v = !tvarGenerator
    in
-     (tvarGenerator := v+1; TVAR v)
+     (tvarGenerator := v + Word.fromInt 1; TVAR (Word.toIntX v))
    end
 
    structure VarMap = IntRedBlackMap
@@ -74,12 +87,13 @@ end = struct
    fun fromList l = IntSet.fromList (List.map (fn (TVAR v) => v) l)
    fun listItems vs = List.map (fn v => (TVAR v)) (IntSet.listItems vs)
    fun add (TVAR v, l) = IntSet.add' (v, l)
-   fun del (TVAR v, l) = IntSet.delete (l, v)
+   fun del (TVAR v, l) = if IntSet.member (l,v) then IntSet.delete (l, v) else l
    val union = IntSet.union
    val intersection = IntSet.intersection
    val difference = IntSet.difference
    fun member (l,TVAR v) = IntSet.member (l,v)
    val isEmpty = IntSet.isEmpty
+   fun app f = IntSet.app (fn v => f (TVAR v))
    fun setToString (set, si) =
       let
          fun show (v, (str, sep, si)) =
@@ -89,8 +103,8 @@ end = struct
                (str ^ sep ^ vStr, ", ", si)
             end
          val (res, _, si) =
-            List.foldl show ("", "{", si) (IntSet.listItems set)
+            List.foldl show ("", "", si) (IntSet.listItems set)
       in
-         (res  ^ "}", si)
+         ("{" ^ res  ^ "}", si)
       end                               
 end

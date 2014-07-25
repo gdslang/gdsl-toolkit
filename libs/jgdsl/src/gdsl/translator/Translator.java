@@ -2,7 +2,7 @@ package gdsl.translator;
 
 import gdsl.Frontend;
 import gdsl.Gdsl;
-import gdsl.decoder.Instruction;
+import gdsl.decoder.NativeInstruction;
 import gdsl.rreil.BuilderBackend;
 import gdsl.rreil.IRReilBuilder;
 import gdsl.rreil.IRReilCollection;
@@ -34,7 +34,7 @@ public class Translator {
    * @param insn the instruction to translate
    * @return a collection of RReil statements built by the associated RReil builder
    */
-  public IRReilCollection<IStatement> translate (Instruction insn) {
+  public IRReilCollection<IStatement> translate (NativeInstruction insn) {
     return backend.translate(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), insn.getInsnPtr());
   }
 
@@ -57,9 +57,9 @@ public class Translator {
       blockRaw = backend.translateOptimizeBlock(frontend.getPointer(), gdsl.getGdslStatePtr(), limit, preservation.getId());
     }
     long[] instructionPointers = blockRaw.getInstructions();
-    Instruction[] instructions = new Instruction[instructionPointers.length];
+    NativeInstruction[] instructions = new NativeInstruction[instructionPointers.length];
     for (int i = 0; i < instructions.length; i++)
-      instructions[i] = new Instruction(gdsl, instructionPointers[i], 0);
+      instructions[i] = new NativeInstruction(gdsl, instructionPointers[i]);
     gdsl.heapManager.unref();
     return new TranslatedBlock(instructions, blockRaw.getRreil());
   }

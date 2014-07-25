@@ -18,7 +18,7 @@ end = struct
    open CM
    infix >>=
 
-   fun all s = 
+   fun all s =
       ImpFromCore.run s >>=
       SimplifyPass.run >>=
       PatchFunctionCallsPass.run >>=

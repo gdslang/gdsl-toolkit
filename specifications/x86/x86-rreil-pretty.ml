@@ -1,3 +1,6 @@
+export pretty-arch-id: (sem_id) -> rope
+export pretty-arch-exception: (sem_exception) -> rope
+
 val arch-show-id r = case r of
      Sem_IP : "IP"
    | Sem_FLAGS : "FLAGS"
@@ -70,7 +73,8 @@ val arch-show-id r = case r of
 #    | VIRT_LTU: "LTU"
 end
 
-val arch-show-exception exception =
-   case exception of
-      SEM_DIVISION_OVERFLOW: "{Exception: Division overflow}"
-   end
+val pretty-arch-id r = arch-show-id r
+
+val pretty-arch-exception exception = case exception of
+   SEM_DIVISION_OVERFLOW: "{Exception: Division overflow}"
+end

@@ -10,6 +10,15 @@ package gdsl;
 public abstract class Frontend implements IReferable {
   private long pointer;
   
+  static {
+    System.loadLibrary("jgdsl");
+  }
+  
+  /**
+   * A reference manager for the frontend; the native resources of the
+   * frontend are only freed if there are no more references to the frontend
+   * according to that reference manager.
+   */
   public final ReferenceManager referenceManager = new ReferenceManager(this, 1);
   
   /**
@@ -90,6 +99,10 @@ public abstract class Frontend implements IReferable {
     super.finalize();
   }
   
+  /**
+   * This function frees the native resources of the frontend; the function
+   * must not be called from user code.
+   */
   public void free() {
     if(pointer != 0) {
       destroy(getPointer());

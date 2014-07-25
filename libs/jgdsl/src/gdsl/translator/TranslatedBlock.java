@@ -1,22 +1,39 @@
 package gdsl.translator;
 
-import gdsl.decoder.Instruction;
+import gdsl.decoder.NativeInstruction;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
 
+/**
+ * This class represents all information associated with a decoded and
+ * translated basic block; it contains the resulting RReil statements and
+ * the individual native instructions.
+ * 
+ * @author Julian Kranz
+ */
 public class TranslatedBlock {
-  private Instruction[] instructions;
+  private NativeInstruction[] instructions;
   private IRReilCollection<IStatement> rreil;
   
-  public Instruction[] getInstructions () {
+  /**
+   * Get the native instructions
+   * 
+   * @return an array consisting of the native instructions
+   */
+  public NativeInstruction[] getInstructions () {
     return instructions;
   }
   
+  /**
+   * Get the RReil statments
+   * 
+   * @return the RReil statements
+   */
   public IRReilCollection<IStatement> getRreil () {
     return rreil;
   }
 
-  public TranslatedBlock (Instruction[] instructions, IRReilCollection<IStatement> rreil) {
+  TranslatedBlock (NativeInstruction[] instructions, IRReilCollection<IStatement> rreil) {
     this.instructions = instructions;
     this.rreil = rreil;
   }

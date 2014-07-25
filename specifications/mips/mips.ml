@@ -1,7 +1,13 @@
-granularity = 32
-export = config-default decode typeof-opnd insn-length
+export config-default: decoder-configuration
+export decode: (decoder-configuration) -> S insndata <{} => {}>
+export decoder-config : configuration[vec=decoder-configuration]
 
-val force-int-for-decode-config = decode config-default
+type decoder-configuration = 0
+
+val decoder-config = END
+val config-default = ''
+
+type insndata = {length:int, insn:instruction}
 
 type imm =
    IMM5 of 5
@@ -45,99 +51,14 @@ val right lvalue = do
   return (LVALUE lvalue)
 end
 
-val config-default = ''
-
-val insn-length insn = 4
-
-# Immediate - 0
-# Register  - 1
-val typeof-opnd x i = let
-  val typeof-lvalue o =
-    case o of
-       GPR a: 1
-     | FPR a: 1
-    end
-  val typeof-rvalue o =
-    case o of
-       IMM a: 0
-     | LVALUE a:
-          case a of
-             GPR k: 1
-           | FPR k: 1
-          end
-    end
 # -> sftl
-in
-   case (classify x) of
-      UNOP_SRC o:
-         case i of
-            0: typeof-rvalue o.source
-         end
-    | UNOP o:
-         case i of
-            0: typeof-lvalue o.destination
-         end
-    | BINOP_SRC o:
-         case i of
-            0: typeof-rvalue o.source1
-          | 1: typeof-rvalue o.source2
-         end
-    | BINOP_FMT o:
-         case i of
-            0: typeof-lvalue o.destination
-          | 1: typeof-rvalue o.source
-         end
-    | BINOP o:
-         case i of
-            0: typeof-lvalue o.destination
-          | 1: typeof-rvalue o.source
-         end
-    | TERNOP_SRC o:
-         case i of
-            0: typeof-rvalue o.source1
-          | 1: typeof-rvalue o.source2
-          | 2: typeof-rvalue o.source3
-         end
-    | TERNOP o:
-         case i of
-            0: typeof-lvalue o.destination
-          | 1: typeof-rvalue o.source1
-          | 2: typeof-rvalue o.source2
-         end
-    | TERNOP_FMT o:
-         case i of
-            0: typeof-lvalue o.destination
-          | 1: typeof-rvalue o.source1
-          | 2: typeof-rvalue o.source2
-         end
-    | QUADOP o:
-         case i of
-            0: typeof-lvalue o.destination
-          | 1: typeof-rvalue o.source1
-          | 2: typeof-rvalue o.source2
-          | 3: typeof-rvalue o.source3
-         end
-    | QUADOP_FMT o:
-         case i of
-            0: typeof-lvalue o.destination
-          | 1: typeof-rvalue o.source1
-          | 2: typeof-rvalue o.source2
-          | 3: typeof-rvalue o.source3
-         end
-    | QUADOP_FMT_SRC o:
-         case i of
-            0: typeof-rvalue o.source1
-          | 1: typeof-rvalue o.source2
-          | 2: typeof-rvalue o.source3
-          | 3: typeof-rvalue o.source4
-         end
-   end
-end
-
 
 val decode config = do
   update@{rs='',rt='',rd='',fr='',fs='',ft='',fd='',immediate='',offset='',sel='',impl='',code10='',code19='',code20='',stype='',msb='',msbd='',lsb='',sa='',instr_index='',cofun='',cc='',cond='',op='',hint='',fmt=''};
-  /
+  idx-before <- idxget;
+  insn <- /;
+  idx-after <- idxget;
+  return {length=(idx-after - idx-before), insn=insn}
 end
 
 

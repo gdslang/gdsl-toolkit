@@ -104,7 +104,12 @@
 <INITIAL>"in" => (T.KW_in);
 <INITIAL>"and" => (T.KW_and);
 <INITIAL>"or" => (T.KW_or);
+<INITIAL>"S" => (T.MONAD);
+<INITIAL>"<" => (T.SMALLER);
+<INITIAL>">" => (T.LARGER);
 <INITIAL>"<-" => (T.BIND);
+<INITIAL>"->" => (T.TO);
+<INITIAL>"=>" => (T.DOUBLE_TO);
 <INITIAL>"%" => (T.KW_mod);
 <INITIAL>"of" => (T.KW_of);
 <INITIAL>"[" => (T.LB);
@@ -121,6 +126,7 @@
 <INITIAL>"^" => (T.CONCAT);
 <INITIAL>"|" => (T.BAR);
 <INITIAL>":" => (T.COLON);
+<INITIAL>"()" => (T.UNIT);
 <INITIAL>"(" => (T.LP);
 <INITIAL>")" => (T.RP);
 <INITIAL>"+" => (T.PLUS);
@@ -144,7 +150,7 @@
 <INITIAL,BITPATNUM>{num} => (T.POSINT(valOf (IntInf.fromString yytext)));
 <INITIAL>"~"{num} => (T.NEGINT(valOf (IntInf.fromString yytext)));
 <INITIAL>"~"?{num}"."{num}([eE][+~]?{num})? => (mkFloat yysubstr);
-<INITIAL>{hexnum} => (T.POSINT(fromHexString yytext));
+<INITIAL>{hexnum} => (T.HEXINT((String.size yytext-2)*4, fromHexString yytext));
 <INITIAL>{ws} => (skip ());
 <INITIAL>"(*" => (YYBEGIN COMMENT; depth := 1; skip());
 <INITIAL>"\"" => (YYBEGIN STRING; skip());

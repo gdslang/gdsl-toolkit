@@ -1,5 +1,7 @@
 - 3 Modi für x86: 32 Bit, Compatibility, 64 Bit
 - Generisches ASM: Eine ASM-Sprache, die für alle Architekturen gleich ist => AST-Übersetzung nach z.B. Java wie bei RReil
-- semantic-register-of über multiplex exportieren
-- Register als String im rreil-cif (statt Callback für jedes Register)
-- Anderer Name für libutil
+- semantic-register-of über multiplex exportieren => Stringvergleich?
+
+Weniger wichtig:
+
+- Für Register / Exceptions: IDs + Strings statt nur Strings? => Für librreil

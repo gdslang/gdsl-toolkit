@@ -482,7 +482,7 @@ end = struct
                   let 
                      val es = Spec.get#exports spec
                   in
-                     map (fn e => (field e, ID e)) es
+                     map (fn e => (field e, ID e)) (SymMap.listKeys es)
                   end
                val cps =
                   trans0 

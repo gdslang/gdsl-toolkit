@@ -1,26 +1,20 @@
 module gdsl.frontend;
 
 import std.stdio;
-import gdsl.generated;
-import gdsl.multiplex;
+import gdsl.multiplex.multiplex;
 import gdsl.reference_manager;
 
 class Frontend : IReferable {
-  private gdsl.multiplex.frontend _native;
+  private gdsl.multiplex.multiplex.frontend _native;
   private bool valid = false;
   
   private ReferenceManager _refManager;
-  
-//  //Todo: immutable
-//  @property public ref auto native() {
-//    return _native;
-//  }
   
   @property public ReferenceManager refManager() {
     return _refManager;
   }
   
-  this(string name) {
+  this(string name) {   
     _refManager = new ReferenceManager(this);
     
     char result = gdsl_multiplex_frontend_get_by_lib_name(&_native, (name ~ '\0').ptr);
@@ -31,7 +25,7 @@ class Frontend : IReferable {
   }
   
   override public void free() {
-    writefln("Freeing frontend");
+//    writefln("Freeing frontend");
     if(valid) {
       gdsl_multiplex_frontend_close(&_native);
       valid = false;

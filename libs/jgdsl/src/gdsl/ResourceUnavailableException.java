@@ -1,5 +1,13 @@
 package gdsl;
 
+/**
+ * This exception is thrown whenever the requested Gdsl resource
+ * is not available; this is caused by manually releasing resources
+ * that are in fact still needed.
+ * 
+ * @author Julian Kranz
+ *
+ */
 public class ResourceUnavailableException extends RuntimeException {
 
   /**

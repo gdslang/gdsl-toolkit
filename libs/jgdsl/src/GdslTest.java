@@ -5,7 +5,7 @@ import gdsl.HeapExpiredException;
 import gdsl.ResourceUnavailableException;
 import gdsl.arch.ArchId;
 import gdsl.decoder.Decoder;
-import gdsl.decoder.Instruction;
+import gdsl.decoder.NativeInstruction;
 import gdsl.rreil.DefaultRReilBuilder;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
@@ -72,7 +72,7 @@ public class GdslTest {
   private void single (Gdsl gdsl) {
     Decoder decoder = new Decoder(gdsl);
 
-    Instruction insn = decoder.decodeOne();
+    NativeInstruction insn = decoder.decodeOne();
 
     System.out.println(insn);
     for (int i = 0; i < insn.operands(); i++) {

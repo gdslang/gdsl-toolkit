@@ -115,6 +115,7 @@ structure Imp = struct
 
    datatype decl =
       FUNCdecl of {
+        funcIsConst : bool,
         funcClosure : arg list,
         funcType : vtype,
         funcName : sym,
@@ -181,8 +182,11 @@ structure Imp = struct
    type imp = {
       decls : decl list,
       fdecls : vtype SymMap.map,
-      exports : sym list,
-      monad : vtype
+      exports : (sym list * SpecAbstractTree.ty) SymMap.map,
+      typealias: SpecAbstractTree.ty SymMap.map,
+      datatypes: (sym * SpecAbstractTree.ty option) list SymMap.map,
+      monad : vtype,
+      errs : Error.err_stream
    }
 
    structure Spec = struct
@@ -212,6 +216,7 @@ structure Imp = struct
 
       fun arg (t,n) = seq [vtype t, space, var n]
       fun decl (FUNCdecl {
+           funcIsConst,
            funcClosure,
            funcType,
            funcName,
@@ -221,6 +226,7 @@ structure Imp = struct
          }) =
             align [
                seq ([vtype funcType, space, var funcName] @
+                   (if funcIsConst then [str " CONST"] else []) @
                    (if null funcClosure then [] else
                      args ("[", arg, funcClosure, "]")) @
                    (args ("(", arg, funcArgs, ")")) @
@@ -298,7 +304,8 @@ structure Imp = struct
       and def (intro, body) =
          align [seq [intro, space, str "="], indent 3 body]
       fun decls ds = align (map decl ds)
-      fun imp ({ decls = ds, fdecls = fs, exports, monad } : imp) = decls ds
+      fun imp ({ decls = ds, fdecls = fs,
+                 exports, typealias, datatypes, monad, errs } : imp) = decls ds
       val pretty = Pretty.pretty o imp
       val spec = Spec.PP.spec imp
    end

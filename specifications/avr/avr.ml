@@ -1,5 +1,11 @@
-granularity = 16
-export = config-default decode typeof-opnd
+export config-default: decoder-configuration
+export decode: (decoder-configuration) -> S insndata <{} => {}>
+export decoder-config : configuration[vec=decoder-configuration]
+
+type decoder-configuration = 0
+
+val decoder-config = END
+val config-default = ''
 
 val d ['bit:1'] = do
  rd <- query $rd;
@@ -515,14 +521,13 @@ val / ['1001010110101000'] = nullop WDR
 ###  - Exchange
 val / ['1001001 d d d d d 0100'] = binop XCH /Z rd5
 
-val config-default = ''
-
 val decode config = do
   update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
-  /
+  idx-before <- idxget;
+  insn <- /;
+  idx-after <- idxget;
+  return {length=(idx-after - idx-before), insn=insn}
 end
-
-val force-int-for-decode-config = decode config-default
 
 type side-effect =
    NONE
@@ -555,38 +560,7 @@ type ternop = {first:operand,second:operand,third:operand}
 type binop = {first:operand,second:operand}
 type unop = {operand:operand}
 
-# Todo: Centralize
-# Operand types:
-# Immediate - 0
-# Register - 1
-# Memory - 2
-val typeof-opnd x i = let
-  val typeof-one o =
-    case o of
-       IMM a: 0
-     | REG a: 1
-     | REGHL a: 1
-     | REGIHL a: 1
-     | IOREG a: 1
-     | OPDI a: 2
-     | OPSE a: 2
-    end
-in
-  case (classify x) of
-     UNOP o: case i of
-        0: typeof-one o.operand
-     end
-   | BINOP o: case i of
-        0: typeof-one o.first
-      | 1: typeof-one o.second
-     end
-   | TERNOP o: case i of
-        0: typeof-one o.first
-      | 1: typeof-one o.second
-      | 2: typeof-one o.third
-     end
-  end
-end
+type insndata = {length:int, insn:instruction}
 
 type instruction =
    ADC of binop

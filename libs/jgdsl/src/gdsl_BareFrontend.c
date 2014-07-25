@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <jni.h>
-#include <gdsl.h>
+#include <gdsl_generic.h>
 #include <gdsl_multiplex.h>
 #include "gdsl_BareFrontend.h"
 #include "util.h"

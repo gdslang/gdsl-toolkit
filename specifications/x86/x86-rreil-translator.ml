@@ -1,6 +1,5 @@
 # vim: filetype=sml:ts=3:sw=3:expandtab
-
-export = translate{length, addr-sz, opnd-sz, lock, rep, repne, features, insn, mode64}
+export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
 type sem_exception =
    SEM_DIVISION_OVERFLOW
@@ -11,7 +10,7 @@ type sem_writeback =
 
 #Todo: fix
 val runtime-stack-address-size = do
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   if mode64 then
     return 64
   else
@@ -110,7 +109,7 @@ val real-addr-sz = return 64
 
 val segmented-lin lin sz segment = do
   real-addr-sz <- real-addr-sz;
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
 
   expanded <- expand mktemp Unsigned lin sz real-addr-sz;
   return (segment-add mode64 expanded segment)
@@ -205,8 +204,8 @@ val conv-with is-mem ptro conv sz x =
        | IMM32 x: conv-imm conv x.imm
        | IMM64 x: conv-imm conv x.imm
        | REG x: conv-reg conv sz x
-       | SUM x: conv-sum conv sz x
-       | SCALE x: conv-scale conv sz x
+       | X86_SUM x: conv-sum conv sz x
+       | X86_SCALE x: conv-scale conv sz x
        | MEM x:
          let
             val m expanded = do
@@ -324,7 +323,7 @@ val register? x =
   end
 
 val postproc-reg avx-encoded sz id = do
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   if (mode64 and (not (is-avx-sse id.id)) and sz === 32) then
     #Todo: Only if sz == 32? - Yes (tested)!
     #Todo: Only for a subset of all registers?
@@ -423,7 +422,7 @@ val sem-c sem-cc x = do
   sem-cc x (/d (var cf))
 end
 val sem-b sem-cc x = sem-c sem-cc x
-val sem-nae sem-cc x = sem-nae sem-cc x
+val sem-nae sem-cc x = sem-b sem-cc x
 
 val sem-be sem-cc x = do
   leu <- fLEU;
@@ -1054,7 +1053,7 @@ in
    | CMOVZ x: sem-z sem-cmovcc (comb x)
    | CMP x: sem-cmp (comb x)
    | CMPPD x: sem-default-arity3 insn.insn (comb x)
-   | CMPPS x: sem-default-arity3 insn.insn (comb x)
+   | CMPPS x: sem-default-arity3 insn.insn (comb x) 
    | CMPS x: sem-repe-repne-insn (comb x) sem-cmps
    | CMPSD x: sem-default-arity3 insn.insn (comb x)
 #   | CMPSD x:
@@ -1272,7 +1271,7 @@ in
    | LDMXCSR x: sem-default-arity1 insn.insn (comb x)
    | LDS x: sem-lds-les-lfs-lgs-lss (comb x) DS
    | LEA x: sem-lea (comb x)
-   | LEAVE: sem-default-arity0 insn.insn
+   | LEAVE: sem-leave insn
    | LES x: sem-lds-les-lfs-lgs-lss (comb x) ES
    | LFENCE: sem-default-arity0 insn.insn
    | LFS x: sem-lds-les-lfs-lgs-lss (comb x) FS
@@ -1627,9 +1626,6 @@ in
    | VBROADCASTF128 v: sem-vbroadcast v
    | VBROADCASTSD v: sem-vbroadcast v
    | VBROADCASTSS v: sem-vbroadcast v
-   | VCMPEQB x: sem-default-varity x insn.insn
-   | VCMPEQD x: sem-default-varity x insn.insn
-   | VCMPEQW x: sem-default-varity x insn.insn
    | VCMPPD x: sem-default-varity x insn.insn
    | VCMPPS x: sem-default-varity x insn.insn
    | VCMPSD x: sem-default-varity x insn.insn
@@ -2279,13 +2275,14 @@ end
 
 val translate-x86 insn = do
 #  update@{mode64='1'};
+  update @{mode64=test-opt config-mode64 insn.config};
 
   ip-sz <- runtime-stack-address-size;
   ip <- ip-get;
   add ip-sz ip (var ip) (imm insn.length);
   
-  ifl <- fIF;
-  mov 1 ifl (imm 1);
+#  ifl <- fIF;
+#  mov 1 ifl (imm 1);
 
   semantics insn
 end

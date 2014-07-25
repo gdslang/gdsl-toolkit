@@ -13,8 +13,12 @@ structure DesugaredTree = struct
    end
 
    type value = Exp.decl
-   type decode = Pat.t list list * Exp.t
+   type toksize = int
+   type decode = Pat.t list list * toksize * Exp.t
    type spec = (value list * decode list SymMap.map) Spec.t
+
+   val slice = Atom.atom "slice"
+   val scrutinee = Atom.atom "scrutinee"
 
    (** Returns the size in bits of the given pattern `pat` *)
    fun size pat =
@@ -44,6 +48,17 @@ structure DesugaredTree = struct
 
    fun toVec xs = VectorSlice.full (Vector.fromList xs)
 
+   fun sliceExp (tok, offs, sz) = let
+      open Exp
+      fun INT i = LIT (SpecAbstractTree.INTlit (IntInf.fromInt i))
+      val slice =
+         ID
+            (VarInfo.lookup
+               (!SymbolTables.varTable, slice))
+   in
+      APP (slice, [ID tok, INT offs, INT sz])
+   end
+
    structure FromAST = struct
       structure CM = CompilationMonad
       structure Pat = Core.Pat
@@ -56,7 +71,12 @@ structure DesugaredTree = struct
             MARKexp t => exp (#tree t)
           | LETRECexp (vs, e) => Exp.LETREC (map recdecl vs, exp e)
           | IFexp (iff, thenn, elsee) => Exp.IF (exp iff, exp thenn, exp elsee)
-          | CASEexp (e, cases) => Exp.CASE (exp e, map match cases)
+          | CASEexp (e, cases) =>
+            let
+               val (trans,scrut) = tovar (exp e)
+            in
+               trans (Exp.CASE (Exp.ID scrut, map (match scrut) cases))
+            end
           | BINARYexp (l, i, r) => Exp.APP (infixop i, [exp l, exp r])
           | APPLYexp (e1, es) => Exp.APP (exp e1, map exp es)
           | RECORDexp fs => Exp.RECORD (fields fs)
@@ -67,6 +87,15 @@ structure DesugaredTree = struct
           | SEQexp seq => Exp.SEQ (map seqexp seq)
           | IDexp id => Exp.ID id
           | FNexp _ => raise CM.CompilationError
+      
+      and tovar (Exp.ID id) = (fn e => e, id)
+        | tovar e =
+         let
+            val (st,scrutVar) = VarInfo.fresh (!SymbolTables.varTable, scrutinee)
+            val _ = SymbolTables.varTable := st
+         in
+            (fn eWrap => Exp.LETVAL (scrutVar, e, eWrap), scrutVar)
+         end
 
       and infixop e =
          case e of
@@ -84,38 +113,63 @@ structure DesugaredTree = struct
             mapUpdates fs
          end
 
-      and match (p, e) = (pat SymbolTable.noSpan p, exp e)
+      and match scrut (p, e) = (pat (SymbolTable.noSpan,scrut) p (exp e))
 
       and stripMarkPat sp p =
          case p of
             MARKpat t => stripMarkPat (#span t) (#tree t)
           | p => (sp,p)
 
-      and pat sp p =
+      and pat (sp,scrut) p e =
          case p of
-            MARKpat t => pat (#span t) (#tree t)
+            MARKpat t => pat (#span t,scrut) (#tree t) e
           | CONpat (s, SOME p) =>
                let
                   val (sp,p) = stripMarkPat sp p
                in
                   case p of
-                     IDpat x => Pat.CON (s, SOME x)
+                     IDpat x => (Pat.CON (s, SOME x), e)
                    | _ => raise DesugarTreeException
                      (sp, "expect variable as argument in constructor pattern")
                end
-          | CONpat (s, NONE) => Pat.CON (s, NONE)
-          | LITpat (INTlit i) => Pat.INT i
-          | LITpat (VEClit i) => Pat.BIT i
-          | LITpat _ => raise DesugarTreeException
-                     (sp, "cannot pattern match against this literal")
-          | IDpat id => Pat.ID id
-          | WILDpat => Pat.WILD
+          | CONpat (s, NONE) => (Pat.CON (s, NONE), e)
+          | INTpat i => (Pat.INT i, e)
+          | BITpat bp => 
+            let
+               val (pats,pos,e) = foldl (bitpat (sp,scrut)) ([""],0,e) bp
+               fun conc [s] = s
+                 | conc (s :: ss) = s ^ "|" ^ conc ss
+                 | conc [] = ""
+            in
+               (Pat.BIT (conc pats), e)
+            end
+          | IDpat id => (Pat.ID id,e)
+          | WILDpat => (Pat.WILD,e)
+
+      and bitpat (sp,scrut) (MARKbitpat t,info) = bitpat (#span t,scrut) (#tree t,info)
+        | bitpat (sp,scrut) (BITSTRbitpat lit,(pats,pos,e)) =
+         let
+            val fields = String.fields (fn c => c= #"|") lit
+            val size = case fields of [] => 0 | (f::_) => String.size f
+            val pats' = List.concat (map (fn p => map (fn f => p ^ f) fields) pats)
+         in
+            (pats', pos+size, e)
+         end 
+        | bitpat (sp,scrut) (NAMEDbitpat _,(pats,pos,e)) = raise DesugarTreeException
+           (sp, "cannot use a sub-decoder in pattern match")
+        | bitpat (sp,scrut) (BITVECbitpat (var,lit),(pats,pos,e)) =
+         let
+            val (pats',pos',e') = bitpat (sp,scrut) (BITSTRbitpat lit,(pats,pos,e))
+         in
+            (pats',pos',Exp.LETVAL (var,sliceExp (scrut,pos,pos-pos'),e'))
+         end
 
       and seqexp s = 
          case s of
             MARKseqexp t => seqexp (#tree t)
           | ACTIONseqexp e => Exp.ACTION (exp e)
           | BINDseqexp (n, e) => Exp.BIND (n, exp e)
+
    end
 
    structure PP = struct
@@ -134,11 +188,11 @@ structure DesugaredTree = struct
             (fn (n, ds) => align (map (fn d => dec (n, d)) ds))
             (SymMap.listItemsi ds)
 
-      and dec (n, (ps, e)) =
+      and dec (n, (ps, size, e)) =
          align
             [seq
                [str "val", space, var n,
-                list (map tokpat ps), space, str "="],
+                list (map tokpat ps), str (Int.toString size), space, str "="],
              indent 3 (exp e)]
 
       and tokpat pats = listex "'" "'" " " (map pat pats)

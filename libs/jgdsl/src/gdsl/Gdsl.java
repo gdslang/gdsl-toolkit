@@ -24,12 +24,34 @@ public class Gdsl implements IReferable {
   
   private long heapRevision = 0;
   
+  /**
+   * A reference manager for the GDSL heap; the GDSL heap is automatically
+   * reset if the number of references to it drops to zero.
+   */
   public final ReferenceManager heapManager = new ReferenceManager(this);
   
+  static {
+    System.loadLibrary("jgdsl");
+  }
+ 
+  /**
+   * Get the buffer associated with the GDSL object; it is used as input
+   * buffer for the decoder.
+   * 
+   * @return the respective {@link ByteBuffer} object
+   */
   public ByteBuffer getBuffer () {
     return buffer;
   }
   
+  /**
+   * Get the current revision of the GDSL heap; the revision is incremented
+   * whenever the heap is reset. This is allows associated objects to make
+   * sure to only access valid memory, i.e. to abort an access to a native
+   * GDSL object if the heap revision does not match.
+   * 
+   * @return the heap revision
+   */
   public long getHeapRevision () {
     return heapRevision;
   }
@@ -66,10 +88,8 @@ public class Gdsl implements IReferable {
   }
 
   /**
-   * Get the list of available frontends; in case the list is
-   * queried the first time and has not been set by the constructor,
-   * the environment variable "GDSL_FRONTENDS" is used to search for
-   * frontends.
+   * Get the list of available frontends; the environment variable
+   * "GDSL_FRONTENDS" is used to search for frontends.
    * 
    * @return the list of frontends
    */
@@ -77,16 +97,18 @@ public class Gdsl implements IReferable {
     return getFrontendsNative();
   }
   
+  /**
+   * Get the list of available frontends using a specified path
+   * 
+   * @param base the path to search the frontends in
+   * @return the list of frontends
+   */
   public static Frontend[] getFrontends (String base) {
     return getFrontendsNativeWithBase(base);
   }
   
   private static native ListFrontend[] getFrontendsNative ();
   private static native ListFrontend[] getFrontendsNativeWithBase (String base);
-
-  static {
-    System.loadLibrary("jgdsl");
-  }
   
   /**
    * Construct the Gdsl object
@@ -96,62 +118,6 @@ public class Gdsl implements IReferable {
     this.frontend.referenceManager.ref();
     gdslStatePtr = init(getFrontendPtr());
   }
-
-//  /**
-//   * Construct the Gdsl object using a given path to search
-//   * for frontends
-//   * 
-//   * @param base the path to search frontends in
-//   */
-//  public Gdsl (String base) {
-//    System.loadLibrary("jgdsl");
-//
-//   throw new RuntimeException();
-////    frontends = getFrontendsNativeWithBase(base);
-//  }
-
-//  /**
-//   * Associate the Gdsl object with a {@link Frontend} object; the frontend.
-//   * The method should only be called once per Gdsl object.
-//   * 
-//   * @param frontend the frontend to associate with
-//   */
-//  public void setFrontend (Frontend frontend) {
-//    if (this.frontend != null)
-//      throw new RuntimeException("Already set");
-////    boolean found = false;
-////    for (Frontend f : frontends)
-////      if (f.identifies(frontend)) {
-////        found = true;
-////        break;
-////      }
-////    if (!found)
-////      throw new RuntimeException("Invalid frontend");
-//    this.frontend = frontend;
-//  }
-  
-  
-//  /**
-//   * Associate the Gdsl object with a {@link Frontend} object; the frontend is
-//   * constructed from the given name. The name is also used for the name of
-//   * the Gdsl library to load; therefore, libgdsl-name needs to be locatable by dlopen().
-//   * 
-//   * @param name the name of the frontend
-//   */
-//  public void setFrontend(String name) {
-//    long frontendPtr = getFrontendPtrByLibName(name);
-//    this.frontend = new Frontend(name, "");
-//  }
-//
-//  /**
-//   * Initialize the associated frontend; this creates a native gdsl state
-//   * object. The method should only be called once per Gdsl object.
-//   */
-//  public void initFrontend () {
-//    if (gdslStatePtr == 0)
-//    else
-//      throw new RuntimeException("Already initialized");
-//  }
 
   /**
    * Set the code input stream for Gdsl. The data is shared between
@@ -234,11 +200,29 @@ public class Gdsl implements IReferable {
     super.finalize();
   }
   
+  /**
+   * This function resets the GDSL heap; it is automatically called by the
+   * reference manager if the number of references drops to zero. User code
+   * may also call this function; a subsequent access to the already freed
+   * heap will not cause undefined behaviour since the heap is revisioned.
+   * Therefore, calling this function is always safe.
+   */
   @Override public void free () {
    if(gdslStatePtr != 0)
      resetHeap();
   }
   
+  /**
+   * Create a heap usage indicator; such an indicator is usful to make sure
+   * that the GDSL heap is always reset as early as possible: If no reference
+   * to the heap is ever created, the reference count will never drop to zero
+   * (because it stays zero) and therefore the heap will never be reset (it will,
+   * however, be freed once the GDSL object itself is destructed). The heap
+   * usage indicator will initiate the resetting of the heap when its
+   * destructor is called and no other references exist.
+   * 
+   * @return the heap usage indicator
+   */
   public HeapUseIndicator heapUseIndicator() {
     return new HeapUseIndicator(this);
   }

@@ -1,4 +1,4 @@
-LIBS=util gdsl-multiplex gdwrap readhex rreil jgdsl
+LIBS=gdutil gdsl-multiplex gdwrap readhex rreil jgdsl cppgdsl
 
 #ifndef MANAGED
 #GDSL_AVR:=1
@@ -6,7 +6,7 @@ LIBS=util gdsl-multiplex gdwrap readhex rreil jgdsl
 #endif
 
 ifdef GDSL_X86
-LIBS+=x86 rreil-sim x86-tester x86-generator 
+LIBS+=x86 x86-tester x86-generator 
 endif
 
 .PHONY all: $(LIBS)
