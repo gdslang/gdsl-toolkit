@@ -6,7 +6,7 @@
  */
 
 #include <stdlib.h>
-#define __USE_XOPEN2K8
+//#define __USE_XOPEN2K8
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
