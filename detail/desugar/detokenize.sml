@@ -24,7 +24,9 @@ end = struct
    and detokPats sizeRef pats =
        let
           val decodePats = map detokPat pats
-          val _ = sizeRef := foldl Int.max (!sizeRef) (map #1 decodePats)
+          fun lubSize x = if x>16 then 32 else if x>8 then 16 else 8
+          fun lubSizes (x,y) = lubSize (Int.max (x,y))
+          val _ = sizeRef := foldl lubSizes (!sizeRef) (map #1 decodePats)
        in
           map #2 decodePats
        end

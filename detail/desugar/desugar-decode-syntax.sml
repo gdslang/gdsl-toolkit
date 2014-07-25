@@ -36,6 +36,8 @@ structure DesugarDecode = struct
    end
 
    fun consumeTok (granularity) = let
+      val _ = if granularity mod 8 = 0 then granularity else
+              (TextIO.print ("cannot consume " ^ Int.toString granularity ^ " bits.\n"); 8)
       val tok = freshTok ()
       val tokSz = Int.toString(granularity)
       val consume = Atom.atom("consume"^tokSz)
@@ -95,9 +97,9 @@ structure DesugarDecode = struct
    end
 
    fun getGranularity (decls: (Pat.t list VS.slice * toksize * Exp.t) VS.slice) =
-   if VS.length decls = 0 
-      then raise Fail "empty pattern detected"
-      else #2 (VS.sub (decls, 0))
+         if VS.length decls = 0 
+            then raise Fail "empty pattern detected"
+            else #2 (VS.sub (decls, 0))
 
    fun desugar ds = let
       fun isCatchAll [] = true

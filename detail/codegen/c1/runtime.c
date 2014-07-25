@@ -381,6 +381,7 @@ int main (int argc, char** argv) {
   int_t base_address = 0;
   int_t start_address = 0;
   unsigned int i,c;
+  obj_t config;
   state_t s = gdsl_init();
 
   /* read command line parameters */
@@ -395,7 +396,6 @@ int main (int argc, char** argv) {
     } else {
       arg+=2;
 #if defined(gdsl_decoder_config)
-      obj_t config;
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
         if (strcmp(arg,gdsl_conf_short(s,config))==0) {
@@ -422,7 +422,7 @@ int main (int argc, char** argv) {
         "  --base=addr      print addresses relative to addr\n"
         "  --start=addr     decode starting from addr\n", argv[0]);
 #if defined(gdsl_decoder_config)
-      for (obj_t config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
+      for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
         fprintf(stderr,"  --%s\t\t%s\n",
           gdsl_conf_short(s,config), gdsl_conf_long(s,config));
