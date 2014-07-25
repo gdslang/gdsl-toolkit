@@ -356,16 +356,6 @@ structure C1 = struct
 
    val recordTypeMap = ref (AtomMap.empty : recordInfo AtomMap.map)
 
-   fun genRecSignature fs =
-      let
-         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
-         val fs = ListMergeSort.uniqueSort fieldCmp fs
-         val str = foldl (fn ((f,t),str) =>
-            Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)) ^ str) "" fs
-      in
-         Atom.atom str
-      end
-
    fun genRecordDecl s onlyPublic =
       let
          fun showDecl (riInfo as { riBoxed = false, ... } : recordInfo) =
@@ -407,6 +397,7 @@ structure C1 = struct
                   riSequenceNo = idx,
                   riBoxed = boxed
                }
+               (*val _ = TextIO.print ("add record " ^ tyName ^ " with signature\n" ^ Atom.toString rSig ^ "\n")*)
                val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,rSig,riInfo)
             in
                tyName
@@ -527,6 +518,11 @@ structure C1 = struct
       in
          str funName
       end
+
+   fun fieldIsVoid (s : state, f) =
+      case SymMap.lookup (#fieldTypes s,f) of
+         VOIDvtype => true
+       | _ => false
 
    fun emitAlloc (s : state) ty = emitMacro (s,ty,"alloc_","GEN_ALLOC(")
    fun emitUnboxedAlloc (s : state) ty = emitMacro (s,ty,"alloc_unboxed_","GEN_ALLOC(unboxed_")
@@ -784,7 +780,8 @@ structure C1 = struct
          )
      | emitExp s (RECORDexp (rs,t,fs)) =
          let
-            fun genUpdate ((f,e),res) = seq [
+            fun genUpdate ((f,e),res) = if fieldIsVoid (s,f) then res else 
+            seq [
                emitAddField s f,
                fArgs [str (getFieldTag f), emitExp s e, res]
             ]
@@ -796,7 +793,8 @@ structure C1 = struct
          seq [emitExp s e, str "->", emitFieldSym s f]
       else
          seq [emitExp s e, str ".", emitFieldSym s f]
-     | emitExp s (SELECTexp (rs,t,f,e)) = seq [emitSelect s f, fArgs [str (getFieldTag f), emitExp s e]]
+     | emitExp s (SELECTexp (rs,t,f,e)) = if fieldIsVoid (s,f) then str "0 /* field type is void */" else
+        seq [emitSelect s f, fArgs [str (getFieldTag f), emitExp s e]]
      | emitExp s (UPDATEexp (rs,OBJvtype,fs,e)) =
       let
          val recStripped =
@@ -806,7 +804,7 @@ structure C1 = struct
                   seq (str "(field_tag_t[])" :: list ("{",str o Int.toString o SymbolTable.toInt o #1, fs, "}")),
                   str (Int.toString (length fs)),
                   emitExp s e]]
-         fun recAdd ((f,e),layout) =
+         fun recAdd ((f,e),layout) = if fieldIsVoid (s,f) then layout else
             align [
                seq [emitAddField s f, str "(s,", str (getFieldTag f), str ",", emitExp s e, str ","],
                indent 2 (seq [layout, str ")"])]
@@ -1047,16 +1045,12 @@ structure C1 = struct
          seq [str "#endif"]
       ]
 
-   fun genRecordMapping ((tySym, ty), m) =
-      let
-         fun addRec (SpecAbstractTree.MARKty t) = addRec (#tree t)
-           | addRec (SpecAbstractTree.RECORDty fs) =
-               AtomMap.insert (m, genRecSignature fs,
-                  SymbolTable.getAtom (!SymbolTables.typeTable,tySym))
-           | addRec _ = m
-      in
-         addRec ty
-      end
+   fun genRecordMapping ta (tySym, SpecAbstractTree.MARKty {span,tree=t}, m) =
+         genRecordMapping ta (tySym, t, m)
+     | genRecordMapping ta (tySym, SpecAbstractTree.RECORDty fs, m) =
+         AtomMap.insert (m, genRecSignature (map (fn (f,t) => (f,#1 (Imp.spectypeToVtype (ta, t)))) fs),
+            SymbolTable.getAtom (!SymbolTables.typeTable,tySym))
+     | genRecordMapping _ (tySym, _, m) = m
 
    fun emitConstDecl s (false,FUNCdecl {
         funcIsConst = true,
@@ -1107,15 +1101,16 @@ structure C1 = struct
          val _ = closureStructs := AtomSet.empty
          val _ = genClosureSet := AtomSet.empty
          val _ = invokeClosureSet := AtomSet.empty
+         val _ = recordTypeMap := AtomMap.empty
 
-         val { decls = ds, fdecls = fs, exports = _, typealias, datatypes,
+         val { decls = ds, fdecls = fs, exports = _, typealias = ta, datatypes,
                monad = mt, errs } = Spec.get #declarations spec
          val ds = sortTopologically ds
          
          val recordMapping = case mt of
             RECORDvtype (_,fs) => AtomMap.singleton (genRecSignature fs, Atom.atom "monad")
           | _ => AtomMap.empty
-         val recordMapping = foldl genRecordMapping recordMapping (Spec.get #typealias spec)
+         val recordMapping = SymMap.foldli (genRecordMapping ta) recordMapping ta
          
          val closureToFunMap = foldl (fn (d,m) => case d of
                   (_,CLOSUREdecl {
@@ -1212,6 +1207,10 @@ structure C1 = struct
          val consumes =  List.map
              (fn i => seq [str "GEN_CONSUME(", PP.I i, str ");"])
              (IntListSet.listItems (!(#consumeSizes s)))
+
+         (*val _ = TextIO.print ("records:\n" ^ AtomMap.foldli (fn (tag,name,str) =>
+            Atom.toString name ^ " maps to\n" ^ Atom.toString tag ^ "\n" ^ str) "" recordMapping)*)
+
          val _ =
             C1Templates.expandHeader path outputName [
                C1Templates.mkHook ("init", str (prefix ^ "init")),
