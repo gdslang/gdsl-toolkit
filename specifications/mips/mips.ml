@@ -1,32 +1,78 @@
-granularity = 32
-export = config-default decode
+export config-default: decoder-configuration
+export decode: (decoder-configuration) -> S insndata <{} => {}>
+export decoder-config : configuration[vec=decoder-configuration]
 
+type decoder-configuration = 0
 
-### ADD
-###  - ADD
-val / ['000000 gr:5 gt:5 gg:5 00000 100000'] = ternop ADD (return (GPR (gpr-from-bits gr))) (return (GPR (gpr-from-bits gt))) (return (GPR (gpr-from-bits gg)))
-
-
+val decoder-config = END
 val config-default = ''
 
-val decode config = do
-  update@{ck=''};
-  /
-end
+type insndata = {length:int, insn:instruction}
 
 type imm =
-   IMM16 of 16
+   IMM5 of 5
+ | IMM16 of 16
+ | OFFSET9 of 9
+ | OFFSET16 of 16
+ | SEL of 3
+ | IMPL of 16
+ | CODE10 of 10
+ | CODE19 of 19
+ | CODE20 of 20
+ | STYPE of 5
+ | POSSIZE of 5
+ | SIZE of 5
+ | POS of 5
+ | HINT of 5
+ | INSTRINDEX of 26
+ | COFUN of 25
+ | CC of 3
+ | COND of 4
+ | OP of 5
 
-type operand =
+type lvalue =
    GPR of register
  | FPR of register
+ | FPC of register
+
+type rvalue =
+   LVALUE of lvalue
  | IMM of imm
 
-type quinop = {first:operand,second:operand,third:operand,fourth:operand,fifth:operand}
-type quadop = {first:operand,second:operand,third:operand,fourth:operand}
-type ternop = {first:operand,second:operand,third:operand}
-type binop = {first:operand,second:operand}
-type unop = {operand:operand}
+type format = 
+   S
+ | D
+ | W
+ | L
+ | PS
+
+val right lvalue = do
+  lvalue <- lvalue;
+  return (LVALUE lvalue)
+end
+
+# -> sftl
+
+val decode config = do
+  update@{rs='',rt='',rd='',fr='',fs='',ft='',fd='',immediate='',offset='',sel='',impl='',code10='',code19='',code20='',stype='',msb='',msbd='',lsb='',sa='',instr_index='',cofun='',cc='',cond='',op='',hint='',fmt=''};
+  idx-before <- idxget;
+  insn <- /;
+  idx-after <- idxget;
+  return {length=(idx-after - idx-before), insn=insn}
+end
+
+
+### ABS-fmt
+###  - Floating Point Absolute Value
+val / ['010001 /fmt5sdps 00000 /fs /fd 000101'] = binop-fmt ABS-fmt fmt fd (right fs) 
+
+### ADD
+###  - Add Word
+val / ['000000 /rs /rt /rd 00000 100000'] = ternop ADD rd (right rs) (right rt) 
+
+### ADD-fmt
+###  - Floating Point Add
+val / ['010001 /fmt5sdps /ft /fs /fd 000000'] = ternop-fmt ADD-fmt fmt fd (right ft) (right fs) 
 
 ### ADDI
 ###  - Add Immediate Word
@@ -1432,7 +1478,38 @@ type instruction =
 
 
 type register =
-   R of int
+   ZERO
+ | AT
+ | V0
+ | V1
+ | A0
+ | A1
+ | A2
+ | A3
+ | T0
+ | T1
+ | T2
+ | T3
+ | T4
+ | T5
+ | T6
+ | T7
+ | S0
+ | S1
+ | S2
+ | S3
+ | S4
+ | S5
+ | S6
+ | S7
+ | T8
+ | T9
+ | K0
+ | K1
+ | GP
+ | SP
+ | S8
+ | RA
  | HI
  | LO
  | PC
@@ -1445,45 +1522,52 @@ type register =
  | FENR
  | FCSR
 
-val gpr-from-bits bits = (R (zx bits))
+val gpr-from-bits bits =
+ case bits of
+    '00000': ZERO
+  | '00001': AT
+  | '00010': V0
+  | '00011': V1
+  | '00100': A0
+  | '00101': A1
+  | '00110': A2
+  | '00111': A3
+  | '01000': T0
+  | '01001': T1
+  | '01010': T2
+  | '01011': T3
+  | '01100': T4
+  | '01101': T5
+  | '01110': T6
+  | '01111': T7
+  | '10000': S0
+  | '10001': S1
+  | '10010': S2
+  | '10011': S3
+  | '10100': S4
+  | '10101': S5
+  | '10110': S6
+  | '10111': S7
+  | '11000': T8
+  | '11001': T9
+  | '11010': K0
+  | '11011': K1
+  | '11100': GP
+  | '11101': SP
+  | '11110': S8
+  | '11111': RA
+ end
+
+val format-from-bits bits = 
+ case bits of
+    '10000': S
+  | '10001': D
+  | '10100': W
+  | '10101': L
+  | '10110': PS
+ end
+
+
 val fpr-from-bits bits = (F (zx bits))
 
-val quinop cons first second third fourth fifth = do
- first <- first;
- second <- second;
- third <- third;
- fourth <- fourth;
- fifth <- fifth;
- return (cons {first=first, second=second, third=third, fourth=fourth, fifth=fifth})
-end
-
-val quadop cons first second third fourth = do
- first <- first;
- second <- second;
- third <- third;
- fourth <- fourth;
- return (cons {first=first, second=second, third=third, fourth=fourth})
-end
-
-val ternop cons first second third = do
- first <- first;
- second <- second;
- third <- third;
- return (cons {first=first, second=second, third=third})
-end
-
-val binop cons first second = do
- first <- first;
- second <- second;
- return (cons {first=first, second=second})
-end
-
-val unop cons operand = do
- operand <- operand;
- return (cons {operand=operand})
-end
-
-val nullop cons = do
- return cons
-end
-
+val fpc-from-bits bits = (F (zx bits))

@@ -1,8 +1,7 @@
-export = translate
+export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
 
 val sem-foo = return void
-
 
 # -> sftl
 
@@ -225,7 +224,7 @@ val semantics i =
 
 # <- sutl
 
-val translate-mips insn = semantics insn
+val translate-mips insn = semantics insn.insn
 
 val translate insn = do
   update@{stack=SEM_NIL,tmp=0,lab=0};

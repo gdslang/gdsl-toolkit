@@ -206,6 +206,8 @@ GDSL_AVRSEM = \
 
 GDSL_MIPS = \
 	$(srcdir)/specifications/mips/mips.ml \
+	$(srcdir)/specifications/mips/mips-asm.ml \
+	$(srcdir)/specifications/mips/mips-traverse.ml \
 	$(srcdir)/specifications/mips/mips-pretty.ml
 
 GDSL_MIPSSEM = \
