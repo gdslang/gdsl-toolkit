@@ -57,8 +57,6 @@ extern "C" {
 
 using namespace std;
 
-struct frontend frontend_glob;
-
 // sem_id
 static obj_t _shared(state_t state, int_t con) {
   using namespace gdsl::rreil;
@@ -514,7 +512,7 @@ gdsl::rreil_builder::rreil_builder(gdsl::gdsl *g) {
 
 std::vector<gdsl::rreil::statement*>* gdsl::rreil_builder::convert(obj_t rreil) {
   using namespace rreil;
-  frontend_glob = g->get_frontend()->native();
+  struct frontend frontend_glob = g->get_frontend()->native();
 
   if(setjmp(*frontend_glob.generic.err_tgt(g->get_state())))
     throw gdsl_exception("convert() failed", string(frontend_glob.generic.get_error_message(g->get_state())));
