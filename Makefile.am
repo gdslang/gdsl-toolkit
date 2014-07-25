@@ -19,8 +19,6 @@ nodist_include_HEADERS =
 #HAVE_X86 = 1
 #endif
 
-EXEEXT=
-
 # we need to add a dependency to the actual backend to this variable
 libjgdsl_la_LIBADD = 
 libx86_tester_la_LIBADD = 
@@ -143,7 +141,7 @@ GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 
 if HAVE_MLTON
 
-$(builddir)/gdslc: $(srcdir)/gdslc.mlb
+$(builddir)/gdslc: $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
 	$(MLTON) $(srcdir)/gdslc.mlb
 
 GDSLC_DEP += $(builddir)/gdslc
