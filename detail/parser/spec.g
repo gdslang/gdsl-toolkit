@@ -158,6 +158,8 @@ Ty
       (mark PT.MARKty (FULL_SPAN, PT.RECORDty []))
    | "(" Ty ("," Ty)* ")" "->" Ty =>
       (mark PT.MARKty (FULL_SPAN, PT.FUNCTIONty (Ty1::SR,Ty2)))
+   | "()" "->" Ty =>
+      (mark PT.MARKty (FULL_SPAN, PT.FUNCTIONty ([],Ty)))
    | "()" => (mark PT.MARKty (FULL_SPAN, PT.UNITty))
    | "S" Ty "<" Ty "=>" Ty ">" =>
       (mark PT.MARKty (FULL_SPAN, PT.MONADty (Ty1,Ty2,Ty3)))
@@ -297,11 +299,14 @@ SelectExp
    ;
 
 ApplyExp
-   : AtomicExp exp=
-      ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))) =>
-         (mark PT.MARKexp (FULL_SPAN, exp))
+   : AtomicExp Args => (mark PT.MARKexp (FULL_SPAN, Args AtomicExp))
    | "~" AtomicExp =>
       (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span={file= !sourcemap, span=FULL_SPAN}, tree=Op.minus}, [PT.LITexp (PT.INTlit 0), AtomicExp])))
+   ;
+
+Args
+   : args=(AtomicExp*) => (fn f => mkApply(f, args))
+   | "()" => (fn f => PT.APPLYexp (f,[]))
    ;
 
 AtomicExp

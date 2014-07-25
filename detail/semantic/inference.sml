@@ -552,7 +552,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = if List.null dec then () else
                (TextIO.print "rhs after:\n"; Pretty.pretty (AST.PP.exp rhs); TextIO.print "\n")*)
          val env = infExp (st,env) rhs
-         val env = E.reduceToFunction (env, List.length args)
+         val noOfArgs = List.length args
+         val env = if noOfArgs=0 then env else E.reduceToFunction (env, noOfArgs)
          val env = E.return (n,env)
       in
          env
