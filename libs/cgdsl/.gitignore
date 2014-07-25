@@ -1,2 +1,4 @@
 /src/**/*.lo
 /src/**/*.o
+build/
+libcgdsl.a
