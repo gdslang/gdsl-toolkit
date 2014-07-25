@@ -175,8 +175,26 @@ typedef struct {
 } unboxed_callbacks_t;
 typedef unboxed_callbacks_t* callbacks_t;
 typedef struct {
+  obj_t insns;
+  obj_t succ_a;
+  obj_t succ_b;
+} unboxed_translate_result_t;
+typedef unboxed_translate_result_t* translate_result_t;
+typedef struct {
+  obj_t initial;
+  obj_t after;
+} unboxed_lv_super_result_t;
+typedef unboxed_lv_super_result_t* lv_super_result_t;
+typedef struct {
+  int_t repne;
+  int_t rep;
+  int_t lock;
   int_t length;
+  int_t config;
   obj_t insn;
+  int_t features;
+  int_t opnd_sz;
+  int_t addr_sz;
 } unboxed_insndata_t;
 typedef unboxed_insndata_t* insndata_t;
 typedef struct {
@@ -192,9 +210,9 @@ typedef struct {
 } unboxed_asm_insn_t;
 typedef unboxed_asm_insn_t* asm_insn_t;
 typedef struct {
+  obj_t (*imm)(state_t,int_t);
   obj_t (*opnd_register)(state_t,string_t);
   obj_t (*memory)(state_t,obj_t);
-  obj_t (*imm)(state_t,int_t);
   obj_t (*post_op)(state_t,obj_t,obj_t);
   obj_t (*pre_op)(state_t,obj_t,obj_t);
   obj_t (*rel)(state_t,obj_t);
@@ -234,9 +252,9 @@ typedef struct {
 typedef unboxed_asm_annotation_callbacks_t* asm_annotation_callbacks_t;
 typedef struct {
   asm_opnd_callbacks_t opnd;
+  obj_t (*insn)(state_t,int_t,string_t,obj_t,obj_t);
   asm_boundary_callbacks_t boundary;
   asm_signedness_callbacks_t signedness;
-  obj_t (*insn)(state_t,int_t,string_t,obj_t,obj_t);
   asm_opnd_list_callbacks_t opnd_list;
   asm_annotation_list_callbacks_t annotation_list;
   asm_annotation_callbacks_t annotation;

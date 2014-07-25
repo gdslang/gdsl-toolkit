@@ -10,38 +10,6 @@
 #include <gdsl.h>
 #include <decoder_config.h>
 
-#ifdef GDSL_X86
-struct options {
-  char mode64;
-  char default_opnd_sz_32;
-};
-
-static char args_parse(int argc, char **argv, struct options *options) {
-  options->mode64 = 1;
-  options->default_opnd_sz_32 = 1;
-
-  while(1) {
-    char c = getopt(argc, argv, "md");
-    switch(c) {
-      case 'm': {
-        options->mode64 = 0;
-        break;
-      }
-      case 'd': {
-        options->default_opnd_sz_32 = 0;
-        break;
-      }
-      default: {
-        goto end;
-      }
-    }
-  }
-  end: ;
-
-  return 0;
-}
-#endif
-
 void print_help(state_t state, struct config_handlers handlers) {
   printf("Usage: semantics-cli --help (for help)\n");
   printf("Usage: semantics-cli (using default decoder options)\n");
