@@ -134,7 +134,7 @@ GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 
 if HAVE_MLTON
 
-$(builddir)/gdslc: $(srcdir)/gdslc.mlb
+$(builddir)/gdslc: $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
 	$(MLTON) -output $(builddir)/gdslc $(srcdir)/gdslc.mlb
 
 GDSLC_DEP += $(builddir)/gdslc
