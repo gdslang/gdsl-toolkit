@@ -159,7 +159,8 @@ void demo_block(gdsl::gdsl &g) {
 
 int main(void) {
   try {
-    gdsl::bare_frontend f("x86");
+    //gdsl::bare_frontend f("x86");
+    gdsl::bare_frontend f("current");
     gdsl::gdsl g(&f);
 
     demo_single(g);

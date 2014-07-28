@@ -308,7 +308,7 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 
 	context_free(context_cpu);
 
-	cu_b: ;
+//	cu_b: ;
 	tracking_trace_free(trace);
 	context_free(context_rreil);
 
