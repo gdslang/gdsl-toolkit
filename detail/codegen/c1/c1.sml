@@ -385,6 +385,12 @@ structure C1 = struct
           | NONE =>
             let
                fun showField (f,t) = seq [emitTypeDecl s ([emitFieldSym s f], t), str ";"]
+               (* emit the fields in alphabetical order since C structs are nominal *)
+               fun fieldCmp ((f1,_),(f2,_)) =
+                  String.compare (
+                     SymbolTable.getString(!SymbolTables.fieldTable, f1),
+                     SymbolTable.getString(!SymbolTables.fieldTable, f2))
+               val fs = ListMergeSort.uniqueSort fieldCmp fs
                val emittedFields = map showField fs
                val idx = AtomMap.numItems (!recordTypeMap)+1
                val tyName = case AtomMap.find (#recordMapping s,rSig) of
