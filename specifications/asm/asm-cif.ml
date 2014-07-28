@@ -2,7 +2,7 @@ export asm-convert-insn: (asm_callbacks, asm-insn) -> insn_obj
 
 type asm_opnd_list_callbacks = {
   opnd_list_next: (opnd_obj, opnd_list_obj) -> opnd_list_obj,
-  init: (()) -> opnd_list_obj
+  init: () -> opnd_list_obj
 }
 type asm_opnd_callbacks = {
   opnd_register: (string) -> opnd_obj,
@@ -19,8 +19,8 @@ type asm_opnd_callbacks = {
   composite: (opnd_list_obj) -> opnd_obj
 }
 type asm_signedness_callbacks = {
-  asm_signed: (()) -> signedness_obj,
-  asm_unsigned: (()) -> signedness_obj
+  asm_signed: () -> signedness_obj,
+  asm_unsigned: () -> signedness_obj
 }
 type asm_boundary_callbacks = {
   sz: (int) -> boundary_obj,
@@ -28,7 +28,7 @@ type asm_boundary_callbacks = {
 }
 type asm_annotation_list_callbacks = {
   annotation_list_next: (annotation_obj, annotation_list_obj) -> annotation_list_obj,
-  init: (()) -> annotation_list_obj
+  init: () -> annotation_list_obj
 }
 type asm_annotation_callbacks = {
   ann_string: (string) -> annotation_obj,
@@ -62,7 +62,7 @@ val asm-convert-opnds cbs opnds = let
    | ASM_OPNDS_CONS next: convert-inner (cbs.opnd_list.opnd_list_next (asm-convert-opnd cbs next.hd) list) next.tl
   end
 in
-  convert-inner (cbs.opnd_list.init void) opnds
+  convert-inner (cbs.opnd_list.init ()) opnds
 end
 
 val asm-convert-opnd cbs opnd = case opnd of
@@ -81,8 +81,8 @@ val asm-convert-opnd cbs opnd = case opnd of
 end
 
 val asm-convert-signedness cbs signedness = case signedness of
-   ASM_SIGNED: cbs.signedness.asm_signed void
- | ASM_UNSIGNED: cbs.signedness.asm_unsigned void
+   ASM_SIGNED: cbs.signedness.asm_signed ()
+ | ASM_UNSIGNED: cbs.signedness.asm_unsigned ()
 end
 
 val asm-convert-boundary cbs b = case b of
@@ -96,7 +96,7 @@ val asm-convert-annotations cbs anns = let
    | ASM_ANNS_CONS next: convert-inner (cbs.annotation_list.annotation_list_next (asm-convert-annotation cbs next.hd) list) next.tl
   end
 in
-  convert-inner (cbs.annotation_list.init void) anns
+  convert-inner (cbs.annotation_list.init ()) anns
 end
 
 val asm-convert-annotation cbs ann = case ann of
