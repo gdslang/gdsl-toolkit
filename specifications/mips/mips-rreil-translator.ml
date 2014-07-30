@@ -1,14 +1,108 @@
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
+type signedness =
+   Signed
+ | Unsigned
+
 
 val sem-foo = return void
+
+val sem-testy x = do
+	s1 <- rval Unsigned x.source1;
+	s2 <- rval Unsigned x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	add size res s1 s2;
+	
+	write x.destination (var res)
+end
+
+val write to from =
+   case to of
+      GPR r: mov (sizeof-lval to) (semantic-gpr-of r) from
+   end
+
+val lval sn x =
+   case x of
+      GPR r: return (var (semantic-gpr-of r))
+   end
+
+val rval sn x = let
+   val from-vec sn vec =
+      case sn of
+         Signed: SEM_LIN_IMM {const=sx vec}
+       | Unsigned: SEM_LIN_IMM {const=zx vec}
+      end
+
+   val from-imm sn imm =
+      case imm of
+         IMM5 i: from-vec sn i
+       | IMM16 i: from-vec sn i
+       | OFFSET9 i: from-vec sn i
+       | OFFSET16 i: from-vec sn i
+       | SEL i: from-vec sn i
+       | IMPL i: from-vec sn i
+       | CODE10 i: from-vec sn i
+       | CODE19 i: from-vec sn i
+       | CODE20 i: from-vec sn i
+       | STYPE i: from-vec sn i
+       | POSSIZE i: from-vec sn i
+       | SIZE i: from-vec sn i
+       | POS i: from-vec sn i
+       | HINT i: from-vec sn i
+       | INSTRINDEX i: from-vec sn i
+       | COFUN i: from-vec sn i
+       | CC i: from-vec sn i
+       | COND i: from-vec sn i
+       | OP i: from-vec sn i
+      end
+in
+   case x of
+      LVALUE lv: lval sn lv
+    | IMM i: return (from-imm sn i)
+   end
+end
+
+val sizeof-lval x =
+   case x of
+      GPR r: 32
+    | FPR f: 32
+   end
+
+val sizeof-rval x = 
+   case x of
+      LVALUE lv: sizeof-lval lv
+    | IMM imm:
+         case imm of
+            IMM5 i: 5
+	  | IMM16 i: 16
+          | OFFSET9 i: 9
+          | OFFSET16 i: 16
+          | SEL i: 3
+          | IMPL i: 16
+          | CODE10 i: 10
+          | CODE19 i: 19
+          | CODE20 i: 20
+          | STYPE i: 5
+          | POSSIZE i: 5
+          | SIZE i: 5
+          | POS i: 5
+          | HINT i: 5
+          | INSTRINDEX i: 26
+          | COFUN i: 25
+          | CC i: 3
+          | COND i: 4
+          | OP i: 5
+         end
+   end
 
 # -> sftl
 
 val semantics i =
    case i of
       ABS-fmt x: sem-foo
-    | ADD x: sem-foo
+    | ADD x: sem-testy x
     | ADD-fmt x: sem-foo
     | ADDI x: sem-foo
     | ADDIU x: sem-foo

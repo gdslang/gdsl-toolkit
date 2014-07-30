@@ -1,4 +1,5 @@
 type asm-insn = {length:int, mnemonic:string, annotations:asm-annotation-list, opnds:asm-opnd-list}
+type asm-insn-flags = {length:int, mnemonic:string, annotations:asm-annotation-list, opnds:asm-opnd-list}
 
 type asm-opnd-list =
    ASM_OPNDS_NIL

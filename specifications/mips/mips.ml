@@ -1515,7 +1515,39 @@ type register =
  | PC
 
 type register =
-   F of int
+   F0
+ | F1
+ | F2
+ | F3
+ | F4
+ | F5
+ | F6
+ | F7
+ | F8
+ | F9
+ | F10
+ | F11
+ | F12
+ | F13
+ | F14
+ | F15
+ | F16
+ | F17
+ | F18
+ | F19
+ | F20
+ | F21
+ | F22
+ | F23
+ | F24
+ | F25
+ | F26
+ | F27
+ | F28
+ | F29
+ | F30
+ | F31
+ | F of int
  | FIR
  | FCCR
  | FEXR
@@ -1558,6 +1590,42 @@ val gpr-from-bits bits =
   | '11111': RA
  end
 
+val fpr-from-bits bits =
+ case bits of
+    '00000': F0
+  | '00001': F1
+  | '00010': F2
+  | '00011': F3
+  | '00100': F4
+  | '00101': F5
+  | '00110': F6
+  | '00111': F7
+  | '01000': F8
+  | '01001': F9
+  | '01010': F10
+  | '01011': F11
+  | '01100': F12
+  | '01101': F13
+  | '01110': F14
+  | '01111': F15
+  | '10000': F16
+  | '10001': F17
+  | '10010': F18
+  | '10011': F19
+  | '10100': F20
+  | '10101': F21
+  | '10110': F22
+  | '10111': F23
+  | '11000': F24
+  | '11001': F25
+  | '11010': F26
+  | '11011': F27
+  | '11100': F28
+  | '11101': F29
+  | '11110': F30
+  | '11111': F31
+ end
+
 val format-from-bits bits = 
  case bits of
     '10000': S
@@ -1566,8 +1634,5 @@ val format-from-bits bits =
   | '10101': L
   | '10110': PS
  end
-
-
-val fpr-from-bits bits = (F (zx bits))
 
 val fpc-from-bits bits = (F (zx bits))
