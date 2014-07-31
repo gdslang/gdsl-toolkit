@@ -29,6 +29,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
  * <p>
  * The following features are implemented:
  * <ul>
+ *   <li>{@link gdsl.plugin.gDSL.impl.DeclValImpl#getName <em>Name</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.DeclValImpl#getAttr <em>Attr</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.DeclValImpl#getExp <em>Exp</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.DeclValImpl#getMid <em>Mid</em>}</li>
@@ -41,6 +42,26 @@ import org.eclipse.emf.ecore.util.InternalEList;
  */
 public class DeclValImpl extends DeclImpl implements DeclVal
 {
+  /**
+   * The default value of the '{@link #getName() <em>Name</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getName()
+   * @generated
+   * @ordered
+   */
+  protected static final String NAME_EDEFAULT = null;
+
+  /**
+   * The cached value of the '{@link #getName() <em>Name</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getName()
+   * @generated
+   * @ordered
+   */
+  protected String name = NAME_EDEFAULT;
+
   /**
    * The cached value of the '{@link #getAttr() <em>Attr</em>}' attribute list.
    * <!-- begin-user-doc -->
@@ -110,6 +131,29 @@ public class DeclValImpl extends DeclImpl implements DeclVal
   protected EClass eStaticClass()
   {
     return GDSLPackage.Literals.DECL_VAL;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public String getName()
+  {
+    return name;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setName(String newName)
+  {
+    String oldName = name;
+    name = newName;
+    if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_VAL__NAME, oldName, name));
   }
 
   /**
@@ -244,6 +288,8 @@ public class DeclValImpl extends DeclImpl implements DeclVal
   {
     switch (featureID)
     {
+      case GDSLPackage.DECL_VAL__NAME:
+        return getName();
       case GDSLPackage.DECL_VAL__ATTR:
         return getAttr();
       case GDSLPackage.DECL_VAL__EXP:
@@ -269,6 +315,9 @@ public class DeclValImpl extends DeclImpl implements DeclVal
   {
     switch (featureID)
     {
+      case GDSLPackage.DECL_VAL__NAME:
+        setName((String)newValue);
+        return;
       case GDSLPackage.DECL_VAL__ATTR:
         getAttr().clear();
         getAttr().addAll((Collection<? extends String>)newValue);
@@ -302,6 +351,9 @@ public class DeclValImpl extends DeclImpl implements DeclVal
   {
     switch (featureID)
     {
+      case GDSLPackage.DECL_VAL__NAME:
+        setName(NAME_EDEFAULT);
+        return;
       case GDSLPackage.DECL_VAL__ATTR:
         getAttr().clear();
         return;
@@ -331,6 +383,8 @@ public class DeclValImpl extends DeclImpl implements DeclVal
   {
     switch (featureID)
     {
+      case GDSLPackage.DECL_VAL__NAME:
+        return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
       case GDSLPackage.DECL_VAL__ATTR:
         return attr != null && !attr.isEmpty();
       case GDSLPackage.DECL_VAL__EXP:
@@ -356,7 +410,9 @@ public class DeclValImpl extends DeclImpl implements DeclVal
     if (eIsProxy()) return super.toString();
 
     StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (attr: ");
+    result.append(" (name: ");
+    result.append(name);
+    result.append(", attr: ");
     result.append(attr);
     result.append(", mid: ");
     result.append(mid);

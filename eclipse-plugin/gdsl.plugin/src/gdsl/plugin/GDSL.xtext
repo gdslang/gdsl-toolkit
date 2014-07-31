@@ -9,21 +9,19 @@ Model:
 ;
 
 Decl:
-	DeclGranularity | DeclExport | DeclType | DeclVal
-;
-
-DeclGranularity:
-	name='granularity' '=' granularity=INTEGER
+	DeclExport | DeclType | DeclVal
 ;
 
 DeclExport:
-	name='export' '=' exports+=Export*
+	'export' name=[DeclVal] (tyVars=TyVars)? ':' type=Ty
 ;
 
 DeclType:
 	'type' name=ID 
-	(('=' (=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) | value=Ty))
-	| ('[' attr+=ID (',' attr+=ID)* ']' '=' (conDecl+=ConDecl ('|' conDecl+=ConDecl)*)))
+	(
+		('=' (=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) | value=Ty))
+		| (tyVars=TyVars '=' (conDecl+=ConDecl ('|' conDecl+=ConDecl)*))
+	)
 ;
 
 DeclVal:
@@ -33,8 +31,8 @@ DeclVal:
 	( name=ID '[' decPat+=DECODEPAT* ']' (('=' exp=Exp) | ('|' exps+=Exp '=' exps+=Exp)+) ) )
 ;
 
-Export:
-	name=[DeclVal] ('{' attr+=ID (',' attr+=ID)* '}')?
+TyVars:
+	'[' attr+=ID (',' attr+=ID)* ']'
 ;
 
 ConDecl:
@@ -43,9 +41,12 @@ ConDecl:
 
 Ty:
 	value=INTEGER |
-	'|' value=INTEGER '|' |
+//	'|' value=INTEGER '|' |
 	(decl=[DeclType] | type='int') ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
-	'{' elements+=TyElement (',' elements+=TyElement)* '}'
+	{Ty} '{' (elements+=TyElement (',' elements+=TyElement)*)? '}' |
+	'(' param+=Ty (',' param+=Ty)* ')' '->' resType=Ty |
+	{Ty} '()' |
+	S r=Ty LESS in=Ty '=>' out=Ty GREATER
 ;
 
 TyBind:
@@ -123,37 +124,42 @@ Field:
 ;
 
 ValueDecl:
-	'val' name=ID ids+=ID* '=' exp=Exp
+	'val' (=>name=ID | name=SYM) ids+=ID* '=' exp=Exp
 ;
 
 DECODEPAT: "'"BITPAT+"'" | TOKPAT;
-TOKPAT: INTEGER | ID;
+TOKPAT: HEXINT | ID;
 BITPAT: BINARY | (ID (BITPATORINT)?);
 BITPATORINT: (':' POSINT) | ('@' BINARY);
-PAT: USCORE | LIT | =>CONS PAT? | ID ;
+PAT: USCORE | =>INTEGER| =>CONS PAT? | =>ID | BITPAT ;
 LIT: INTEGER | "'"BINARY?"'";
 ID: CONS | ID_WO_CONS | SLASH;
 MID: MIXID | USCORE;
-SYM: USCORE| SLASH | BS | DOT | SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT;
-INTEGER: POSINT | NEGINT;
+SYM: USCORE| SLASH | BS | DOT | LESS | GREATER | SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER;
+INTEGER: POSINT | HEXINT | NEGINT;
 POSINT: POSINT_WO_DUALS | DUALS;
 BINARY: DUALS | BINS | BS | DOT;
+CONS: S | CONS_WO_S;
 
 terminal USCORE:'_';
 terminal SLASH:'/';
 terminal BS:'\\';
 terminal DOT:'.';
-terminal SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT: (CHARSYM|OTHERSYM)+;
+terminal S: 'S';
+terminal LESS: '<';
+terminal GREATER: '>';
+terminal SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER: (CHARSYM|OTHERSYM)+;
 terminal MIXID:'_'(USCORE|IDCHAR)*;
-terminal CONS:('A'..'Z') (USCORE|IDCHAR)*;
+terminal CONS_WO_S:('A'..'Z') (USCORE|IDCHAR)*;
 terminal ID_WO_CONS:('A'..'Z'|'a'..'z'|'/') (USCORE|IDCHAR)*;
 terminal STRING:'"' ( '\\'('b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\') | !('\\'|'"') )* '"';
 terminal fragment IDCHAR:('A'..'Z'|'a'..'z'|'/'|'0'..'9'|CHARSYM);
-terminal fragment CHARSYM:/*'_'|*/'-'|'?'/*|"'"*/|'!';
-terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'/*|'#'*/|'*';
+terminal fragment CHARSYM:'-'|'?'/*|"'"*/|'!';
+terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'/*|'#'*/|'*'|'\\';
 terminal DUALS: ('0'|'1')+;
 terminal BINS:('0'|'1'|'\\'|'.'|'|')*;
-terminal POSINT_WO_DUALS: ('0'..'9')+|('0x'('A'..'F'|'a'..'f'|'0'..'9')+);
+terminal POSINT_WO_DUALS: ('0'..'9')+;
+terminal HEXINT: '0x'('A'..'F'|'a'..'f'|'0'..'9')+;
 terminal NEGINT: '~'('0'..'9')+;
 
 terminal WS: (' '|'\t'|'\r'|'\n')+;

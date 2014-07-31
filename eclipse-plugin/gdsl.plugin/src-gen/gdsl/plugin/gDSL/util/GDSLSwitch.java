@@ -86,14 +86,6 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
-      case GDSLPackage.DECL_GRANULARITY:
-      {
-        DeclGranularity declGranularity = (DeclGranularity)theEObject;
-        T result = caseDeclGranularity(declGranularity);
-        if (result == null) result = caseDecl(declGranularity);
-        if (result == null) result = defaultCase(theEObject);
-        return result;
-      }
       case GDSLPackage.DECL_EXPORT:
       {
         DeclExport declExport = (DeclExport)theEObject;
@@ -118,10 +110,10 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
-      case GDSLPackage.EXPORT:
+      case GDSLPackage.TY_VARS:
       {
-        Export export = (Export)theEObject;
-        T result = caseExport(export);
+        TyVars tyVars = (TyVars)theEObject;
+        T result = caseTyVars(tyVars);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -333,22 +325,6 @@ public class GDSLSwitch<T> extends Switch<T>
   }
 
   /**
-   * Returns the result of interpreting the object as an instance of '<em>Decl Granularity</em>'.
-   * <!-- begin-user-doc -->
-   * This implementation returns null;
-   * returning a non-null result will terminate the switch.
-   * <!-- end-user-doc -->
-   * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Decl Granularity</em>'.
-   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-   * @generated
-   */
-  public T caseDeclGranularity(DeclGranularity object)
-  {
-    return null;
-  }
-
-  /**
    * Returns the result of interpreting the object as an instance of '<em>Decl Export</em>'.
    * <!-- begin-user-doc -->
    * This implementation returns null;
@@ -397,17 +373,17 @@ public class GDSLSwitch<T> extends Switch<T>
   }
 
   /**
-   * Returns the result of interpreting the object as an instance of '<em>Export</em>'.
+   * Returns the result of interpreting the object as an instance of '<em>Ty Vars</em>'.
    * <!-- begin-user-doc -->
    * This implementation returns null;
    * returning a non-null result will terminate the switch.
    * <!-- end-user-doc -->
    * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Export</em>'.
+   * @return the result of interpreting the object as an instance of '<em>Ty Vars</em>'.
    * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
    * @generated
    */
-  public T caseExport(Export object)
+  public T caseTyVars(TyVars object)
   {
     return null;
   }

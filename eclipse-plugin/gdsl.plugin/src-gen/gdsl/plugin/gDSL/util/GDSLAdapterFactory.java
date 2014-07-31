@@ -85,11 +85,6 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createDeclAdapter();
       }
       @Override
-      public Adapter caseDeclGranularity(DeclGranularity object)
-      {
-        return createDeclGranularityAdapter();
-      }
-      @Override
       public Adapter caseDeclExport(DeclExport object)
       {
         return createDeclExportAdapter();
@@ -105,9 +100,9 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createDeclValAdapter();
       }
       @Override
-      public Adapter caseExport(Export object)
+      public Adapter caseTyVars(TyVars object)
       {
-        return createExportAdapter();
+        return createTyVarsAdapter();
       }
       @Override
       public Adapter caseConDecl(ConDecl object)
@@ -252,21 +247,6 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
   }
 
   /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.DeclGranularity <em>Decl Granularity</em>}'.
-   * <!-- begin-user-doc -->
-   * This default implementation returns null so that we can easily ignore cases;
-   * it's useful to ignore a case when inheritance will catch all the cases anyway.
-   * <!-- end-user-doc -->
-   * @return the new adapter.
-   * @see gdsl.plugin.gDSL.DeclGranularity
-   * @generated
-   */
-  public Adapter createDeclGranularityAdapter()
-  {
-    return null;
-  }
-
-  /**
    * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.DeclExport <em>Decl Export</em>}'.
    * <!-- begin-user-doc -->
    * This default implementation returns null so that we can easily ignore cases;
@@ -312,16 +292,16 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
   }
 
   /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Export <em>Export</em>}'.
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.TyVars <em>Ty Vars</em>}'.
    * <!-- begin-user-doc -->
    * This default implementation returns null so that we can easily ignore cases;
    * it's useful to ignore a case when inheritance will catch all the cases anyway.
    * <!-- end-user-doc -->
    * @return the new adapter.
-   * @see gdsl.plugin.gDSL.Export
+   * @see gdsl.plugin.gDSL.TyVars
    * @generated
    */
-  public Adapter createExportAdapter()
+  public Adapter createTyVarsAdapter()
   {
     return null;
   }

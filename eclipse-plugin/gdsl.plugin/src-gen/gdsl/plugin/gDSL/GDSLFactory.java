@@ -41,15 +41,6 @@ public interface GDSLFactory extends EFactory
   Decl createDecl();
 
   /**
-   * Returns a new object of class '<em>Decl Granularity</em>'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return a new object of class '<em>Decl Granularity</em>'.
-   * @generated
-   */
-  DeclGranularity createDeclGranularity();
-
-  /**
    * Returns a new object of class '<em>Decl Export</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -77,13 +68,13 @@ public interface GDSLFactory extends EFactory
   DeclVal createDeclVal();
 
   /**
-   * Returns a new object of class '<em>Export</em>'.
+   * Returns a new object of class '<em>Ty Vars</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return a new object of class '<em>Export</em>'.
+   * @return a new object of class '<em>Ty Vars</em>'.
    * @generated
    */
-  Export createExport();
+  TyVars createTyVars();
 
   /**
    * Returns a new object of class '<em>Con Decl</em>'.

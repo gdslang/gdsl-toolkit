@@ -95,59 +95,13 @@ public interface GDSLPackage extends EPackage
   int DECL = 1;
 
   /**
-   * The feature id for the '<em><b>Name</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int DECL__NAME = 0;
-
-  /**
    * The number of structural features of the '<em>Decl</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_FEATURE_COUNT = 1;
-
-  /**
-   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclGranularityImpl <em>Decl Granularity</em>}' class.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @see gdsl.plugin.gDSL.impl.DeclGranularityImpl
-   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclGranularity()
-   * @generated
-   */
-  int DECL_GRANULARITY = 2;
-
-  /**
-   * The feature id for the '<em><b>Name</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int DECL_GRANULARITY__NAME = DECL__NAME;
-
-  /**
-   * The feature id for the '<em><b>Granularity</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int DECL_GRANULARITY__GRANULARITY = DECL_FEATURE_COUNT + 0;
-
-  /**
-   * The number of structural features of the '<em>Decl Granularity</em>' class.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int DECL_GRANULARITY_FEATURE_COUNT = DECL_FEATURE_COUNT + 1;
+  int DECL_FEATURE_COUNT = 0;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclExportImpl <em>Decl Export</em>}' class.
@@ -157,25 +111,34 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclExport()
    * @generated
    */
-  int DECL_EXPORT = 3;
+  int DECL_EXPORT = 2;
 
   /**
-   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * The feature id for the '<em><b>Name</b></em>' reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_EXPORT__NAME = DECL__NAME;
+  int DECL_EXPORT__NAME = DECL_FEATURE_COUNT + 0;
 
   /**
-   * The feature id for the '<em><b>Exports</b></em>' containment reference list.
+   * The feature id for the '<em><b>Ty Vars</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_EXPORT__EXPORTS = DECL_FEATURE_COUNT + 0;
+  int DECL_EXPORT__TY_VARS = DECL_FEATURE_COUNT + 1;
+
+  /**
+   * The feature id for the '<em><b>Type</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_EXPORT__TYPE = DECL_FEATURE_COUNT + 2;
 
   /**
    * The number of structural features of the '<em>Decl Export</em>' class.
@@ -184,7 +147,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_EXPORT_FEATURE_COUNT = DECL_FEATURE_COUNT + 1;
+  int DECL_EXPORT_FEATURE_COUNT = DECL_FEATURE_COUNT + 3;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclTypeImpl <em>Decl Type</em>}' class.
@@ -194,7 +157,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclType()
    * @generated
    */
-  int DECL_TYPE = 4;
+  int DECL_TYPE = 3;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -203,7 +166,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE__NAME = DECL__NAME;
+  int DECL_TYPE__NAME = DECL_FEATURE_COUNT + 0;
 
   /**
    * The feature id for the '<em><b>Con Decl</b></em>' containment reference list.
@@ -212,7 +175,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE__CON_DECL = DECL_FEATURE_COUNT + 0;
+  int DECL_TYPE__CON_DECL = DECL_FEATURE_COUNT + 1;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' containment reference.
@@ -221,16 +184,16 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE__VALUE = DECL_FEATURE_COUNT + 1;
+  int DECL_TYPE__VALUE = DECL_FEATURE_COUNT + 2;
 
   /**
-   * The feature id for the '<em><b>Attr</b></em>' attribute list.
+   * The feature id for the '<em><b>Ty Vars</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_TYPE__ATTR = DECL_FEATURE_COUNT + 2;
+  int DECL_TYPE__TY_VARS = DECL_FEATURE_COUNT + 3;
 
   /**
    * The number of structural features of the '<em>Decl Type</em>' class.
@@ -239,7 +202,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE_FEATURE_COUNT = DECL_FEATURE_COUNT + 3;
+  int DECL_TYPE_FEATURE_COUNT = DECL_FEATURE_COUNT + 4;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclValImpl <em>Decl Val</em>}' class.
@@ -249,7 +212,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclVal()
    * @generated
    */
-  int DECL_VAL = 5;
+  int DECL_VAL = 4;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -258,7 +221,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL__NAME = DECL__NAME;
+  int DECL_VAL__NAME = DECL_FEATURE_COUNT + 0;
 
   /**
    * The feature id for the '<em><b>Attr</b></em>' attribute list.
@@ -267,7 +230,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL__ATTR = DECL_FEATURE_COUNT + 0;
+  int DECL_VAL__ATTR = DECL_FEATURE_COUNT + 1;
 
   /**
    * The feature id for the '<em><b>Exp</b></em>' containment reference.
@@ -276,7 +239,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL__EXP = DECL_FEATURE_COUNT + 1;
+  int DECL_VAL__EXP = DECL_FEATURE_COUNT + 2;
 
   /**
    * The feature id for the '<em><b>Mid</b></em>' attribute list.
@@ -285,7 +248,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL__MID = DECL_FEATURE_COUNT + 2;
+  int DECL_VAL__MID = DECL_FEATURE_COUNT + 3;
 
   /**
    * The feature id for the '<em><b>Dec Pat</b></em>' attribute list.
@@ -294,7 +257,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL__DEC_PAT = DECL_FEATURE_COUNT + 3;
+  int DECL_VAL__DEC_PAT = DECL_FEATURE_COUNT + 4;
 
   /**
    * The feature id for the '<em><b>Exps</b></em>' containment reference list.
@@ -303,7 +266,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL__EXPS = DECL_FEATURE_COUNT + 4;
+  int DECL_VAL__EXPS = DECL_FEATURE_COUNT + 5;
 
   /**
    * The number of structural features of the '<em>Decl Val</em>' class.
@@ -312,26 +275,17 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL_FEATURE_COUNT = DECL_FEATURE_COUNT + 5;
+  int DECL_VAL_FEATURE_COUNT = DECL_FEATURE_COUNT + 6;
 
   /**
-   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ExportImpl <em>Export</em>}' class.
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TyVarsImpl <em>Ty Vars</em>}' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see gdsl.plugin.gDSL.impl.ExportImpl
-   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getExport()
+   * @see gdsl.plugin.gDSL.impl.TyVarsImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyVars()
    * @generated
    */
-  int EXPORT = 6;
-
-  /**
-   * The feature id for the '<em><b>Name</b></em>' reference.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int EXPORT__NAME = 0;
+  int TY_VARS = 5;
 
   /**
    * The feature id for the '<em><b>Attr</b></em>' attribute list.
@@ -340,16 +294,16 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int EXPORT__ATTR = 1;
+  int TY_VARS__ATTR = 0;
 
   /**
-   * The number of structural features of the '<em>Export</em>' class.
+   * The number of structural features of the '<em>Ty Vars</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int EXPORT_FEATURE_COUNT = 2;
+  int TY_VARS_FEATURE_COUNT = 1;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ConDeclImpl <em>Con Decl</em>}' class.
@@ -359,7 +313,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getConDecl()
    * @generated
    */
-  int CON_DECL = 7;
+  int CON_DECL = 6;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -396,7 +350,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTy()
    * @generated
    */
-  int TY = 8;
+  int TY = 7;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' attribute.
@@ -444,13 +398,58 @@ public interface GDSLPackage extends EPackage
   int TY__ELEMENTS = 4;
 
   /**
+   * The feature id for the '<em><b>Param</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__PARAM = 5;
+
+  /**
+   * The feature id for the '<em><b>Res Type</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__RES_TYPE = 6;
+
+  /**
+   * The feature id for the '<em><b>R</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__R = 7;
+
+  /**
+   * The feature id for the '<em><b>In</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__IN = 8;
+
+  /**
+   * The feature id for the '<em><b>Out</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__OUT = 9;
+
+  /**
    * The number of structural features of the '<em>Ty</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int TY_FEATURE_COUNT = 5;
+  int TY_FEATURE_COUNT = 10;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TyBindImpl <em>Ty Bind</em>}' class.
@@ -460,7 +459,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyBind()
    * @generated
    */
-  int TY_BIND = 9;
+  int TY_BIND = 8;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -497,7 +496,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyElement()
    * @generated
    */
-  int TY_ELEMENT = 10;
+  int TY_ELEMENT = 9;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -534,7 +533,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getExp()
    * @generated
    */
-  int EXP = 11;
+  int EXP = 10;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' containment reference.
@@ -580,7 +579,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCaseExp()
    * @generated
    */
-  int CASE_EXP = 12;
+  int CASE_EXP = 11;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -635,7 +634,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getClosedExp()
    * @generated
    */
-  int CLOSED_EXP = 13;
+  int CLOSED_EXP = 12;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -726,7 +725,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getMonadicExp()
    * @generated
    */
-  int MONADIC_EXP = 14;
+  int MONADIC_EXP = 13;
 
   /**
    * The feature id for the '<em><b>Exp</b></em>' containment reference.
@@ -763,7 +762,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getOrElseExp()
    * @generated
    */
-  int OR_ELSE_EXP = 15;
+  int OR_ELSE_EXP = 14;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -872,7 +871,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAndAlsoExp()
    * @generated
    */
-  int AND_ALSO_EXP = 16;
+  int AND_ALSO_EXP = 15;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -981,7 +980,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getRExp()
    * @generated
    */
-  int REXP = 17;
+  int REXP = 16;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1090,7 +1089,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAExp()
    * @generated
    */
-  int AEXP = 18;
+  int AEXP = 17;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1217,7 +1216,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getMExp()
    * @generated
    */
-  int MEXP = 19;
+  int MEXP = 18;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1362,7 +1361,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getSelectExp()
    * @generated
    */
-  int SELECT_EXP = 20;
+  int SELECT_EXP = 19;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1525,7 +1524,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getApplyExp()
    * @generated
    */
-  int APPLY_EXP = 21;
+  int APPLY_EXP = 20;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1697,7 +1696,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAtomicExp()
    * @generated
    */
-  int ATOMIC_EXP = 22;
+  int ATOMIC_EXP = 21;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1914,7 +1913,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getField()
    * @generated
    */
-  int FIELD = 23;
+  int FIELD = 22;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1951,7 +1950,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getValueDecl()
    * @generated
    */
-  int VALUE_DECL = 24;
+  int VALUE_DECL = 23;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -2022,38 +2021,6 @@ public interface GDSLPackage extends EPackage
   EClass getDecl();
 
   /**
-   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.Decl#getName <em>Name</em>}'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the meta object for the attribute '<em>Name</em>'.
-   * @see gdsl.plugin.gDSL.Decl#getName()
-   * @see #getDecl()
-   * @generated
-   */
-  EAttribute getDecl_Name();
-
-  /**
-   * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclGranularity <em>Decl Granularity</em>}'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the meta object for class '<em>Decl Granularity</em>'.
-   * @see gdsl.plugin.gDSL.DeclGranularity
-   * @generated
-   */
-  EClass getDeclGranularity();
-
-  /**
-   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.DeclGranularity#getGranularity <em>Granularity</em>}'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the meta object for the attribute '<em>Granularity</em>'.
-   * @see gdsl.plugin.gDSL.DeclGranularity#getGranularity()
-   * @see #getDeclGranularity()
-   * @generated
-   */
-  EAttribute getDeclGranularity_Granularity();
-
-  /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclExport <em>Decl Export</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -2064,15 +2031,37 @@ public interface GDSLPackage extends EPackage
   EClass getDeclExport();
 
   /**
-   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.DeclExport#getExports <em>Exports</em>}'.
+   * Returns the meta object for the reference '{@link gdsl.plugin.gDSL.DeclExport#getName <em>Name</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the containment reference list '<em>Exports</em>'.
-   * @see gdsl.plugin.gDSL.DeclExport#getExports()
+   * @return the meta object for the reference '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.DeclExport#getName()
    * @see #getDeclExport()
    * @generated
    */
-  EReference getDeclExport_Exports();
+  EReference getDeclExport_Name();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclExport#getTyVars <em>Ty Vars</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Ty Vars</em>'.
+   * @see gdsl.plugin.gDSL.DeclExport#getTyVars()
+   * @see #getDeclExport()
+   * @generated
+   */
+  EReference getDeclExport_TyVars();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclExport#getType <em>Type</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Type</em>'.
+   * @see gdsl.plugin.gDSL.DeclExport#getType()
+   * @see #getDeclExport()
+   * @generated
+   */
+  EReference getDeclExport_Type();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclType <em>Decl Type</em>}'.
@@ -2083,6 +2072,17 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EClass getDeclType();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.DeclType#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.DeclType#getName()
+   * @see #getDeclType()
+   * @generated
+   */
+  EAttribute getDeclType_Name();
 
   /**
    * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.DeclType#getConDecl <em>Con Decl</em>}'.
@@ -2107,15 +2107,15 @@ public interface GDSLPackage extends EPackage
   EReference getDeclType_Value();
 
   /**
-   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.DeclType#getAttr <em>Attr</em>}'.
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclType#getTyVars <em>Ty Vars</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute list '<em>Attr</em>'.
-   * @see gdsl.plugin.gDSL.DeclType#getAttr()
+   * @return the meta object for the containment reference '<em>Ty Vars</em>'.
+   * @see gdsl.plugin.gDSL.DeclType#getTyVars()
    * @see #getDeclType()
    * @generated
    */
-  EAttribute getDeclType_Attr();
+  EReference getDeclType_TyVars();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclVal <em>Decl Val</em>}'.
@@ -2126,6 +2126,17 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EClass getDeclVal();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.DeclVal#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.DeclVal#getName()
+   * @see #getDeclVal()
+   * @generated
+   */
+  EAttribute getDeclVal_Name();
 
   /**
    * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.DeclVal#getAttr <em>Attr</em>}'.
@@ -2183,36 +2194,25 @@ public interface GDSLPackage extends EPackage
   EReference getDeclVal_Exps();
 
   /**
-   * Returns the meta object for class '{@link gdsl.plugin.gDSL.Export <em>Export</em>}'.
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.TyVars <em>Ty Vars</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for class '<em>Export</em>'.
-   * @see gdsl.plugin.gDSL.Export
+   * @return the meta object for class '<em>Ty Vars</em>'.
+   * @see gdsl.plugin.gDSL.TyVars
    * @generated
    */
-  EClass getExport();
+  EClass getTyVars();
 
   /**
-   * Returns the meta object for the reference '{@link gdsl.plugin.gDSL.Export#getName <em>Name</em>}'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the meta object for the reference '<em>Name</em>'.
-   * @see gdsl.plugin.gDSL.Export#getName()
-   * @see #getExport()
-   * @generated
-   */
-  EReference getExport_Name();
-
-  /**
-   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.Export#getAttr <em>Attr</em>}'.
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.TyVars#getAttr <em>Attr</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @return the meta object for the attribute list '<em>Attr</em>'.
-   * @see gdsl.plugin.gDSL.Export#getAttr()
-   * @see #getExport()
+   * @see gdsl.plugin.gDSL.TyVars#getAttr()
+   * @see #getTyVars()
    * @generated
    */
-  EAttribute getExport_Attr();
+  EAttribute getTyVars_Attr();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.ConDecl <em>Con Decl</em>}'.
@@ -2310,6 +2310,61 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EReference getTy_Elements();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Ty#getParam <em>Param</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Param</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getParam()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_Param();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Ty#getResType <em>Res Type</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Res Type</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getResType()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_ResType();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Ty#getR <em>R</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>R</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getR()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_R();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Ty#getIn <em>In</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>In</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getIn()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_In();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Ty#getOut <em>Out</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Out</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getOut()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_Out();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.TyBind <em>Ty Bind</em>}'.
@@ -2919,32 +2974,6 @@ public interface GDSLPackage extends EPackage
     EClass DECL = eINSTANCE.getDecl();
 
     /**
-     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    EAttribute DECL__NAME = eINSTANCE.getDecl_Name();
-
-    /**
-     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclGranularityImpl <em>Decl Granularity</em>}' class.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @see gdsl.plugin.gDSL.impl.DeclGranularityImpl
-     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclGranularity()
-     * @generated
-     */
-    EClass DECL_GRANULARITY = eINSTANCE.getDeclGranularity();
-
-    /**
-     * The meta object literal for the '<em><b>Granularity</b></em>' attribute feature.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    EAttribute DECL_GRANULARITY__GRANULARITY = eINSTANCE.getDeclGranularity_Granularity();
-
-    /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclExportImpl <em>Decl Export</em>}' class.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -2955,12 +2984,28 @@ public interface GDSLPackage extends EPackage
     EClass DECL_EXPORT = eINSTANCE.getDeclExport();
 
     /**
-     * The meta object literal for the '<em><b>Exports</b></em>' containment reference list feature.
+     * The meta object literal for the '<em><b>Name</b></em>' reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EReference DECL_EXPORT__EXPORTS = eINSTANCE.getDeclExport_Exports();
+    EReference DECL_EXPORT__NAME = eINSTANCE.getDeclExport_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Ty Vars</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference DECL_EXPORT__TY_VARS = eINSTANCE.getDeclExport_TyVars();
+
+    /**
+     * The meta object literal for the '<em><b>Type</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference DECL_EXPORT__TYPE = eINSTANCE.getDeclExport_Type();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclTypeImpl <em>Decl Type</em>}' class.
@@ -2971,6 +3016,14 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EClass DECL_TYPE = eINSTANCE.getDeclType();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute DECL_TYPE__NAME = eINSTANCE.getDeclType_Name();
 
     /**
      * The meta object literal for the '<em><b>Con Decl</b></em>' containment reference list feature.
@@ -2989,12 +3042,12 @@ public interface GDSLPackage extends EPackage
     EReference DECL_TYPE__VALUE = eINSTANCE.getDeclType_Value();
 
     /**
-     * The meta object literal for the '<em><b>Attr</b></em>' attribute list feature.
+     * The meta object literal for the '<em><b>Ty Vars</b></em>' containment reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute DECL_TYPE__ATTR = eINSTANCE.getDeclType_Attr();
+    EReference DECL_TYPE__TY_VARS = eINSTANCE.getDeclType_TyVars();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclValImpl <em>Decl Val</em>}' class.
@@ -3005,6 +3058,14 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EClass DECL_VAL = eINSTANCE.getDeclVal();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute DECL_VAL__NAME = eINSTANCE.getDeclVal_Name();
 
     /**
      * The meta object literal for the '<em><b>Attr</b></em>' attribute list feature.
@@ -3047,22 +3108,14 @@ public interface GDSLPackage extends EPackage
     EReference DECL_VAL__EXPS = eINSTANCE.getDeclVal_Exps();
 
     /**
-     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ExportImpl <em>Export</em>}' class.
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TyVarsImpl <em>Ty Vars</em>}' class.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see gdsl.plugin.gDSL.impl.ExportImpl
-     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getExport()
+     * @see gdsl.plugin.gDSL.impl.TyVarsImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyVars()
      * @generated
      */
-    EClass EXPORT = eINSTANCE.getExport();
-
-    /**
-     * The meta object literal for the '<em><b>Name</b></em>' reference feature.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    EReference EXPORT__NAME = eINSTANCE.getExport_Name();
+    EClass TY_VARS = eINSTANCE.getTyVars();
 
     /**
      * The meta object literal for the '<em><b>Attr</b></em>' attribute list feature.
@@ -3070,7 +3123,7 @@ public interface GDSLPackage extends EPackage
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute EXPORT__ATTR = eINSTANCE.getExport_Attr();
+    EAttribute TY_VARS__ATTR = eINSTANCE.getTyVars_Attr();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ConDeclImpl <em>Con Decl</em>}' class.
@@ -3147,6 +3200,46 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EReference TY__ELEMENTS = eINSTANCE.getTy_Elements();
+
+    /**
+     * The meta object literal for the '<em><b>Param</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__PARAM = eINSTANCE.getTy_Param();
+
+    /**
+     * The meta object literal for the '<em><b>Res Type</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__RES_TYPE = eINSTANCE.getTy_ResType();
+
+    /**
+     * The meta object literal for the '<em><b>R</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__R = eINSTANCE.getTy_R();
+
+    /**
+     * The meta object literal for the '<em><b>In</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__IN = eINSTANCE.getTy_In();
+
+    /**
+     * The meta object literal for the '<em><b>Out</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__OUT = eINSTANCE.getTy_Out();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TyBindImpl <em>Ty Bind</em>}' class.

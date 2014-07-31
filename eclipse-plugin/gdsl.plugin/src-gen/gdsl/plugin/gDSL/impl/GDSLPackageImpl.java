@@ -11,11 +11,9 @@ import gdsl.plugin.gDSL.ClosedExp;
 import gdsl.plugin.gDSL.ConDecl;
 import gdsl.plugin.gDSL.Decl;
 import gdsl.plugin.gDSL.DeclExport;
-import gdsl.plugin.gDSL.DeclGranularity;
 import gdsl.plugin.gDSL.DeclType;
 import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.Exp;
-import gdsl.plugin.gDSL.Export;
 import gdsl.plugin.gDSL.Field;
 import gdsl.plugin.gDSL.GDSLFactory;
 import gdsl.plugin.gDSL.GDSLPackage;
@@ -28,6 +26,7 @@ import gdsl.plugin.gDSL.SelectExp;
 import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.TyBind;
 import gdsl.plugin.gDSL.TyElement;
+import gdsl.plugin.gDSL.TyVars;
 import gdsl.plugin.gDSL.ValueDecl;
 
 import org.eclipse.emf.ecore.EAttribute;
@@ -64,13 +63,6 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  private EClass declGranularityEClass = null;
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
   private EClass declExportEClass = null;
 
   /**
@@ -92,7 +84,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  private EClass exportEClass = null;
+  private EClass tyVarsEClass = null;
 
   /**
    * <!-- begin-user-doc -->
@@ -318,36 +310,6 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EAttribute getDecl_Name()
-  {
-    return (EAttribute)declEClass.getEStructuralFeatures().get(0);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EClass getDeclGranularity()
-  {
-    return declGranularityEClass;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EAttribute getDeclGranularity_Granularity()
-  {
-    return (EAttribute)declGranularityEClass.getEStructuralFeatures().get(0);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
   public EClass getDeclExport()
   {
     return declExportEClass;
@@ -358,9 +320,29 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EReference getDeclExport_Exports()
+  public EReference getDeclExport_Name()
   {
     return (EReference)declExportEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getDeclExport_TyVars()
+  {
+    return (EReference)declExportEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getDeclExport_Type()
+  {
+    return (EReference)declExportEClass.getEStructuralFeatures().get(2);
   }
 
   /**
@@ -378,9 +360,9 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EReference getDeclType_ConDecl()
+  public EAttribute getDeclType_Name()
   {
-    return (EReference)declTypeEClass.getEStructuralFeatures().get(0);
+    return (EAttribute)declTypeEClass.getEStructuralFeatures().get(0);
   }
 
   /**
@@ -388,7 +370,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EReference getDeclType_Value()
+  public EReference getDeclType_ConDecl()
   {
     return (EReference)declTypeEClass.getEStructuralFeatures().get(1);
   }
@@ -398,9 +380,19 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EAttribute getDeclType_Attr()
+  public EReference getDeclType_Value()
   {
-    return (EAttribute)declTypeEClass.getEStructuralFeatures().get(2);
+    return (EReference)declTypeEClass.getEStructuralFeatures().get(2);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getDeclType_TyVars()
+  {
+    return (EReference)declTypeEClass.getEStructuralFeatures().get(3);
   }
 
   /**
@@ -418,7 +410,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EAttribute getDeclVal_Attr()
+  public EAttribute getDeclVal_Name()
   {
     return (EAttribute)declValEClass.getEStructuralFeatures().get(0);
   }
@@ -428,9 +420,19 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
+  public EAttribute getDeclVal_Attr()
+  {
+    return (EAttribute)declValEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public EReference getDeclVal_Exp()
   {
-    return (EReference)declValEClass.getEStructuralFeatures().get(1);
+    return (EReference)declValEClass.getEStructuralFeatures().get(2);
   }
 
   /**
@@ -440,7 +442,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    */
   public EAttribute getDeclVal_Mid()
   {
-    return (EAttribute)declValEClass.getEStructuralFeatures().get(2);
+    return (EAttribute)declValEClass.getEStructuralFeatures().get(3);
   }
 
   /**
@@ -450,7 +452,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    */
   public EAttribute getDeclVal_DecPat()
   {
-    return (EAttribute)declValEClass.getEStructuralFeatures().get(3);
+    return (EAttribute)declValEClass.getEStructuralFeatures().get(4);
   }
 
   /**
@@ -460,7 +462,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    */
   public EReference getDeclVal_Exps()
   {
-    return (EReference)declValEClass.getEStructuralFeatures().get(4);
+    return (EReference)declValEClass.getEStructuralFeatures().get(5);
   }
 
   /**
@@ -468,9 +470,9 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EClass getExport()
+  public EClass getTyVars()
   {
-    return exportEClass;
+    return tyVarsEClass;
   }
 
   /**
@@ -478,19 +480,9 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EReference getExport_Name()
+  public EAttribute getTyVars_Attr()
   {
-    return (EReference)exportEClass.getEStructuralFeatures().get(0);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EAttribute getExport_Attr()
-  {
-    return (EAttribute)exportEClass.getEStructuralFeatures().get(1);
+    return (EAttribute)tyVarsEClass.getEStructuralFeatures().get(0);
   }
 
   /**
@@ -581,6 +573,56 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
   public EReference getTy_Elements()
   {
     return (EReference)tyEClass.getEStructuralFeatures().get(4);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getTy_Param()
+  {
+    return (EReference)tyEClass.getEStructuralFeatures().get(5);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getTy_ResType()
+  {
+    return (EReference)tyEClass.getEStructuralFeatures().get(6);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getTy_R()
+  {
+    return (EReference)tyEClass.getEStructuralFeatures().get(7);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getTy_In()
+  {
+    return (EReference)tyEClass.getEStructuralFeatures().get(8);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getTy_Out()
+  {
+    return (EReference)tyEClass.getEStructuralFeatures().get(9);
   }
 
   /**
@@ -1137,29 +1179,28 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     createEReference(modelEClass, MODEL__DECL);
 
     declEClass = createEClass(DECL);
-    createEAttribute(declEClass, DECL__NAME);
-
-    declGranularityEClass = createEClass(DECL_GRANULARITY);
-    createEAttribute(declGranularityEClass, DECL_GRANULARITY__GRANULARITY);
 
     declExportEClass = createEClass(DECL_EXPORT);
-    createEReference(declExportEClass, DECL_EXPORT__EXPORTS);
+    createEReference(declExportEClass, DECL_EXPORT__NAME);
+    createEReference(declExportEClass, DECL_EXPORT__TY_VARS);
+    createEReference(declExportEClass, DECL_EXPORT__TYPE);
 
     declTypeEClass = createEClass(DECL_TYPE);
+    createEAttribute(declTypeEClass, DECL_TYPE__NAME);
     createEReference(declTypeEClass, DECL_TYPE__CON_DECL);
     createEReference(declTypeEClass, DECL_TYPE__VALUE);
-    createEAttribute(declTypeEClass, DECL_TYPE__ATTR);
+    createEReference(declTypeEClass, DECL_TYPE__TY_VARS);
 
     declValEClass = createEClass(DECL_VAL);
+    createEAttribute(declValEClass, DECL_VAL__NAME);
     createEAttribute(declValEClass, DECL_VAL__ATTR);
     createEReference(declValEClass, DECL_VAL__EXP);
     createEAttribute(declValEClass, DECL_VAL__MID);
     createEAttribute(declValEClass, DECL_VAL__DEC_PAT);
     createEReference(declValEClass, DECL_VAL__EXPS);
 
-    exportEClass = createEClass(EXPORT);
-    createEReference(exportEClass, EXPORT__NAME);
-    createEAttribute(exportEClass, EXPORT__ATTR);
+    tyVarsEClass = createEClass(TY_VARS);
+    createEAttribute(tyVarsEClass, TY_VARS__ATTR);
 
     conDeclEClass = createEClass(CON_DECL);
     createEAttribute(conDeclEClass, CON_DECL__NAME);
@@ -1171,6 +1212,11 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     createEAttribute(tyEClass, TY__TYPE);
     createEReference(tyEClass, TY__TY_BIND);
     createEReference(tyEClass, TY__ELEMENTS);
+    createEReference(tyEClass, TY__PARAM);
+    createEReference(tyEClass, TY__RES_TYPE);
+    createEReference(tyEClass, TY__R);
+    createEReference(tyEClass, TY__IN);
+    createEReference(tyEClass, TY__OUT);
 
     tyBindEClass = createEClass(TY_BIND);
     createEAttribute(tyBindEClass, TY_BIND__NAME);
@@ -1270,7 +1316,6 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     // Set bounds for type parameters
 
     // Add supertypes to classes
-    declGranularityEClass.getESuperTypes().add(this.getDecl());
     declExportEClass.getESuperTypes().add(this.getDecl());
     declTypeEClass.getESuperTypes().add(this.getDecl());
     declValEClass.getESuperTypes().add(this.getDecl());
@@ -1289,29 +1334,28 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEReference(getModel_Decl(), this.getDecl(), null, "decl", null, 0, -1, Model.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(declEClass, Decl.class, "Decl", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-    initEAttribute(getDecl_Name(), ecorePackage.getEString(), "name", null, 0, 1, Decl.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-
-    initEClass(declGranularityEClass, DeclGranularity.class, "DeclGranularity", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-    initEAttribute(getDeclGranularity_Granularity(), ecorePackage.getEString(), "granularity", null, 0, 1, DeclGranularity.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(declExportEClass, DeclExport.class, "DeclExport", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-    initEReference(getDeclExport_Exports(), this.getExport(), null, "exports", null, 0, -1, DeclExport.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getDeclExport_Name(), this.getDeclVal(), null, "name", null, 0, 1, DeclExport.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getDeclExport_TyVars(), this.getTyVars(), null, "tyVars", null, 0, 1, DeclExport.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getDeclExport_Type(), this.getTy(), null, "type", null, 0, 1, DeclExport.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(declTypeEClass, DeclType.class, "DeclType", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getDeclType_Name(), ecorePackage.getEString(), "name", null, 0, 1, DeclType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getDeclType_ConDecl(), this.getConDecl(), null, "conDecl", null, 0, -1, DeclType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getDeclType_Value(), this.getTy(), null, "value", null, 0, 1, DeclType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-    initEAttribute(getDeclType_Attr(), ecorePackage.getEString(), "attr", null, 0, -1, DeclType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getDeclType_TyVars(), this.getTyVars(), null, "tyVars", null, 0, 1, DeclType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(declValEClass, DeclVal.class, "DeclVal", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getDeclVal_Name(), ecorePackage.getEString(), "name", null, 0, 1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEAttribute(getDeclVal_Attr(), ecorePackage.getEString(), "attr", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getDeclVal_Exp(), this.getExp(), null, "exp", null, 0, 1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEAttribute(getDeclVal_Mid(), ecorePackage.getEString(), "mid", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEAttribute(getDeclVal_DecPat(), ecorePackage.getEString(), "decPat", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getDeclVal_Exps(), this.getExp(), null, "exps", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
-    initEClass(exportEClass, Export.class, "Export", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-    initEReference(getExport_Name(), this.getDeclVal(), null, "name", null, 0, 1, Export.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-    initEAttribute(getExport_Attr(), ecorePackage.getEString(), "attr", null, 0, -1, Export.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEClass(tyVarsEClass, TyVars.class, "TyVars", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getTyVars_Attr(), ecorePackage.getEString(), "attr", null, 0, -1, TyVars.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(conDeclEClass, ConDecl.class, "ConDecl", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getConDecl_Name(), ecorePackage.getEString(), "name", null, 0, 1, ConDecl.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -1323,6 +1367,11 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEAttribute(getTy_Type(), ecorePackage.getEString(), "type", null, 0, 1, Ty.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getTy_TyBind(), this.getTyBind(), null, "tyBind", null, 0, -1, Ty.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getTy_Elements(), this.getTyElement(), null, "elements", null, 0, -1, Ty.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getTy_Param(), this.getTy(), null, "param", null, 0, -1, Ty.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getTy_ResType(), this.getTy(), null, "resType", null, 0, 1, Ty.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getTy_R(), this.getTy(), null, "r", null, 0, 1, Ty.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getTy_In(), this.getTy(), null, "in", null, 0, 1, Ty.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getTy_Out(), this.getTy(), null, "out", null, 0, 1, Ty.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(tyBindEClass, TyBind.class, "TyBind", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getTyBind_Name(), ecorePackage.getEString(), "name", null, 0, 1, TyBind.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

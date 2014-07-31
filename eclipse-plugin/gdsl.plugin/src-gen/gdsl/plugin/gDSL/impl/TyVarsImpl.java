@@ -2,56 +2,50 @@
  */
 package gdsl.plugin.gDSL.impl;
 
-import gdsl.plugin.gDSL.DeclGranularity;
 import gdsl.plugin.gDSL.GDSLPackage;
+import gdsl.plugin.gDSL.TyVars;
 
-import org.eclipse.emf.common.notify.Notification;
+import java.util.Collection;
+
+import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
 
-import org.eclipse.emf.ecore.impl.ENotificationImpl;
+import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
+
+import org.eclipse.emf.ecore.util.EDataTypeEList;
 
 /**
  * <!-- begin-user-doc -->
- * An implementation of the model object '<em><b>Decl Granularity</b></em>'.
+ * An implementation of the model object '<em><b>Ty Vars</b></em>'.
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.DeclGranularityImpl#getGranularity <em>Granularity</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TyVarsImpl#getAttr <em>Attr</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class DeclGranularityImpl extends DeclImpl implements DeclGranularity
+public class TyVarsImpl extends MinimalEObjectImpl.Container implements TyVars
 {
   /**
-   * The default value of the '{@link #getGranularity() <em>Granularity</em>}' attribute.
+   * The cached value of the '{@link #getAttr() <em>Attr</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getGranularity()
+   * @see #getAttr()
    * @generated
    * @ordered
    */
-  protected static final String GRANULARITY_EDEFAULT = null;
-
-  /**
-   * The cached value of the '{@link #getGranularity() <em>Granularity</em>}' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @see #getGranularity()
-   * @generated
-   * @ordered
-   */
-  protected String granularity = GRANULARITY_EDEFAULT;
+  protected EList<String> attr;
 
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    */
-  protected DeclGranularityImpl()
+  protected TyVarsImpl()
   {
     super();
   }
@@ -64,7 +58,7 @@ public class DeclGranularityImpl extends DeclImpl implements DeclGranularity
   @Override
   protected EClass eStaticClass()
   {
-    return GDSLPackage.Literals.DECL_GRANULARITY;
+    return GDSLPackage.Literals.TY_VARS;
   }
 
   /**
@@ -72,22 +66,13 @@ public class DeclGranularityImpl extends DeclImpl implements DeclGranularity
    * <!-- end-user-doc -->
    * @generated
    */
-  public String getGranularity()
+  public EList<String> getAttr()
   {
-    return granularity;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public void setGranularity(String newGranularity)
-  {
-    String oldGranularity = granularity;
-    granularity = newGranularity;
-    if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_GRANULARITY__GRANULARITY, oldGranularity, granularity));
+    if (attr == null)
+    {
+      attr = new EDataTypeEList<String>(String.class, this, GDSLPackage.TY_VARS__ATTR);
+    }
+    return attr;
   }
 
   /**
@@ -100,8 +85,8 @@ public class DeclGranularityImpl extends DeclImpl implements DeclGranularity
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_GRANULARITY__GRANULARITY:
-        return getGranularity();
+      case GDSLPackage.TY_VARS__ATTR:
+        return getAttr();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -111,13 +96,15 @@ public class DeclGranularityImpl extends DeclImpl implements DeclGranularity
    * <!-- end-user-doc -->
    * @generated
    */
+  @SuppressWarnings("unchecked")
   @Override
   public void eSet(int featureID, Object newValue)
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_GRANULARITY__GRANULARITY:
-        setGranularity((String)newValue);
+      case GDSLPackage.TY_VARS__ATTR:
+        getAttr().clear();
+        getAttr().addAll((Collection<? extends String>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -133,8 +120,8 @@ public class DeclGranularityImpl extends DeclImpl implements DeclGranularity
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_GRANULARITY__GRANULARITY:
-        setGranularity(GRANULARITY_EDEFAULT);
+      case GDSLPackage.TY_VARS__ATTR:
+        getAttr().clear();
         return;
     }
     super.eUnset(featureID);
@@ -150,8 +137,8 @@ public class DeclGranularityImpl extends DeclImpl implements DeclGranularity
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_GRANULARITY__GRANULARITY:
-        return GRANULARITY_EDEFAULT == null ? granularity != null : !GRANULARITY_EDEFAULT.equals(granularity);
+      case GDSLPackage.TY_VARS__ATTR:
+        return attr != null && !attr.isEmpty();
     }
     return super.eIsSet(featureID);
   }
@@ -167,10 +154,10 @@ public class DeclGranularityImpl extends DeclImpl implements DeclGranularity
     if (eIsProxy()) return super.toString();
 
     StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (granularity: ");
-    result.append(granularity);
+    result.append(" (attr: ");
+    result.append(attr);
     result.append(')');
     return result.toString();
   }
 
-} //DeclGranularityImpl
+} //TyVarsImpl

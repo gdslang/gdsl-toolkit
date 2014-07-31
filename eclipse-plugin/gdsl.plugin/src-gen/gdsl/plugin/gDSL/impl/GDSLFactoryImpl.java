@@ -66,11 +66,10 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
     {
       case GDSLPackage.MODEL: return createModel();
       case GDSLPackage.DECL: return createDecl();
-      case GDSLPackage.DECL_GRANULARITY: return createDeclGranularity();
       case GDSLPackage.DECL_EXPORT: return createDeclExport();
       case GDSLPackage.DECL_TYPE: return createDeclType();
       case GDSLPackage.DECL_VAL: return createDeclVal();
-      case GDSLPackage.EXPORT: return createExport();
+      case GDSLPackage.TY_VARS: return createTyVars();
       case GDSLPackage.CON_DECL: return createConDecl();
       case GDSLPackage.TY: return createTy();
       case GDSLPackage.TY_BIND: return createTyBind();
@@ -121,17 +120,6 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public DeclGranularity createDeclGranularity()
-  {
-    DeclGranularityImpl declGranularity = new DeclGranularityImpl();
-    return declGranularity;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
   public DeclExport createDeclExport()
   {
     DeclExportImpl declExport = new DeclExportImpl();
@@ -165,10 +153,10 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public Export createExport()
+  public TyVars createTyVars()
   {
-    ExportImpl export = new ExportImpl();
-    return export;
+    TyVarsImpl tyVars = new TyVarsImpl();
+    return tyVars;
   }
 
   /**
