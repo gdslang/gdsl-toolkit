@@ -22,7 +22,7 @@ public:
   sexpr_cmp(expr_cmp *inner);
   ~sexpr_cmp();
 
-  expr_cmp *get_inner() const {
+  expr_cmp *get_inner() {
     return inner;
   }
 

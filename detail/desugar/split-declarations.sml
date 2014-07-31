@@ -23,13 +23,12 @@ end = struct
 
    fun split tree = let
       open AST
-      val granularity = ref (~1: IntInf.int)
       val typealias = ref []
       val datatypes = ref []
       val constructors = ref SymMap.empty
       val valuedecls = ref []
       val decodedecls = ref SymMap.empty
-      val exports = ref []
+      val exports = ref SymMap.empty
 
       fun insertDecode (n, pats, es) =
          decodedecls :=
@@ -51,11 +50,10 @@ end = struct
       fun splitToplevel spec =
          case spec of
             MARKdecl t => splitToplevel (#tree t)
-          | GRANULARITYdecl i => granularity := i
           | TYPEdecl d => typealias := d::(!typealias)
           | DECODEdecl d => insertDecode d
           | LETRECdecl d => valuedecls := d::(!valuedecls)
-          | EXPORTdecl es => exports := !exports@map #1 es
+          | EXPORTdecl (var,tvars,ty) => exports := SymMap.insert (!exports,var,(tvars,ty))
           | DATATYPEdecl (n, tvars, cons) =>
                (datatypes := (n, cons)::(!datatypes)
                ;updateConstructors (n, cons))
@@ -63,8 +61,7 @@ end = struct
    in
       app splitToplevel tree
      ;Spec.IN
-         {granularity= !granularity,
-          exports= !exports,
+         {exports= !exports,
           typealias= rev (!typealias),
           datatypes= rev (!datatypes),
           constructors= !constructors,

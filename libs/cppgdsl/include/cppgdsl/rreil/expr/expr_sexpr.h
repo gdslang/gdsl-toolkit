@@ -21,7 +21,7 @@ public:
   expr_sexpr(sexpr *inner);
   ~expr_sexpr();
 
-  sexpr *get_inner() const {
+  sexpr *get_inner() {
     return inner;
   }
 

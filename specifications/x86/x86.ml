@@ -1,19 +1,18 @@
-granularity = 8
-export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn} insn-length{length}
+export config-default : decoder-configuration
+export config-mode64  : decoder-configuration
+export config-default-opnd-sz-32 : decoder-configuration
+export decode : (decoder-configuration) -> S insndata <{} => {}>
+export features-get : (insndata) -> int
+export typeof-opnd : (insndata,int) -> int
+export insn-length : (insndata) -> int
+export decoder-config : configuration[vec=decoder-configuration]
+export operands : (insndata) -> int
 
-# Optional arguments
-#
-# Limit:
-#   - Restricts the maximium size of the decode-stream
-# Recursion-depth:
-#   - Annotate the maximum number of recursion steps for
-#     the given decoder. This way, we can compute an upper
-#     bound for the maximum used storage for the emitted AST.
-#     Additionally, the decoder may fail if during runtime
-#     a recrusion depth violation occurs.
-#
-# limit = 120
-# recursion-depth = p64 = 4
+type decoder-configuration = 2
+
+val decoder-config =
+ conf '01' "mode64" "decode x86-64 instructions" &*
+ conf '10' "opndsz32" "assume that default operand size is 32 bit"
 
 val config-default            = '11'
 val config-mode64             = '01'
@@ -26,33 +25,32 @@ val decode config = do
    main config
 end
 
-val force-int-for-decode-config = decode config-default
-
 val main config = do
-   t <- query $tab;
-   update
-      @{mode64=test-opt config-mode64 config,
-        repne='0',
-        rep='0',
-        rex='0',
-        rexw='0',
-        rexb='0',
-        rexr='0',
-        rexx='0',
-        addrsz='0',
-        opndsz='0',
-        lock='0',
-        segment=SEG_NONE,
-	      default-operand-size=if test-opt config-default-opnd-sz-32 config then 32 else 16,
-        ptrty=32, #TODO: check
-        ~tab};
-
-   idx-before <- idxget;
-   instr <- p64;
-   idx-after <- idxget;
-
-   update @{tab=t};
-   return (@{length=(idx-after - idx-before)} instr)
+  t <- query $tab;
+  update @{
+    mode64=test-opt config-mode64 config,
+    repne='0',
+    rep='0',
+    rex='0',
+    rexw='0',
+    rexb='0',
+    rexr='0',
+    rexx='0',
+    addrsz='0',
+    opndsz='0',
+    lock='0',
+    segment=SEG_NONE,
+    default-operand-size=if test-opt config-default-opnd-sz-32 config then 32 else 16,
+    ptrty=32, #TODO: check
+    ~tab
+  };
+  
+  idx-before <- idxget;
+  instr <- p64;
+  idx-after <- idxget;
+  
+  update @{tab=t};
+  return (@{length=(idx-after - idx-before), config=config} instr)
 end
 
 val complement v = not v
@@ -60,7 +58,7 @@ val complement v = not v
 # Segment prefix handling
 type seg_override =
      SEG_NONE
-   | SEG_OVERRIDE of register
+   | SEG_OVERRIDE of x86-register
 
 val set-CS = update@{segment=SEG_OVERRIDE CS}
 val set-DS = update@{segment=SEG_OVERRIDE DS}
@@ -164,7 +162,6 @@ val p/vex/66/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 01'] = do
         rexx=not x,
         vexl=l,
         vexv=complement v,
-
         vexm='00001'}
 end
 
@@ -308,7 +305,7 @@ end
 val p/vex/f2/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 11'] = do
    update
       @{rex='1',
-	rexw=w,
+        rexw=w,
         vexw=w,
         rexr=not r,
         rexb=not b,
@@ -375,8 +372,8 @@ val p64 [/f3-p] = p/f3
 val p64 [/legacy-p] = p64
 val p64 [/rex-p]
  | mode64? = p64
- | mode32? & rexw? = unop none DEC rex/reg32
- | mode32? & // rexw? = unop none INC rex/reg32
+ | mode32? && rexw? = unop none DEC rex/reg32
+ | mode32? && // rexw? = unop none INC rex/reg32
 val p64 [p/vex/0f]
  | vndd? = /vex/0f/vexv
  | otherwise = /vex/0f
@@ -409,8 +406,8 @@ val p/66 [/f3-p] = p/66/f3
 val p/66 [/legacy-p] = p/66
 val p/66 [/rex-p]
  | mode64? = p/66
- | mode32? & rexw? = unop none DEC rex/reg16
- | mode32? & // rexw? = unop none INC rex/reg16
+ | mode32? && rexw? = unop none DEC rex/reg16
+ | mode32? && // rexw? = unop none INC rex/reg16
 val p/66 [] = after /66 (with-66 /)
 
 val p/f2 [/66-p] = p/66/f2
@@ -419,8 +416,8 @@ val p/f2 [/f3-p] = p/f2/f3
 val p/f2 [/legacy-p] = p/f2
 val p/f2 [/rex-p]
  | mode64? = p/f2
- | mode32? & rexw? = unop none DEC rex/reg32
- | mode32? & // rexw? = unop none INC rex/reg32
+ | mode32? && rexw? = unop none DEC rex/reg32
+ | mode32? && // rexw? = unop none INC rex/reg32
 val p/f2 [] = after /f2 (with-f2 /)
 
 val p/f3 [/66-p] = p/66/f3
@@ -429,8 +426,8 @@ val p/f3 [/f3-p] = p/f3
 val p/f3 [/legacy-p] = p/f3
 val p/f3 [/rex-p]
  | mode64? = p/f3
- | mode32? & rexw? = unop none DEC rex/reg32
- | mode32? & // rexw? = unop none INC rex/reg32
+ | mode32? && rexw? = unop none DEC rex/reg32
+ | mode32? && // rexw? = unop none INC rex/reg32
 val p/f3 [] = after /f3 (with-f3 /)
 
 val p/f2/f3 [/66-p] = p/66/f2/f3
@@ -439,8 +436,8 @@ val p/f2/f3 [/f3-p] = p/f2/f3
 val p/f2/f3 [/legacy-p] = p/f2/f3
 val p/f2/f3 [/rex-p]
  | mode64? = p/f2/f3
- | mode32? & rexw? = unop none DEC rex/reg32
- | mode32? & // rexw? = unop none INC rex/reg32
+ | mode32? && rexw? = unop none DEC rex/reg32
+ | mode32? && // rexw? = unop none INC rex/reg32
 val p/f2/f3 [] = after (with-f2 /f3) (
                  after (with-f3 /f2) (with-f2 (with-f3 /)))
 
@@ -450,8 +447,8 @@ val p/f3/f2 [/f3-p] = p/f2/f3
 val p/f3/f2 [/legacy-p] = p/f3/f2
 val p/f3/f2 [/rex-p]
  | mode64? = p/f3/f2
- | mode32? & rexw? = unop none DEC rex/reg32
- | mode32? & // rexw? = unop none INC rex/reg32
+ | mode32? && rexw? = unop none DEC rex/reg32
+ | mode32? && // rexw? = unop none INC rex/reg32
 val p/f3/f2 [] = after (with-f3 /f2) (
                  after (with-f2 /f3) (with-f3 (with-f2 /)))
 
@@ -461,8 +458,8 @@ val p/66/f2 [/f3-p] = p/66/f2/f3
 val p/66/f2 [/legacy-p] = p/66/f2
 val p/66/f2 [/rex-p]
  | mode64? = p/66/f2
- | mode32? & rexw? = unop none DEC rex/reg16
- | mode32? & // rexw? = unop none INC rex/reg16
+ | mode32? && rexw? = unop none DEC rex/reg16
+ | mode32? && // rexw? = unop none INC rex/reg16
 val p/66/f2 [] = after (with-66 /f2) (
                  after (with-f2 /66) (with-66 (with-f2 /)))
 
@@ -472,8 +469,8 @@ val p/66/f3 [/f3-p] = p/66/f3
 val p/66/f3 [/legacy-p] = p/66/f3
 val p/66/f3 [/rex-p]
  | mode64? = p/66/f3
- | mode32? & rexw? = unop none DEC rex/reg16
- | mode32? & // rexw? = unop none INC rex/reg16
+ | mode32? && rexw? = unop none DEC rex/reg16
+ | mode32? && // rexw? = unop none INC rex/reg16
 val p/66/f3 [] = after (with-66 /f3) (
                  after (with-f3 /66) (
                         with-66 (with-f3 /)))
@@ -484,8 +481,8 @@ val p/66/f2/f3 [/f3-p] = do clear-rex; p/66/f2/f3 end
 val p/66/f2/f3 [/legacy-p] = p/66/f2/f3
 val p/66/f2/f3 [/rex-p]
  | mode64? = p/66/f2/f3
- | mode32? & rexw? = unop none DEC rex/reg16
- | mode32? & // rexw? = unop none INC rex/reg16
+ | mode32? && rexw? = unop none DEC rex/reg16
+ | mode32? && // rexw? = unop none INC rex/reg16
 val p/66/f2/f3 [] = after (with-66 (with-f2 /f3)) (
                     after (with-66 (with-f3 /f2)) (
                     after (with-f2 (with-f3 /66)) (
@@ -497,12 +494,12 @@ val p/66/f3/f2 [/f3-p] = do clear-rex; p/66/f2/f3 end
 val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
 val p/66/f3/f2 [/rex-p]
  | mode64? = p/66/f3/f2
- | mode32? & rexw? = unop none DEC rex/reg16
- | mode32? & // rexw? = unop none INC rex/reg16
+ | mode32? && rexw? = unop none DEC rex/reg16
+ | mode32? && // rexw? = unop none INC rex/reg16
 val p/66/f3/f2 [] = after (with-66 (with-f3 /f2)) (
                     after (with-66 (with-f2 /f3)) (
-		    after (with-f3 (with-f2 /66)) (
-		           with-66 (with-f3 (with-f2 /)))))
+        after (with-f3 (with-f2 /66)) (
+               with-66 (with-f3 (with-f2 /)))))
 
 val /vex/0f [] = /vex/0f/vexv
 val /vex/66/0f [] = /vex/66/0f/vexv
@@ -515,7 +512,7 @@ val /vex/66/0f/3a [] = /vex/66/0f/3a/vexv
 #val /vex/f2/0f/3a [] = /vex/f2/0f/3a/vexv
 #val /vex/f3/0f/3a [] = /vex/f3/0f/3a/vexv
 
-type register =
+type x86-register =
    AL
  | AH
  | AX
@@ -641,15 +638,15 @@ type register =
  | RIP
  | FLAGS
 
-type opnd =
+type x86-opnd =
    IMM8 of {imm:8,address:int}
  | IMM16 of {imm:16,address:int}
  | IMM32 of {imm:32,address:int}
  | IMM64 of {imm:64,address:int}
- | REG of register
- | MEM of {sz:int,psz:int,segment:seg_override,opnd:opnd}
- | SUM of {a:opnd,b:opnd}
- | SCALE of {imm:2,opnd:opnd}
+ | REG of x86-register
+ | MEM of {sz:int,psz:int,segment:seg_override,opnd:x86-opnd}
+ | X86_SUM of {a:x86-opnd,b:x86-opnd}
+ | X86_SCALE of {imm:2,opnd:x86-opnd}
 
 # Todo: Centralize
 # Operand types:
@@ -667,8 +664,8 @@ val typeof-opnd x i = let
      | IMM64 a: 0
      | REG a: 1
      | MEM a: 2
-     | SUM a: 3
-     | SCALE a: 3
+     | X86_SUM a: 3
+     | X86_SCALE a: 3
     end
 in
   case (uarity-of x.insn) of
@@ -696,8 +693,6 @@ in
   end
 end
 
-val typeof-opnd-force-types x = pretty x +++ (show-int (typeof-opnd x 0))
-
 type flowopnd =
    REL8 of 8
  | REL16 of 16
@@ -705,52 +700,31 @@ type flowopnd =
  | REL64 of 64
  | PTR16/16 of 32
  | PTR16/32 of 48
- | NEARABS of opnd
- | FARABS of opnd
+ | NEARABS of x86-opnd
+ | FARABS of x86-opnd
 
 #feature vector: aes, avx, f16c, invpcid, mmx, clmul, rdrand, fsgsbase, sse, sse2, sse3, sse4_1, sse4_2, ssse3, xsaveopt, illegal rep, illegal repne, illegal lock, illegal lock (for register)
 
-val none_ a                  = '0000000000000000000' 
-val aes_ a                   = '0000000000000000001' 
-val avx_ a                   = '0000000000000000010'
-val f16c_ a                  = '0000000000000000100'
-val invpcid_ a               = '0000000000000001000'
-val mmx_ a                   = '0000000000000010000'
-val clmul_ a                 = '0000000000000100000'
-val rdrand_ a                = '0000000000001000000'
-val fsgsbase_ a              = '0000000000010000000'
-val sse_ a                   = '0000000000100000000'
-val sse2_ a                  = '0000000001000000000'
-val sse3_ a                  = '0000000010000000000'
-val sse4_1_ a                = '0000000100000000000'
-val sse4_2_ a                = '0000001000000000000'
-val ssse3_ a                 = '0000010000000000000'
-val xsaveopt_ a              = '0000100000000000000'
-val illegal-rep_ a           = '0001000000000000000'
-val illegal-repne_ a         = '0010000000000000000'
-val illegal-lock_ a          = '0100000000000000000'
-val illegal-lock-register_ a = '1000000000000000000'
-
-val none                  = return (none_ 0)
-val aes                   = return (aes_ 0)
-val avx                   = return (avx_ 0)
-val f16c                  = return (f16c_ 0)
-val invpcid               = return (invpcid_ 0)
-val mmx                   = return (mmx_ 0)
-val clmul                 = return (clmul_ 0)
-val rdrand                = return (rdrand_ 0)
-val fsgsbase              = return (fsgsbase_ 0)
-val sse                   = return (sse_ 0)
-val sse2                  = return (sse2_ 0)
-val sse3                  = return (sse3_ 0)
-val sse4_1                = return (sse4_1_ 0)
-val sse4_2                = return (sse4_2_ 0)
-val ssse3                 = return (ssse3_ 0)
-val xsaveopt              = return (xsaveopt_ 0)
-val illegal-rep           = return (illegal-rep_ 0)
-val illegal-repne         = return (illegal-repne_ 0)
-val illegal-lock          = return (illegal-lock_ 0)
-val illegal-lock-register = return (illegal-lock-register_ 0)
+val none                  = '0000000000000000000' 
+val aes                   = '0000000000000000001' 
+val avx                   = '0000000000000000010'
+val f16c                  = '0000000000000000100'
+val invpcid               = '0000000000000001000'
+val mmx                   = '0000000000000010000'
+val clmul                 = '0000000000000100000'
+val rdrand                = '0000000000001000000'
+val fsgsbase              = '0000000000010000000'
+val sse                   = '0000000000100000000'
+val sse2                  = '0000000001000000000'
+val sse3                  = '0000000010000000000'
+val sse4_1                = '0000000100000000000'
+val sse4_2                = '0000001000000000000'
+val ssse3                 = '0000010000000000000'
+val xsaveopt              = '0000100000000000000'
+val illegal-rep           = '0001000000000000000'
+val illegal-repne         = '0010000000000000000'
+val illegal-lock          = '0100000000000000000'
+val illegal-lock-register = '1000000000000000000'
 
 val flow-features-get = do
   inge <- decode config-default;
@@ -759,18 +733,29 @@ end
 
 val features-get insndata = (zx insndata.features)
 
+
 type flow1 = {opnd1:flowopnd}
-type arity1 = {opnd1:opnd}
-type arity2 = {opnd1:opnd,opnd2:opnd}
-type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd}
-type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+type arity1 = {opnd1:x86-opnd}
+type arity2 = {opnd1:x86-opnd,opnd2:x86-opnd}
+type arity3 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd}
+type arity4 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd,opnd4:x86-opnd}
 
-type insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:insn}
+type insndata = {length:int,features:19,config:decoder-configuration,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:x86-insn}
+#val insndata-decouple id = {length=id.length + 0, features=id.features,
+#config=id.config, opnd-sz=id.opnd-sz + 0, addr-sz=id.addr-sz + 0, rep=id.rep,
+#repne=id.repne, lock=id.lock, insn=id.insn}
 
-val insn-length insn = do
- insn <- return (@{fooooobarrrrrrr=42}insn);
- return insn.length
-end
+val insn-length insn = insn.length
+
+val operands x =
+  case (uarity-of x.insn) of
+     UA0: 0
+   | UA1 x: 1
+   | UA2 x: 2
+   | UA3 x: 3
+   | UA4 x: 4
+   | UAF x: 1
+  end
 
 type varity =
    VA0
@@ -779,7 +764,7 @@ type varity =
  | VA3 of arity3
  | VA4 of arity4
 
-type insn =
+type x86-insn =
    AAA
  | AAD of arity1
  | AAM of arity1
@@ -1414,9 +1399,6 @@ type insn =
  | VBROADCASTF128 of varity
  | VBROADCASTSD of varity
  | VBROADCASTSS of varity
- | VCMPEQB of varity
- | VCMPEQD of varity
- | VCMPEQW of varity
  | VCMPPD of varity
  | VCMPPS of varity
  | VCMPSD of varity
@@ -1794,72 +1776,29 @@ val rex/reg32 = do
   return (reg32 ('0' ^ rexr ^ rexx ^ rexb))
 end
 
-val & giveA giveB = do
-   a <- giveA;
-   b <- giveB;
-   return (a and b)
-end
+val vex128? s = $vexl s == '0'
+val vex256? s = $vexl s
+val vndd? s = not ($vexv s == '0000') # vexv => complement!
+val vexw0? s = $vexw s == '0'
+val vexw1? s = $vexw s
+val opndsz? s = $opndsz s
+val addrsz? s = $addrsz s
+val repne? s = $repne s
+val rep? s = $rep s
+val rexw? s = $rexw s
+val vexw? s = $rexw s
+val rex? s = $rex s
 
-val orm giveA giveB = do
-   a <- giveA;
-   b <- giveB;
-   return (a or b)
-end
+val mode64? s = $mode64 s
+val mode32? s = not ($mode64 s)
 
-val otherwise = return '1'
-
-val vex128? = do
-   l <- query $vexl;
-   return (l == '0')
-end
-
-val vex256? = query $vexl
-
-val vnds? = do
-   v <- query $vexv;
-   return (not (v == '0000')) #vexv => complement!
-end
-
-val vndd? = do
-   v <- query $vexv;
-   return (not (v == '0000')) #vexv => complement!
-end
-
-val vexw0? = do
-   w <- query $vexw;
-   return (w == '0')
-end
-
-val vexw1? = do
-   w <- query $vexw;
-   return (w == '1')
-end
-
-val opndsz? = query $opndsz
-val addrsz? = query $addrsz
-val repne? =  query $repne
-val rep? = query $rep
-val rexw? = query $rexw
-val vexw? = query $rexw
-val rex? = query $rex
-
-val mode64? = query $mode64
-val mode32? = do
- a <- query $mode64;
- return (not a)
-end
-
-val default-operand-size = do
-  #return 32
-  opnd-sz <- query $default-operand-size;
-  return opnd-sz
-end
+val default-operand-size = query $default-operand-size
 
 val operand-size = do
   #Todo: D flag
-  mode64 <- mode64?;
-  opndsz <- opndsz?;
-  rexw <- rexw?;
+  mode64 <- query mode64?;
+  opndsz <- query opndsz?;
+  rexw <- query rexw?;
   if mode64 then
     if rexw then
       return 64
@@ -1876,8 +1815,8 @@ end
 
 val address-size = do
   #Todo: D flag
-  mode64 <- mode64?;
-  addrsz <- addrsz?;
+  mode64 <- query mode64?;
+  addrsz <- query addrsz?;
   if mode64 then
     if addrsz then
       return 32
@@ -2145,13 +2084,13 @@ val sib-without-index reg = do
     | '01':
       do
         rBP <- return (reg rex rexb '101'); # rBP
-	segmentation-set-for-base rBP;
+        segmentation-set-for-base rBP;
         return rBP
       end
     | '10':
       do
         rBP <- return (reg rex rexb '101'); # rBP
-	segmentation-set-for-base rBP;
+        segmentation-set-for-base rBP;
         return rBP
       end
    end
@@ -2160,19 +2099,19 @@ end
 val sib-without-base reg scale index = do
    rex <- query $rex;
    rexx <- query $rexx;
-   scaled <- return (SCALE{imm=scale, opnd=reg rex rexx index});
+   scaled <- return (X86_SCALE{imm=scale, opnd=reg rex rexx index});
    mod <- query $mod;
    rexb <- query $rexb;
    case mod of
       '00':
          do
             i <- imm32;
-            return (SUM{a=scaled, b=i})
+            return (X86_SUM{a=scaled, b=i})
          end
     | _:
       do
         base <- return (reg rex rexb '101'); # rBP
-        return (SUM{a=scaled, b=base})
+        return (X86_SUM{a=scaled, b=base})
       end
    end
 end
@@ -2188,22 +2127,22 @@ val sib-with-index-and-base psz reg s i b = do
           case b of
              '101': sib-without-index reg
            | _:
-	           do
-	             reg-b <- return (reg rex rexb b);
-	             segmentation-set-for-base reg-b;
-	             return reg-b
-	           end
+             do
+               reg-b <- return (reg rex rexb b);
+               segmentation-set-for-base reg-b;
+               return reg-b
+             end
         end
-	end
+  end
     | _:
          case b of
             '101': sib-without-base reg s i
           | _:
-	    do
-	      base <- return (reg rex rexb b);
-	      segmentation-set-for-base base;
-              return (SUM{b=SCALE{imm=s, opnd=reg rex rexx i}, a=base})
-	    end
+      do
+        base <- return (reg rex rexb b);
+        segmentation-set-for-base base;
+              return (X86_SUM{b=X86_SCALE{imm=s, opnd=reg rex rexx i}, a=base})
+      end
          end
    end
 end
@@ -2232,18 +2171,18 @@ val mem op = do
        seg <- query $segment;
        case seg of
           SEG_NONE: return SEG_NONE
-	| SEG_OVERRIDE r:
-	    do
-	      mode64 <- mode64?;
-	      if mode64 then
-	        case r of
-		   FS: return (SEG_OVERRIDE r)
-		 | GS: return (SEG_OVERRIDE r)
-		 | _: return SEG_NONE
+        | SEG_OVERRIDE r:
+      do
+        mode64 <- query mode64?;
+        if mode64 then
+          case r of
+       FS: return (SEG_OVERRIDE r)
+     | GS: return (SEG_OVERRIDE r)
+     | _: return SEG_NONE
                 end
-	      else
-	        return (SEG_OVERRIDE r)
-	    end
+        else
+          return (SEG_OVERRIDE r)
+      end
        end
      end
    ;
@@ -2258,12 +2197,12 @@ val r/m-with-sib = do
     | '01':
          do
             i <- imm8;
-            mem (SUM{a=sibOpnd, b=i})
+            mem (X86_SUM{a=sibOpnd, b=i})
          end
     | '10':
          do
             i <- imm32;
-            mem (SUM{a=sibOpnd, b=i})
+            mem (X86_SUM{a=sibOpnd, b=i})
          end
    end
 end
@@ -2282,29 +2221,29 @@ val r/m-without-sib = do
                   mode <- query $mode64;
                   i <- imm32;
                   if mode
-                     then mem (SUM{a=REG RIP,b=i})
+                     then mem (X86_SUM{a=REG RIP,b=i})
                   else mem i
                end
           | _ :
-	      do
-	        base <- return (addr-reg rex rexb rm);
+        do
+          base <- return (addr-reg rex rexb rm);
                 segmentation-set-for-base base;
-		mem base
-	      end
+    mem base
+        end
          end
     | '01':
          do
             i <- imm8;
-	    base <- return (addr-reg rex rexb rm);
+      base <- return (addr-reg rex rexb rm);
             segmentation-set-for-base base;
-            mem (SUM{a=base, b=i})
+            mem (X86_SUM{a=base, b=i})
          end
     | '10':
          do
             i <- imm32;
-	    base <- return (addr-reg rex rexb rm);
+      base <- return (addr-reg rex rexb rm);
             segmentation-set-for-base base;
-            mem (SUM{a=base, b=i})
+            mem (X86_SUM{a=base, b=i})
          end
    end
 end
@@ -2514,46 +2453,42 @@ end
 
 val exception-rep features = do
   v <- query $rep;
-	illegal-rep <- illegal-rep;
   case v of
-	   '0': return features
-	 | '1': return (features or illegal-rep)
-	end
+     '0': return features
+   | '1': return (features or illegal-rep)
+  end
 end
 
 val exception-repne features = do
   v <- query $repne;
-	illegal-repne <- illegal-repne;
   case v of
-	   '0': return features
-	 | '1': return (features or illegal-repne)
-	end
+     '0': return features
+   | '1': return (features or illegal-repne)
+  end
 end
 
 val exception-lock features = do
   v <- query $lock;
-	illegal-lock <- illegal-lock;
   case v of
-	   '0': return features
-	 | '1': return (features or illegal-lock)
-	end
+     '0': return features
+   | '1': return (features or illegal-lock)
+  end
 end
 
 val exception-lock-reg features op = do
   v <- query $lock;
-	illegal-lock-register <- illegal-lock-register;
   if v then do
     case op of
-		   MEM x: return features
-		 | _: return (features or illegal-lock-register)
-		end
+       MEM x: return features
+     | _: return (features or illegal-lock-register)
+    end
   end else
-	  return features
+    return features
 end
 
 val exception-both a b features = do
   features <- a features;
-	b features
+  b features
 end
 
 val exception-rep-repne features = exception-both exception-rep exception-repne features
@@ -2561,7 +2496,6 @@ val exception-repne-lock features = exception-both exception-repne exception-loc
 val exception-rep-repne-lock features = exception-both exception-rep-repne exception-lock features
 
 val varity0 features cons = do
-	features <- features;
   features <- exception-rep-repne-lock features;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
@@ -2569,7 +2503,7 @@ val varity0 features cons = do
 end
 
 val varity0-def-opnd-sz-64 features cons = do
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   if mode64 then
     update@{default-operand-size=64}
   else
@@ -2579,7 +2513,6 @@ val varity0-def-opnd-sz-64 features cons = do
 end
 
 val varity1 features cons giveOp1 = do
-	features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   opnd-sz <- operand-size;
@@ -2588,7 +2521,7 @@ val varity1 features cons giveOp1 = do
 end
 
 val varity1-def-opnd-sz-64 features cons giveOp1 = do
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   if mode64 then
     update@{default-operand-size=64}
   else
@@ -2598,7 +2531,6 @@ val varity1-def-opnd-sz-64 features cons giveOp1 = do
 end
 
 val varity2 features cons giveOp1 giveOp2 = do
-	features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2608,7 +2540,6 @@ val varity2 features cons giveOp1 giveOp2 = do
 end
 
 val varity3 features cons giveOp1 giveOp2 giveOp3 = do
-	features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2619,7 +2550,6 @@ val varity3 features cons giveOp1 giveOp2 giveOp3 = do
 end
 
 val varity4 features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-	features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2640,25 +2570,21 @@ val arity0-all features cons = do
 end
 
 val arity0-rep-repne features cons = do
-	features <- features;
   features <- exception-lock features;
   arity0-all features cons
 end
 
 val arity0-rep features cons = do
-	features <- features;
   features <- exception-repne-lock features;
   arity0-all features cons
 end
 
 val arity0-lock features cons = do
-	features <- features;
   features <- exception-rep-repne features;
   arity0-all features cons
 end
 
 val arity0 features cons = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   arity0-all features cons
 end
@@ -2674,29 +2600,25 @@ end
 
 val unop-rep-repne features cons giveOp1 = do
   op1 <- giveOp1;
-  features <- features;
   features <- exception-lock features;
   unop-all features cons op1
 end
 
 val unop-rep features cons giveOp1 = do
   op1 <- giveOp1;
-  features <- features;
   features <- exception-repne-lock features;
   unop-all features cons op1
 end
 
 val unop-lock features cons giveOp1 = do
   op1 <- giveOp1;
-  features <- features;
   features <- exception-rep-repne features;
-	features <- exception-lock-reg features op1;
+  features <- exception-lock-reg features op1;
   unop-all features cons op1
 end
 
 val unop features cons giveOp1 = do
   op1 <- giveOp1;
-  features <- features;
   features <- exception-rep-repne-lock features;
   unop-all features cons op1
 end
@@ -2713,7 +2635,6 @@ end
 val binop-rep-repne features cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
-	features <- features;
   features <- exception-lock features;
   binop-all features cons op1 op2
 end
@@ -2721,7 +2642,6 @@ end
 val binop-rep features cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
-  features <- features;
   features <- exception-repne-lock features;
   binop-all features cons op1 op2
 end
@@ -2729,22 +2649,19 @@ end
 val binop-lock features cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
-  features <- features;
   features <- exception-rep-repne features;
-	features <- exception-lock-reg features op1;
+  features <- exception-lock-reg features op1;
   binop-all features cons op1 op2
 end
 
 val binop features cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
-  features <- features;
   features <- exception-rep-repne-lock features;
   binop-all features cons op1 op2
 end
 
 val ternop features cons giveOp1 giveOp2 giveOp3 = do
-	features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2755,7 +2672,6 @@ val ternop features cons giveOp1 giveOp2 giveOp3 = do
 end
 
 val quaternop features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2767,9 +2683,8 @@ val quaternop features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
 end
 
 val near-abs features cons giveOp = do
-  features <- features;
   features <- exception-rep-repne-lock features;
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   opnd-sz <-
     if mode64 then do
       update@{default-operand-size=64};
@@ -2783,9 +2698,8 @@ val near-abs features cons giveOp = do
 end
 
 val near-rel features cons giveOp = do
-	features <- features;
   features <- exception-rep-repne-lock features;
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   opnd-sz <-
     if mode64 then do
       update@{default-operand-size=64};
@@ -2799,9 +2713,8 @@ val near-rel features cons giveOp = do
 end
 
 val far-dir features cons giveOp = do
-  features <- features;
   features <- exception-rep-repne-lock features;
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   opnd-sz <-
     if mode64 then do
       update@{default-operand-size=64};
@@ -2815,9 +2728,8 @@ val far-dir features cons giveOp = do
 end
 
 val far-ind features cons giveOp = do
-  features <- features;
   features <- exception-rep-repne-lock features;
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   opnd-sz <-
     if mode64 then do
       update@{default-operand-size=64};
@@ -2831,11 +2743,6 @@ val far-ind features cons giveOp = do
 end
 
 val one = return (IMM8 {imm='00000001',address=0})
-
-val // a =
-   do b <- a;
-      return (not b)
-end
 
 ### AAA
 ###  - ASCII Adjust After Addition
@@ -2948,32 +2855,32 @@ val /vex/f2/0f/vexv [0xd0 /r]
 ### AESDEC
 ###  - Perform One Round of an AES Decryption Flow
 val /66 [0x0f 0x38 0xde /r] = binop aes AESDEC xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xde /r] | vex128? = varity3 (orm aes avx) VAESDEC xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xde /r] | vex128? = varity3 (aes or avx) VAESDEC xmm128 v/xmm xmm/m128
 
 ### AESDECLAST
 ###  - Perform Last Round of an AES Decryption Flow
 val /66 [0x0f 0x38 0xdf /r] = binop aes AESDECLAST xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdf /r] | vex128? = varity3 (orm aes avx) VAESDECLAST xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xdf /r] | vex128? = varity3 (aes or avx) VAESDECLAST xmm128 v/xmm xmm/m128
 
 ### AESENC
 ###  - Perform One Round of an AES Encryption Flow
 val /66 [0x0f 0x38 0xdc /r] = binop aes AESENC xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdc /r] | vex128? = varity3 (orm aes avx) VAESENC xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xdc /r] | vex128? = varity3 (aes or avx) VAESENC xmm128 v/xmm xmm/m128
 
 ### AESENCLAST
 ###  - Perform Last Round of an AES Encryption Flow
 val /66 [0x0f 0x38 0xdd /r] = binop aes AESENCLAST xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdd /r] | vex128? = varity3 (orm aes avx) VAESENCLAST xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xdd /r] | vex128? = varity3 (aes or avx) VAESENCLAST xmm128 v/xmm xmm/m128
 
 ### AESIMC
 ###  - Perform the AES InvMixColumn Transformation
 val /66 [0x0f 0x38 0xdb /r] = binop aes AESIMC xmm128 xmm/m128
-val /vex/66/0f/38 [0xdb /r] | vex128? = varity2 (orm aes avx) VAESIMC xmm128 xmm/m128
+val /vex/66/0f/38 [0xdb /r] | vex128? = varity2 (aes or avx) VAESIMC xmm128 xmm/m128
 
 ### AESKEYGENASSIST
 ###  - AES Round Key Generation Assist
 val /66 [0x0f 0x3a 0xdf /r] = ternop aes AESKEYGENASSIST xmm128 xmm/m128 imm8
-val /vex/66/0f/3a [0xdf /r] | vex128? = varity3 (orm aes avx) VAESKEYGENASSIST xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0xdf /r] | vex128? = varity3 (aes or avx) VAESKEYGENASSIST xmm128 xmm/m128 imm8
 
 ### AND
 ###  - Logical AND
@@ -3052,20 +2959,20 @@ val /vex/66/0f/3a/vexv [0x0c /r]
 ###  - Variable Blend Packed Double Precision Floating-Point Values
 val /66 [0x0f 0x38 0x15 /r] = ternop sse4_1 BLENDVPD xmm128 xmm/m128 xmm0
 val /vex/66/0f/3a/vexv [0x4b /r]
- | vex128? & vexw0? = varity4 avx VBLENDVPD xmm128 v/xmm xmm/m128 imm/xmm
- | vex256? & vexw0? = varity4 avx VBLENDVPD ymm256 v/ymm ymm/m256 imm/ymm
+ | vex128? && vexw0? = varity4 avx VBLENDVPD xmm128 v/xmm xmm/m128 imm/xmm
+ | vex256? && vexw0? = varity4 avx VBLENDVPD ymm256 v/ymm ymm/m256 imm/ymm
 
 ### BLENDVPS
 ###  - Variable Blend Packed Single Precision Floating-Point Values
 val /66 [0x0f 0x38 0x14 /r] = ternop sse4_1 BLENDVPS xmm128 xmm/m128 xmm0
 val /vex/66/0f/3a/vexv [0x4a /r]
- | vex128? & vexw0? = varity4 avx VBLENDVPS xmm128 v/xmm xmm/m128 imm/xmm
- | vex256? & vexw0? = varity4 avx VBLENDVPS ymm256 v/ymm ymm/m256 imm/ymm
+ | vex128? && vexw0? = varity4 avx VBLENDVPS xmm128 v/xmm xmm/m128 imm/xmm
+ | vex256? && vexw0? = varity4 avx VBLENDVPS ymm256 v/ymm ymm/m256 imm/ymm
 
 ### BOUND
 ###  - Check Array Index Against Bounds
 val / [0x62 /r-mem]
- | opndsz? & mode32? = binop none BOUND r16 m16/16
+ | opndsz? && mode32? = binop none BOUND r16 m16/16
  | mode32? = binop none BOUND r32 m32/32
 
 ### BSF
@@ -3413,7 +3320,7 @@ val /f2 [0x0f 0x2d /r]
  | otherwise = binop sse2 CVTSD2SI r32 xmm/m64
 val /vex/f2/0f [0x2d /r]
  | vexw0? = varity2 avx VCVTSD2SI r32 xmm/m64
- | vexw1? & mode64? = varity2 avx VCVTSD2SI r64 xmm/m64
+ | vexw1? && mode64? = varity2 avx VCVTSD2SI r64 xmm/m64
 
 ### CVTSD2SS
 ###  - Convert Scalar Double-Precision FP Value to Scalar Single-Precision FP Value
@@ -3427,7 +3334,7 @@ val /f2 [0x0f 0x2a /r]
  | otherwise = binop sse2 CVTSI2SD xmm128 r/m32
 val /vex/f2/0f/vexv [0x2a /r]
  | vexw0? = varity3 avx VCVTSI2SD xmm128 v/xmm r/m32
- | vexw1? & mode64? = varity3 avx VCVTSI2SD xmm128 v/xmm r/m64
+ | vexw1? && mode64? = varity3 avx VCVTSI2SD xmm128 v/xmm r/m64
 
 ### CVTSI2SS
 ###  - Convert Dword Integer to Scalar Single-Precision FP Value
@@ -3436,7 +3343,7 @@ val /f3 [0x0f 0x2a /r]
  | otherwise = binop sse CVTSI2SS xmm128 r/m32
 val /vex/f3/0f/vexv [0x2a /r]
  | vexw0? = varity3 avx VCVTSI2SS xmm128 v/xmm r/m32
- | vexw1? & mode64? = varity3 avx VCVTSI2SS xmm128 v/xmm r/m64
+ | vexw1? && mode64? = varity3 avx VCVTSI2SS xmm128 v/xmm r/m64
 
 ### CVTSS2SD
 ###  - Convert Scalar Single-Precision FP Value to Scalar Double-Precision FP Value
@@ -3450,7 +3357,7 @@ val /f3 [0x0f 0x2d /r]
  | otherwise = binop sse CVTSS2SI r32 xmm/m32
 val /vex/f3/0f [0x2d /r]
  | vexw0? = varity2 avx VCVTSS2SI r32 xmm/m32
- | vexw1? & mode64? = varity2 avx VCVTSS2SI r64 xmm/m32
+ | vexw1? && mode64? = varity2 avx VCVTSS2SI r64 xmm/m32
 
 ### CVTTPD2DQ
 ###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
@@ -3481,7 +3388,7 @@ val /f2 [0x0f 0x2c /r]
  | otherwise = binop sse2 CVTTSD2SI r32 xmm/m64
 val /vex/f2/0f [0x2c /r]
  | vexw0? = varity2 avx VCVTTSD2SI r32 xmm/m64
- | vexw1? & mode64? = varity2 avx VCVTTSD2SI r64 xmm/m64
+ | vexw1? && mode64? = varity2 avx VCVTTSD2SI r64 xmm/m64
 
 ### CVTTSS2SI
 ###  - Convert with Truncation Scalar Single-Precision FP Value to Dword Integer
@@ -3490,7 +3397,7 @@ val /f3 [0x0f 0x2c /r]
  | otherwise = binop sse CVTTSS2SI r32 xmm/m32
 val /vex/f3/0f [0x2c /r]
  | vexw0? = varity2 avx VCVTTSS2SI r32 xmm/m32
- | vexw1? & mode64? = varity2 avx VCVTTSS2SI r64 xmm/m32
+ | vexw1? && mode64? = varity2 avx VCVTTSS2SI r64 xmm/m32
 
 ### CWD/CDQ/CQO
 ###  - Convert Word to Doubleword/Convert Doubleword to Quadword
@@ -3515,7 +3422,7 @@ val / [0xff /1]
  | opndsz? = unop-lock none DEC r/m16
  | otherwise = unop-lock none DEC r/m32
 val / ['01001 r:3']
- | opndsz? & mode32? = do update@{reg/opcode=r}; unop-lock none DEC r16 end
+ | opndsz? && mode32? = do update@{reg/opcode=r}; unop-lock none DEC r16 end
  | mode32? = do update@{reg/opcode=r}; unop-lock none DEC r32 end
 
 ### DIV
@@ -4034,9 +3941,9 @@ val / [0x72] = near-rel none JC rel8  # JB, JNAE
 val / [0x76] = near-rel none JBE rel8 # JNA
 val /66 [0xe3] = near-rel none JCXZ rel8
 val / [0xe3]
- | mode64? & addrsz? = near-rel none JECXZ rel8
+ | mode64? && addrsz? = near-rel none JECXZ rel8
  | mode64? = near-rel none JRCXZ rel8
- | mode32? & addrsz? = near-rel none JCXZ rel8
+ | mode32? && addrsz? = near-rel none JCXZ rel8
  | mode32? = near-rel none JECXZ rel8
 val / [0x74] = near-rel none JE rel8  # JZ
 val / [0x7f] = near-rel none JG rel8  # JNLE
@@ -4051,66 +3958,66 @@ val / [0x70] = near-rel none JO rel8
 val / [0x7a] = near-rel none JP rel8  # JPE
 val / [0x78] = near-rel none JS rel8
 val / [0x0f 0x87] # JNBE
- | mode32? & opndsz? = near-rel none JA rel16
+ | mode32? && opndsz? = near-rel none JA rel16
  | otherwise = near-rel none JA rel32
 val / [0x0f 0x83] # JNB, JNC
- | mode32? & opndsz? = near-rel none JAE rel16
+ | mode32? && opndsz? = near-rel none JAE rel16
  | otherwise = near-rel none JAE rel32
 val / [0x0f 0x82] # JC, JNAE
- | mode32? & opndsz? = near-rel none JB rel16
+ | mode32? && opndsz? = near-rel none JB rel16
  | otherwise = near-rel none JB rel32
 val / [0x0f 0x86] # JNA
- | mode32? & opndsz? = near-rel none JBE rel16
+ | mode32? && opndsz? = near-rel none JBE rel16
  | otherwise = near-rel none JBE rel32
 val / [0x0f 0x84] # JZ
- | mode32? & opndsz? = near-rel none JE rel16
+ | mode32? && opndsz? = near-rel none JE rel16
  | otherwise = near-rel none JE rel32
 val / [0x0f 0x8f] # JNLE
- | mode32? & opndsz? = near-rel none JG rel16
+ | mode32? && opndsz? = near-rel none JG rel16
  | otherwise = near-rel none JG rel32
 val / [0x0f 0x8d] # JNL
- | mode32? & opndsz? = near-rel none JGE rel16
+ | mode32? && opndsz? = near-rel none JGE rel16
  | otherwise = near-rel none JGE rel32
 val / [0x0f 0x8c] # JNGE
- | mode32? & opndsz? = near-rel none JL rel16
+ | mode32? && opndsz? = near-rel none JL rel16
  | otherwise = near-rel none JL rel32
 val / [0x0f 0x8e] # JNG
- | mode32? & opndsz? = near-rel none JLE rel16
+ | mode32? && opndsz? = near-rel none JLE rel16
  | otherwise = near-rel none JLE rel32
 val / [0x0f 0x85] # JNZ
- | mode32? & opndsz? = near-rel none JNE rel16
+ | mode32? && opndsz? = near-rel none JNE rel16
  | otherwise = near-rel none JNE rel32
 val / [0x0f 0x81]
- | mode32? & opndsz? = near-rel none JNO rel16
+ | mode32? && opndsz? = near-rel none JNO rel16
  | otherwise = near-rel none JNO rel32
 val / [0x0f 0x8b] # JPO
- | mode32? & opndsz? = near-rel none JNP rel16
+ | mode32? && opndsz? = near-rel none JNP rel16
  | otherwise = near-rel none JNP rel32
 val / [0x0f 0x89]
- | mode32? & opndsz? = near-rel none JNS rel16
+ | mode32? && opndsz? = near-rel none JNS rel16
  | otherwise = near-rel none JNS rel32
 val / [0x0f 0x80]
- | mode32? & opndsz? = near-rel none JO rel16
+ | mode32? && opndsz? = near-rel none JO rel16
  | otherwise = near-rel none JO rel32
 val / [0x0f 0x8a] # JPE
- | mode32? & opndsz? = near-rel none JP rel16
+ | mode32? && opndsz? = near-rel none JP rel16
  | otherwise = near-rel none JP rel32
 val / [0x0f 0x88] # JS
- | mode32? & opndsz? = near-rel none JS rel16
+ | mode32? && opndsz? = near-rel none JS rel16
  | otherwise = near-rel none JS rel32
 
 ### JMP
 ###  - Jump
 val / [0xeb] = near-rel none JMP rel8
 val / [0xe9]
- | mode32? & opndsz? = near-rel none JMP rel16
+ | mode32? && opndsz? = near-rel none JMP rel16
  | otherwise = near-rel none JMP rel32
 val / [0xff /4]
- | mode32? & opndsz? = near-abs none JMP r/m16
+ | mode32? && opndsz? = near-abs none JMP r/m16
  | mode32? = near-abs none JMP r/m32
  | mode64? = near-abs none JMP r/m64
 val / [0xea]
- | mode32? & opndsz? = far-dir none JMP ptr16/16
+ | mode32? && opndsz? = far-dir none JMP ptr16/16
  | mode32? = far-dir none JMP ptr16/32
 val / [0xff /5]
  | rexw? = far-ind none JMP m16/64
@@ -4165,16 +4072,18 @@ val / [0x0f 0xb5 /r-mem]
 ### LEA
 ###  - Load Effective Address
 val / [0x8d /r-mem]
- | (// mode64?) & opndsz? = binop none LEA r16 mX
- | (// mode64?) & (// opndsz?) = binop none LEA r32 mX
- | mode64? & (// rexw?) & opndsz? = binop none LEA r16 mX
- | mode64? & (// rexw?) & (// opndsz?) = binop none LEA r32 mX
- | mode64? & rexw? & (// opndsz?) = binop none LEA r64 mX
+ | (// mode64?) && opndsz? = binop none LEA r16 mX
+ | (// mode64?) && (// opndsz?) = binop none LEA r32 mX
+ | mode64? && (// rexw?) && opndsz? = binop none LEA r16 mX
+ | mode64? && (// rexw?) && (// opndsz?) = binop none LEA r32 mX
+ | mode64? && rexw? && (// opndsz?) = binop none LEA r64 mX
 
 ### LEAVE
 ###  - High Level Procedure Exit
 #Todo: handle different effects to BP/EBP/RBP
-val / [0xc9] = arity0 none LEAVE
+val / [0xc9]
+ | mode64? = do update@{default-operand-size=64}; arity0 none LEAVE end
+ | otherwise = arity0 none LEAVE
 
 ### LFENCE
 ###  - Load Fence
@@ -4245,7 +4154,7 @@ val /vex/66/0f/vexv [0x5f /r]
 ### MAXPS
 ###  - Return Maximum Packed Single-Precision Floating-Point Values
 val / [0x0f 0x5f /r] = binop sse MAXPS xmm128 xmm/m128
-val vex/0f/vexv [0x5f /r]
+val /vex/0f/vexv [0x5f /r]
  | vex128? = varity3 avx VMAXPS xmm128 v/xmm xmm/m128
  | vex256? = varity3 avx VMAXPS ymm256 v/ymm ymm/m256
 
@@ -4377,8 +4286,8 @@ val / [0x0f 0x7e /r]
  | rexw? = binop mmx MOVQ r/m64 mm64
  | otherwise = binop mmx MOVD r/m32 mm64
 val /vex/66/0f [0x6e /r]
- | vex128? & vexw1? = varity2 avx VMOVQ xmm128 r/m64
- | vex128? & vexw0? = varity2 avx VMOVD xmm128 r/m32
+ | vex128? && vexw1? = varity2 avx VMOVQ xmm128 r/m64
+ | vex128? && vexw0? = varity2 avx VMOVD xmm128 r/m32
 val /66 [0x0f 0x6e /r]
  | rexw? = binop sse2 MOVQ xmm128 r/m64
  | otherwise = binop sse2 MOVD xmm128 r/m32
@@ -4386,8 +4295,8 @@ val /66 [0x0f 0x7e /r]
  | rexw? = binop sse2 MOVQ r/m64 xmm128
  | otherwise = binop sse2 MOVD r/m32 xmm128
 val /vex/66/0f [0x7e /r]
- | vex128? & vexw1? = varity2 avx VMOVQ r/m64 xmm128
- | vex128? & vexw0? = varity2 avx VMOVD r/m32 xmm128
+ | vex128? && vexw1? = varity2 avx VMOVQ r/m64 xmm128
+ | vex128? && vexw0? = varity2 avx VMOVD r/m32 xmm128
 
 ### MOVDDUP
 ###  - Move One Double-FP and Duplicate
@@ -4466,9 +4375,9 @@ val /66 [0x0f 0x50 /r-reg]
  | mode64? = binop sse2 MOVMSKPD r64 xmm/reg128
  | otherwise = binop sse2 MOVMSKPD r32 xmm/reg128
 val /vex/66/0f [0x50 /r-reg]
- | vex128? & mode64? = varity2 avx VMOVMSKPD r64 xmm/reg128
+ | vex128? && mode64? = varity2 avx VMOVMSKPD r64 xmm/reg128
  | vex128? = varity2 avx VMOVMSKPD r32 xmm/reg128
- | vex256? & mode64? = varity2 avx VMOVMSKPD r64 ymm/reg256
+ | vex256? && mode64? = varity2 avx VMOVMSKPD r64 ymm/reg256
  | vex256? = varity2 avx VMOVMSKPD r32 ymm/reg256
 
 ### MOVMSKPS
@@ -4477,9 +4386,9 @@ val / [0x0f 0x50 /r-reg]
  | mode64? = binop sse MOVMSKPD r64 xmm/reg128
  | otherwise = binop sse MOVMSKPD r32 xmm/reg128
 val /vex/0f [0x50 /r-reg]
- | vex128? & mode64? = varity2 avx VMOVMSKPS r64 xmm/reg128
+ | vex128? && mode64? = varity2 avx VMOVMSKPS r64 xmm/reg128
  | vex128? = varity2 avx VMOVMSKPS r32 xmm/reg128
- | vex256? & mode64? = varity2 avx VMOVMSKPS r64 ymm/reg256
+ | vex256? && mode64? = varity2 avx VMOVMSKPS r64 ymm/reg256
  | vex256? = varity2 avx VMOVMSKPS r32 ymm/reg256
 
 ### MOVNTDQA
@@ -4581,7 +4490,7 @@ val / [0x0f 0xbf /r]
  | otherwise = binop none MOVSX r32 r/m16
 val / [0x63 /r] #Partially listed in manual; the following lines resulted from test cases
  | rexw? = binop none MOVSXD r64 r/m32
- | mode64? & opndsz? = binop none MOVSXD r16 r/m32
+ | mode64? && opndsz? = binop none MOVSXD r16 r/m32
  | mode64? = binop none MOVSXD r32 r/m32
  | mode32? = binop none ARPL r/m16 r16
 
@@ -4854,7 +4763,7 @@ val /vex/66/0f/vexv [0xe3 /r] | vex128? = varity3 avx VPAVGW xmm128 v/xmm xmm/m1
 ###  - Variable Blend Packed Bytes
 # Todo: /is4? (possible meaning: 4 bits of the immediate are used to select register?)
 val /66 [0x0f 0x38 0x10 /r] = binop sse4_1 PBLENDVB xmm128 xmm/m128
-val /vex/66/0f/3a/vexv [0x4c /r] | vexw0? & vex128? = varity4 avx VPBLENDVB xmm128 v/xmm xmm/m128 imm/xmm
+val /vex/66/0f/3a/vexv [0x4c /r] | vexw0? && vex128? = varity4 avx VPBLENDVB xmm128 v/xmm xmm/m128 imm/xmm
 
 ### PBLENDW
 ###  - Blend Packed Words
@@ -4864,7 +4773,7 @@ val /vex/66/0f/3a/vexv [0x0e /r] | vex128? = varity4 avx VPBLENDW xmm128 v/xmm x
 ### PCLMULQDQ
 ###  - Carry-Less Multiplication Quadword
 val /66 [0x0f 0x3a 0x44 /r] = ternop clmul PCLMULQDQ xmm128 xmm/m128 imm8
-val /vex/66/0f/3a/vexv [0x44 /r] | vex128? = varity4 (orm clmul avx) VPCLMULQDQ xmm128 v/xmm xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x44 /r] | vex128? = varity4 (clmul or avx) VPCLMULQDQ xmm128 v/xmm xmm/m128 imm8
 
 ### PCMPEQB/PCMPEQW/PCMPEQD
 ###  - Compare Packed Data for Equal
@@ -4929,11 +4838,11 @@ val /66 [0x0f 0x3a 0x16 /r]
  | rexw? = ternop sse4_1 PEXTRQ r/m64 xmm128 imm8
  | otherwise = ternop sse4_1 PEXTRD r/m32 xmm128 imm8
 val /vex/66/0f/3a [0x14 /r]
- | vex128? & mode64? = varity3 avx VPEXTRB r64/m8 xmm128 imm8 #Footnote: vexw1 is ignored
- | vex128? & vexw0? = varity3 avx VPEXTRB r32/m8 xmm128 imm8
+ | vex128? && mode64? = varity3 avx VPEXTRB r64/m8 xmm128 imm8 #Footnote: vexw1 is ignored
+ | vex128? && vexw0? = varity3 avx VPEXTRB r32/m8 xmm128 imm8
 val /vex/66/0f/3a [0x16 /r]
- | vex128? & vexw0? = varity3 avx VPEXTRD r/m32 xmm128 imm8
- | vex128? & vexw1? = varity3 avx VPEXTRQ r/m64 xmm128 imm8
+ | vex128? && vexw0? = varity3 avx VPEXTRD r/m32 xmm128 imm8
+ | vex128? && vexw1? = varity3 avx VPEXTRQ r/m64 xmm128 imm8
 
 ### PEXTRW
 ###  - Extract Word
@@ -4947,11 +4856,11 @@ val /66 [0x0f 0x3a 0x15 /r]
  | mode64? = ternop sse4_1 PEXTRW r64/m16 xmm128 imm8
  | otherwise = ternop sse4_1 PEXTRW r32/m16 xmm128 imm8
 val /vex/66/0f [0xc5 /r-reg]
- | vex128? & mode64? = varity3 avx VPEXTRW r64 xmm/reg128 imm8 #Footnote: vexw1 is ignored
- | vex128? & vexw0? = varity3 avx VPEXTRW r32 xmm/reg128 imm8
+ | vex128? && mode64? = varity3 avx VPEXTRW r64 xmm/reg128 imm8 #Footnote: vexw1 is ignored
+ | vex128? && vexw0? = varity3 avx VPEXTRW r32 xmm/reg128 imm8
 val /vex/66/0f/3a [0x15 /r]
- | vex128? & mode64? & vexw0? = varity3 avx VPEXTRW r64/m16 xmm128 imm8
- | vex128? & vexw0? = varity3 avx VPEXTRW r32/m16 xmm128 imm8
+ | vex128? && mode64? && vexw0? = varity3 avx VPEXTRW r64/m16 xmm128 imm8
+ | vex128? && vexw0? = varity3 avx VPEXTRW r32/m16 xmm128 imm8
 
 ### PHADDW/PHADDD
 ###  - Packed Horizontal Add
@@ -4995,17 +4904,17 @@ val /66 [0x0f 0x3a 0x22 /r]
  | rexw? = ternop sse4_1 PINSRQ xmm128 r/m64 imm8
  | otherwise = ternop sse4_1 PINSRD xmm128 r/m32 imm8
 val /vex/66/0f/3a/vexv [0x20 /r]
- | vex128? & (orm mode64? vexw0?) = varity4 avx VPINSRB xmm128 v/xmm r32/m8 imm8
+ | vex128? && (mode64? || vexw0?) = varity4 avx VPINSRB xmm128 v/xmm r32/m8 imm8
 val /vex/66/0f/3a/vexv [0x22 /r]
- | vex128? & vexw0? = varity4 avx VPINSRD xmm128 v/xmm r/m32 imm8
- | vex128? & vexw1? = varity4 avx VPINSRQ xmm128 v/xmm r/m64 imm8
+ | vex128? && vexw0? = varity4 avx VPINSRD xmm128 v/xmm r/m32 imm8
+ | vex128? && vexw1? = varity4 avx VPINSRQ xmm128 v/xmm r/m64 imm8
 
 ### PINSRW
 ###  - Insert Word
 val / [0x0f 0xc4 /r] = ternop sse PINSRW mm64 r32/m16 imm8
 val /66 [0x0f 0xc4 /r] = ternop sse2 PINSRW xmm128 r32/m16 imm8
 val /vex/66/0f/vexv [0xc4 /r]
- | vex128? & (orm mode64? vexw0?) = varity4 avx VPINSRW xmm128 v/xmm r32/m16 imm8
+ | vex128? && (mode64? || vexw0?) = varity4 avx VPINSRW xmm128 v/xmm r32/m16 imm8
 
 ### PMADDUBSW
 ###  - Multiply and Add Packed Signed and Unsigned Bytes
@@ -5092,7 +5001,7 @@ val /66 [0x0f 0xd7 /r-reg]
  | mode64? = binop sse2 PMOVMSKB r64 xmm/reg128
  | otherwise = binop sse2 PMOVMSKB r32 xmm/reg128
 val /vex/66/0f [0xd7 /r-reg]
- | vex128? & mode64? = varity2 avx VPMOVMSKB r64 xmm/reg128
+ | vex128? && mode64? = varity2 avx VPMOVMSKB r64 xmm/reg128
  | vex128? = varity2 avx VPMOVMSKB r32 xmm/reg128
 
 ### PMOVSX
@@ -5190,7 +5099,7 @@ val / [0x0f 0xa9]
 ### POPA/POPAD
 ###  - Pop All General-Purpose Registers
 val / [0x61]
- | mode32? & opndsz? = arity0 none POPA
+ | mode32? && opndsz? = arity0 none POPA
  | mode32? = arity0 none POPAD
 
 ### POPCNT
@@ -5422,8 +5331,8 @@ val / [0x6a]
  | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop none PUSH imm8 end
 val / [0x68]
  | rexw? = do opndsz-set-from-d; update@{default-operand-size=64}; unop none PUSH imm32 end
- | opndsz? & mode32? = do opndsz-set-from-d; unop none PUSH imm16 end
- | opndsz? & mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop none PUSH imm16 end
+ | opndsz? && mode32? = do opndsz-set-from-d; unop none PUSH imm16 end
+ | opndsz? && mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop none PUSH imm16 end
  | mode32? = do opndsz-set-from-d; unop none PUSH imm32 end
  | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop none PUSH imm32 end
 val / [0x0e] | mode32? = do opndsz-set-from-d; unop none PUSH cs end
@@ -5439,7 +5348,7 @@ val / [0x0f 0xa8]
 ### PUSHA/PUSHAD
 ###  - Push All General-Purpose Registers
 val / [0x60]
- | mode32? & opndsz? = arity0 none PUSHA
+ | mode32? && opndsz? = arity0 none PUSHA
  | mode32? = arity0 none PUSHAD
 
 ### PUSHF/PUSHFD
@@ -5533,10 +5442,10 @@ val /vex/f3/0f/vexv [0x53 /r] = varity3 avx VRCPSS xmm128 v/xmm xmm/m32
 ### RDFSBASE/RDGSBASE
 ###  - Read FS/GS Segment Base
 val /f3 [0x0f 0xae /0-reg]
- | mode64? & rexw? = unop fsgsbase RDFSBASE r/reg64
+ | mode64? && rexw? = unop fsgsbase RDFSBASE r/reg64
  | mode64? = unop fsgsbase RDFSBASE r/reg32
 val /f3 [0x0f 0xae /1-reg]
- | mode64? & rexw? = unop fsgsbase RDGSBASE r/reg64
+ | mode64? && rexw? = unop fsgsbase RDGSBASE r/reg64
  | mode64? = unop fsgsbase RDGSBASE r/reg32
 
 ### RDMSR
@@ -5563,13 +5472,13 @@ val / [0x0f 0x31] = arity0 none RDTSC
 #val / [0x0f 0x01 0xf9] = arity0 RDTSCP
 val / [0x0f 0x01 /7-reg] = do
   rm <- query $rm;
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   if rm == '001' then
     arity0 none RDTSCP
   else
-	  case mode64 of
-		   '1': arity0 none SWAPGS
-		end
+    case mode64 of
+       '1': arity0 none SWAPGS
+    end
 end
 
 ### REP/REPE/REPZ/REPNE/REPNZ
@@ -5922,8 +5831,8 @@ val / [0x0f 0x35]
 ### SYSRET
 ###  - Return From Fast System Call
 val / [0x0f 0x07]
- | mode64? & rexw? = arity0 none SYSRET
- | mode64? & otherwise = arity0 none SYSRET
+ | mode64? && rexw? = arity0 none SYSRET
+ | mode64? = arity0 none SYSRET
 
 ### TEST
 ###  - Logical Compare
@@ -5988,22 +5897,22 @@ val /vex/0f/vexv [0x14 /r]
 ### VBROADCAST
 ###  - Load with Broadcast
 val /vex/66/0f/38 [0x18 /r-mem]
- | vex128? & vexw0? & mode32? = varity2 avx VBROADCASTSS xmm128 m32
- | vex256? & vexw0? = varity2 avx VBROADCASTSS ymm256 m32
-val /vex/66/0f/38 [0x19 /r-mem] | vex256? & vexw0? = varity2 avx VBROADCASTSD ymm256 m64
-val /vex/66/0f/38 [0x1a /r-mem] | vex256? & vexw0? = varity2 avx VBROADCASTF128 ymm256 m128
+ | vex128? && vexw0? && mode32? = varity2 avx VBROADCASTSS xmm128 m32
+ | vex256? && vexw0? = varity2 avx VBROADCASTSS ymm256 m32
+val /vex/66/0f/38 [0x19 /r-mem] | vex256? && vexw0? = varity2 avx VBROADCASTSD ymm256 m64
+val /vex/66/0f/38 [0x1a /r-mem] | vex256? && vexw0? = varity2 avx VBROADCASTF128 ymm256 m128
 
 ### VCVTPH2PS
 ###  - Convert 16-bit FP Values to Single-Precision FP Values
 val /vex/66/0f/38 [0x13 /r]
- | vex256? & vexw0? = varity2 f16c VCVTPH2PS ymm256 xmm/m128
- | vex128? & vexw0? = varity2 f16c VCVTPH2PS xmm128 xmm/m64
+ | vex256? && vexw0? = varity2 f16c VCVTPH2PS ymm256 xmm/m128
+ | vex128? && vexw0? = varity2 f16c VCVTPH2PS xmm128 xmm/m64
 
 ### VCVTPS2PH
 ###  - Convert Single-Precision FP value to 16-bit FP value
 val /vex/66/0f/3a [0x1d /r]
- | vex256? & vexw0? = varity3 f16c VCVTPS2PH xmm/m128 ymm256 imm8
- | vex128? & vexw0? = varity3 f16c VCVTPS2PH xmm/m64 xmm128 imm8
+ | vex256? && vexw0? = varity3 f16c VCVTPS2PH xmm/m128 ymm256 imm8
+ | vex128? && vexw0? = varity3 f16c VCVTPS2PH xmm/m64 xmm128 imm8
 
 ### VERR/VERW
 ###  - Verify a Segment for Reading or Writing
@@ -6012,57 +5921,57 @@ val / [0x0f 0x00 /5] = unop none VERW r/m16
 
 ### VEXTRACTF128
 ###  - Extract Packed Floating-Point Values
-val /vex/66/0f/3a [0x19 /r] | vex256? & vexw0? = varity3 avx VEXTRACTF128 xmm/m128 ymm256 imm8
+val /vex/66/0f/3a [0x19 /r] | vex256? && vexw0? = varity3 avx VEXTRACTF128 xmm/m128 ymm256 imm8
 
 ### VINSERTF128
 ###  - Insert Packed Floating-Point Values
-val /vex/66/0f/3a/vexv [0x18 /r] | vex256? & vexw0? = varity4 avx VINSERTF128 ymm256 v/ymm xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x18 /r] | vex256? && vexw0? = varity4 avx VINSERTF128 ymm256 v/ymm xmm/m128 imm8
 
 ### VMASKMOV
 ###  - Conditional SIMD Packed Loads and Stores
 val /vex/66/0f/38/vexv [0x2c /r-mem]
- | vex128? & vexw0? = varity3 avx VMASKMOVPS xmm128 v/xmm m128
- | vex256? & vexw0? = varity3 avx VMASKMOVPS ymm256 v/ymm m256
+ | vex128? && vexw0? = varity3 avx VMASKMOVPS xmm128 v/xmm m128
+ | vex256? && vexw0? = varity3 avx VMASKMOVPS ymm256 v/ymm m256
 val /vex/66/0f/38/vexv [0x2d /r-mem]
- | vex128? & vexw0? = varity3 avx VMASKMOVPD xmm128 v/xmm m128
- | vex256? & vexw0? = varity3 avx VMASKMOVPD ymm256 v/ymm m256
+ | vex128? && vexw0? = varity3 avx VMASKMOVPD xmm128 v/xmm m128
+ | vex256? && vexw0? = varity3 avx VMASKMOVPD ymm256 v/ymm m256
 val /vex/66/0f/38/vexv [0x2e /r-mem]
- | vex128? & vexw0? = varity3 avx VMASKMOVPS m128 v/xmm xmm128
- | vex256? & vexw0? = varity3 avx VMASKMOVPS m256 v/ymm ymm256
+ | vex128? && vexw0? = varity3 avx VMASKMOVPS m128 v/xmm xmm128
+ | vex256? && vexw0? = varity3 avx VMASKMOVPS m256 v/ymm ymm256
 val /vex/66/0f/38/vexv [0x2f /r-mem]
- | vex128? & vexw0? = varity3 avx VMASKMOVPD m128 v/xmm xmm128
- | vex256? & vexw0? = varity3 avx VMASKMOVPD m256 v/ymm ymm256
+ | vex128? && vexw0? = varity3 avx VMASKMOVPD m128 v/xmm xmm128
+ | vex256? && vexw0? = varity3 avx VMASKMOVPD m256 v/ymm ymm256
 
 ### VPERMILPD
 ###  - Permute Double-Precision Floating-Point Values
 val /vex/66/0f/38/vexv [0x0d /r]
- | vex128? & vexw0? = varity3 avx VPERMILPD xmm128 v/xmm xmm/m128
- | vex256? & vexw0? = varity3 avx VPERMILPD ymm256 v/ymm ymm/m256
+ | vex128? && vexw0? = varity3 avx VPERMILPD xmm128 v/xmm xmm/m128
+ | vex256? && vexw0? = varity3 avx VPERMILPD ymm256 v/ymm ymm/m256
 val /vex/66/0f/3a [0x05 /r]
- | vex128? & vexw0? = varity3 avx VPERMILPD xmm128 xmm/m128 imm8
- | vex256? & vexw0? = varity3 avx VPERMILPD ymm256 ymm/m256 imm8
+ | vex128? && vexw0? = varity3 avx VPERMILPD xmm128 xmm/m128 imm8
+ | vex256? && vexw0? = varity3 avx VPERMILPD ymm256 ymm/m256 imm8
 
 ### VPERMILPS
 ###  - Permute Single-Precision Floating-Point Values
 val /vex/66/0f/38/vexv [0x0c /r]
- | vex128? & vexw0? = varity3 avx VPERMILPS xmm128 v/xmm xmm/m128
- | vex256? & vexw0? = varity3 avx VPERMILPS ymm256 v/ymm ymm/m256
+ | vex128? && vexw0? = varity3 avx VPERMILPS xmm128 v/xmm xmm/m128
+ | vex256? && vexw0? = varity3 avx VPERMILPS ymm256 v/ymm ymm/m256
 val /vex/66/0f/3a [0x04 /r]
- | vex128? & vexw0? = varity3 avx VPERMILPS xmm128 xmm/m128 imm8
- | vex256? & vexw0? = varity3 avx VPERMILPS ymm256 ymm/m256 imm8
+ | vex128? && vexw0? = varity3 avx VPERMILPS xmm128 xmm/m128 imm8
+ | vex256? && vexw0? = varity3 avx VPERMILPS ymm256 ymm/m256 imm8
 
 ### VPERM2F128
 ###  - Permute Floating-Point Values
-val /vex/66/0f/3a/vexv [0x06 /r] | vex256? & vexw0? = varity4 avx VPERM2F128 ymm256 v/ymm ymm/m256 imm8
+val /vex/66/0f/3a/vexv [0x06 /r] | vex256? && vexw0? = varity4 avx VPERM2F128 ymm256 v/ymm ymm/m256 imm8
 
 ### VTESTPD/VTESTPS
 ###  - Packed Bit Test
 val /vex/66/0f/38 [0x0e /r]
- | vex128? & vexw0? = varity2 avx VTESTPS xmm128 xmm/m128
- | vex256? & vexw0? = varity2 avx VTESTPS ymm256 ymm/m256
+ | vex128? && vexw0? = varity2 avx VTESTPS xmm128 xmm/m128
+ | vex256? && vexw0? = varity2 avx VTESTPS ymm256 ymm/m256
 val /vex/66/0f/38 [0x0f /r]
- | vex128? & vexw0? = varity2 avx VTESTPD xmm128 xmm/m128
- | vex256? & vexw0? = varity2 avx VTESTPD ymm256 ymm/m256
+ | vex128? && vexw0? = varity2 avx VTESTPD xmm128 xmm/m128
+ | vex256? && vexw0? = varity2 avx VTESTPD ymm256 ymm/m256
 
 ### VZEROALL
 ###  - Zero All YMM Registers
@@ -6084,10 +5993,10 @@ val / [0x0f 0x09] = arity0 none WBINVD
 ### WRFSBASE/WRGSBASE
 ###  - Write FS/GS Segment Base
 val /f3 [0x0f 0xae /2-reg]
- | mode64? & rexw? = unop fsgsbase WRFSBASE r/reg64
+ | mode64? && rexw? = unop fsgsbase WRFSBASE r/reg64
  | mode64? = unop fsgsbase WRFSBASE r/reg32
 val /f3 [0x0f 0xae /3-reg]
- | mode64? & rexw? = unop fsgsbase WRGSBASE r/reg64
+ | mode64? && rexw? = unop fsgsbase WRGSBASE r/reg64
  | mode64? = unop fsgsbase WRGSBASE r/reg32
 
 ### WRMSR

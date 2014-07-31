@@ -2,10 +2,10 @@ MLTK=../..
 CC=gcc
 #CC=clang
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -std=c11 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 LIBRARY=libgdutil.a
-SOURCES=stack.c util.c
+SOURCES=stack.c util.c gdsl_elf.c decoder_config.c
 
 all: pre-build $(LIBRARY)
 

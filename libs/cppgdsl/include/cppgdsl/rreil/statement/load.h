@@ -28,15 +28,15 @@ public:
   load(int_t size, variable *lhs, address *_address);
   ~load();
 
-  int_t get_size() const {
+  int_t get_size() {
     return size;
   }
 
-  variable *get_lhs() const {
+  variable *get_lhs() {
     return lhs;
   }
 
-  const address *get_address() const {
+  address *get_address() {
     return _address;
   }
 

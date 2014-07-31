@@ -22,7 +22,7 @@ public:
   sexpr_lin(linear *inner);
   ~sexpr_lin();
 
-  linear *get_lin() const {
+  linear *get_lin() {
     return inner;
   }
 

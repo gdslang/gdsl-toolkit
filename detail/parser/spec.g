@@ -19,12 +19,18 @@
    | KW_type ("type")
    | KW_and ("and")
    | KW_or ("or")
+   | MONAD ("S")
+   | SMALLER ("<")
+   | LARGER (">")
    | WITH ("@")
    | SELECT ("$")
    | BIND ("<-")
+   | TO ("->")
+   | DOUBLE_TO ("=>")
    | EQ ("=")
    | TICK ("'")
    | DOT (".")
+   | UNIT ("()")
    | LP ("(")
    | RP (")")
    | LB ("[")
@@ -47,6 +53,7 @@
    | MID of Atom.atom
    | CONS of Atom.atom
    | POSINT of IntInf.int (* positive integer *)
+   | HEXINT of int * IntInf.int (* hex number with bit size *)
    | NEGINT of IntInf.int (* negative integer *)
    | FLOAT of FloatLit.float
    | STRING of string
@@ -100,11 +107,8 @@ Program
    ;
 
 Decl
-   : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
-   | "export" "=" Export* => (markDecl (FULL_SPAN, PT.EXPORTdecl Export))
-   | "type" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, [], ConDecls)))
-   | "type" Name "[" Name ("," Name)* "]" "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name1, Name2 :: SR, ConDecls)))
-   | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
+   : "export" Qid TyVars ":" Ty => (markDecl (FULL_SPAN, PT.EXPORTdecl (Qid,TyVars,Ty)))
+   | "type" Name TyVars "=" TyDef => (TyDef (Name, TyVars))
    | "val" Name Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
    | "val" Sym Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
    | "val" (MID Name => ((MID,Name)))* "=" Exp => (
@@ -122,9 +126,14 @@ Decl
       (markDecl (FULL_SPAN, decl))
    ; 
 
-Export
-   : Qid => ((Qid,[]))
-   | Qid "{" Name ("," Name)* "}" => ((Qid,Name :: SR))
+TyVars
+   : "[" Name ("," Name)* "]" => (Name :: SR)
+   | (* empty *) => ([])
+   ;
+
+TyDef
+   : ConDecls => (fn (name,tvars) => markDecl (FULL_SPAN, PT.DATATYPEdecl (name, tvars, ConDecls)))
+   | Ty => (fn (name,tvars) => markDecl (FULL_SPAN, PT.TYPEdecl (name, Ty)))
    ;
 
 ConDecls
@@ -138,12 +147,22 @@ ConDecl
 Ty
    : Int => (mark PT.MARKty (FULL_SPAN, PT.BITty Int))
    | "|" Int "|" => (mark PT.MARKty (FULL_SPAN, PT.BITty Int))
+   | "|" Qid "|" => (mark PT.MARKty (FULL_SPAN, PT.NAMEDty (Qid,[])))
    | Qid =>
          (mark PT.MARKty (FULL_SPAN, PT.NAMEDty (Qid,[])))
    | Qid "[" TyBind ("," TyBind)* "]"=>
          (mark PT.MARKty (FULL_SPAN, PT.NAMEDty (Qid,TyBind :: SR)))
    | "{" Name ":" Ty ("," Name ":" Ty)* "}" =>
       (mark PT.MARKty (FULL_SPAN, PT.RECORDty ((Name, Ty)::SR)))
+   | "{" "}" =>
+      (mark PT.MARKty (FULL_SPAN, PT.RECORDty []))
+   | "(" Ty ("," Ty)* ")" "->" Ty =>
+      (mark PT.MARKty (FULL_SPAN, PT.FUNCTIONty (Ty1::SR,Ty2)))
+   | "()" "->" Ty =>
+      (mark PT.MARKty (FULL_SPAN, PT.FUNCTIONty ([],Ty)))
+   | "()" => (mark PT.MARKty (FULL_SPAN, PT.UNITty))
+   | "S" Ty "<" Ty "=>" Ty ">" =>
+      (mark PT.MARKty (FULL_SPAN, PT.MONADty (Ty1,Ty2,Ty3)))
    ;
 
 TyBind
@@ -152,17 +171,16 @@ TyBind
    ;
 
 DecodePat
-   : BitPat => (BitPat)
+   : BitPat => (mark PT.MARKdecodepat (FULL_SPAN, PT.BITdecodepat BitPat))
    | TokPat => (mark PT.MARKdecodepat (FULL_SPAN, PT.TOKENdecodepat TokPat))
    ;
 
 BitPat
-   : "'" PrimBitPat+ "'" =>
-      (mark PT.MARKdecodepat (FULL_SPAN, PT.BITdecodepat PrimBitPat))
+   : "'" PrimBitPat+ "'" => (PrimBitPat)
    ;
 
 TokPat
-   : Int => (mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat Int))
+   : HEXINT => (mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat HEXINT))
    | Qid => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Qid))
    ;
 
@@ -227,9 +245,10 @@ Cases
 
 Pat
    : "_" => (mark PT.MARKpat (FULL_SPAN, PT.WILDpat))
-   | Lit => (mark PT.MARKpat (FULL_SPAN, PT.LITpat Lit))
+   | Int => (mark PT.MARKpat (FULL_SPAN, PT.INTpat Int))
    | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat Name))
    | ConUse Pat? => (mark PT.MARKpat (FULL_SPAN, PT.CONpat (ConUse, Pat)))
+   | BitPat => (mark PT.MARKpat (FULL_SPAN, PT.BITpat BitPat))
    ;
 
 OrElseExp
@@ -280,11 +299,14 @@ SelectExp
    ;
 
 ApplyExp
-   : AtomicExp exp=
-      ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))) =>
-         (mark PT.MARKexp (FULL_SPAN, exp))
+   : AtomicExp Args => (mark PT.MARKexp (FULL_SPAN, Args AtomicExp))
    | "~" AtomicExp =>
       (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span={file= !sourcemap, span=FULL_SPAN}, tree=Op.minus}, [PT.LITexp (PT.INTlit 0), AtomicExp])))
+   ;
+
+Args
+   : args=(AtomicExp*) => (fn f => mkApply(f, args))
+   | "()" => (fn f => PT.APPLYexp (f,[]))
    ;
 
 AtomicExp
@@ -318,6 +340,7 @@ Field
 
 ValueDecl
    : "val" Name Name* "=" Exp => (Name1, Name2, Exp)
+   | "val" Sym Name* "=" Exp => (Sym, Name, Exp)
    ;
 
 Lit
@@ -328,6 +351,7 @@ Lit
 
 Int
    : POSINT => (POSINT)
+   | HEXINT => (case (HEXINT) of (size,i) => i)
    | NEGINT => (NEGINT)
    ;
 
@@ -338,14 +362,18 @@ Name
 (* Constructors *)
 ConBind
    : CONS => (CONS)
+   | "S" => (Atom.atom "S")
    ;
 
 ConUse
    : CONS => ({span={file= !sourcemap, span=FULL_SPAN}, tree=CONS})
+   | "S" => ({span={file= !sourcemap, span=FULL_SPAN}, tree=Atom.atom "S"})
    ;
 
 Sym
    : SYMBOL => (SYMBOL)
+   | "<" => (Atom.atom "<")
+   | ">" => (Atom.atom ">")
    ;
 
 Qid

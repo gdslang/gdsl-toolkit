@@ -24,15 +24,15 @@ public:
   lin_binop(binop_lin_op op, linear *opnd1, linear *opnd2);
   ~lin_binop();
 
-  binop_lin_op get_op() const {
+  binop_lin_op get_op() {
     return op;
   }
 
-  linear *get_opnd1() const {
+  linear *get_opnd1() {
     return opnd1;
   }
 
-  linear *get_opnd2() const {
+  linear *get_opnd2() {
     return opnd2;
   }
 

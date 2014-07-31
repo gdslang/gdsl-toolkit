@@ -13,18 +13,23 @@
 
 
 struct state {
+  void* userdata;      /* a pointer to arbitrary data */
   char* heap_base;    /* the beginning of the heap */
   char* heap_limit;   /* first byte beyond the heap buffer */
   char* heap;         /* current top of the heap */
 @state_type@
 ;      /* the current monadic state */
-  char* ip_start;      /* beginning of code buffer */
-  size_t ip_base;      /* base address of code */
+  char* ip_start;     /* beginning of code buffer */
+  size_t ip_base;     /* base address of code */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
   char* err_str;      /* a string describing the fatal error that occurred */
   jmp_buf err_tgt;    /* the position of the exception handler */
   FILE* handle;       /* the file that the puts primitve uses */
+  char* const_heap_base;
+  /* the following fields contain the values of constant GDSL expressions */
+  @gdsl_constants@
+
 };
 
 #define CHUNK_SIZE (4*1024)
@@ -216,9 +221,8 @@ static inline int_t consume ## size(state_t s) {          \
   return res;                                             \
 }
 
-GEN_CONSUME(8);
-GEN_CONSUME(16);
-GEN_CONSUME(32);
+@consumes@
+
 
 static int_t vec_to_signed(state_t s, vec_t v) {
   unsigned int bit_size = sizeof(int_t)*8;
@@ -277,14 +281,6 @@ static string_t int_to_string(state_t s, int_t v) {
   }
 };
 
-state_t 
-@init@
-() {
-  state_t s = calloc(1,sizeof(struct state));
-  s->handle = stdout;
-  return s;
-}
-
 void 
 @set_code@
 (state_t s, char* buf, size_t buf_len, size_t base) {
@@ -311,17 +307,6 @@ int_t
 	return 0;
 }
 
-/*
-int_t 
-(state_t s, int_t i) {
-  char *new_ip = s->ip + i;
-	if(new_ip >= s->ip_limit || new_ip < s->ip_base)
-	  return 1;
-	s->ip = new_ip;
-	return 0;
-}
-*/
-
 string_t
 @merge_rope@
 (state_t s, obj_t rope) {
@@ -342,36 +327,133 @@ void
 @reset_heap@
 (s);
   free(s->heap_base);
+  /* free heap of GDSL constants */
+  char* heap = s->const_heap_base;
+  while (heap!=NULL) {
+    char* prev = *((char**) heap);
+    free (heap);
+    heap = prev;
+  }
   free(s);
 }
 
 @prototypes@
 
+
+@functions@
+
+
+state_t 
+@init@
+() {
+  state_t s = calloc(1,sizeof(struct state));
+  s->handle = stdout;
+  /* compute all constant expressions */
+@gdsl_init_constants@
+
+  /* keep the heap of constant expressions separate */
+  s->const_heap_base = s->heap_base;
+  s->heap_base = NULL;
+  s->heap_limit = NULL;
+  s->heap = NULL;
+  return s;
+}
+
+
 #ifdef WITHMAIN
-#ifdef GDSL_NO_PREFIX
+
+#if defined(gdsl_decode_translate_block_optimized) && defined(gdsl_rreil_pretty)
+  #define HAVE_TRANS
+#endif
+#if defined(gdsl_decode) && defined(gdsl_pretty)
+  #define HAVE_DECODE
+#endif
 
 #define BUF_SIZE 32*1024*1024
 static char blob[BUF_SIZE];
 
 int main (int argc, char** argv) {
   uint64_t buf_size = BUF_SIZE;
+  FILE* file = NULL;
+  int_t decode_options = 0;
+  int_t run_translate = 0;
+  int_t translate_options = 0;
+  int_t base_address = 0;
+  int_t start_address = 0;
   unsigned int i,c;
-  for (i=0;i<buf_size;i++) {
-     int x = fscanf(stdin,"%x",&c);
-     switch (x) {
-        case EOF:
-           goto done;
-        case 0: {
-           fprintf(stderr, "invalid input; should be in hex form: '0f 0b ..'");
-           return 1;
-        }
-     }
-     blob[i] = c & 0xff;
-  }
-done:
-  buf_size = i;
+  obj_t config;
   state_t s = gdsl_init();
-  gdsl_set_code(s, blob, buf_size, 0);
+
+  /* read command line parameters */
+  for(i=1; i<argc; i++) {
+    char* arg = argv[i];
+    if (strncmp(arg,"--",2)) {
+      file = fopen(arg,"r");
+      if (file==NULL) {
+        printf("file '%s' not found, please run %s --help for usage\n", arg, argv[0]);
+        return 1;
+      }
+    } else {
+      arg+=2;
+#if defined(gdsl_decoder_config)
+      for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
+        config = gdsl_conf_next(s,config))
+        if (strcmp(arg,gdsl_conf_short(s,config))==0) {
+          decode_options |= gdsl_conf_data(s,config);
+          break;
+        }
+      if (gdsl_has_conf(s,config)) continue;
+#endif
+      if (strncmp(arg,"base=",5)==0) {
+        scanf(arg+5,"%lli",&base_address);
+        continue;
+      }
+      if (strncmp(arg,"start=",6)==0) {
+        scanf(arg+6,"%lli",&start_address);
+        continue;
+      }
+      if (strcmp(arg,"trans")==0) {
+        run_translate = 1;
+        continue;
+      }
+      fprintf(stderr,
+        "usage: %s [options] filename\nwhere\n"
+        "  --trans          translate to semantics\n"
+        "  --base=addr      print addresses relative to addr\n"
+        "  --start=addr     decode starting from addr\n", argv[0]);
+#if defined(gdsl_decoder_config)
+      for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
+        config = gdsl_conf_next(s,config))
+        fprintf(stderr,"  --%s\t\t%s\n",
+          gdsl_conf_short(s,config), gdsl_conf_long(s,config));
+#endif
+      return 1;
+    }
+  }
+  /* fill the buffer, either in binary from file or as sequence
+     of hex bytes separated by space or newlines */
+  if (file) {
+    size_t bytes_read = fread(blob, 1, BUF_SIZE, file);
+    if (bytes_read == 0) return 1;
+    buf_size = bytes_read;
+  } else {
+    for (i=0;i<buf_size;i++) {
+       int x = fscanf(stdin,"%x",&c);
+       switch (x) {
+          case EOF: {
+            buf_size = i;
+          }; break;
+          case 0: {
+             fprintf(stderr, "invalid input; should be in hex form: '0f 0b ..'");
+             return 1;
+          }
+       }
+       blob[i] = c & 0xff;
+    }
+  }  
+  /* initialize the GDSL program */
+  gdsl_set_code(s, blob, buf_size, base_address);
+  gdsl_seek(s, start_address);
   
   int_t alloc_size = 0;
   int_t alloc_no = 0;
@@ -379,25 +461,36 @@ done:
 
   while (gdsl_get_ip_offset(s)<buf_size) {
     if (setjmp(*gdsl_err_tgt(s))==0) {
-      if (argc>1) {
-#if defined(gdsl_translateBlock) && defined(gdsl_rreil_pretty)
-        obj_t rreil = gdsl_translateBlock(s, gdsl_config_default(s));
+      if (run_translate) {
+#ifdef HAVE_TRANS
+        int_t address = gdsl_get_ip_offset(s);
+        obj_t rreil = gdsl_decode_translate_block_optimized(s,
+          decode_options,
+          gdsl_int_max(s),
+          2);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
+        printf("%llx:\n",address);
         fputs(str,stdout);
+#else
+        fputs("GDSL modules contain no semantic translation\n",stdout);
+        return 1;
 #endif
       } else {
-#if defined(gdsl_decode) && defined(gdsl_pretty)
-        obj_t instr = gdsl_decode(s, gdsl_config_default(s));
+#ifdef HAVE_DECODE
+        obj_t instr = gdsl_decode(s, decode_options);
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
+#else
+        fputs("GDSL modules contain no decoder function\n",stdout);
+        return 1;
 #endif
       }
     } else {
       fputs("exception: ",stdout);
       fputs(gdsl_get_error_message(s),stdout);
-			if (gdsl_get_ip_offset(s)<buf_size) consume8(s);
+      if (gdsl_seek(s,gdsl_get_ip_offset(s)+1)) break;
     }
     fputs("\n",stdout);
     int_t size = gdsl_heap_residency(s);
@@ -412,7 +505,5 @@ done:
 }
 
 #endif
-#endif
 
-@functions@
 

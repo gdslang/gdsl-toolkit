@@ -18,9 +18,16 @@ structure SizeConstraint : sig
    val listItems : size_constraint_set -> size_constraint list
 
    val filter : TVar.set * size_constraint_set -> size_constraint_set
+
+   val projectOut : TVar.set * size_constraint_set -> TVar.set * size_constraint_set
+
    val merge : size_constraint_set * size_constraint_set ->
                size_constraint_set
    val rename : TVar.tvar * TVar.tvar * size_constraint_set ->
+                size_constraint_set
+   val renameAll : (TVar.tvar, TVar.tvar) HashTable.hash_table * size_constraint_set ->
+                size_constraint_set
+   val expand : (TVar.tvar, TVar.tvar) HashTable.hash_table * size_constraint_set ->
                 size_constraint_set
    val getVarset : size_constraint_set -> TVar.set
    val toStringSI : size_constraint_set * TVar.set option * TVar.varmap ->
@@ -44,10 +51,10 @@ end = struct
 
    fun filter (vs, scs) =
       let
-         fun hasDeadLeading {terms = ts as (_::_), const} =
+         fun containsVar {terms = ts as (_::_), const} =
             List.exists (fn (_,v) => TVar.member (vs,v)) ts
-           | hasDeadLeading _ = raise SizeConstraintBug 
-         val scs = List.filter hasDeadLeading scs
+           | containsVar _ = raise SizeConstraintBug 
+         val scs = List.filter containsVar scs
       in
          scs
       end
@@ -196,14 +203,6 @@ end = struct
          { terms = [], const = c}
          ((~1,lhs) :: List.map (fn v => (1,v)) terms)
 
-   fun getVarset scs =
-      let
-         fun gV ({terms = ts, const}, vs) =
-            List.foldl (fn ((fac,var), vs) => TVar.add (var,vs)) vs ts
-      in
-         List.foldl gV TVar.empty scs
-      end
-   
    fun diff (scs1, scs2) =
       let
          fun cmp ({terms=(_,v1)::_, const=_},{terms=(_,v2)::_, const=_}) =
@@ -254,4 +253,68 @@ end = struct
       in
          merge (renamed, retained)
       end
+   
+   structure HT = HashTable
+   
+   fun renameAll (ht, scs) =
+      let
+         fun rename { terms = ts, const = c } =
+            {terms = map (fn (f,v) => (f,
+               case HT.find ht v of SOME v => v
+                                  | NONE => v
+               )) ts, const = c}
+      in
+         fromList (map rename scs)
+      end
+
+   fun expand (ht,scs) =
+      let
+         (*val (tVar1, si) = TVar.varToString (v1, TVar.emptyShowInfo)
+         val (tVar2, si) = TVar.varToString (v2, si)
+         val (sStr, si) = toStringSI (scs, NONE, si)
+         val _ = TextIO.print ("renaming " ^ tVar1 ^ " to " ^ tVar2 ^ " in " ^ sStr ^ "\n")*)
+         fun hasVs {terms = ts,const} =
+            List.exists (fn (_,v) => HT.inDomain ht v) ts
+         val withVar = List.filter hasVs scs
+         fun renameVars (sc as {terms = ts,const}) =
+            List.foldl (fn (v,sc) => case lookupVarSC (v,sc) of f =>
+               addTermToSC (f,HT.lookup ht v, addTermToSC (~f,v, sc)))
+               sc (List.filter (HT.inDomain ht) (List.map #2 ts))
+         val renamed = List.map renameVars withVar
+         val renamed = List.filter
+               (fn {terms=ts,const} => not (List.null ts)) renamed
+      in
+         merge (renamed, scs)
+      end
+
+   fun getVarset scs =
+      let
+         fun gV ({terms = ts, const}, vs) =
+            List.foldl (fn ((fac,var), vs) => TVar.add (var,vs)) vs ts
+      in
+         List.foldl gV TVar.empty scs
+      end
+   
+   fun projectOut (vs, scs) =
+      let
+         fun containsVar {terms = ts as (_::_), const} =
+            List.exists (fn (_,v) => TVar.member (vs,v)) ts
+           | containsVar _ = raise SizeConstraintBug 
+         val (scsWith,scsWithout) = List.partition containsVar scs
+         fun elimVar (v,scs) =
+            let
+               val facSCS = ListPair.zip (List.map (fn sc => lookupVarSC (v,sc)) scs, scs)
+               val (scsZero,scsNonzero) = List.partition (fn (fac,_) => fac=0) facSCS
+            in
+               case scsNonzero of
+                  (fac,sc) :: facSCS =>
+                     merge (map (fn (fac',sc') => mergeSC (fac',~fac,sc,sc')) facSCS, map #2 scsZero)
+                | [] => map #2 scsZero
+            end
+         val badVars = TVar.intersection (vs,getVarset scsWith)
+         val scsProjected = foldl elimVar scsWith (TVar.listItems badVars)
+      in                       
+         (badVars, merge (scsProjected, scsWithout))
+      end
+
 end

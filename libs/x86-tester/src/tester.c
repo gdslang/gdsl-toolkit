@@ -308,7 +308,7 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 
 	context_free(context_cpu);
 
-	cu_b: ;
+//	cu_b: ;
 	tracking_trace_free(trace);
 	context_free(context_rreil);
 
@@ -398,7 +398,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 	}
 
 	callbacks_t callbacks = rreil_gdrr_builder_callbacks_get(state);
-	struct rreil_statements *statements = (struct rreil_statements*)gdsl_rreil_convert_sem_stmts(state, callbacks, rreil);
+	struct rreil_statements *statements = (struct rreil_statements*)gdsl_rreil_convert_sem_stmt_list(state, callbacks, rreil);
 	free(callbacks);
 
 	result = tester_forked_test_translated(fork_, statements, data, data_size, test_unused);

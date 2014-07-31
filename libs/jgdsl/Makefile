@@ -4,12 +4,9 @@ CC=gcc
 LIBDS=-L$(MLTK)/lib
 LIBS=-lgdsl-multiplex
 LIBFLAGS=$(LIBDS) $(LIBS)
-INCDS=-Iinclude -I$(MLTK)/include -I/usr/lib/jvm/java-7-openjdk-amd64/include
+INCDS=-Iinclude -I$(MLTK)/include
 
 DEFINES=-DRELAXEDFATAL
-ifdef GDSL_X86
-DEFINES+=-DGDSL_X86
-endif
 
 CFLAGS=-std=c11 -g3 -fPIC -shared -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
@@ -17,7 +14,7 @@ LIBRARY=libjgdsl.so
 JAR_SRC=jgdsl-src.jar
 JAR=jgdsl.jar
 
-C_SOURCES=src/gdsl_rreil_BuilderBackend.c src/gdsl_Gdsl.c src/gdsl_decoder_Instruction.c src/gdsl_Frontend.c src/gdsl_BareFrontend.c src/gdsl_ListFrontend.c src/util.c
+C_SOURCES=src/gdsl_rreil_BuilderBackend.c src/gdsl_Gdsl.c src/gdsl_decoder_NativeInstruction.c src/gdsl_Frontend.c src/gdsl_BareFrontend.c src/gdsl_ListFrontend.c src/util.c src/gdsl_asm_GeneralizerBackend.c
 
 all: pre-build $(LIBRARY) $(JAR_SRC) $(JAR)
 

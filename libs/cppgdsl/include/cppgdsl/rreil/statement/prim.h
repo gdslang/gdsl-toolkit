@@ -30,15 +30,15 @@ public:
   prim(std::string op, std::vector<variable_limited*> lhs, std::vector<variable_limited*> rhs);
   ~prim();
 
-  std::string get_op() const {
+  std::string get_op() {
     return op;
   }
 
-  std::vector<variable_limited*> const &get_lhs() const {
+  std::vector<variable_limited*> const &get_lhs() {
     return lhs;
   }
 
-  std::vector<variable_limited*> const &get_rhs() const {
+  std::vector<variable_limited*> const &get_rhs() {
     return rhs;
   }
 

@@ -5,6 +5,14 @@ structure Imp = struct
    
    type sym = SymbolTable.symid
 
+   (* Sort the fields in a record. *)
+   fun sortFields fs =
+      let
+         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
+      in
+         ListMergeSort.uniqueSort fieldCmp fs
+      end
+   
    (* types of values *)
    datatype vtype =
          VOIDvtype
@@ -12,9 +20,39 @@ structure Imp = struct
        | INTvtype
        | STRINGvtype
        | OBJvtype
-       | RECORDvtype of bool * (SymbolTable.symid * vtype) list (* record with a fixed set of fields, boolean is true if record should be boxed *)
+       | RECORDvtype of bool * (SymbolTable.symid * vtype) list (* record with a fixed set of fields (ordered by sortFields), boolean is true if record should be boxed *)
        | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *)
        | MONADvtype of vtype (* result of monadic action *) 
+
+   fun spectypeToVtype (ta : SpecAbstractTree.ty SymMap.map,
+                        ty : SpecAbstractTree.ty) =
+      let
+         open SpecAbstractTree
+         val spanRef = ref SymbolTable.noSpan
+         fun trType ta (MARKty {span = s, tree=t}) =
+            (spanRef := s; trType ta t)
+           | trType ta (BITty sz) = INTvtype (* a vector with symbolic size is VECvtype *)
+           | trType ta (NAMEDty (sym,args)) =
+           (case SymMap.find (ta,sym) of
+                SOME ty => (
+                   (*TextIO.print ("found synonym " ^ Layout.tostring (PP.ty ty) ^ "\n");*)
+                   trType (List.foldl SymMap.insert' ta args) ty
+                   )
+              | NONE => OBJvtype
+           )
+           | trType ta (RECORDty fs) =
+            RECORDvtype (false,map (fn (f,ty) => (f,trType ta ty)) (sortFields fs))
+           | trType ta (FUNCTIONty (args,res)) =
+              FUNvtype (trType ta res, false, map (trType ta) args)
+           | trType ta (MONADty (res,inp,out)) =
+              MONADvtype (trType ta res)
+           | trType ta INTty = INTvtype
+           | trType ta UNITty = VOIDvtype
+           | trType ta STRINGty = STRINGvtype
+         val vtype = trType ta ty
+      in
+         (vtype,!spanRef)
+      end
 
    type arg = vtype * sym
 
@@ -115,6 +153,7 @@ structure Imp = struct
 
    datatype decl =
       FUNCdecl of {
+        funcIsConst : bool,
         funcClosure : arg list,
         funcType : vtype,
         funcName : sym,
@@ -181,8 +220,11 @@ structure Imp = struct
    type imp = {
       decls : decl list,
       fdecls : vtype SymMap.map,
-      exports : sym list,
-      monad : vtype
+      exports : (sym list * SpecAbstractTree.ty) SymMap.map,
+      typealias: SpecAbstractTree.ty SymMap.map,
+      datatypes: (sym * SpecAbstractTree.ty option) list SymMap.map,
+      monad : vtype,
+      errs : Error.err_stream
    }
 
    structure Spec = struct
@@ -212,6 +254,7 @@ structure Imp = struct
 
       fun arg (t,n) = seq [vtype t, space, var n]
       fun decl (FUNCdecl {
+           funcIsConst,
            funcClosure,
            funcType,
            funcName,
@@ -221,6 +264,7 @@ structure Imp = struct
          }) =
             align [
                seq ([vtype funcType, space, var funcName] @
+                   (if funcIsConst then [str " CONST"] else []) @
                    (if null funcClosure then [] else
                      args ("[", arg, funcClosure, "]")) @
                    (args ("(", arg, funcArgs, ")")) @
@@ -298,8 +342,26 @@ structure Imp = struct
       and def (intro, body) =
          align [seq [intro, space, str "="], indent 3 body]
       fun decls ds = align (map decl ds)
-      fun imp ({ decls = ds, fdecls = fs, exports, monad } : imp) = decls ds
+      fun imp ({ decls = ds, fdecls = fs,
+                 exports, typealias, datatypes, monad, errs } : imp) = decls ds
       val pretty = Pretty.pretty o imp
       val spec = Spec.PP.spec imp
    end
+
+   fun genRecSignature fs =
+      let
+         fun normArg (n,t) = (n, normType t)
+         and normType (RECORDvtype (_,fs)) = RECORDvtype (true, map normArg fs)
+           | normType (FUNvtype (res,_,args)) = FUNvtype (normType res,false,map normType args)
+           | normType (MONADvtype t) = MONADvtype (normType t)
+           | normType t = t
+
+         val str = foldl (fn ((f,t),str) =>
+            Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)) ^
+                           ":" ^ Layout.tostring (PP.vtype (normType t)) ^ "\n" ^ str)
+            "" (sortFields fs)
+      in
+         Atom.atom str
+      end
+
 end

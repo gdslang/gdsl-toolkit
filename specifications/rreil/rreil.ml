@@ -1,5 +1,5 @@
 # vim:ai:filetype=sml:ts=3:sw=3:expandtab
-export = rreil-stmts-count
+export rreil-stmts-count : (sem_stmt_list) -> int
 
 type sem_id =
    FLOATING_FLAGS
@@ -56,8 +56,8 @@ type sem_expr =
 
 type sem_varl = {id:sem_id, offset:int, size:int}
 
-type sem_varls =
-   SEM_VARLS_CONS of {hd:sem_varl, tl:sem_varls}
+type sem_varl_list =
+   SEM_VARLS_CONS of {hd:sem_varl, tl:sem_varl_list}
  | SEM_VARLS_NIL
 
 type sem_flop =
@@ -66,15 +66,15 @@ type sem_flop =
  | SEM_FMUL
 
 type sem_stmt =
-   SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr}
+   SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr} #size denotes the size of right-hand side operands
  | SEM_LOAD of {size:int, lhs:sem_var, address:sem_address}
  | SEM_STORE of {size:int, address:sem_address, rhs:sem_linear}
- | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmts, else_branch:sem_stmts}
- | SEM_WHILE of {cond:sem_sexpr, body:sem_stmts}
+ | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmt_list, else_branch:sem_stmt_list}
+ | SEM_WHILE of {cond:sem_sexpr, body:sem_stmt_list}
  | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}
  | SEM_BRANCH of {hint:branch_hint, target:sem_address}
- | SEM_FLOP of {op:sem_flop, flags:sem_var, lhs:sem_varl, rhs:sem_varls}
- | SEM_PRIM of {op:string, lhs:sem_varls, rhs:sem_varls}
+ | SEM_FLOP of {op:sem_flop, flags:sem_var, lhs:sem_varl, rhs:sem_varl_list}
+ | SEM_PRIM of {op:string, lhs:sem_varl_list, rhs:sem_varl_list}
  | SEM_THROW of sem_exception
 
 type branch_hint =
@@ -82,8 +82,8 @@ type branch_hint =
   | HINT_CALL
   | HINT_RET
 
-type sem_stmts =
-   SEM_CONS of {hd:sem_stmt, tl:sem_stmts}
+type sem_stmt_list =
+   SEM_CONS of {hd:sem_stmt, tl:sem_stmt_list}
  | SEM_NIL
 
 val rreil-stmts-rev stmts =
@@ -97,8 +97,6 @@ val rreil-stmts-rev stmts =
       lp stmts SEM_NIL
    end
 
-val _var x = {id=x,offset=0}
-val _var x _offset o = {id=x, offset=o}
 val at-offset v o = @{offset=o} v
 val var x = SEM_LIN_VAR x
 val varl sz x = @{size=sz}x
@@ -160,7 +158,7 @@ val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
 val /BRANCH hint address = SEM_BRANCH{hint=hint,target=address}
 val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
-val /BFLOP sz op r a b = SEM_FLOP{op=op,flags=_var FLOATING_FLAGS,lhs=varl-from-var sz r,rhs=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))}
+val /BFLOP sz op r a b = SEM_FLOP{op=op,flags={id=FLOATING_FLAGS, offset=0},lhs=varl-from-var sz r,rhs=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))}
 val /PRIM op lhs rhs = SEM_PRIM{op=op,lhs=lhs,rhs=rhs}
 val /THROW exception = SEM_THROW exception
 
@@ -449,3 +447,31 @@ val rreil-stmts-count stmts = let
 in
   count 0 stmts
 end
+
+val rreil-ltid? a b =
+   let
+      val ltf? a b =
+         case b of
+            VIRT_T x: '0'
+          | _ : index a < index b
+         end
+   in
+      case a of
+         VIRT_T x:
+            case b of
+               VIRT_T y: x < y
+             | _ : '1'
+            end
+       | _: ltf? a b
+      end
+   end
+
+val rreil-ltvar? a b = if rreil-ltid? a.id b.id then
+  true
+else
+  a.offset < b.offset
+
+val rreil-ltvarl? a b = if rreil-ltvar? a b then
+  true
+else
+  a.size < b.size

@@ -24,15 +24,15 @@ public:
   expr_binop(binop_op op, linear *opnd1, linear *opnd2);
   ~expr_binop();
 
-  binop_op get_op() const {
+  binop_op get_op() {
     return op;
   }
 
-  linear *get_opnd1() const {
+  linear *get_opnd1() {
     return opnd1;
   }
 
-  linear *get_opnd2() const {
+  linear *get_opnd2() {
     return opnd2;
   }
 

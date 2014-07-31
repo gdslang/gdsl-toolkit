@@ -1,6 +1,6 @@
 package gdsl.translator;
 
-import gdsl.decoder.Instruction;
+import gdsl.decoder.NativeInstruction;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
 
@@ -12,7 +12,7 @@ import gdsl.rreil.statement.IStatement;
  * @author Julian Kranz
  */
 public class TranslatedBlock {
-  private Instruction[] instructions;
+  private NativeInstruction[] instructions;
   private IRReilCollection<IStatement> rreil;
   
   /**
@@ -20,7 +20,7 @@ public class TranslatedBlock {
    * 
    * @return an array consisting of the native instructions
    */
-  public Instruction[] getInstructions () {
+  public NativeInstruction[] getInstructions () {
     return instructions;
   }
   
@@ -33,7 +33,7 @@ public class TranslatedBlock {
     return rreil;
   }
 
-  TranslatedBlock (Instruction[] instructions, IRReilCollection<IStatement> rreil) {
+  TranslatedBlock (NativeInstruction[] instructions, IRReilCollection<IStatement> rreil) {
     this.instructions = instructions;
     this.rreil = rreil;
   }

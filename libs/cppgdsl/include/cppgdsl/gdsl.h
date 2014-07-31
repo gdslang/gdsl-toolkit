@@ -23,8 +23,8 @@ extern "C" {
 
 class gdsl {
 private:
-  state_t gdsl_state;
-  _frontend *frontend;
+  state_t gdsl_state = NULL;
+  _frontend *frontend = NULL;
 
   std::vector<rreil::statement*> *convert(obj_t rreil);
 public:
@@ -37,13 +37,13 @@ public:
   int_t get_ip_offset();
   void set_code(char *buffer, uint64_t size, uint64_t base);
   bool seek(int_t ip);
+  void reset_heap();
 
   /*
    * decoder
    */
   instruction decode();
   std::string pretty_instruction(obj_t insn);
-  int_t insn_length(obj_t insn);
 
   /*
    * translator

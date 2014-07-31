@@ -7,6 +7,7 @@
 
 #pragma once
 #include <cppgdsl/rreil/id/id.h>
+#include <cppgdsl/rreil/visitor.h>
 #include <iosfwd>
 #include <string>
 extern "C" {
@@ -26,16 +27,18 @@ public:
   variable(id *_id, int_t offset);
   virtual ~variable();
 
-  id *get_id() const {
+  id *get_id() {
     return _id;
   }
 
-  int_t get_offset() const {
+  int_t get_offset() {
     return offset;
   }
 
   std::string to_string();
   friend std::ostream &operator<< (std::ostream &out, variable &_this);
+
+  virtual void accept(visitor &v);
 };
 
 std::ostream &operator<<(std::ostream &out, variable &_this);

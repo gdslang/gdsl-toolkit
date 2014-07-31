@@ -31,15 +31,15 @@ public:
   expr_ext(ext_op op, int_t fromsize, linear *opnd);
   ~expr_ext();
 
-  int_t get_fromsize() const {
+  int_t get_fromsize() {
     return fromsize;
   }
 
-  ext_op get_op() const {
+  ext_op get_op() {
     return op;
   }
 
-  linear *get_opnd() const {
+  linear *get_opnd() {
     return opnd;
   }
 

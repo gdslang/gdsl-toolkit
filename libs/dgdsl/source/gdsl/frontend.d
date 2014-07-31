@@ -10,16 +10,11 @@ class Frontend : IReferable {
   
   private ReferenceManager _refManager;
   
-//  //Todo: immutable
-//  @property public ref auto native() {
-//    return _native;
-//  }
-  
   @property public ReferenceManager refManager() {
     return _refManager;
   }
   
-  this(string name) {
+  this(string name) {   
     _refManager = new ReferenceManager(this);
     
     char result = gdsl_multiplex_frontend_get_by_lib_name(&_native, (name ~ '\0').ptr);

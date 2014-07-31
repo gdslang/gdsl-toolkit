@@ -1,109 +1,105 @@
 val registers-live-map = let
-	val add map r = do
-	 reg-sem <- return (semantic-register-of r);
-   return (fmap-add-range map reg-sem.id reg-sem.size reg-sem.offset)
-	end
-in do
-  map <- return (fmap-empty {});
-
-  map <- add map R0;
-  map <- add map R1;
-  map <- add map R2;
-  map <- add map R3;
-  map <- add map R4;
-  map <- add map R5;
-  map <- add map R6;
-  map <- add map R7;
-  map <- add map R8;
-  map <- add map R9;
-  map <- add map R10;
-  map <- add map R11;
-  map <- add map R12;
-  map <- add map R13;
-  map <- add map R14;
-  map <- add map R15;
-  map <- add map R16;
-  map <- add map R17;
-  map <- add map R18;
-  map <- add map R19;
-  map <- add map R20;
-  map <- add map R21;
-  map <- add map R22;
-  map <- add map R23;
-  map <- add map R24;
-  map <- add map R25;
-  map <- add map R26;
-  map <- add map R27;
-  map <- add map R28;
-  map <- add map R29;
-  map <- add map R30;
-  map <- add map R31;
-  map <- add map IO0;
-  map <- add map IO1;
-  map <- add map IO2;
-  map <- add map IO3;
-  map <- add map IO4;
-  map <- add map IO5;
-  map <- add map IO6;
-  map <- add map IO7;
-  map <- add map IO8;
-  map <- add map IO9;
-  map <- add map IO10;
-  map <- add map IO11;
-  map <- add map IO12;
-  map <- add map IO13;
-  map <- add map IO14;
-  map <- add map IO15;
-  map <- add map IO16;
-  map <- add map IO17;
-  map <- add map IO18;
-  map <- add map IO19;
-  map <- add map IO20;
-  map <- add map IO21;
-  map <- add map IO22;
-  map <- add map IO23;
-  map <- add map IO24;
-  map <- add map IO25;
-  map <- add map IO26;
-  map <- add map IO27;
-  map <- add map IO28;
-  map <- add map IO29;
-  map <- add map IO30;
-  map <- add map IO31;
-  map <- add map IO32;
-  map <- add map IO33;
-  map <- add map IO34;
-  map <- add map IO35;
-  map <- add map IO36;
-  map <- add map IO37;
-  map <- add map IO38;
-  map <- add map IO39;
-  map <- add map IO40;
-  map <- add map IO41;
-  map <- add map IO42;
-  map <- add map IO43;
-  map <- add map IO44;
-  map <- add map IO45;
-  map <- add map IO46;
-  map <- add map IO47;
-  map <- add map IO48;
-  map <- add map IO49;
-  map <- add map IO50;
-  map <- add map IO51;
-  map <- add map IO52;
-  map <- add map IO53;
-  map <- add map IO54;
-  map <- add map IO55;
-  map <- add map RAMPD;
-  map <- add map RAMPX;
-  map <- add map RAMPY;
-  map <- add map RAMPZ;
-  map <- add map EIND;
-  map <- add map SPL;
-  map <- add map SPH;
-  map <- add map SREG;
-  map <- add map PC;
-  map <- add map SP;
-
-  return map
-end end
+  val ++- map reg-sem = 
+    fmap-add-range map reg-sem.id reg-sem.size reg-sem.offset
+  val ++ map r = map ++- semantic-register-of r
+in
+  fmap-empty 
+  ++ R0
+  ++ R1
+  ++ R2
+  ++ R3
+  ++ R4
+  ++ R5
+  ++ R6
+  ++ R7
+  ++ R8
+  ++ R9
+  ++ R10
+  ++ R11
+  ++ R12
+  ++ R13
+  ++ R14
+  ++ R15
+  ++ R16
+  ++ R17
+  ++ R18
+  ++ R19
+  ++ R20
+  ++ R21
+  ++ R22
+  ++ R23
+  ++ R24
+  ++ R25
+  ++ R26
+  ++ R27
+  ++ R28
+  ++ R29
+  ++ R30
+  ++ R31
+  ++ IO0
+  ++ IO1
+  ++ IO2
+  ++ IO3
+  ++ IO4
+  ++ IO5
+  ++ IO6
+  ++ IO7
+  ++ IO8
+  ++ IO9
+  ++ IO10
+  ++ IO11
+  ++ IO12
+  ++ IO13
+  ++ IO14
+  ++ IO15
+  ++ IO16
+  ++ IO17
+  ++ IO18
+  ++ IO19
+  ++ IO20
+  ++ IO21
+  ++ IO22
+  ++ IO23
+  ++ IO24
+  ++ IO25
+  ++ IO26
+  ++ IO27
+  ++ IO28
+  ++ IO29
+  ++ IO30
+  ++ IO31
+  ++ IO32
+  ++ IO33
+  ++ IO34
+  ++ IO35
+  ++ IO36
+  ++ IO37
+  ++ IO38
+  ++ IO39
+  ++ IO40
+  ++ IO41
+  ++ IO42
+  ++ IO43
+  ++ IO44
+  ++ IO45
+  ++ IO46
+  ++ IO47
+  ++ IO48
+  ++ IO49
+  ++ IO50
+  ++ IO51
+  ++ IO52
+  ++ IO53
+  ++ IO54
+  ++ IO55
+  ++ RAMPD
+  ++ RAMPX
+  ++ RAMPY
+  ++ RAMPZ
+  ++ EIND
+  ++ SPL
+  ++ SPH
+  ++ SREG
+  ++ PC
+  ++ SP
+end

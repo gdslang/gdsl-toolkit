@@ -13,9 +13,12 @@ end = struct
    open Core
    open Imp
    
+   structure AST = SpecAbstractTree
+
    val constructors: (Spec.sym * Spec.ty option) SymMap.map ref = ref SymMap.empty
    val datatypes : (Spec.sym * (Spec.sym * Spec.ty option) list) list ref = ref []
-   
+   val typealias : (sym * AST.ty) list ref = ref []
+
    fun freeVars (Exp.LETVAL (s,b,e)) =
       SymSet.union (freeVars b,
          SymSet.difference (freeVars e, SymSet.singleton s))
@@ -68,7 +71,8 @@ end = struct
      | freeVars _ = SymSet.empty
 
 
-   type state = { globalExp : exp SymMap.map ref,
+   type state = { exports : (sym list * SpecAbstractTree.ty) SymMap.map,
+                  globalExp : exp SymMap.map ref,
                   declVars : SymSet.set ref,
                   resVar : SymbolTable.symid,
                   functions : decl list ref,
@@ -93,6 +97,7 @@ end = struct
          val (tab, res) = SymbolTable.fresh (tab, Atom.atom (str ^ "Res"))
          val _ = SymbolTables.varTable := tab
          val s' = {
+               exports = #exports s,
                globalExp = #globalExp s,
                declVars = #declVars s,
                resVar = res,
@@ -141,6 +146,7 @@ end = struct
       let
          val localDecls = ref SymSet.empty
          val s' = f {
+               exports = #exports s,
                globalExp = #globalExp s,
                declVars = localDecls,
                resVar = #resVar s,
@@ -191,7 +197,8 @@ end = struct
                      UPDATEexp (symDummy, OBJvtype, fieldsExps, IDexp symArg))])
                   val fArgs = map (fn arg => (OBJvtype,arg)) (args @ [symArg])
                   val _ = addDecl s 
-                           (FUNCdecl { funcClosure = [],
+                           (FUNCdecl { funcIsConst = false,
+                                       funcClosure = [],
                                        funcType = fType,
                                        funcName = sym,
                                        funcArgs = fArgs,
@@ -235,7 +242,8 @@ end = struct
                         ASSIGNstmt (SOME symRes, SELECTexp (symDum, OBJvtype, field, IDexp symArg))
                      ])
                   val _ = addDecl s 
-                           (FUNCdecl { funcClosure = [],
+                           (FUNCdecl { funcIsConst = false,
+                                       funcClosure = [],
                                        funcType = fType,
                                        funcName = sym,
                                        funcArgs = [(OBJvtype,symArg)],
@@ -485,8 +493,7 @@ end = struct
            | trans acc res ((f,e) :: es) = (case trExpr s e of
               (stmts, e') => trans (acc @ stmts) (res @ [(f,e')]) es)
          val (stmts, unsortedFields) = trans [] [] fs
-         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
-         val fields = ListMergeSort.uniqueSort fieldCmp unsortedFields
+         val fields = sortFields unsortedFields
          val _ = app (fn (f,e) => addField s f) fs
       in
          (stmts, RECORDexp (symDum, OBJvtype, fields))
@@ -499,8 +506,7 @@ end = struct
            | trans acc res ((f,e) :: es) = (case trExpr s e of
               (stmts, e') => trans (acc @ stmts) (res @ [(f,e')]) es)
          val (stmts, unsortedUpdates) = trans [] [] us
-         fun updateCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
-         val updates = ListMergeSort.uniqueSort updateCmp unsortedUpdates
+         val updates = sortFields unsortedUpdates
          val clSym = addUpdate s (map #1 updates)
          val fTypeCl = FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) updates)
       in
@@ -593,6 +599,7 @@ end = struct
       in
          fn body =>
             addDecl s (FUNCdecl {
+              funcIsConst = null stdArgs andalso null clArgs,
               funcClosure = clArgs,
               funcType = fType,
               funcName = sym,
@@ -602,34 +609,24 @@ end = struct
             })
       end
 
-   fun translate spec =
+   fun translate (errs,spec) =
       Spec.upd
          (fn clauses =>
             let
                val () = constructors := Spec.get#constructors spec
                val () = datatypes := Spec.get#datatypes spec
-               fun exports clauses =
-                  rev (foldl
-                     (fn ((f, _, _), acc) => 
-                        let
-                           val fld =  f
-                        in
-                           (fld, Exp.ID f)::acc
-                        end)
-                     [] clauses)
-               fun exports spec =
-                  let 
-                     val es = Spec.get#exports spec
-                  in
-                     map (fn e => (Exp.ID e)) es
-                  end
+               val () = typealias := Spec.get#typealias spec
+               val exports = Spec.get#exports spec
+
                val decls = ref ([] : decl list)
                val fields = ref (SymMap.empty : vtype SymMap.map)
                val globs = foldl (fn (sym,m) => SymMap.insert (m,sym,IDexp sym))
                               SymMap.empty
                               (SymMap.listKeys (!Primitives.prim_map) @
                                SymMap.listKeys (!Primitives.prim_val_map))
-               val initialState = { globalExp = ref globs,
+
+               val initialState = { exports = exports,
+                                    globalExp = ref globs,
                                     declVars = ref SymSet.empty,
                                     resVar = SymbolTable.unsafeFromInt 1,
                                     functions = decls,
@@ -639,14 +636,20 @@ end = struct
                                    }
                val bogusExp = Exp.LIT (SpecAbstractTree.INTlit 42)
                val _ = trExpr initialState (Exp.LETREC (clauses, bogusExp))
+               fun mergeDatatype ((dt,cons),sm) = case SymMap.find (sm,dt) of
+                    NONE => SymMap.insert (sm,dt,cons)
+                  | SOME existing => SymMap.insert (sm,dt,existing @ cons)
             in
                { decls = !decls,
                  fdecls = !fields,
-                 exports = Spec.get #exports spec,
-                 monad = OBJvtype }
+                 exports = exports,
+                 typealias = List.foldl SymMap.insert' SymMap.empty (!typealias),
+                 datatypes = List.foldl mergeDatatype SymMap.empty (!datatypes),
+                 monad = OBJvtype,
+                 errs = errs }
             end) spec
 
-   fun dumpPre (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)
+   fun dumpPre (os, (_,spec)) = Pretty.prettyTo (os, Core.PP.spec spec)
    fun dumpPost (os, spec) = Pretty.prettyTo (os, Imp.PP.spec spec)
  
    val translate =
@@ -659,5 +662,8 @@ end = struct
           postExt="imp",
           postOutput=dumpPost}
 
-   fun run spec = CM.return (translate spec)
+   open CompilationMonad
+   infix >>=
+   fun run spec = getErrorStream >>= (fn errs =>
+                  return (translate (errs,spec)))
 end

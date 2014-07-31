@@ -37,3 +37,7 @@ std::ostream &gdsl::rreil::operator <<(std::ostream &out, expr_cmp &_this) {
   _this.put(out);
   return out;
 }
+
+void gdsl::rreil::expr_cmp::accept(visitor &v) {
+  v.visit(this);
+}

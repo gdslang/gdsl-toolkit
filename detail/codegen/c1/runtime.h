@@ -52,11 +52,6 @@ int_t
 @seek@
 (state_t s, size_t i);
 
-/* Adjust the current code position by this offset.
-int_t
-(state_t s, int_t i);
-*/
-
 /* An exception handler must be installed by calling setjmp with the argument
  * returned by this function.
  * If an exception occurs, control will return from setjmp with
@@ -101,6 +96,10 @@ void
 
 /* Exported functions. */
 @exports@
+
+#ifdef WITHMAIN
+  #define GDSL_NO_PREFIX
+#endif
 
 #ifdef GDSL_NO_PREFIX
 #define gdsl_init \

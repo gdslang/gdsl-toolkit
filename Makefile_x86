@@ -5,7 +5,7 @@ MLTONFLAGS=
 CFLAGS=-g3 -fPIC -Wall -Iinclude
 LFLAGS=-shared
 
-export GDSL_X86 := 1
+include x86.mk
 
 #GDSL=gdsl
 GDSL_MEX=_manual
@@ -15,17 +15,20 @@ GPREFIX=
 #GDSLFLAGS=
 
 #GDSL_SOURCES=$(shell find specifications/basis specifications/rreil specifications/x86 -type f -name '*.ml')
-GDSL_BASIS_HL=specifications/basis/prelude.ml specifications/basis/bbtree.ml specifications/basis/selectors.ml
+GDSL_BASIS_HL=specifications/basis/prelude.ml specifications/basis/bbtree.ml specifications/basis/tree-set.ml
 #GDSL_RREIL_EMIT_HL=specifications/rreil/rreil-emit.ml specifications/rreil/rreil-examples.ml specifications/rreil/rreil-cif.ml specifications/rreil/rreil-pretty.ml specifications/rreil/fmap.ml
 #GDSL_RREIL_DECL_HL=specifications/rreil/rreil-decl.ml
 GDSL_RREIL_HL=specifications/rreil/rreil.ml specifications/rreil/rreil-examples.ml specifications/rreil/rreil-cif.ml specifications/rreil/rreil-pretty.ml specifications/rreil/fmap.ml specifications/rreil/rreil-opt.ml specifications/rreil/rreil-translator.ml
-GDSL_OPT_HL=specifications/rreil/rreil-liveness.ml specifications/rreil/rreil-cleanup.ml
+GDSL_OPT_HL=specifications/rreil/rreil-liveness.ml specifications/rreil/rreil-forward-subst.ml specifications/rreil/rreil-cleanup.ml
 
-GDSL_X86_HL=specifications/x86/x86.ml specifications/x86/x86-util.ml specifications/x86/x86-pretty.ml specifications/x86/x86-pretty-simple.ml
-GDSL_X86_TRANS_HL=specifications/x86/x86-rreil-translator.ml specifications/x86/x86-rreil-translator-a-l.ml specifications/x86/x86-rreil-translator-m-z.ml specifications/x86/x86-rreil-registermapping.ml specifications/x86/x86-rreil-pretty.ml
+GDSL_X86_HL=specifications/x86/x86.ml specifications/x86/x86-traverse.ml specifications/x86/x86-pretty.ml specifications/x86/x86-asm.ml specifications/x86/x86-semantics-mapping.ml specifications/x86/x86-semantics-mapping-pretty.ml
+GDSL_X86_TRANS_HL=specifications/x86/x86-rreil-translator.ml specifications/x86/x86-rreil-translator-a-l.ml specifications/x86/x86-rreil-translator-m-z.ml
 GDSL_X86_OPT_HL=specifications/x86/x86-liveness.ml
+GDSL_X86_TEST_HL=specifications/x86-tester/x86-pretty-simple.ml
 
-GDSL_SOURCES=$(GDSL_BASIS_HL) $(GDSL_RREIL_HL) $(GDSL_X86_HL) $(GDSL_X86_TRANS_HL) $(GDSL_OPT_HL) $(GDSL_X86_OPT_HL)
+GDSL_ASM_HL=specifications/asm/asm.ml specifications/asm/asm-pretty.ml specifications/asm/asm-cif.ml
+
+GDSL_SOURCES=$(GDSL_BASIS_HL) $(GDSL_RREIL_HL) $(GDSL_X86_HL) $(GDSL_X86_TRANS_HL) $(GDSL_OPT_HL) $(GDSL_X86_OPT_HL) $(GDSL_X86_TEST_HL) $(GDSL_ASM_HL)
 
 .PHONY: libs tools
 

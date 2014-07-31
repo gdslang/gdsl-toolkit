@@ -139,7 +139,7 @@ structure JS0 = struct
          val exports = Spec.get#exports cpsSpec
          (* register exported names *)
          val () =
-            app (fn f =>
+            SymMap.appi (fn (f,_) =>
                let
                   val _ = Mangle.applyExport f
                in

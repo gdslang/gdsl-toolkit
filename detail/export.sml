@@ -26,6 +26,8 @@ structure Javascript = Javascript
 structure Imp = Imp
 structure C1 = C1
 structure SwitchReduce = SwitchReduce
+structure Path = Path
+structure TypeTable = TypeTable
 
 (** ## Exported functors *)
 

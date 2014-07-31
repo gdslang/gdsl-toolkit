@@ -27,7 +27,7 @@ private:
 public:
   shared_id(shared_id_type _id);
 
-  shared_id_type get_inner() const {
+  shared_id_type get_inner() {
     return inner;
   }
 

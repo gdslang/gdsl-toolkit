@@ -1798,7 +1798,7 @@ val sem-punpckl element-size x = sem-punpck-vpunpck-opnd '0' 0 element-size x.op
 val sem-vpunpckl element-size x = sem-punpck-vpunpck-opnd '1' 0 element-size x.opnd1 x.opnd2 x.opnd3
 
 val ps-push opnd-sz opnd = do
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   stack-addr-sz <- runtime-stack-address-size;
 
   sp-reg <-
@@ -1889,7 +1889,7 @@ val sem-pushf x = do
   mask <- return 0x0000000000244eff;
   flags <- rflags;
 
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   size <- return (
     if mode64 then
       if x.opnd-sz === 16 then
@@ -2653,7 +2653,7 @@ end
 
 val sem-vzeroall = do
   size <- return 256;
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
 
   xmm0 <- return (semantic-register-of XMM0);
   mov size xmm0 (imm 0);
@@ -2694,7 +2694,7 @@ end
 
 val sem-vzeroupper = do
   size <- return 128;
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
 
   xmm0 <- return (at-offset (semantic-register-of XMM0) size);
   mov size xmm0 (imm 0);

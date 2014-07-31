@@ -86,6 +86,10 @@ int main(int argc, char** argv) {
 	string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 	puts(fmt);
 
+  obj_t insn_asm = gdsl_generalize(state, insn);
+  string_t asm_gen_str = gdsl_merge_rope(state, gdsl_asm_pretty(state, insn_asm));
+	puts(asm_gen_str);
+
 	cleanup:
 
 	gdsl_destroy(state);

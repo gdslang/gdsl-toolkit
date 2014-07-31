@@ -25,7 +25,7 @@ private:
 public:
   shared_exception(shared_exception_type type);
 
-  shared_exception_type get_type() const {
+  shared_exception_type get_type() {
     return type;
   }
 

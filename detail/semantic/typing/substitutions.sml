@@ -16,6 +16,8 @@ structure Substitutions : sig
 
    val substsFilter : Substs * TVar.set -> Substs
    
+   val getDomain : Substs -> TVar.set
+   
    val applySubstsToVarset : Substs * TVar.set -> TVar.set
    
    val isEmpty : Substs -> bool
@@ -73,6 +75,9 @@ end = struct
 
    fun substsFilter (Substs ss, set) =
      Substs (List.filter (fn (v,_) => TVar.member (set,v)) ss)
+
+   fun getDomain (Substs ss) =
+      List.foldl TVar.add TVar.empty (List.map #1 ss)
 
    fun applySubstsToVarset (Substs ss, set) =
       let
@@ -283,6 +288,10 @@ end = struct
         | aS (VEC t) = VEC (aS t)
         | aS (CONST c) = CONST c
         | aS (ALG (ty, l)) = ALG (ty, List.map aS l)
+        | aS (SET (s,l)) = raise SubstitutionBug
+        | aS (FORALL (v,b,s)) = (case aS (VAR (v,b)) of
+            VAR (v,b) => FORALL (v,b,s)
+          | _ => raise SubstitutionBug)
         | aS (RECORD (var, b, fs)) =
          let
             val (fs, ei) = applySubstToRFields subst (fs, !eiRef)
@@ -477,6 +486,8 @@ end = struct
         if c1=c2 then s else raise UnificationFailure (Clash,
          "incompatible bit vectors sizes (" ^ Int.toString c1 ^ " and " ^
          Int.toString c2 ^ ")")
+     | mgu (SET _, _, s) = raise SubstitutionBug
+     | mgu (_, SET _, s) = raise SubstitutionBug
      | mgu (RECORD (v1,b1,l1), RECORD (v2,b2,l2), s) =
       let
          fun applySubsts (v, b, fs) = (case findSubstForVar (v, s) of

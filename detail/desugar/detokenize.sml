@@ -11,34 +11,52 @@ end = struct
 
    open AT DT 
 
-   val granularity = 8 
+   fun detokenize (n, ds) =
+       let
+          val sizeRef = ref (8 : int) (* a token has to be at least size 8 *)
+          val decls = map (detok sizeRef) ds
+       in
+          map (fn (pats, e) => (pats, !sizeRef, e)) decls
+       end
 
-   fun detokenize (n, ds) = map detok ds
+   and detok sizeRef (pats, e) = (detokPats sizeRef pats, FromAST.exp e)
 
-   and detok (pats, e) = (detokPats pats, FromAST.exp e)
-
-   and detokPats pats = map detokPat pats
+   and detokPats sizeRef pats =
+       let
+          val decodePats = map detokPat pats
+          fun lubSize x = if x>16 then 32 else if x>8 then 16 else 8
+          fun lubSizes (x,y) = lubSize (Int.max (x,y))
+          val _ = sizeRef := foldl lubSizes (!sizeRef) (map #1 decodePats)
+       in
+          map #2 decodePats
+       end
 
    and detokPat pat =
       case pat of
          MARKdecodepat t => detokPat (#tree t)
        | TOKENdecodepat pat => detokTokPat pat
-       | BITdecodepat pats => map detokBitPat pats
+       | BITdecodepat pats =>
+         let
+            val dtPats = map detokBitPat pats
+            val size = case dtPats of
+                 [] => 0
+               | (pat :: _) => DT.size pat
+         in
+            (size, dtPats)
+         end
 
    and detokTokPat pat =
       case pat of
          MARKtokpat t => detokTokPat (#tree t)
-       | TOKtokpat pat =>
+       | TOKtokpat (size,pat) =>
             let
-               (* XXX: this should be `granularity` dependend *)
-               val bitstr =
-                  IntInf.fmt
-                     StringCvt.BIN
-                     (IntInf.andb
-                        (IntInf.orb (pat, 0x100),
-                      0x1ff))
+               val bitstr = IntInf.fmt StringCvt.BIN pat
+               fun addZeros bitstr =
+						if String.size bitstr>=size then bitstr else
+                  addZeros ("0" ^ bitstr)
+               val bitstr = addZeros bitstr
             in
-               [Pat.VEC (String.substring (bitstr, 1, 8))]
+               (size,[Pat.VEC bitstr])
             end
        | _ => raise CM.CompilationError (* Inlining must have failed! *)
 

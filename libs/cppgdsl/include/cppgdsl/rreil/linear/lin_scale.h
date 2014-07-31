@@ -25,11 +25,11 @@ public:
   lin_scale(int_t _const, linear *opnd);
   ~lin_scale();
 
-  int_t get_const() const {
+  int_t get_const() {
     return _const;
   }
 
-  linear *get_opnd() const {
+  linear *get_opnd() {
     return opnd;
   }
 

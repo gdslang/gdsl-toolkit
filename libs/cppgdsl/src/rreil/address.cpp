@@ -28,3 +28,7 @@ std::ostream& gdsl::rreil::operator <<(std::ostream &out, address &_this) {
   out << "(" << *_this.lin << "/" << _this.size << ")";
   return out;
 }
+
+void gdsl::rreil::address::accept(visitor &v) {
+  v.visit(this);
+}

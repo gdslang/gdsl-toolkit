@@ -11,16 +11,19 @@ LIBDS=-L../lib
 #GDSL_X86:=1
 #endif
 
+#$(info $(MANAGED))
+
 DEFINES=-DRELAXEDFATAL
-ifdef GDSL_X86
-DEFINES+=-DGDSL_X86
+ifdef GDSL_ARCH
+UPPER_ARCH = $(shell echo $(GDSL_ARCH) | tr a-z A-Z)
+DEFINES+=-DGDSL_$(UPPER_ARCH)
 endif
 
-ifdef GDSL_X86
-endif
-LIBS+=-lgdsl -lelf -lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil
+LIBS +=-lgdsl -lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil -lelf
+LIBS_MULT +=-lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil -lelf
 
 LIBFLAGS=$(LIBDS) $(LIBS)
+LIB_MULTFLAGS=$(LIBDS) $(LIBS_MULT)
 LDFLAGS=
 INCDS=-I../include
 CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(DEFINES) $(INCDS)
@@ -28,9 +31,6 @@ CPPFLAGS=-c -std=c++11 -ggdb3 $(DEFINES) $(INCDS)
 
 PROJECTS=
 EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep semantics-opt liveness-sweep cppgdsl-demo
-ifdef GDSL_X86
-PROJECTS+=x86-test-runner x86-test-stats-runner xed-cmp
-endif
 
 .PHONY: $(PROJECTS) clean-projects
 
@@ -67,7 +67,7 @@ semantics-cif-cli.o: semantics-cif-cli.c
 ### cppgdsl-demo
 
 cppgdsl-demo: cppgdsl-demo.o
-	$(CPPC) $(LDFLAGS) cppgdsl-demo.o -lcppgdsl $(LIBFLAGS) -o $@
+	$(CPPC) $(LDFLAGS) cppgdsl-demo.o -lcppgdsl $(LIB_MULTFLAGS) -o $@
 
 cppgdsl-demo.o: cppgdsl-demo.cpp
 	$(CPPC) $(CPPFLAGS) cppgdsl-demo.cpp -o $@
@@ -93,7 +93,7 @@ liveness-sweep: liveness-sweep.o
 liveness-sweep.o: liveness-sweep.c
 	$(CC) $(CFLAGS) liveness-sweep.c -o $@
 
-ifdef GDSL_X86
+ifeq ($(GDSL_ARCH),x86)
 ### x86-test-runner
 x86-test-runner:
 	$(MAKE) -C $@

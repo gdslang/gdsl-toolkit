@@ -1,31 +1,40 @@
-export = translate{length, addr-sz, opnd-sz, lock, rep, repne, features, insn, mode64} decode-translate-block{insns} decode-translate-block-insns{insns} decode-translate-single{insns} decode-translate-super-block{insns} succ-pretty
+export decode-translate-block: (decoder-configuration, int) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
+export decode-translate-single: (decoder-configuration) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
+export decode-translate-block-insns: (decoder-configuration, int, (insn_list_obj, insndata) -> insn_list_obj) -> S sem_stmt_list <{insns: insn_list_obj} => {insns: insn_list_obj}>
+export decode-translate-super-block: (decoder-configuration, int) -> S translate-result <{insns: insn_list_obj} => {insns: insn_list_obj}>
+export select_ins_count: S int <{ins_count: int} => {ins_count: int}>
+export succ-pretty: (stmts_option, string) -> rope
 
 val insn-append-default a b = a
 
+type insndataD = INSNDATA of insndata
+
 val decode-translate-block-headless config limit insn-append = do
-   insn <- decode config;
-   insns <- query $insns;
-   update @{insns=insn-append insns insn};
-   translate-block-single insn;
-   jmp <- query $foundJump;
-   idx <- idxget;
-   if jmp or (idx >= limit) then
-     query $stack
-   else
-     decode-translate-block-headless config limit insn-append
+  insn <- decode config;
+  insns <- query $insns;
+  update @{insns=insn-append insns (case INSNDATA insn of INSNDATA insn : insn end)};
+  translate-block-single insn;
+  jmp <- query $foundJump;
+  idx <- idxget;
+  if jmp or (idx >= limit) then
+    query $stack
+  else
+    decode-translate-block-headless config limit insn-append
 end
 
 val decode-translate-block config limit = do
-   update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
+  update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
 	stmts <- decode-translate-block-headless config limit insn-append-default;
-   return (rreil-stmts-rev stmts)
+  return (rreil-stmts-rev stmts)
 end
 
 val decode-translate-block-insns config limit insn-append = do
-   update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
+  update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
 	stmts <- decode-translate-block-headless config limit insn-append;
-   return (rreil-stmts-rev stmts)
+  return (rreil-stmts-rev stmts)
 end
+
+val select_ins_count = query $ins_count
 
 val decode-translate-single config = decode-translate-block config 0
 
@@ -77,10 +86,14 @@ in
 end
 
 type stmts_option =
-   SO_SOME of sem_stmts
+   SO_SOME of sem_stmt_list
  | SO_NONE
 
-type translate-result = {insns:int, succ_a:int, succ_b:int}
+type translate-result = {
+  insns:sem_stmt_list,
+  succ_a:stmts_option,
+  succ_b:stmts_option
+}
 
 val decode-translate-super-block-insncb config limit insn-append = let
   val translate-block-at idx = do

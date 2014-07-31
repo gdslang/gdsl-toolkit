@@ -28,15 +28,15 @@ public:
   cbranch(sexpr *cond, address *target_true, address *target_false);
   ~cbranch();
 
-  sexpr const *get_cond() const {
+  sexpr *get_cond() {
     return cond;
   }
 
-  address const *get_target_false() const {
+  address *get_target_false() {
     return target_false;
   }
 
-  address const *get_target_true() const {
+  address *get_target_true() {
     return target_true;
   }
 

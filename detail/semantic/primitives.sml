@@ -6,6 +6,8 @@ structure Primitives = struct
    
    (* result type of the decoder function *)
    val size = freshVar ()
+   val size' = newFlow size
+   val size'' = newFlow size
    val stateA = freshVar ()
    val stateA' = newFlow stateA
    val stateB = freshVar ()
@@ -93,15 +95,13 @@ structure Primitives = struct
 
    (*create a type from two vectors to one vector, all of size s*)
    fun func (a,b) = FUN ([a],b)
-   fun vvv s = FUN ([VEC s, VEC s], VEC s)
-   fun vv  s = FUN ([VEC s], VEC s)
-   fun vvb s = FUN ([VEC s, VEC s], VEC (CONST 1))
+   fun vvv s = FUN ([VEC s, VEC (newFlow s)], VEC (newFlow s))
+   fun vv  s = FUN ([VEC s], VEC (newFlow s))
+   fun vvb s = FUN ([VEC s, VEC (newFlow s)], VEC (CONST 1))
 
-   val granularity : string = "stream granularity"
    val globalState : string = "global state"
    val caseExpression : string = "case expression"
-   val streamField : string = "input stream"
-
+   
    fun noFlow bFun = bFun
 
    val primitiveValues =
@@ -114,30 +114,28 @@ structure Primitives = struct
                BD.meetVarImpliesVar (bvar stateA', bvar stateA)},
        {name="unconsume8", ty=MONAD (UNIT,stateB, stateB'),
         flow = BD.meetVarImpliesVar (bvar stateB', bvar stateB)}, 
-       {name="consume16", ty=MONAD (VEC size,stateA, stateA'),
-        flow = BD.meetVarZero (bvar size) o
-               BD.meetVarImpliesVar (bvar stateA', bvar stateA)},
-       {name="unconsume16", ty=MONAD (UNIT,stateB, stateB'),
-        flow = BD.meetVarImpliesVar (bvar stateB', bvar stateB)}, 
-       {name="consume32", ty=MONAD (VEC size,stateA, stateA'),
-        flow = BD.meetVarZero (bvar size) o
-               BD.meetVarImpliesVar (bvar stateA', bvar stateA)},
-       {name="unconsume32", ty=MONAD (UNIT,stateB, stateB'),
-        flow = BD.meetVarImpliesVar (bvar stateB', bvar stateB)}, 
+       {name="consume16", ty=MONAD (VEC size',stateJ, stateJ'),
+        flow = BD.meetVarZero (bvar size') o
+               BD.meetVarImpliesVar (bvar stateJ', bvar stateJ)},      
+       {name="unconsume16", ty=MONAD (UNIT,stateK, stateK'),
+        flow = BD.meetVarImpliesVar (bvar stateK', bvar stateK)}, 
+       {name="consume32", ty=MONAD (VEC size'',stateL, stateL'),
+        flow = BD.meetVarZero (bvar size'') o
+               BD.meetVarImpliesVar (bvar stateL', bvar stateL)},    
+       {name="unconsume32", ty=MONAD (UNIT,stateM, stateM'),
+        flow = BD.meetVarImpliesVar (bvar stateM', bvar stateM)}, 
        {name="slice", ty=MONAD (freshVar (),stateC, stateC'),
         flow = BD.meetVarImpliesVar (bvar stateC', bvar stateC)},
        {name="raise", ty=MONAD (freshVar (),stateD, stateD'),
         flow = noFlow},
-       {name="idxget", ty=MONAD (ZENO, stateM, stateM'),
-        flow = BD.meetVarImpliesVar (bvar stateM', bvar stateM)},
-       (*{name="rseek", ty=func (ZENO, MONAD (ZENO, stateN, stateN')),
-        flow = BD.meetVarImpliesVar (bvar stateN', bvar stateN)},*)
+       {name="idxget", ty=MONAD (ZENO, stateN, stateN'),
+        flow = BD.meetVarImpliesVar (bvar stateN', bvar stateN)},   
        {name="seek", ty=func (ZENO, MONAD (ZENO, stateO, stateO')),
         flow = BD.meetVarImpliesVar (bvar stateO', bvar stateO)},
        {name="/z", ty=FUN([ZENO, ZENO],ZENO),flow=noFlow},
        {name="index", ty=func (h, ZENO), flow = noFlow},
-       {name="puts", ty=func (i, MONAD (ZENO, stateL, stateL')),
-         flow = BD.meetVarImpliesVar (bvar stateL', bvar stateL)},
+       {name="puts", ty=func (i, MONAD (UNIT, stateP, stateP')),
+         flow = BD.meetVarImpliesVar (bvar stateP', bvar stateP)},   
        {name="%raise", ty=UNIT, flow = noFlow},
        {name="%and", ty=UNIT, flow = noFlow},
        {name="%or", ty=UNIT, flow = noFlow},
@@ -158,8 +156,6 @@ structure Primitives = struct
         flow = noFlow},
        (*{name=globalState, ty=state,
         flow = noFlow},*)
-       {name=granularity, ty=UNIT,
-        flow = noFlow},
        (* 'a M -> ('a -> 'b M) -> 'b M *)
        {name=">>=", ty=func (MONAD (a, stateE, stateE'),
             func (func (a', MONAD (b,stateE'', stateE''')),
@@ -196,18 +192,12 @@ structure Primitives = struct
        {name="<=", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
        {name=">=", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
        {name="===", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
-       {name="++", ty=vvv s1,
-        flow = BD.meetVarZero (bvar s1)},
-       {name="--", ty=vvv s2,
-        flow = BD.meetVarZero (bvar s2)},
-       {name="**", ty=vvv s3,
-        flow = BD.meetVarZero (bvar s3)},
+       {name="++", ty=vvv s1, flow = noFlow},
+       {name="--", ty=vvv s2, flow = noFlow},
+       {name="**", ty=vvv s3, flow = noFlow},
        {name="strlen", ty=FUN([STRING], ZENO), flow = noFlow},
        {name="strcat", ty=FUN([STRING,STRING,ZENO], STRING), flow = noFlow},
-       {name="^", ty=FUN ([VEC s4, VEC s5], VEC s6),
-        flow = BD.meetVarZero (bvar s4) o
-               BD.meetVarZero (bvar s5) o
-               BD.meetVarZero (bvar s6)},
+       {name="^", ty=FUN ([VEC s4, VEC s5], VEC s6), flow = noFlow},
        {name="bits8", ty=func (ZENO, VEC (CONST 8)),
         flow = noFlow},
        {name=Atom.toString Op.orElse, ty = vvv s7,
@@ -263,19 +253,11 @@ structure Primitives = struct
       ]
 
    val primitiveDecoders =
-      [{name=granularity, ty=size},
-       {name="consume", ty=size},
-       {name="prefix", ty=s16}, (* hack to get s16 expanded with s14,s15 *)
+      [{name="prefix", ty=s16}, (* hack to get s16 expanded with s14,s15 *)
        {name="suffix", ty=s19}]
 
-   val primitiveTypes =
-      [{name="int", ty=ZENO, flow=noFlow},
-       {name="float", ty=FLOAT, flow=noFlow},
-       {name="unit", ty=UNIT, flow=noFlow},
-       {name="string", ty=STRING, flow=noFlow}]
-
    val primitiveFields =
-      [{name=streamField, ty=UNIT, flow=noFlow}]
+      []
       
    fun addPrim table {name, ty, flow} = let
       val (newTable, _) =
@@ -300,10 +282,10 @@ structure Primitives = struct
          fun pr (prim,ty,args) = PRIexp (prim, ty, args)
          fun action e = STATEexp (BASICblock ([],[]), OBJvtype, e)
          fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
-         fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (VECvtype, arg))) args
-         fun unboxVfixed args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (VECvtype, arg))) args
+         fun unboxVany args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (VECvtype, arg))) args
          fun unboxV args = map (fn arg => UNBOXexp (VECvtype, arg)) args
          fun boxI arg = BOXexp (INTvtype, arg)
+         fun boxVany arg = BOXexp (VECvtype, INT2VECexp (0,arg))
          fun boxV1 arg = BOXexp (VECvtype, INT2VECexp (1,arg))
          fun boxV8 arg = BOXexp (VECvtype, INT2VECexp (8,arg))
          fun boxV16 arg = BOXexp (VECvtype, INT2VECexp (16,arg))
@@ -340,8 +322,8 @@ structure Primitives = struct
                                genType (MONADvtype VOIDvtype, ~n)
       in [
          ("raise", (t ~1, fn args => action (PRIexp (RAISEprim,sv,args)))),
-         ((Atom.toString Op.andAlso), (t 2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
-         ((Atom.toString Op.orElse), (t 2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
+         ((Atom.toString Op.andAlso), (t 2, fn args => boxVany (pr (ANDprim,iii,unboxVany args)))),
+         ((Atom.toString Op.orElse), (t 2, fn args => boxVany (pr (ORprim,iii,unboxVany args)))),
          ("sx", (t 1, fn args => boxI (pr (SIGNEDprim,bi,unboxV args)))),
          ("zx", (t 1, fn args => boxI (pr (UNSIGNEDprim,bi,unboxV args)))),
          ("+", (t 2, fn args => boxI (pr (ADDprim,iii,unboxI args)))),
@@ -353,7 +335,7 @@ structure Primitives = struct
          ("<=", (t 2, fn args => boxV1 (pr (LEprim,iii,unboxI args)))),
          (">=", (t 2, fn args => boxV1 (pr (LEprim,iii,unboxI (rev args))))),
          ("not", (t 1, fn args => boxV (pr (NOT_VECprim,bb,unboxV args)))),
-         ("==", (t 2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVfixed args)))),
+         ("==", (t 2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVany args)))),
          ("^", (t 2, fn args => boxV (pr (CONCAT_VECprim,vvv,unboxV args)))),
          ("showint", (t 1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
          ("strlen", (t 1, fn args => boxI (pr (STRLENprim,si,args)))),
@@ -361,7 +343,7 @@ structure Primitives = struct
             [src,tgt,size] => pr (CONCAT_STRINGprim,ssis,[src,tgt,UNBOXexp (INTvtype, size)])
           | _ => raise ImpPrimTranslationBug))),
          ("slice", (t ~3, fn args => (case args of
-            [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
+            [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVany [vec] @ unboxI [ofs,sz])))
           | _ => raise ImpPrimTranslationBug))),
          ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
          ("query", (t 1, fn args => (case args of
@@ -382,7 +364,7 @@ structure Primitives = struct
          ("unconsume8", (t 0, fn args => action (PRIexp (UNCONSUME8prim,v,args)))),
          ("unconsume16", (t 0, fn args => action (PRIexp (UNCONSUME16prim,v,args)))),
          ("unconsume32", (t 0, fn args => action (PRIexp (UNCONSUME32prim,v,args)))),
-         ("puts", (t ~1, fn args => action (PRIexp (PRINTLNprim,ov,args)))),
+         ("puts", (t ~1, fn args => action (PRIexp (PRINTLNprim,sv,args)))),
          ("return", (t ~1, fn args => (case args of
             [e] => action e
           | _ => raise ImpPrimTranslationBug)))
@@ -405,7 +387,6 @@ structure Primitives = struct
       ;ST.fieldTable := FieldInfo.empty
       ;app (addPrim ST.fieldTable) primitiveFields
       ;app (addPrim ST.varTable) primitiveValues
-      ;app (addPrim ST.typeTable) primitiveTypes
       ;prim_map :=
       let
          fun get s = VarInfo.lookup (!ST.varTable, Atom.atom s)

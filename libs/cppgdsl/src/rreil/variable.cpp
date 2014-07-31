@@ -34,3 +34,7 @@ std::ostream &gdsl::rreil::operator <<(std::ostream &out, variable &_this) {
   _this.put(out);
   return out;
 }
+
+void gdsl::rreil::variable::accept(visitor &v) {
+  v.visit(this);
+}

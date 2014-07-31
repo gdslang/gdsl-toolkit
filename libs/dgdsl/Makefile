@@ -1,7 +1,7 @@
 # vim: noexpandtab
 
 all:
-	dub build
+	dub --compiler gdc
 
 clean:
 	dub clean
