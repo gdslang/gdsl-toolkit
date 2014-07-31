@@ -41,15 +41,6 @@ public interface GDSLFactory extends EFactory
   Decl createDecl();
 
   /**
-   * Returns a new object of class '<em>Decl Granularity</em>'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return a new object of class '<em>Decl Granularity</em>'.
-   * @generated
-   */
-  DeclGranularity createDeclGranularity();
-
-  /**
    * Returns a new object of class '<em>Decl Export</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -77,22 +68,13 @@ public interface GDSLFactory extends EFactory
   DeclVal createDeclVal();
 
   /**
-   * Returns a new object of class '<em>Export</em>'.
+   * Returns a new object of class '<em>Ty Vars</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return a new object of class '<em>Export</em>'.
+   * @return a new object of class '<em>Ty Vars</em>'.
    * @generated
    */
-  Export createExport();
-
-  /**
-   * Returns a new object of class '<em>Con Decls</em>'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return a new object of class '<em>Con Decls</em>'.
-   * @generated
-   */
-  ConDecls createConDecls();
+  TyVars createTyVars();
 
   /**
    * Returns a new object of class '<em>Con Decl</em>'.
@@ -113,6 +95,15 @@ public interface GDSLFactory extends EFactory
   Ty createTy();
 
   /**
+   * Returns a new object of class '<em>Ty Bind</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Ty Bind</em>'.
+   * @generated
+   */
+  TyBind createTyBind();
+
+  /**
    * Returns a new object of class '<em>Ty Element</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -122,13 +113,130 @@ public interface GDSLFactory extends EFactory
   TyElement createTyElement();
 
   /**
-   * Returns a new object of class '<em>Ty Bind</em>'.
+   * Returns a new object of class '<em>Exp</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return a new object of class '<em>Ty Bind</em>'.
+   * @return a new object of class '<em>Exp</em>'.
    * @generated
    */
-  TyBind createTyBind();
+  Exp createExp();
+
+  /**
+   * Returns a new object of class '<em>Case Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Case Exp</em>'.
+   * @generated
+   */
+  CaseExp createCaseExp();
+
+  /**
+   * Returns a new object of class '<em>Closed Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Closed Exp</em>'.
+   * @generated
+   */
+  ClosedExp createClosedExp();
+
+  /**
+   * Returns a new object of class '<em>Monadic Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Monadic Exp</em>'.
+   * @generated
+   */
+  MonadicExp createMonadicExp();
+
+  /**
+   * Returns a new object of class '<em>Or Else Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Or Else Exp</em>'.
+   * @generated
+   */
+  OrElseExp createOrElseExp();
+
+  /**
+   * Returns a new object of class '<em>And Also Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>And Also Exp</em>'.
+   * @generated
+   */
+  AndAlsoExp createAndAlsoExp();
+
+  /**
+   * Returns a new object of class '<em>RExp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>RExp</em>'.
+   * @generated
+   */
+  RExp createRExp();
+
+  /**
+   * Returns a new object of class '<em>AExp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>AExp</em>'.
+   * @generated
+   */
+  AExp createAExp();
+
+  /**
+   * Returns a new object of class '<em>MExp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>MExp</em>'.
+   * @generated
+   */
+  MExp createMExp();
+
+  /**
+   * Returns a new object of class '<em>Select Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Select Exp</em>'.
+   * @generated
+   */
+  SelectExp createSelectExp();
+
+  /**
+   * Returns a new object of class '<em>Apply Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Apply Exp</em>'.
+   * @generated
+   */
+  ApplyExp createApplyExp();
+
+  /**
+   * Returns a new object of class '<em>Atomic Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Atomic Exp</em>'.
+   * @generated
+   */
+  AtomicExp createAtomicExp();
+
+  /**
+   * Returns a new object of class '<em>Field</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Field</em>'.
+   * @generated
+   */
+  Field createField();
+
+  /**
+   * Returns a new object of class '<em>Value Decl</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Value Decl</em>'.
+   * @generated
+   */
+  ValueDecl createValueDecl();
 
   /**
    * Returns the package supported by this factory.

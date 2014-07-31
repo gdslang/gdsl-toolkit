@@ -95,59 +95,13 @@ public interface GDSLPackage extends EPackage
   int DECL = 1;
 
   /**
-   * The feature id for the '<em><b>Name</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int DECL__NAME = 0;
-
-  /**
    * The number of structural features of the '<em>Decl</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_FEATURE_COUNT = 1;
-
-  /**
-   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclGranularityImpl <em>Decl Granularity</em>}' class.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @see gdsl.plugin.gDSL.impl.DeclGranularityImpl
-   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclGranularity()
-   * @generated
-   */
-  int DECL_GRANULARITY = 2;
-
-  /**
-   * The feature id for the '<em><b>Name</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int DECL_GRANULARITY__NAME = DECL__NAME;
-
-  /**
-   * The feature id for the '<em><b>Granularity</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int DECL_GRANULARITY__GRANULARITY = DECL_FEATURE_COUNT + 0;
-
-  /**
-   * The number of structural features of the '<em>Decl Granularity</em>' class.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int DECL_GRANULARITY_FEATURE_COUNT = DECL_FEATURE_COUNT + 1;
+  int DECL_FEATURE_COUNT = 0;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclExportImpl <em>Decl Export</em>}' class.
@@ -157,25 +111,34 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclExport()
    * @generated
    */
-  int DECL_EXPORT = 3;
+  int DECL_EXPORT = 2;
 
   /**
-   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * The feature id for the '<em><b>Name</b></em>' reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_EXPORT__NAME = DECL__NAME;
+  int DECL_EXPORT__NAME = DECL_FEATURE_COUNT + 0;
 
   /**
-   * The feature id for the '<em><b>Exports</b></em>' containment reference list.
+   * The feature id for the '<em><b>Ty Vars</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_EXPORT__EXPORTS = DECL_FEATURE_COUNT + 0;
+  int DECL_EXPORT__TY_VARS = DECL_FEATURE_COUNT + 1;
+
+  /**
+   * The feature id for the '<em><b>Type</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_EXPORT__TYPE = DECL_FEATURE_COUNT + 2;
 
   /**
    * The number of structural features of the '<em>Decl Export</em>' class.
@@ -184,7 +147,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_EXPORT_FEATURE_COUNT = DECL_FEATURE_COUNT + 1;
+  int DECL_EXPORT_FEATURE_COUNT = DECL_FEATURE_COUNT + 3;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclTypeImpl <em>Decl Type</em>}' class.
@@ -194,7 +157,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclType()
    * @generated
    */
-  int DECL_TYPE = 4;
+  int DECL_TYPE = 3;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -203,7 +166,16 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE__NAME = DECL__NAME;
+  int DECL_TYPE__NAME = DECL_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Con Decl</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_TYPE__CON_DECL = DECL_FEATURE_COUNT + 1;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' containment reference.
@@ -212,16 +184,16 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE__VALUE = DECL_FEATURE_COUNT + 0;
+  int DECL_TYPE__VALUE = DECL_FEATURE_COUNT + 2;
 
   /**
-   * The feature id for the '<em><b>Attr Name</b></em>' attribute list.
+   * The feature id for the '<em><b>Ty Vars</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_TYPE__ATTR_NAME = DECL_FEATURE_COUNT + 1;
+  int DECL_TYPE__TY_VARS = DECL_FEATURE_COUNT + 3;
 
   /**
    * The number of structural features of the '<em>Decl Type</em>' class.
@@ -230,7 +202,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE_FEATURE_COUNT = DECL_FEATURE_COUNT + 2;
+  int DECL_TYPE_FEATURE_COUNT = DECL_FEATURE_COUNT + 4;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclValImpl <em>Decl Val</em>}' class.
@@ -240,7 +212,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclVal()
    * @generated
    */
-  int DECL_VAL = 5;
+  int DECL_VAL = 4;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -249,7 +221,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL__NAME = DECL__NAME;
+  int DECL_VAL__NAME = DECL_FEATURE_COUNT + 0;
 
   /**
    * The feature id for the '<em><b>Attr</b></em>' attribute list.
@@ -258,7 +230,43 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL__ATTR = DECL_FEATURE_COUNT + 0;
+  int DECL_VAL__ATTR = DECL_FEATURE_COUNT + 1;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_VAL__EXP = DECL_FEATURE_COUNT + 2;
+
+  /**
+   * The feature id for the '<em><b>Mid</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_VAL__MID = DECL_FEATURE_COUNT + 3;
+
+  /**
+   * The feature id for the '<em><b>Dec Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_VAL__DEC_PAT = DECL_FEATURE_COUNT + 4;
+
+  /**
+   * The feature id for the '<em><b>Exps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_VAL__EXPS = DECL_FEATURE_COUNT + 5;
 
   /**
    * The number of structural features of the '<em>Decl Val</em>' class.
@@ -267,72 +275,35 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_VAL_FEATURE_COUNT = DECL_FEATURE_COUNT + 1;
+  int DECL_VAL_FEATURE_COUNT = DECL_FEATURE_COUNT + 6;
 
   /**
-   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ExportImpl <em>Export</em>}' class.
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TyVarsImpl <em>Ty Vars</em>}' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see gdsl.plugin.gDSL.impl.ExportImpl
-   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getExport()
+   * @see gdsl.plugin.gDSL.impl.TyVarsImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyVars()
    * @generated
    */
-  int EXPORT = 6;
+  int TY_VARS = 5;
 
   /**
-   * The feature id for the '<em><b>Name</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int EXPORT__NAME = 0;
-
-  /**
-   * The feature id for the '<em><b>Attr Name</b></em>' attribute list.
+   * The feature id for the '<em><b>Attr</b></em>' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int EXPORT__ATTR_NAME = 1;
+  int TY_VARS__ATTR = 0;
 
   /**
-   * The number of structural features of the '<em>Export</em>' class.
+   * The number of structural features of the '<em>Ty Vars</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int EXPORT_FEATURE_COUNT = 2;
-
-  /**
-   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ConDeclsImpl <em>Con Decls</em>}' class.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @see gdsl.plugin.gDSL.impl.ConDeclsImpl
-   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getConDecls()
-   * @generated
-   */
-  int CON_DECLS = 7;
-
-  /**
-   * The feature id for the '<em><b>Con Decls</b></em>' containment reference list.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int CON_DECLS__CON_DECLS = 0;
-
-  /**
-   * The number of structural features of the '<em>Con Decls</em>' class.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int CON_DECLS_FEATURE_COUNT = 1;
+  int TY_VARS_FEATURE_COUNT = 1;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ConDeclImpl <em>Con Decl</em>}' class.
@@ -342,7 +313,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getConDecl()
    * @generated
    */
-  int CON_DECL = 8;
+  int CON_DECL = 6;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -379,7 +350,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTy()
    * @generated
    */
-  int TY = 9;
+  int TY = 7;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' attribute.
@@ -391,13 +362,31 @@ public interface GDSLPackage extends EPackage
   int TY__VALUE = 0;
 
   /**
+   * The feature id for the '<em><b>Decl</b></em>' reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__DECL = 1;
+
+  /**
+   * The feature id for the '<em><b>Type</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__TYPE = 2;
+
+  /**
    * The feature id for the '<em><b>Ty Bind</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int TY__TY_BIND = 1;
+  int TY__TY_BIND = 3;
 
   /**
    * The feature id for the '<em><b>Elements</b></em>' containment reference list.
@@ -406,7 +395,52 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int TY__ELEMENTS = 2;
+  int TY__ELEMENTS = 4;
+
+  /**
+   * The feature id for the '<em><b>Param</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__PARAM = 5;
+
+  /**
+   * The feature id for the '<em><b>Res Type</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__RES_TYPE = 6;
+
+  /**
+   * The feature id for the '<em><b>R</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__R = 7;
+
+  /**
+   * The feature id for the '<em><b>In</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__IN = 8;
+
+  /**
+   * The feature id for the '<em><b>Out</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__OUT = 9;
 
   /**
    * The number of structural features of the '<em>Ty</em>' class.
@@ -415,7 +449,44 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int TY_FEATURE_COUNT = 3;
+  int TY_FEATURE_COUNT = 10;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TyBindImpl <em>Ty Bind</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.TyBindImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyBind()
+   * @generated
+   */
+  int TY_BIND = 8;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_BIND__NAME = 0;
+
+  /**
+   * The feature id for the '<em><b>Value</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_BIND__VALUE = 1;
+
+  /**
+   * The number of structural features of the '<em>Ty Bind</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_BIND_FEATURE_COUNT = 2;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TyElementImpl <em>Ty Element</em>}' class.
@@ -425,7 +496,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyElement()
    * @generated
    */
-  int TY_ELEMENT = 10;
+  int TY_ELEMENT = 9;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -455,41 +526,1467 @@ public interface GDSLPackage extends EPackage
   int TY_ELEMENT_FEATURE_COUNT = 2;
 
   /**
-   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TyBindImpl <em>Ty Bind</em>}' class.
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ExpImpl <em>Exp</em>}' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see gdsl.plugin.gDSL.impl.TyBindImpl
-   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyBind()
+   * @see gdsl.plugin.gDSL.impl.ExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getExp()
    * @generated
    */
-  int TY_BIND = 11;
+  int EXP = 10;
 
   /**
-   * The feature id for the '<em><b>Key</b></em>' attribute.
+   * The feature id for the '<em><b>Name</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int TY_BIND__KEY = 0;
+  int EXP__NAME = 0;
 
   /**
-   * The feature id for the '<em><b>Value</b></em>' containment reference.
+   * The feature id for the '<em><b>Mid</b></em>' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int TY_BIND__VALUE = 1;
+  int EXP__MID = 1;
 
   /**
-   * The number of structural features of the '<em>Ty Bind</em>' class.
+   * The feature id for the '<em><b>Case Exps</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int TY_BIND_FEATURE_COUNT = 2;
+  int EXP__CASE_EXPS = 2;
+
+  /**
+   * The number of structural features of the '<em>Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int EXP_FEATURE_COUNT = 3;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.CaseExpImpl <em>Case Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.CaseExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCaseExp()
+   * @generated
+   */
+  int CASE_EXP = 11;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASE_EXP__NAME = 0;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASE_EXP__CLOSED_EXP = 1;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASE_EXP__PAT = 2;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASE_EXP__EXP = 3;
+
+  /**
+   * The number of structural features of the '<em>Case Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASE_EXP_FEATURE_COUNT = 4;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ClosedExpImpl <em>Closed Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.ClosedExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getClosedExp()
+   * @generated
+   */
+  int CLOSED_EXP = 12;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__NAME = CASE_EXP__NAME;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__CLOSED_EXP = CASE_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__PAT = CASE_EXP__PAT;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__EXP = CASE_EXP__EXP;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__IF_CASE_EXP = CASE_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__THEN_CASE_EXP = CASE_EXP_FEATURE_COUNT + 1;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__ELSE_CASE_EXP = CASE_EXP_FEATURE_COUNT + 2;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__DO_EXP = CASE_EXP_FEATURE_COUNT + 3;
+
+  /**
+   * The number of structural features of the '<em>Closed Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP_FEATURE_COUNT = CASE_EXP_FEATURE_COUNT + 4;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.MonadicExpImpl <em>Monadic Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.MonadicExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getMonadicExp()
+   * @generated
+   */
+  int MONADIC_EXP = 13;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MONADIC_EXP__EXP = 0;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MONADIC_EXP__NAME = 1;
+
+  /**
+   * The number of structural features of the '<em>Monadic Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MONADIC_EXP_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.OrElseExpImpl <em>Or Else Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.OrElseExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getOrElseExp()
+   * @generated
+   */
+  int OR_ELSE_EXP = 14;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__NAME = CLOSED_EXP__NAME;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__CLOSED_EXP = CLOSED_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__PAT = CLOSED_EXP__PAT;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__EXP = CLOSED_EXP__EXP;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__IF_CASE_EXP = CLOSED_EXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__THEN_CASE_EXP = CLOSED_EXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__ELSE_CASE_EXP = CLOSED_EXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__DO_EXP = CLOSED_EXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__LEFT = CLOSED_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__RIGHT = CLOSED_EXP_FEATURE_COUNT + 1;
+
+  /**
+   * The number of structural features of the '<em>Or Else Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP_FEATURE_COUNT = CLOSED_EXP_FEATURE_COUNT + 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.AndAlsoExpImpl <em>And Also Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.AndAlsoExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAndAlsoExp()
+   * @generated
+   */
+  int AND_ALSO_EXP = 15;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__NAME = OR_ELSE_EXP__NAME;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__CLOSED_EXP = OR_ELSE_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__PAT = OR_ELSE_EXP__PAT;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__EXP = OR_ELSE_EXP__EXP;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__IF_CASE_EXP = OR_ELSE_EXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__THEN_CASE_EXP = OR_ELSE_EXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__ELSE_CASE_EXP = OR_ELSE_EXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__DO_EXP = OR_ELSE_EXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__LEFT = OR_ELSE_EXP__LEFT;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__RIGHT = OR_ELSE_EXP__RIGHT;
+
+  /**
+   * The number of structural features of the '<em>And Also Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP_FEATURE_COUNT = OR_ELSE_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.RExpImpl <em>RExp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.RExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getRExp()
+   * @generated
+   */
+  int REXP = 16;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__NAME = AND_ALSO_EXP__NAME;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__CLOSED_EXP = AND_ALSO_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__PAT = AND_ALSO_EXP__PAT;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__EXP = AND_ALSO_EXP__EXP;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__IF_CASE_EXP = AND_ALSO_EXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__THEN_CASE_EXP = AND_ALSO_EXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__ELSE_CASE_EXP = AND_ALSO_EXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__DO_EXP = AND_ALSO_EXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__LEFT = AND_ALSO_EXP__LEFT;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__RIGHT = AND_ALSO_EXP__RIGHT;
+
+  /**
+   * The number of structural features of the '<em>RExp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP_FEATURE_COUNT = AND_ALSO_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.AExpImpl <em>AExp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.AExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAExp()
+   * @generated
+   */
+  int AEXP = 17;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__NAME = REXP__NAME;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__CLOSED_EXP = REXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__PAT = REXP__PAT;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__EXP = REXP__EXP;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__IF_CASE_EXP = REXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__THEN_CASE_EXP = REXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__ELSE_CASE_EXP = REXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__DO_EXP = REXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__LEFT = REXP__LEFT;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__RIGHT = REXP__RIGHT;
+
+  /**
+   * The feature id for the '<em><b>Sym</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__SYM = REXP_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Aexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP__AEXPS = REXP_FEATURE_COUNT + 1;
+
+  /**
+   * The number of structural features of the '<em>AExp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AEXP_FEATURE_COUNT = REXP_FEATURE_COUNT + 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.MExpImpl <em>MExp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.MExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getMExp()
+   * @generated
+   */
+  int MEXP = 18;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__NAME = AEXP__NAME;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__CLOSED_EXP = AEXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__PAT = AEXP__PAT;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__EXP = AEXP__EXP;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__IF_CASE_EXP = AEXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__THEN_CASE_EXP = AEXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__ELSE_CASE_EXP = AEXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__DO_EXP = AEXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__LEFT = AEXP__LEFT;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__RIGHT = AEXP__RIGHT;
+
+  /**
+   * The feature id for the '<em><b>Sym</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__SYM = AEXP__SYM;
+
+  /**
+   * The feature id for the '<em><b>Aexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__AEXPS = AEXP__AEXPS;
+
+  /**
+   * The feature id for the '<em><b>Sign</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__SIGN = AEXP_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Mexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP__MEXPS = AEXP_FEATURE_COUNT + 1;
+
+  /**
+   * The number of structural features of the '<em>MExp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MEXP_FEATURE_COUNT = AEXP_FEATURE_COUNT + 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.SelectExpImpl <em>Select Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.SelectExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getSelectExp()
+   * @generated
+   */
+  int SELECT_EXP = 19;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__NAME = MEXP__NAME;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__CLOSED_EXP = MEXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__PAT = MEXP__PAT;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__EXP = MEXP__EXP;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__IF_CASE_EXP = MEXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__THEN_CASE_EXP = MEXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__ELSE_CASE_EXP = MEXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__DO_EXP = MEXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__LEFT = MEXP__LEFT;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__RIGHT = MEXP__RIGHT;
+
+  /**
+   * The feature id for the '<em><b>Sym</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__SYM = MEXP__SYM;
+
+  /**
+   * The feature id for the '<em><b>Aexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__AEXPS = MEXP__AEXPS;
+
+  /**
+   * The feature id for the '<em><b>Sign</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__SIGN = MEXP__SIGN;
+
+  /**
+   * The feature id for the '<em><b>Mexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__MEXPS = MEXP__MEXPS;
+
+  /**
+   * The feature id for the '<em><b>Symbol</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__SYMBOL = MEXP_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Applyexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP__APPLYEXPS = MEXP_FEATURE_COUNT + 1;
+
+  /**
+   * The number of structural features of the '<em>Select Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int SELECT_EXP_FEATURE_COUNT = MEXP_FEATURE_COUNT + 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ApplyExpImpl <em>Apply Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.ApplyExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getApplyExp()
+   * @generated
+   */
+  int APPLY_EXP = 20;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__NAME = SELECT_EXP__NAME;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__CLOSED_EXP = SELECT_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__PAT = SELECT_EXP__PAT;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__EXP = SELECT_EXP__EXP;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__IF_CASE_EXP = SELECT_EXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__THEN_CASE_EXP = SELECT_EXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__ELSE_CASE_EXP = SELECT_EXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__DO_EXP = SELECT_EXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__LEFT = SELECT_EXP__LEFT;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__RIGHT = SELECT_EXP__RIGHT;
+
+  /**
+   * The feature id for the '<em><b>Sym</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__SYM = SELECT_EXP__SYM;
+
+  /**
+   * The feature id for the '<em><b>Aexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__AEXPS = SELECT_EXP__AEXPS;
+
+  /**
+   * The feature id for the '<em><b>Sign</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__SIGN = SELECT_EXP__SIGN;
+
+  /**
+   * The feature id for the '<em><b>Mexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__MEXPS = SELECT_EXP__MEXPS;
+
+  /**
+   * The feature id for the '<em><b>Symbol</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__SYMBOL = SELECT_EXP__SYMBOL;
+
+  /**
+   * The feature id for the '<em><b>Applyexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__APPLYEXPS = SELECT_EXP__APPLYEXPS;
+
+  /**
+   * The feature id for the '<em><b>Atomic Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__ATOMIC_EXP = SELECT_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The number of structural features of the '<em>Apply Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP_FEATURE_COUNT = SELECT_EXP_FEATURE_COUNT + 1;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.AtomicExpImpl <em>Atomic Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.AtomicExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAtomicExp()
+   * @generated
+   */
+  int ATOMIC_EXP = 21;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__NAME = APPLY_EXP__NAME;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__CLOSED_EXP = APPLY_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__PAT = APPLY_EXP__PAT;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__EXP = APPLY_EXP__EXP;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__IF_CASE_EXP = APPLY_EXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__THEN_CASE_EXP = APPLY_EXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__ELSE_CASE_EXP = APPLY_EXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__DO_EXP = APPLY_EXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__LEFT = APPLY_EXP__LEFT;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__RIGHT = APPLY_EXP__RIGHT;
+
+  /**
+   * The feature id for the '<em><b>Sym</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__SYM = APPLY_EXP__SYM;
+
+  /**
+   * The feature id for the '<em><b>Aexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__AEXPS = APPLY_EXP__AEXPS;
+
+  /**
+   * The feature id for the '<em><b>Sign</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__SIGN = APPLY_EXP__SIGN;
+
+  /**
+   * The feature id for the '<em><b>Mexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__MEXPS = APPLY_EXP__MEXPS;
+
+  /**
+   * The feature id for the '<em><b>Symbol</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__SYMBOL = APPLY_EXP__SYMBOL;
+
+  /**
+   * The feature id for the '<em><b>Applyexps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__APPLYEXPS = APPLY_EXP__APPLYEXPS;
+
+  /**
+   * The feature id for the '<em><b>Atomic Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__ATOMIC_EXP = APPLY_EXP__ATOMIC_EXP;
+
+  /**
+   * The feature id for the '<em><b>Id</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__ID = APPLY_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Fields</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__FIELDS = APPLY_EXP_FEATURE_COUNT + 1;
+
+  /**
+   * The feature id for the '<em><b>Expr</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__EXPR = APPLY_EXP_FEATURE_COUNT + 2;
+
+  /**
+   * The feature id for the '<em><b>Exps</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__EXPS = APPLY_EXP_FEATURE_COUNT + 3;
+
+  /**
+   * The feature id for the '<em><b>Val Decl</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__VAL_DECL = APPLY_EXP_FEATURE_COUNT + 4;
+
+  /**
+   * The number of structural features of the '<em>Atomic Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP_FEATURE_COUNT = APPLY_EXP_FEATURE_COUNT + 5;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.FieldImpl <em>Field</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.FieldImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getField()
+   * @generated
+   */
+  int FIELD = 22;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int FIELD__NAME = 0;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int FIELD__EXP = 1;
+
+  /**
+   * The number of structural features of the '<em>Field</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int FIELD_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ValueDeclImpl <em>Value Decl</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.ValueDeclImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getValueDecl()
+   * @generated
+   */
+  int VALUE_DECL = 23;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int VALUE_DECL__NAME = 0;
+
+  /**
+   * The feature id for the '<em><b>Ids</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int VALUE_DECL__IDS = 1;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int VALUE_DECL__EXP = 2;
+
+  /**
+   * The number of structural features of the '<em>Value Decl</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int VALUE_DECL_FEATURE_COUNT = 3;
 
 
   /**
@@ -524,38 +2021,6 @@ public interface GDSLPackage extends EPackage
   EClass getDecl();
 
   /**
-   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.Decl#getName <em>Name</em>}'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the meta object for the attribute '<em>Name</em>'.
-   * @see gdsl.plugin.gDSL.Decl#getName()
-   * @see #getDecl()
-   * @generated
-   */
-  EAttribute getDecl_Name();
-
-  /**
-   * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclGranularity <em>Decl Granularity</em>}'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the meta object for class '<em>Decl Granularity</em>'.
-   * @see gdsl.plugin.gDSL.DeclGranularity
-   * @generated
-   */
-  EClass getDeclGranularity();
-
-  /**
-   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.DeclGranularity#getGranularity <em>Granularity</em>}'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the meta object for the attribute '<em>Granularity</em>'.
-   * @see gdsl.plugin.gDSL.DeclGranularity#getGranularity()
-   * @see #getDeclGranularity()
-   * @generated
-   */
-  EAttribute getDeclGranularity_Granularity();
-
-  /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclExport <em>Decl Export</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -566,15 +2031,37 @@ public interface GDSLPackage extends EPackage
   EClass getDeclExport();
 
   /**
-   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.DeclExport#getExports <em>Exports</em>}'.
+   * Returns the meta object for the reference '{@link gdsl.plugin.gDSL.DeclExport#getName <em>Name</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the containment reference list '<em>Exports</em>'.
-   * @see gdsl.plugin.gDSL.DeclExport#getExports()
+   * @return the meta object for the reference '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.DeclExport#getName()
    * @see #getDeclExport()
    * @generated
    */
-  EReference getDeclExport_Exports();
+  EReference getDeclExport_Name();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclExport#getTyVars <em>Ty Vars</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Ty Vars</em>'.
+   * @see gdsl.plugin.gDSL.DeclExport#getTyVars()
+   * @see #getDeclExport()
+   * @generated
+   */
+  EReference getDeclExport_TyVars();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclExport#getType <em>Type</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Type</em>'.
+   * @see gdsl.plugin.gDSL.DeclExport#getType()
+   * @see #getDeclExport()
+   * @generated
+   */
+  EReference getDeclExport_Type();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclType <em>Decl Type</em>}'.
@@ -585,6 +2072,28 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EClass getDeclType();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.DeclType#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.DeclType#getName()
+   * @see #getDeclType()
+   * @generated
+   */
+  EAttribute getDeclType_Name();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.DeclType#getConDecl <em>Con Decl</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Con Decl</em>'.
+   * @see gdsl.plugin.gDSL.DeclType#getConDecl()
+   * @see #getDeclType()
+   * @generated
+   */
+  EReference getDeclType_ConDecl();
 
   /**
    * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclType#getValue <em>Value</em>}'.
@@ -598,15 +2107,15 @@ public interface GDSLPackage extends EPackage
   EReference getDeclType_Value();
 
   /**
-   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.DeclType#getAttrName <em>Attr Name</em>}'.
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclType#getTyVars <em>Ty Vars</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute list '<em>Attr Name</em>'.
-   * @see gdsl.plugin.gDSL.DeclType#getAttrName()
+   * @return the meta object for the containment reference '<em>Ty Vars</em>'.
+   * @see gdsl.plugin.gDSL.DeclType#getTyVars()
    * @see #getDeclType()
    * @generated
    */
-  EAttribute getDeclType_AttrName();
+  EReference getDeclType_TyVars();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclVal <em>Decl Val</em>}'.
@@ -617,6 +2126,17 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EClass getDeclVal();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.DeclVal#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.DeclVal#getName()
+   * @see #getDeclVal()
+   * @generated
+   */
+  EAttribute getDeclVal_Name();
 
   /**
    * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.DeclVal#getAttr <em>Attr</em>}'.
@@ -630,57 +2150,69 @@ public interface GDSLPackage extends EPackage
   EAttribute getDeclVal_Attr();
 
   /**
-   * Returns the meta object for class '{@link gdsl.plugin.gDSL.Export <em>Export</em>}'.
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclVal#getExp <em>Exp</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for class '<em>Export</em>'.
-   * @see gdsl.plugin.gDSL.Export
+   * @return the meta object for the containment reference '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.DeclVal#getExp()
+   * @see #getDeclVal()
    * @generated
    */
-  EClass getExport();
+  EReference getDeclVal_Exp();
 
   /**
-   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.Export#getName <em>Name</em>}'.
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.DeclVal#getMid <em>Mid</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute '<em>Name</em>'.
-   * @see gdsl.plugin.gDSL.Export#getName()
-   * @see #getExport()
+   * @return the meta object for the attribute list '<em>Mid</em>'.
+   * @see gdsl.plugin.gDSL.DeclVal#getMid()
+   * @see #getDeclVal()
    * @generated
    */
-  EAttribute getExport_Name();
+  EAttribute getDeclVal_Mid();
 
   /**
-   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.Export#getAttrName <em>Attr Name</em>}'.
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.DeclVal#getDecPat <em>Dec Pat</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute list '<em>Attr Name</em>'.
-   * @see gdsl.plugin.gDSL.Export#getAttrName()
-   * @see #getExport()
+   * @return the meta object for the attribute list '<em>Dec Pat</em>'.
+   * @see gdsl.plugin.gDSL.DeclVal#getDecPat()
+   * @see #getDeclVal()
    * @generated
    */
-  EAttribute getExport_AttrName();
+  EAttribute getDeclVal_DecPat();
 
   /**
-   * Returns the meta object for class '{@link gdsl.plugin.gDSL.ConDecls <em>Con Decls</em>}'.
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.DeclVal#getExps <em>Exps</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for class '<em>Con Decls</em>'.
-   * @see gdsl.plugin.gDSL.ConDecls
+   * @return the meta object for the containment reference list '<em>Exps</em>'.
+   * @see gdsl.plugin.gDSL.DeclVal#getExps()
+   * @see #getDeclVal()
    * @generated
    */
-  EClass getConDecls();
+  EReference getDeclVal_Exps();
 
   /**
-   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.ConDecls#getConDecls <em>Con Decls</em>}'.
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.TyVars <em>Ty Vars</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the containment reference list '<em>Con Decls</em>'.
-   * @see gdsl.plugin.gDSL.ConDecls#getConDecls()
-   * @see #getConDecls()
+   * @return the meta object for class '<em>Ty Vars</em>'.
+   * @see gdsl.plugin.gDSL.TyVars
    * @generated
    */
-  EReference getConDecls_ConDecls();
+  EClass getTyVars();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.TyVars#getAttr <em>Attr</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Attr</em>'.
+   * @see gdsl.plugin.gDSL.TyVars#getAttr()
+   * @see #getTyVars()
+   * @generated
+   */
+  EAttribute getTyVars_Attr();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.ConDecl <em>Con Decl</em>}'.
@@ -736,6 +2268,28 @@ public interface GDSLPackage extends EPackage
   EAttribute getTy_Value();
 
   /**
+   * Returns the meta object for the reference '{@link gdsl.plugin.gDSL.Ty#getDecl <em>Decl</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the reference '<em>Decl</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getDecl()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_Decl();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.Ty#getType <em>Type</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Type</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getType()
+   * @see #getTy()
+   * @generated
+   */
+  EAttribute getTy_Type();
+
+  /**
    * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Ty#getTyBind <em>Ty Bind</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -756,6 +2310,93 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EReference getTy_Elements();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Ty#getParam <em>Param</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Param</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getParam()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_Param();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Ty#getResType <em>Res Type</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Res Type</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getResType()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_ResType();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Ty#getR <em>R</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>R</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getR()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_R();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Ty#getIn <em>In</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>In</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getIn()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_In();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Ty#getOut <em>Out</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Out</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getOut()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_Out();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.TyBind <em>Ty Bind</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Ty Bind</em>'.
+   * @see gdsl.plugin.gDSL.TyBind
+   * @generated
+   */
+  EClass getTyBind();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.TyBind#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.TyBind#getName()
+   * @see #getTyBind()
+   * @generated
+   */
+  EAttribute getTyBind_Name();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.TyBind#getValue <em>Value</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Value</em>'.
+   * @see gdsl.plugin.gDSL.TyBind#getValue()
+   * @see #getTyBind()
+   * @generated
+   */
+  EReference getTyBind_Value();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.TyElement <em>Ty Element</em>}'.
@@ -790,36 +2431,496 @@ public interface GDSLPackage extends EPackage
   EReference getTyElement_Value();
 
   /**
-   * Returns the meta object for class '{@link gdsl.plugin.gDSL.TyBind <em>Ty Bind</em>}'.
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.Exp <em>Exp</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for class '<em>Ty Bind</em>'.
-   * @see gdsl.plugin.gDSL.TyBind
+   * @return the meta object for class '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.Exp
    * @generated
    */
-  EClass getTyBind();
+  EClass getExp();
 
   /**
-   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.TyBind#getKey <em>Key</em>}'.
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Exp#getName <em>Name</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute '<em>Key</em>'.
-   * @see gdsl.plugin.gDSL.TyBind#getKey()
-   * @see #getTyBind()
+   * @return the meta object for the containment reference '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.Exp#getName()
+   * @see #getExp()
    * @generated
    */
-  EAttribute getTyBind_Key();
+  EReference getExp_Name();
 
   /**
-   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.TyBind#getValue <em>Value</em>}'.
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.Exp#getMid <em>Mid</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the containment reference '<em>Value</em>'.
-   * @see gdsl.plugin.gDSL.TyBind#getValue()
-   * @see #getTyBind()
+   * @return the meta object for the attribute list '<em>Mid</em>'.
+   * @see gdsl.plugin.gDSL.Exp#getMid()
+   * @see #getExp()
    * @generated
    */
-  EReference getTyBind_Value();
+  EAttribute getExp_Mid();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Exp#getCaseExps <em>Case Exps</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Case Exps</em>'.
+   * @see gdsl.plugin.gDSL.Exp#getCaseExps()
+   * @see #getExp()
+   * @generated
+   */
+  EReference getExp_CaseExps();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.CaseExp <em>Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Case Exp</em>'.
+   * @see gdsl.plugin.gDSL.CaseExp
+   * @generated
+   */
+  EClass getCaseExp();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.CaseExp#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.CaseExp#getName()
+   * @see #getCaseExp()
+   * @generated
+   */
+  EAttribute getCaseExp_Name();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.CaseExp#getClosedExp <em>Closed Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Closed Exp</em>'.
+   * @see gdsl.plugin.gDSL.CaseExp#getClosedExp()
+   * @see #getCaseExp()
+   * @generated
+   */
+  EReference getCaseExp_ClosedExp();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.CaseExp#getPat <em>Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Pat</em>'.
+   * @see gdsl.plugin.gDSL.CaseExp#getPat()
+   * @see #getCaseExp()
+   * @generated
+   */
+  EAttribute getCaseExp_Pat();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.CaseExp#getExp <em>Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.CaseExp#getExp()
+   * @see #getCaseExp()
+   * @generated
+   */
+  EReference getCaseExp_Exp();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.ClosedExp <em>Closed Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Closed Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp
+   * @generated
+   */
+  EClass getClosedExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ClosedExp#getIfCaseExp <em>If Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>If Case Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp#getIfCaseExp()
+   * @see #getClosedExp()
+   * @generated
+   */
+  EReference getClosedExp_IfCaseExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ClosedExp#getThenCaseExp <em>Then Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Then Case Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp#getThenCaseExp()
+   * @see #getClosedExp()
+   * @generated
+   */
+  EReference getClosedExp_ThenCaseExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ClosedExp#getElseCaseExp <em>Else Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Else Case Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp#getElseCaseExp()
+   * @see #getClosedExp()
+   * @generated
+   */
+  EReference getClosedExp_ElseCaseExp();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.ClosedExp#getDoExp <em>Do Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Do Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp#getDoExp()
+   * @see #getClosedExp()
+   * @generated
+   */
+  EReference getClosedExp_DoExp();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.MonadicExp <em>Monadic Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Monadic Exp</em>'.
+   * @see gdsl.plugin.gDSL.MonadicExp
+   * @generated
+   */
+  EClass getMonadicExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.MonadicExp#getExp <em>Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.MonadicExp#getExp()
+   * @see #getMonadicExp()
+   * @generated
+   */
+  EReference getMonadicExp_Exp();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.MonadicExp#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.MonadicExp#getName()
+   * @see #getMonadicExp()
+   * @generated
+   */
+  EAttribute getMonadicExp_Name();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.OrElseExp <em>Or Else Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Or Else Exp</em>'.
+   * @see gdsl.plugin.gDSL.OrElseExp
+   * @generated
+   */
+  EClass getOrElseExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.OrElseExp#getLeft <em>Left</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Left</em>'.
+   * @see gdsl.plugin.gDSL.OrElseExp#getLeft()
+   * @see #getOrElseExp()
+   * @generated
+   */
+  EReference getOrElseExp_Left();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.OrElseExp#getRight <em>Right</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Right</em>'.
+   * @see gdsl.plugin.gDSL.OrElseExp#getRight()
+   * @see #getOrElseExp()
+   * @generated
+   */
+  EReference getOrElseExp_Right();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.AndAlsoExp <em>And Also Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>And Also Exp</em>'.
+   * @see gdsl.plugin.gDSL.AndAlsoExp
+   * @generated
+   */
+  EClass getAndAlsoExp();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.RExp <em>RExp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>RExp</em>'.
+   * @see gdsl.plugin.gDSL.RExp
+   * @generated
+   */
+  EClass getRExp();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.AExp <em>AExp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>AExp</em>'.
+   * @see gdsl.plugin.gDSL.AExp
+   * @generated
+   */
+  EClass getAExp();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.AExp#getSym <em>Sym</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Sym</em>'.
+   * @see gdsl.plugin.gDSL.AExp#getSym()
+   * @see #getAExp()
+   * @generated
+   */
+  EAttribute getAExp_Sym();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.AExp#getAexps <em>Aexps</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Aexps</em>'.
+   * @see gdsl.plugin.gDSL.AExp#getAexps()
+   * @see #getAExp()
+   * @generated
+   */
+  EReference getAExp_Aexps();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.MExp <em>MExp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>MExp</em>'.
+   * @see gdsl.plugin.gDSL.MExp
+   * @generated
+   */
+  EClass getMExp();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.MExp#getSign <em>Sign</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Sign</em>'.
+   * @see gdsl.plugin.gDSL.MExp#getSign()
+   * @see #getMExp()
+   * @generated
+   */
+  EAttribute getMExp_Sign();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.MExp#getMexps <em>Mexps</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Mexps</em>'.
+   * @see gdsl.plugin.gDSL.MExp#getMexps()
+   * @see #getMExp()
+   * @generated
+   */
+  EReference getMExp_Mexps();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.SelectExp <em>Select Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Select Exp</em>'.
+   * @see gdsl.plugin.gDSL.SelectExp
+   * @generated
+   */
+  EClass getSelectExp();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.SelectExp#getSymbol <em>Symbol</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Symbol</em>'.
+   * @see gdsl.plugin.gDSL.SelectExp#getSymbol()
+   * @see #getSelectExp()
+   * @generated
+   */
+  EAttribute getSelectExp_Symbol();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.SelectExp#getApplyexps <em>Applyexps</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Applyexps</em>'.
+   * @see gdsl.plugin.gDSL.SelectExp#getApplyexps()
+   * @see #getSelectExp()
+   * @generated
+   */
+  EReference getSelectExp_Applyexps();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.ApplyExp <em>Apply Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Apply Exp</em>'.
+   * @see gdsl.plugin.gDSL.ApplyExp
+   * @generated
+   */
+  EClass getApplyExp();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.ApplyExp#getAtomicExp <em>Atomic Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Atomic Exp</em>'.
+   * @see gdsl.plugin.gDSL.ApplyExp#getAtomicExp()
+   * @see #getApplyExp()
+   * @generated
+   */
+  EReference getApplyExp_AtomicExp();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.AtomicExp <em>Atomic Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Atomic Exp</em>'.
+   * @see gdsl.plugin.gDSL.AtomicExp
+   * @generated
+   */
+  EClass getAtomicExp();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.AtomicExp#getId <em>Id</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Id</em>'.
+   * @see gdsl.plugin.gDSL.AtomicExp#getId()
+   * @see #getAtomicExp()
+   * @generated
+   */
+  EAttribute getAtomicExp_Id();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.AtomicExp#getFields <em>Fields</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Fields</em>'.
+   * @see gdsl.plugin.gDSL.AtomicExp#getFields()
+   * @see #getAtomicExp()
+   * @generated
+   */
+  EReference getAtomicExp_Fields();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.AtomicExp#getExpr <em>Expr</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Expr</em>'.
+   * @see gdsl.plugin.gDSL.AtomicExp#getExpr()
+   * @see #getAtomicExp()
+   * @generated
+   */
+  EReference getAtomicExp_Expr();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.AtomicExp#getExps <em>Exps</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Exps</em>'.
+   * @see gdsl.plugin.gDSL.AtomicExp#getExps()
+   * @see #getAtomicExp()
+   * @generated
+   */
+  EReference getAtomicExp_Exps();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.AtomicExp#getValDecl <em>Val Decl</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Val Decl</em>'.
+   * @see gdsl.plugin.gDSL.AtomicExp#getValDecl()
+   * @see #getAtomicExp()
+   * @generated
+   */
+  EReference getAtomicExp_ValDecl();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.Field <em>Field</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Field</em>'.
+   * @see gdsl.plugin.gDSL.Field
+   * @generated
+   */
+  EClass getField();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.Field#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.Field#getName()
+   * @see #getField()
+   * @generated
+   */
+  EAttribute getField_Name();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Field#getExp <em>Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.Field#getExp()
+   * @see #getField()
+   * @generated
+   */
+  EReference getField_Exp();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.ValueDecl <em>Value Decl</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Value Decl</em>'.
+   * @see gdsl.plugin.gDSL.ValueDecl
+   * @generated
+   */
+  EClass getValueDecl();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.ValueDecl#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.ValueDecl#getName()
+   * @see #getValueDecl()
+   * @generated
+   */
+  EAttribute getValueDecl_Name();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.ValueDecl#getIds <em>Ids</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Ids</em>'.
+   * @see gdsl.plugin.gDSL.ValueDecl#getIds()
+   * @see #getValueDecl()
+   * @generated
+   */
+  EAttribute getValueDecl_Ids();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ValueDecl#getExp <em>Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.ValueDecl#getExp()
+   * @see #getValueDecl()
+   * @generated
+   */
+  EReference getValueDecl_Exp();
 
   /**
    * Returns the factory that creates the instances of the model.
@@ -873,32 +2974,6 @@ public interface GDSLPackage extends EPackage
     EClass DECL = eINSTANCE.getDecl();
 
     /**
-     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    EAttribute DECL__NAME = eINSTANCE.getDecl_Name();
-
-    /**
-     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclGranularityImpl <em>Decl Granularity</em>}' class.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @see gdsl.plugin.gDSL.impl.DeclGranularityImpl
-     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclGranularity()
-     * @generated
-     */
-    EClass DECL_GRANULARITY = eINSTANCE.getDeclGranularity();
-
-    /**
-     * The meta object literal for the '<em><b>Granularity</b></em>' attribute feature.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    EAttribute DECL_GRANULARITY__GRANULARITY = eINSTANCE.getDeclGranularity_Granularity();
-
-    /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclExportImpl <em>Decl Export</em>}' class.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -909,12 +2984,28 @@ public interface GDSLPackage extends EPackage
     EClass DECL_EXPORT = eINSTANCE.getDeclExport();
 
     /**
-     * The meta object literal for the '<em><b>Exports</b></em>' containment reference list feature.
+     * The meta object literal for the '<em><b>Name</b></em>' reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EReference DECL_EXPORT__EXPORTS = eINSTANCE.getDeclExport_Exports();
+    EReference DECL_EXPORT__NAME = eINSTANCE.getDeclExport_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Ty Vars</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference DECL_EXPORT__TY_VARS = eINSTANCE.getDeclExport_TyVars();
+
+    /**
+     * The meta object literal for the '<em><b>Type</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference DECL_EXPORT__TYPE = eINSTANCE.getDeclExport_Type();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclTypeImpl <em>Decl Type</em>}' class.
@@ -927,6 +3018,22 @@ public interface GDSLPackage extends EPackage
     EClass DECL_TYPE = eINSTANCE.getDeclType();
 
     /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute DECL_TYPE__NAME = eINSTANCE.getDeclType_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Con Decl</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference DECL_TYPE__CON_DECL = eINSTANCE.getDeclType_ConDecl();
+
+    /**
      * The meta object literal for the '<em><b>Value</b></em>' containment reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -935,12 +3042,12 @@ public interface GDSLPackage extends EPackage
     EReference DECL_TYPE__VALUE = eINSTANCE.getDeclType_Value();
 
     /**
-     * The meta object literal for the '<em><b>Attr Name</b></em>' attribute list feature.
+     * The meta object literal for the '<em><b>Ty Vars</b></em>' containment reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute DECL_TYPE__ATTR_NAME = eINSTANCE.getDeclType_AttrName();
+    EReference DECL_TYPE__TY_VARS = eINSTANCE.getDeclType_TyVars();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclValImpl <em>Decl Val</em>}' class.
@@ -953,6 +3060,14 @@ public interface GDSLPackage extends EPackage
     EClass DECL_VAL = eINSTANCE.getDeclVal();
 
     /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute DECL_VAL__NAME = eINSTANCE.getDeclVal_Name();
+
+    /**
      * The meta object literal for the '<em><b>Attr</b></em>' attribute list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -961,48 +3076,54 @@ public interface GDSLPackage extends EPackage
     EAttribute DECL_VAL__ATTR = eINSTANCE.getDeclVal_Attr();
 
     /**
-     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ExportImpl <em>Export</em>}' class.
+     * The meta object literal for the '<em><b>Exp</b></em>' containment reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see gdsl.plugin.gDSL.impl.ExportImpl
-     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getExport()
      * @generated
      */
-    EClass EXPORT = eINSTANCE.getExport();
+    EReference DECL_VAL__EXP = eINSTANCE.getDeclVal_Exp();
 
     /**
-     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * The meta object literal for the '<em><b>Mid</b></em>' attribute list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute EXPORT__NAME = eINSTANCE.getExport_Name();
+    EAttribute DECL_VAL__MID = eINSTANCE.getDeclVal_Mid();
 
     /**
-     * The meta object literal for the '<em><b>Attr Name</b></em>' attribute list feature.
+     * The meta object literal for the '<em><b>Dec Pat</b></em>' attribute list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute EXPORT__ATTR_NAME = eINSTANCE.getExport_AttrName();
+    EAttribute DECL_VAL__DEC_PAT = eINSTANCE.getDeclVal_DecPat();
 
     /**
-     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ConDeclsImpl <em>Con Decls</em>}' class.
+     * The meta object literal for the '<em><b>Exps</b></em>' containment reference list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see gdsl.plugin.gDSL.impl.ConDeclsImpl
-     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getConDecls()
      * @generated
      */
-    EClass CON_DECLS = eINSTANCE.getConDecls();
+    EReference DECL_VAL__EXPS = eINSTANCE.getDeclVal_Exps();
 
     /**
-     * The meta object literal for the '<em><b>Con Decls</b></em>' containment reference list feature.
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TyVarsImpl <em>Ty Vars</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.TyVarsImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyVars()
+     * @generated
+     */
+    EClass TY_VARS = eINSTANCE.getTyVars();
+
+    /**
+     * The meta object literal for the '<em><b>Attr</b></em>' attribute list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EReference CON_DECLS__CON_DECLS = eINSTANCE.getConDecls_ConDecls();
+    EAttribute TY_VARS__ATTR = eINSTANCE.getTyVars_Attr();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ConDeclImpl <em>Con Decl</em>}' class.
@@ -1049,6 +3170,22 @@ public interface GDSLPackage extends EPackage
     EAttribute TY__VALUE = eINSTANCE.getTy_Value();
 
     /**
+     * The meta object literal for the '<em><b>Decl</b></em>' reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__DECL = eINSTANCE.getTy_Decl();
+
+    /**
+     * The meta object literal for the '<em><b>Type</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute TY__TYPE = eINSTANCE.getTy_Type();
+
+    /**
      * The meta object literal for the '<em><b>Ty Bind</b></em>' containment reference list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -1063,6 +3200,72 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EReference TY__ELEMENTS = eINSTANCE.getTy_Elements();
+
+    /**
+     * The meta object literal for the '<em><b>Param</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__PARAM = eINSTANCE.getTy_Param();
+
+    /**
+     * The meta object literal for the '<em><b>Res Type</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__RES_TYPE = eINSTANCE.getTy_ResType();
+
+    /**
+     * The meta object literal for the '<em><b>R</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__R = eINSTANCE.getTy_R();
+
+    /**
+     * The meta object literal for the '<em><b>In</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__IN = eINSTANCE.getTy_In();
+
+    /**
+     * The meta object literal for the '<em><b>Out</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__OUT = eINSTANCE.getTy_Out();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TyBindImpl <em>Ty Bind</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.TyBindImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyBind()
+     * @generated
+     */
+    EClass TY_BIND = eINSTANCE.getTyBind();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute TY_BIND__NAME = eINSTANCE.getTyBind_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Value</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY_BIND__VALUE = eINSTANCE.getTyBind_Value();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TyElementImpl <em>Ty Element</em>}' class.
@@ -1091,30 +3294,400 @@ public interface GDSLPackage extends EPackage
     EReference TY_ELEMENT__VALUE = eINSTANCE.getTyElement_Value();
 
     /**
-     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TyBindImpl <em>Ty Bind</em>}' class.
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ExpImpl <em>Exp</em>}' class.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see gdsl.plugin.gDSL.impl.TyBindImpl
-     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyBind()
+     * @see gdsl.plugin.gDSL.impl.ExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getExp()
      * @generated
      */
-    EClass TY_BIND = eINSTANCE.getTyBind();
+    EClass EXP = eINSTANCE.getExp();
 
     /**
-     * The meta object literal for the '<em><b>Key</b></em>' attribute feature.
+     * The meta object literal for the '<em><b>Name</b></em>' containment reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute TY_BIND__KEY = eINSTANCE.getTyBind_Key();
+    EReference EXP__NAME = eINSTANCE.getExp_Name();
 
     /**
-     * The meta object literal for the '<em><b>Value</b></em>' containment reference feature.
+     * The meta object literal for the '<em><b>Mid</b></em>' attribute list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EReference TY_BIND__VALUE = eINSTANCE.getTyBind_Value();
+    EAttribute EXP__MID = eINSTANCE.getExp_Mid();
+
+    /**
+     * The meta object literal for the '<em><b>Case Exps</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference EXP__CASE_EXPS = eINSTANCE.getExp_CaseExps();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.CaseExpImpl <em>Case Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.CaseExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCaseExp()
+     * @generated
+     */
+    EClass CASE_EXP = eINSTANCE.getCaseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute CASE_EXP__NAME = eINSTANCE.getCaseExp_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Closed Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CASE_EXP__CLOSED_EXP = eINSTANCE.getCaseExp_ClosedExp();
+
+    /**
+     * The meta object literal for the '<em><b>Pat</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute CASE_EXP__PAT = eINSTANCE.getCaseExp_Pat();
+
+    /**
+     * The meta object literal for the '<em><b>Exp</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CASE_EXP__EXP = eINSTANCE.getCaseExp_Exp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ClosedExpImpl <em>Closed Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.ClosedExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getClosedExp()
+     * @generated
+     */
+    EClass CLOSED_EXP = eINSTANCE.getClosedExp();
+
+    /**
+     * The meta object literal for the '<em><b>If Case Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CLOSED_EXP__IF_CASE_EXP = eINSTANCE.getClosedExp_IfCaseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Then Case Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CLOSED_EXP__THEN_CASE_EXP = eINSTANCE.getClosedExp_ThenCaseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Else Case Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CLOSED_EXP__ELSE_CASE_EXP = eINSTANCE.getClosedExp_ElseCaseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Do Exp</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CLOSED_EXP__DO_EXP = eINSTANCE.getClosedExp_DoExp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.MonadicExpImpl <em>Monadic Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.MonadicExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getMonadicExp()
+     * @generated
+     */
+    EClass MONADIC_EXP = eINSTANCE.getMonadicExp();
+
+    /**
+     * The meta object literal for the '<em><b>Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference MONADIC_EXP__EXP = eINSTANCE.getMonadicExp_Exp();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute MONADIC_EXP__NAME = eINSTANCE.getMonadicExp_Name();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.OrElseExpImpl <em>Or Else Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.OrElseExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getOrElseExp()
+     * @generated
+     */
+    EClass OR_ELSE_EXP = eINSTANCE.getOrElseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Left</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference OR_ELSE_EXP__LEFT = eINSTANCE.getOrElseExp_Left();
+
+    /**
+     * The meta object literal for the '<em><b>Right</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference OR_ELSE_EXP__RIGHT = eINSTANCE.getOrElseExp_Right();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.AndAlsoExpImpl <em>And Also Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.AndAlsoExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAndAlsoExp()
+     * @generated
+     */
+    EClass AND_ALSO_EXP = eINSTANCE.getAndAlsoExp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.RExpImpl <em>RExp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.RExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getRExp()
+     * @generated
+     */
+    EClass REXP = eINSTANCE.getRExp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.AExpImpl <em>AExp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.AExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAExp()
+     * @generated
+     */
+    EClass AEXP = eINSTANCE.getAExp();
+
+    /**
+     * The meta object literal for the '<em><b>Sym</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute AEXP__SYM = eINSTANCE.getAExp_Sym();
+
+    /**
+     * The meta object literal for the '<em><b>Aexps</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference AEXP__AEXPS = eINSTANCE.getAExp_Aexps();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.MExpImpl <em>MExp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.MExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getMExp()
+     * @generated
+     */
+    EClass MEXP = eINSTANCE.getMExp();
+
+    /**
+     * The meta object literal for the '<em><b>Sign</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute MEXP__SIGN = eINSTANCE.getMExp_Sign();
+
+    /**
+     * The meta object literal for the '<em><b>Mexps</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference MEXP__MEXPS = eINSTANCE.getMExp_Mexps();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.SelectExpImpl <em>Select Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.SelectExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getSelectExp()
+     * @generated
+     */
+    EClass SELECT_EXP = eINSTANCE.getSelectExp();
+
+    /**
+     * The meta object literal for the '<em><b>Symbol</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute SELECT_EXP__SYMBOL = eINSTANCE.getSelectExp_Symbol();
+
+    /**
+     * The meta object literal for the '<em><b>Applyexps</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference SELECT_EXP__APPLYEXPS = eINSTANCE.getSelectExp_Applyexps();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ApplyExpImpl <em>Apply Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.ApplyExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getApplyExp()
+     * @generated
+     */
+    EClass APPLY_EXP = eINSTANCE.getApplyExp();
+
+    /**
+     * The meta object literal for the '<em><b>Atomic Exp</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference APPLY_EXP__ATOMIC_EXP = eINSTANCE.getApplyExp_AtomicExp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.AtomicExpImpl <em>Atomic Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.AtomicExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAtomicExp()
+     * @generated
+     */
+    EClass ATOMIC_EXP = eINSTANCE.getAtomicExp();
+
+    /**
+     * The meta object literal for the '<em><b>Id</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute ATOMIC_EXP__ID = eINSTANCE.getAtomicExp_Id();
+
+    /**
+     * The meta object literal for the '<em><b>Fields</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference ATOMIC_EXP__FIELDS = eINSTANCE.getAtomicExp_Fields();
+
+    /**
+     * The meta object literal for the '<em><b>Expr</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference ATOMIC_EXP__EXPR = eINSTANCE.getAtomicExp_Expr();
+
+    /**
+     * The meta object literal for the '<em><b>Exps</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference ATOMIC_EXP__EXPS = eINSTANCE.getAtomicExp_Exps();
+
+    /**
+     * The meta object literal for the '<em><b>Val Decl</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference ATOMIC_EXP__VAL_DECL = eINSTANCE.getAtomicExp_ValDecl();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.FieldImpl <em>Field</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.FieldImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getField()
+     * @generated
+     */
+    EClass FIELD = eINSTANCE.getField();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute FIELD__NAME = eINSTANCE.getField_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference FIELD__EXP = eINSTANCE.getField_Exp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ValueDeclImpl <em>Value Decl</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.ValueDeclImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getValueDecl()
+     * @generated
+     */
+    EClass VALUE_DECL = eINSTANCE.getValueDecl();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute VALUE_DECL__NAME = eINSTANCE.getValueDecl_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Ids</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute VALUE_DECL__IDS = eINSTANCE.getValueDecl_Ids();
+
+    /**
+     * The meta object literal for the '<em><b>Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference VALUE_DECL__EXP = eINSTANCE.getValueDecl_Exp();
 
   }
 

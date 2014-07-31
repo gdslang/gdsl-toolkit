@@ -5,17 +5,12 @@ import java.io.InputStreamReader;
 
 public class RunCompiler {
 
-	private static final String COMMAND = "ping -c 3 8.8.8.8";
-	
-	public static String compile(){
-		return RunCompiler.compile(COMMAND);
-	}
-	
 	public static String compile(String command){
+		System.out.println(command);
 		StringBuffer output = new StringBuffer();
 		Process p;
 		try{
-			p = Runtime.getRuntime().exec(COMMAND);
+			p = Runtime.getRuntime().exec(command);
 			p.waitFor();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = "";

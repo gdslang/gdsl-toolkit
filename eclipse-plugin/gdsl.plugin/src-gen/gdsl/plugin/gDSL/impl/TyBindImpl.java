@@ -22,7 +22,7 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.TyBindImpl#getKey <em>Key</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TyBindImpl#getName <em>Name</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.TyBindImpl#getValue <em>Value</em>}</li>
  * </ul>
  * </p>
@@ -32,24 +32,24 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 public class TyBindImpl extends MinimalEObjectImpl.Container implements TyBind
 {
   /**
-   * The default value of the '{@link #getKey() <em>Key</em>}' attribute.
+   * The default value of the '{@link #getName() <em>Name</em>}' attribute.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getKey()
+   * @see #getName()
    * @generated
    * @ordered
    */
-  protected static final String KEY_EDEFAULT = null;
+  protected static final String NAME_EDEFAULT = null;
 
   /**
-   * The cached value of the '{@link #getKey() <em>Key</em>}' attribute.
+   * The cached value of the '{@link #getName() <em>Name</em>}' attribute.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getKey()
+   * @see #getName()
    * @generated
    * @ordered
    */
-  protected String key = KEY_EDEFAULT;
+  protected String name = NAME_EDEFAULT;
 
   /**
    * The cached value of the '{@link #getValue() <em>Value</em>}' containment reference.
@@ -87,9 +87,9 @@ public class TyBindImpl extends MinimalEObjectImpl.Container implements TyBind
    * <!-- end-user-doc -->
    * @generated
    */
-  public String getKey()
+  public String getName()
   {
-    return key;
+    return name;
   }
 
   /**
@@ -97,12 +97,12 @@ public class TyBindImpl extends MinimalEObjectImpl.Container implements TyBind
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setKey(String newKey)
+  public void setName(String newName)
   {
-    String oldKey = key;
-    key = newKey;
+    String oldName = name;
+    name = newName;
     if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.TY_BIND__KEY, oldKey, key));
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.TY_BIND__NAME, oldName, name));
   }
 
   /**
@@ -179,8 +179,8 @@ public class TyBindImpl extends MinimalEObjectImpl.Container implements TyBind
   {
     switch (featureID)
     {
-      case GDSLPackage.TY_BIND__KEY:
-        return getKey();
+      case GDSLPackage.TY_BIND__NAME:
+        return getName();
       case GDSLPackage.TY_BIND__VALUE:
         return getValue();
     }
@@ -197,8 +197,8 @@ public class TyBindImpl extends MinimalEObjectImpl.Container implements TyBind
   {
     switch (featureID)
     {
-      case GDSLPackage.TY_BIND__KEY:
-        setKey((String)newValue);
+      case GDSLPackage.TY_BIND__NAME:
+        setName((String)newValue);
         return;
       case GDSLPackage.TY_BIND__VALUE:
         setValue((Ty)newValue);
@@ -217,8 +217,8 @@ public class TyBindImpl extends MinimalEObjectImpl.Container implements TyBind
   {
     switch (featureID)
     {
-      case GDSLPackage.TY_BIND__KEY:
-        setKey(KEY_EDEFAULT);
+      case GDSLPackage.TY_BIND__NAME:
+        setName(NAME_EDEFAULT);
         return;
       case GDSLPackage.TY_BIND__VALUE:
         setValue((Ty)null);
@@ -237,8 +237,8 @@ public class TyBindImpl extends MinimalEObjectImpl.Container implements TyBind
   {
     switch (featureID)
     {
-      case GDSLPackage.TY_BIND__KEY:
-        return KEY_EDEFAULT == null ? key != null : !KEY_EDEFAULT.equals(key);
+      case GDSLPackage.TY_BIND__NAME:
+        return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
       case GDSLPackage.TY_BIND__VALUE:
         return value != null;
     }
@@ -256,8 +256,8 @@ public class TyBindImpl extends MinimalEObjectImpl.Container implements TyBind
     if (eIsProxy()) return super.toString();
 
     StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (key: ");
-    result.append(key);
+    result.append(" (name: ");
+    result.append(name);
     result.append(')');
     return result.toString();
   }

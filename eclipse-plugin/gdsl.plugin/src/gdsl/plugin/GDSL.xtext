@@ -8,76 +8,161 @@ Model:
 	decl += Decl (';'? decl += Decl)*
 ;
 
-//*****************************
 Decl:
-	DeclGranularity | DeclExport | DeclType | DeclVal
-;
-
-//*****************************
-DeclGranularity:
-	name='granularity' '=' granularity=Int
+	DeclExport | DeclType | DeclVal
 ;
 
 DeclExport:
-	name='export' '=' exports+=Export*
+	'export' name=[DeclVal] (tyVars=TyVars)? ':' type=Ty
 ;
 
 DeclType:
-	'type' name=ID '=' value=(ConDecls | Ty) |
-	'type' name=ID '[' attrName+=ID (',' attrName+=ID)* ']' '=' value=ConDecls
+	'type' name=ID 
+	(
+		('=' (=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) | value=Ty))
+		| (tyVars=TyVars '=' (conDecl+=ConDecl ('|' conDecl+=ConDecl)*))
+	)
 ;
 
 DeclVal:
-	'val' name=ID (attr += ID)*
+	'val'
+	(=>((name=ID | =>name=SYM) (attr += ID)* '=' exp=Exp) |
+	((mid+=MID attr+=ID)* '=' exp=Exp) |
+	( name=ID '[' decPat+=DECODEPAT* ']' (('=' exp=Exp) | ('|' exps+=Exp '=' exps+=Exp)+) ) )
 ;
 
-//*****************************
-Export:
-	name=Qid ('{' attrName+=ID (',' attrName+=ID)* '}')?
-;
-
-ConDecls:
-	conDecls+=ConDecl ('|' conDecls+=ConDecl)*
+TyVars:
+	'[' attr+=ID (',' attr+=ID)* ']'
 ;
 
 ConDecl:
-	name=ConBind ('of' ty=Ty)?
+	name=CONS ('of' ty=Ty)?
 ;
 
 Ty:
-	value=Int |
-	'|' value=Int '|' |
-	value=Qid ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
-	'{' elements+=TyElement (',' elements+=TyElement)* '}'
+	value=INTEGER |
+//	'|' value=INTEGER '|' |
+	(decl=[DeclType] | type='int') ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
+	{Ty} '{' (elements+=TyElement (',' elements+=TyElement)*)? '}' |
+	'(' param+=Ty (',' param+=Ty)* ')' '->' resType=Ty |
+	{Ty} '()' |
+	S r=Ty LESS in=Ty '=>' out=Ty GREATER
+;
+
+TyBind:
+	name=ID ('=' value=Ty)?
 ;
 
 TyElement:
 	name=ID ':' value=Ty
 ;
 
-TyBind:
-	key=Qid ('=' value=Ty)?
+Exp: 
+	name=CaseExp | (mid+=MID caseExps+=CaseExp)+
 ;
 
-//DataType Rules
-ConBind:
-	CONS
+CaseExp:
+	ClosedExp |
+	name='case' closedExp=ClosedExp 'of' (pat+=PAT ':' exp+=Exp ('|' pat+=PAT ':' exp+=Exp)*) 'end'
 ;
 
-Int:
-	POSINT | NEGINT 
+ClosedExp:
+	OrElseExp |
+	name='if' ifCaseExp=CaseExp 'then' thenCaseExp=CaseExp 'else' elseCaseExp=CaseExp |
+	name='do' doExp+=MonadicExp (';' doExp+=MonadicExp)* 'end'
 ;
 
-Qid:
-	ID
+MonadicExp:
+	=>exp=Exp |
+	name=ID '<-' exp=Exp
 ;
 
-//Terminal symbols	
-terminal CONS: 'constodo'; //TODO
-terminal ID : '^'?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
-terminal POSINT returns ecore::EInt: ('0'..'9')+;
-terminal NEGINT: '~'('1'..'9')('0'..'9')*;
+OrElseExp:
+	AndAlsoExp ({OrElseExp.left=current} name='or' right+=AndAlsoExp)*
+;
+
+AndAlsoExp:
+	RExp ({AndAlsoExp.left=current} name='and' right+=RExp)*
+;
+
+RExp:
+	AExp (=>sym+=SYM aexps+=AExp)*
+;
+
+AExp:
+	MExp (sign+=('+'|'-') mexps+=MExp)*
+;
+
+MExp:
+	SelectExp (symbol+=('*'|'%') applyexps+=ApplyExp)*
+;
+
+SelectExp:
+	ApplyExp ('^' applyexps+=ApplyExp)*
+;
+
+ApplyExp:
+	'~' AtomicExp |
+	=>(atomicExp+=AtomicExp)+
+;
+
+AtomicExp:
+	name=LIT |
+	name=STRING |
+	=>(name=CONS) |
+	name=ID (=>DOT id+=ID)* |
+	name='@' '{' fields+=Field (',' fields+=Field)* '}' |
+	'$' name=ID |
+	'(' expr=Exp ')' (=>DOT id+=ID)* |
+	{AtomicExp} '{' (id+=ID '=' exps+=Exp (',' id+=ID '=' exps+=Exp)*)? '}' |
+	name='let' valDecl+=ValueDecl+ 'in' expr=Exp 'end'
+;
+
+Field:
+	name=ID '=' exp=Exp |
+	'~' name=ID
+;
+
+ValueDecl:
+	'val' (=>name=ID | name=SYM) ids+=ID* '=' exp=Exp
+;
+
+DECODEPAT: "'"BITPAT+"'" | TOKPAT;
+TOKPAT: HEXINT | ID;
+BITPAT: BINARY | (ID (BITPATORINT)?);
+BITPATORINT: (':' POSINT) | ('@' BINARY);
+PAT: USCORE | =>INTEGER| =>CONS PAT? | =>ID | BITPAT ;
+LIT: INTEGER | "'"BINARY?"'";
+ID: CONS | ID_WO_CONS | SLASH;
+MID: MIXID | USCORE;
+SYM: USCORE| SLASH | BS | DOT | LESS | GREATER | SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER;
+INTEGER: POSINT | HEXINT | NEGINT;
+POSINT: POSINT_WO_DUALS | DUALS;
+BINARY: DUALS | BINS | BS | DOT;
+CONS: S | CONS_WO_S;
+
+terminal USCORE:'_';
+terminal SLASH:'/';
+terminal BS:'\\';
+terminal DOT:'.';
+terminal S: 'S';
+terminal LESS: '<';
+terminal GREATER: '>';
+terminal SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER: (CHARSYM|OTHERSYM)+;
+terminal MIXID:'_'(USCORE|IDCHAR)*;
+terminal CONS_WO_S:('A'..'Z') (USCORE|IDCHAR)*;
+terminal ID_WO_CONS:('A'..'Z'|'a'..'z'|'/') (USCORE|IDCHAR)*;
+terminal STRING:'"' ( '\\'('b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\') | !('\\'|'"') )* '"';
+terminal fragment IDCHAR:('A'..'Z'|'a'..'z'|'/'|'0'..'9'|CHARSYM);
+terminal fragment CHARSYM:'-'|'?'/*|"'"*/|'!';
+terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'/*|'#'*/|'*'|'\\';
+terminal DUALS: ('0'|'1')+;
+terminal BINS:('0'|'1'|'\\'|'.'|'|')*;
+terminal POSINT_WO_DUALS: ('0'..'9')+;
+terminal HEXINT: '0x'('A'..'F'|'a'..'f'|'0'..'9')+;
+terminal NEGINT: '~'('0'..'9')+;
+
+terminal WS: (' '|'\t'|'\r'|'\n')+;
 terminal ML_COMMENT	: '(*' -> '*)';
 terminal SL_COMMENT 	: '#' !('\n')* '\n';
-terminal WS			: (' '|'\t'|'\r'|'\n')+;
 

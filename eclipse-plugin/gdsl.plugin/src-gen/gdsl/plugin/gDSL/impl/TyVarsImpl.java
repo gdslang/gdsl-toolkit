@@ -2,55 +2,50 @@
  */
 package gdsl.plugin.gDSL.impl;
 
-import gdsl.plugin.gDSL.ConDecl;
-import gdsl.plugin.gDSL.ConDecls;
 import gdsl.plugin.gDSL.GDSLPackage;
+import gdsl.plugin.gDSL.TyVars;
 
 import java.util.Collection;
-
-import org.eclipse.emf.common.notify.NotificationChain;
 
 import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
-import org.eclipse.emf.ecore.util.EObjectContainmentEList;
-import org.eclipse.emf.ecore.util.InternalEList;
+import org.eclipse.emf.ecore.util.EDataTypeEList;
 
 /**
  * <!-- begin-user-doc -->
- * An implementation of the model object '<em><b>Con Decls</b></em>'.
+ * An implementation of the model object '<em><b>Ty Vars</b></em>'.
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.ConDeclsImpl#getConDecls <em>Con Decls</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TyVarsImpl#getAttr <em>Attr</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class ConDeclsImpl extends MinimalEObjectImpl.Container implements ConDecls
+public class TyVarsImpl extends MinimalEObjectImpl.Container implements TyVars
 {
   /**
-   * The cached value of the '{@link #getConDecls() <em>Con Decls</em>}' containment reference list.
+   * The cached value of the '{@link #getAttr() <em>Attr</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getConDecls()
+   * @see #getAttr()
    * @generated
    * @ordered
    */
-  protected EList<ConDecl> conDecls;
+  protected EList<String> attr;
 
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    */
-  protected ConDeclsImpl()
+  protected TyVarsImpl()
   {
     super();
   }
@@ -63,7 +58,7 @@ public class ConDeclsImpl extends MinimalEObjectImpl.Container implements ConDec
   @Override
   protected EClass eStaticClass()
   {
-    return GDSLPackage.Literals.CON_DECLS;
+    return GDSLPackage.Literals.TY_VARS;
   }
 
   /**
@@ -71,29 +66,13 @@ public class ConDeclsImpl extends MinimalEObjectImpl.Container implements ConDec
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<ConDecl> getConDecls()
+  public EList<String> getAttr()
   {
-    if (conDecls == null)
+    if (attr == null)
     {
-      conDecls = new EObjectContainmentEList<ConDecl>(ConDecl.class, this, GDSLPackage.CON_DECLS__CON_DECLS);
+      attr = new EDataTypeEList<String>(String.class, this, GDSLPackage.TY_VARS__ATTR);
     }
-    return conDecls;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  @Override
-  public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs)
-  {
-    switch (featureID)
-    {
-      case GDSLPackage.CON_DECLS__CON_DECLS:
-        return ((InternalEList<?>)getConDecls()).basicRemove(otherEnd, msgs);
-    }
-    return super.eInverseRemove(otherEnd, featureID, msgs);
+    return attr;
   }
 
   /**
@@ -106,8 +85,8 @@ public class ConDeclsImpl extends MinimalEObjectImpl.Container implements ConDec
   {
     switch (featureID)
     {
-      case GDSLPackage.CON_DECLS__CON_DECLS:
-        return getConDecls();
+      case GDSLPackage.TY_VARS__ATTR:
+        return getAttr();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -123,9 +102,9 @@ public class ConDeclsImpl extends MinimalEObjectImpl.Container implements ConDec
   {
     switch (featureID)
     {
-      case GDSLPackage.CON_DECLS__CON_DECLS:
-        getConDecls().clear();
-        getConDecls().addAll((Collection<? extends ConDecl>)newValue);
+      case GDSLPackage.TY_VARS__ATTR:
+        getAttr().clear();
+        getAttr().addAll((Collection<? extends String>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -141,8 +120,8 @@ public class ConDeclsImpl extends MinimalEObjectImpl.Container implements ConDec
   {
     switch (featureID)
     {
-      case GDSLPackage.CON_DECLS__CON_DECLS:
-        getConDecls().clear();
+      case GDSLPackage.TY_VARS__ATTR:
+        getAttr().clear();
         return;
     }
     super.eUnset(featureID);
@@ -158,10 +137,27 @@ public class ConDeclsImpl extends MinimalEObjectImpl.Container implements ConDec
   {
     switch (featureID)
     {
-      case GDSLPackage.CON_DECLS__CON_DECLS:
-        return conDecls != null && !conDecls.isEmpty();
+      case GDSLPackage.TY_VARS__ATTR:
+        return attr != null && !attr.isEmpty();
     }
     return super.eIsSet(featureID);
   }
 
-} //ConDeclsImpl
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  @Override
+  public String toString()
+  {
+    if (eIsProxy()) return super.toString();
+
+    StringBuffer result = new StringBuffer(super.toString());
+    result.append(" (attr: ");
+    result.append(attr);
+    result.append(')');
+    return result.toString();
+  }
+
+} //TyVarsImpl
