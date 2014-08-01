@@ -26,30 +26,32 @@ class GDSLGenerator implements IGenerator {
 
 		var commandBuilder = new StringBuilder()
 		
-		commandBuilder.append(GDSLPluginPreferences.compilerCall)
+		commandBuilder.append("echo Hello World");
 		
-		val smlLoad = GDSLPluginPreferences.compilerPath
-		if(null != smlLoad && !"".equals(smlLoad.trim)) {
-			commandBuilder.append(" @SMLload=")
-			commandBuilder.append(smlLoad)
-		}
-		
-		val arguments = GDSLPluginPreferences.compileArguments
-		if(null != arguments && !"".equals(arguments.trim)){
-			commandBuilder.append(" ")
-			commandBuilder.append(arguments)			
-		}
-		
-		val runtimeEnvironment = GDSLPluginPreferences.runtimeFolder
-		if(null != runtimeEnvironment && !"".equals(runtimeEnvironment.trim)){
-			commandBuilder.append(" --runtime=")
-			commandBuilder.append(runtimeEnvironment)
-		}
-		
-		var files = GDSLPluginPreferences.compileFiles
-		files = files.replaceAll(Pattern.quote(File.pathSeparator), " ")
-		commandBuilder.append(" ")
-		commandBuilder.append(files)
+//		commandBuilder.append(GDSLPluginPreferences.compilerCall)
+//		
+//		val smlLoad = GDSLPluginPreferences.compilerPath
+//		if(null != smlLoad && !"".equals(smlLoad.trim)) {
+//			commandBuilder.append(" @SMLload=")
+//			commandBuilder.append(smlLoad)
+//		}
+//		
+//		val arguments = GDSLPluginPreferences.compileArguments
+//		if(null != arguments && !"".equals(arguments.trim)){
+//			commandBuilder.append(" ")
+//			commandBuilder.append(arguments)			
+//		}
+//		
+//		val runtimeEnvironment = GDSLPluginPreferences.runtimeFolder
+//		if(null != runtimeEnvironment && !"".equals(runtimeEnvironment.trim)){
+//			commandBuilder.append(" --runtime=")
+//			commandBuilder.append(runtimeEnvironment)
+//		}
+//		
+//		var files = GDSLPluginPreferences.compileFiles
+//		files = files.replaceAll(Pattern.quote(File.pathSeparator), " ")
+//		commandBuilder.append(" ")
+//		commandBuilder.append(files)
 		
 		RunCompiler.compile(commandBuilder.toString)
 	}

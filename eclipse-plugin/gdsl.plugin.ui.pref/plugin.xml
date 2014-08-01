@@ -10,7 +10,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            category="gdsl.plugin.GDSL"
+            category="gdsl.plugin.GDSL.compiler.preferencePage"
             class="gdsl.plugin.ui.pref.preferences.GdslPreferencePage"
             id="gdsl.plugin.ui.pref.preferences.GdslPreferencePage"
             name="External GDSL Compiler">

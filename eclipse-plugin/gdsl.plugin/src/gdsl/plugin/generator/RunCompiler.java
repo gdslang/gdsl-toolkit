@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 public class RunCompiler {
 
 	public static String compile(String command){
-		System.out.println(command);
+		System.out.println("$ " + command);
 		StringBuffer output = new StringBuffer();
 		Process p;
 		try{
