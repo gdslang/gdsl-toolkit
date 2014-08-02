@@ -4850,11 +4850,11 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                 {
                 int LA14_4 = input.LA(2);
 
-                if ( (LA14_4==52) ) {
-                    alt14=2;
-                }
-                else if ( (LA14_4==EOF||(LA14_4>=RULE_HEXINT && LA14_4<=RULE_SLASH)||(LA14_4>=RULE_BS && LA14_4<=RULE_DUALS)||(LA14_4>=RULE_S && LA14_4<=RULE_STRING)||(LA14_4>=27 && LA14_4<=31)||LA14_4==42||LA14_4==44||LA14_4==49||LA14_4==53||LA14_4==55||(LA14_4>=57 && LA14_4<=58)||(LA14_4>=63 && LA14_4<=65)) ) {
+                if ( (LA14_4==EOF||(LA14_4>=RULE_HEXINT && LA14_4<=RULE_SLASH)||(LA14_4>=RULE_BS && LA14_4<=RULE_DUALS)||(LA14_4>=RULE_S && LA14_4<=RULE_STRING)||(LA14_4>=27 && LA14_4<=31)||LA14_4==42||LA14_4==44||LA14_4==49||LA14_4==53||LA14_4==55||(LA14_4>=57 && LA14_4<=58)||(LA14_4>=63 && LA14_4<=65)) ) {
                     alt14=1;
+                }
+                else if ( (LA14_4==52) ) {
+                    alt14=2;
                 }
                 else {
                     if (state.backtracking>0) {state.failed=true; return ;}
@@ -4869,11 +4869,11 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                 {
                 int LA14_5 = input.LA(2);
 
-                if ( (LA14_5==EOF||(LA14_5>=RULE_HEXINT && LA14_5<=RULE_SLASH)||(LA14_5>=RULE_BS && LA14_5<=RULE_DUALS)||(LA14_5>=RULE_S && LA14_5<=RULE_STRING)||(LA14_5>=27 && LA14_5<=31)||LA14_5==42||LA14_5==44||LA14_5==49||LA14_5==53||LA14_5==55||(LA14_5>=57 && LA14_5<=58)||(LA14_5>=63 && LA14_5<=65)) ) {
-                    alt14=1;
-                }
-                else if ( (LA14_5==52) ) {
+                if ( (LA14_5==52) ) {
                     alt14=2;
+                }
+                else if ( (LA14_5==EOF||(LA14_5>=RULE_HEXINT && LA14_5<=RULE_SLASH)||(LA14_5>=RULE_BS && LA14_5<=RULE_DUALS)||(LA14_5>=RULE_S && LA14_5<=RULE_STRING)||(LA14_5>=27 && LA14_5<=31)||LA14_5==42||LA14_5==44||LA14_5==49||LA14_5==53||LA14_5==55||(LA14_5>=57 && LA14_5<=58)||(LA14_5>=63 && LA14_5<=65)) ) {
+                    alt14=1;
                 }
                 else {
                     if (state.backtracking>0) {state.failed=true; return ;}
@@ -6161,15 +6161,85 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__PAT__Alternatives"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1694:1: rule__PAT__Alternatives : ( ( RULE_USCORE ) | ( ( ruleINTEGER ) ) | ( ( rule__PAT__Group_2__0 ) ) | ( ( ruleID ) ) | ( ruleBITPAT ) );
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1694:1: rule__PAT__Alternatives : ( ( RULE_USCORE ) | ( ( ruleINTEGER ) ) | ( ( rule__PAT__Group_2__0 ) ) | ( ( ruleID ) ) | ( ( rule__PAT__Group_4__0 ) ) );
     public final void rule__PAT__Alternatives() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1698:1: ( ( RULE_USCORE ) | ( ( ruleINTEGER ) ) | ( ( rule__PAT__Group_2__0 ) ) | ( ( ruleID ) ) | ( ruleBITPAT ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1698:1: ( ( RULE_USCORE ) | ( ( ruleINTEGER ) ) | ( ( rule__PAT__Group_2__0 ) ) | ( ( ruleID ) ) | ( ( rule__PAT__Group_4__0 ) ) )
             int alt26=5;
-            alt26 = dfa26.predict(input);
+            switch ( input.LA(1) ) {
+            case RULE_USCORE:
+                {
+                alt26=1;
+                }
+                break;
+            case RULE_HEXINT:
+            case RULE_NEGINT:
+            case RULE_POSINT_WO_DUALS:
+            case RULE_DUALS:
+                {
+                alt26=2;
+                }
+                break;
+            case RULE_S:
+                {
+                int LA26_3 = input.LA(2);
+
+                if ( (synpred42_InternalGDSL()) ) {
+                    alt26=3;
+                }
+                else if ( (synpred43_InternalGDSL()) ) {
+                    alt26=4;
+                }
+                else {
+                    if (state.backtracking>0) {state.failed=true; return ;}
+                    NoViableAltException nvae =
+                        new NoViableAltException("", 26, 3, input);
+
+                    throw nvae;
+                }
+                }
+                break;
+            case RULE_CONS_WO_S:
+                {
+                int LA26_4 = input.LA(2);
+
+                if ( (synpred42_InternalGDSL()) ) {
+                    alt26=3;
+                }
+                else if ( (synpred43_InternalGDSL()) ) {
+                    alt26=4;
+                }
+                else {
+                    if (state.backtracking>0) {state.failed=true; return ;}
+                    NoViableAltException nvae =
+                        new NoViableAltException("", 26, 4, input);
+
+                    throw nvae;
+                }
+                }
+                break;
+            case RULE_ID_WO_CONS:
+            case RULE_SLASH:
+                {
+                alt26=4;
+                }
+                break;
+            case 57:
+                {
+                alt26=5;
+                }
+                break;
+            default:
+                if (state.backtracking>0) {state.failed=true; return ;}
+                NoViableAltException nvae =
+                    new NoViableAltException("", 26, 0, input);
+
+                throw nvae;
+            }
+
             switch (alt26) {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1699:1: ( RULE_USCORE )
@@ -6278,21 +6348,27 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     }
                     break;
                 case 5 :
-                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1723:6: ( ruleBITPAT )
+                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1723:6: ( ( rule__PAT__Group_4__0 ) )
                     {
-                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1723:6: ( ruleBITPAT )
-                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1724:1: ruleBITPAT
+                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1723:6: ( ( rule__PAT__Group_4__0 ) )
+                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1724:1: ( rule__PAT__Group_4__0 )
                     {
                     if ( state.backtracking==0 ) {
-                       before(grammarAccess.getPATAccess().getBITPATParserRuleCall_4()); 
+                       before(grammarAccess.getPATAccess().getGroup_4()); 
                     }
-                    pushFollow(FOLLOW_ruleBITPAT_in_rule__PAT__Alternatives3793);
-                    ruleBITPAT();
+                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1725:1: ( rule__PAT__Group_4__0 )
+                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1725:2: rule__PAT__Group_4__0
+                    {
+                    pushFollow(FOLLOW_rule__PAT__Group_4__0_in_rule__PAT__Alternatives3793);
+                    rule__PAT__Group_4__0();
 
                     state._fsp--;
                     if (state.failed) return ;
+
+                    }
+
                     if ( state.backtracking==0 ) {
-                       after(grammarAccess.getPATAccess().getBITPATParserRuleCall_4()); 
+                       after(grammarAccess.getPATAccess().getGroup_4()); 
                     }
 
                     }
@@ -6351,7 +6427,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getLITAccess().getINTEGERParserRuleCall_0()); 
                     }
-                    pushFollow(FOLLOW_ruleINTEGER_in_rule__LIT__Alternatives3825);
+                    pushFollow(FOLLOW_ruleINTEGER_in_rule__LIT__Alternatives3826);
                     ruleINTEGER();
 
                     state._fsp--;
@@ -6377,7 +6453,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1747:1: ( rule__LIT__Group_1__0 )
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1747:2: rule__LIT__Group_1__0
                     {
-                    pushFollow(FOLLOW_rule__LIT__Group_1__0_in_rule__LIT__Alternatives3842);
+                    pushFollow(FOLLOW_rule__LIT__Group_1__0_in_rule__LIT__Alternatives3843);
                     rule__LIT__Group_1__0();
 
                     state._fsp--;
@@ -6455,7 +6531,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getIDAccess().getCONSParserRuleCall_0()); 
                     }
-                    pushFollow(FOLLOW_ruleCONS_in_rule__ID__Alternatives3875);
+                    pushFollow(FOLLOW_ruleCONS_in_rule__ID__Alternatives3876);
                     ruleCONS();
 
                     state._fsp--;
@@ -6478,7 +6554,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getIDAccess().getID_WO_CONSTerminalRuleCall_1()); 
                     }
-                    match(input,RULE_ID_WO_CONS,FOLLOW_RULE_ID_WO_CONS_in_rule__ID__Alternatives3892); if (state.failed) return ;
+                    match(input,RULE_ID_WO_CONS,FOLLOW_RULE_ID_WO_CONS_in_rule__ID__Alternatives3893); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getIDAccess().getID_WO_CONSTerminalRuleCall_1()); 
                     }
@@ -6497,7 +6573,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getIDAccess().getSLASHTerminalRuleCall_2()); 
                     }
-                    match(input,RULE_SLASH,FOLLOW_RULE_SLASH_in_rule__ID__Alternatives3909); if (state.failed) return ;
+                    match(input,RULE_SLASH,FOLLOW_RULE_SLASH_in_rule__ID__Alternatives3910); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getIDAccess().getSLASHTerminalRuleCall_2()); 
                     }
@@ -6558,7 +6634,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getMIDAccess().getMIXIDTerminalRuleCall_0()); 
                     }
-                    match(input,RULE_MIXID,FOLLOW_RULE_MIXID_in_rule__MID__Alternatives3941); if (state.failed) return ;
+                    match(input,RULE_MIXID,FOLLOW_RULE_MIXID_in_rule__MID__Alternatives3942); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getMIDAccess().getMIXIDTerminalRuleCall_0()); 
                     }
@@ -6577,7 +6653,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getMIDAccess().getUSCORETerminalRuleCall_1()); 
                     }
-                    match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_rule__MID__Alternatives3958); if (state.failed) return ;
+                    match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_rule__MID__Alternatives3959); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getMIDAccess().getUSCORETerminalRuleCall_1()); 
                     }
@@ -6667,7 +6743,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getSYMAccess().getUSCORETerminalRuleCall_0()); 
                     }
-                    match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_rule__SYM__Alternatives3990); if (state.failed) return ;
+                    match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_rule__SYM__Alternatives3991); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getSYMAccess().getUSCORETerminalRuleCall_0()); 
                     }
@@ -6686,7 +6762,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getSYMAccess().getSLASHTerminalRuleCall_1()); 
                     }
-                    match(input,RULE_SLASH,FOLLOW_RULE_SLASH_in_rule__SYM__Alternatives4007); if (state.failed) return ;
+                    match(input,RULE_SLASH,FOLLOW_RULE_SLASH_in_rule__SYM__Alternatives4008); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getSYMAccess().getSLASHTerminalRuleCall_1()); 
                     }
@@ -6705,7 +6781,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getSYMAccess().getBSTerminalRuleCall_2()); 
                     }
-                    match(input,RULE_BS,FOLLOW_RULE_BS_in_rule__SYM__Alternatives4024); if (state.failed) return ;
+                    match(input,RULE_BS,FOLLOW_RULE_BS_in_rule__SYM__Alternatives4025); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getSYMAccess().getBSTerminalRuleCall_2()); 
                     }
@@ -6724,7 +6800,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getSYMAccess().getDOTTerminalRuleCall_3()); 
                     }
-                    match(input,RULE_DOT,FOLLOW_RULE_DOT_in_rule__SYM__Alternatives4041); if (state.failed) return ;
+                    match(input,RULE_DOT,FOLLOW_RULE_DOT_in_rule__SYM__Alternatives4042); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getSYMAccess().getDOTTerminalRuleCall_3()); 
                     }
@@ -6743,7 +6819,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getSYMAccess().getLESSTerminalRuleCall_4()); 
                     }
-                    match(input,RULE_LESS,FOLLOW_RULE_LESS_in_rule__SYM__Alternatives4058); if (state.failed) return ;
+                    match(input,RULE_LESS,FOLLOW_RULE_LESS_in_rule__SYM__Alternatives4059); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getSYMAccess().getLESSTerminalRuleCall_4()); 
                     }
@@ -6762,7 +6838,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getSYMAccess().getGREATERTerminalRuleCall_5()); 
                     }
-                    match(input,RULE_GREATER,FOLLOW_RULE_GREATER_in_rule__SYM__Alternatives4075); if (state.failed) return ;
+                    match(input,RULE_GREATER,FOLLOW_RULE_GREATER_in_rule__SYM__Alternatives4076); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getSYMAccess().getGREATERTerminalRuleCall_5()); 
                     }
@@ -6781,7 +6857,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getSYMAccess().getSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATERTerminalRuleCall_6()); 
                     }
-                    match(input,RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER,FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_rule__SYM__Alternatives4092); if (state.failed) return ;
+                    match(input,RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER,FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_rule__SYM__Alternatives4093); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getSYMAccess().getSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATERTerminalRuleCall_6()); 
                     }
@@ -6852,7 +6928,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getINTEGERAccess().getPOSINTParserRuleCall_0()); 
                     }
-                    pushFollow(FOLLOW_rulePOSINT_in_rule__INTEGER__Alternatives4124);
+                    pushFollow(FOLLOW_rulePOSINT_in_rule__INTEGER__Alternatives4125);
                     rulePOSINT();
 
                     state._fsp--;
@@ -6875,7 +6951,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getINTEGERAccess().getHEXINTTerminalRuleCall_1()); 
                     }
-                    match(input,RULE_HEXINT,FOLLOW_RULE_HEXINT_in_rule__INTEGER__Alternatives4141); if (state.failed) return ;
+                    match(input,RULE_HEXINT,FOLLOW_RULE_HEXINT_in_rule__INTEGER__Alternatives4142); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getINTEGERAccess().getHEXINTTerminalRuleCall_1()); 
                     }
@@ -6894,7 +6970,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getINTEGERAccess().getNEGINTTerminalRuleCall_2()); 
                     }
-                    match(input,RULE_NEGINT,FOLLOW_RULE_NEGINT_in_rule__INTEGER__Alternatives4158); if (state.failed) return ;
+                    match(input,RULE_NEGINT,FOLLOW_RULE_NEGINT_in_rule__INTEGER__Alternatives4159); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getINTEGERAccess().getNEGINTTerminalRuleCall_2()); 
                     }
@@ -6955,7 +7031,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getPOSINTAccess().getPOSINT_WO_DUALSTerminalRuleCall_0()); 
                     }
-                    match(input,RULE_POSINT_WO_DUALS,FOLLOW_RULE_POSINT_WO_DUALS_in_rule__POSINT__Alternatives4190); if (state.failed) return ;
+                    match(input,RULE_POSINT_WO_DUALS,FOLLOW_RULE_POSINT_WO_DUALS_in_rule__POSINT__Alternatives4191); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getPOSINTAccess().getPOSINT_WO_DUALSTerminalRuleCall_0()); 
                     }
@@ -6974,7 +7050,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getPOSINTAccess().getDUALSTerminalRuleCall_1()); 
                     }
-                    match(input,RULE_DUALS,FOLLOW_RULE_DUALS_in_rule__POSINT__Alternatives4207); if (state.failed) return ;
+                    match(input,RULE_DUALS,FOLLOW_RULE_DUALS_in_rule__POSINT__Alternatives4208); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getPOSINTAccess().getDUALSTerminalRuleCall_1()); 
                     }
@@ -7049,7 +7125,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getBINARYAccess().getDUALSTerminalRuleCall_0()); 
                     }
-                    match(input,RULE_DUALS,FOLLOW_RULE_DUALS_in_rule__BINARY__Alternatives4239); if (state.failed) return ;
+                    match(input,RULE_DUALS,FOLLOW_RULE_DUALS_in_rule__BINARY__Alternatives4240); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getBINARYAccess().getDUALSTerminalRuleCall_0()); 
                     }
@@ -7068,7 +7144,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getBINARYAccess().getBINSTerminalRuleCall_1()); 
                     }
-                    match(input,RULE_BINS,FOLLOW_RULE_BINS_in_rule__BINARY__Alternatives4256); if (state.failed) return ;
+                    match(input,RULE_BINS,FOLLOW_RULE_BINS_in_rule__BINARY__Alternatives4257); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getBINARYAccess().getBINSTerminalRuleCall_1()); 
                     }
@@ -7087,7 +7163,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getBINARYAccess().getBSTerminalRuleCall_2()); 
                     }
-                    match(input,RULE_BS,FOLLOW_RULE_BS_in_rule__BINARY__Alternatives4273); if (state.failed) return ;
+                    match(input,RULE_BS,FOLLOW_RULE_BS_in_rule__BINARY__Alternatives4274); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getBINARYAccess().getBSTerminalRuleCall_2()); 
                     }
@@ -7106,7 +7182,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getBINARYAccess().getDOTTerminalRuleCall_3()); 
                     }
-                    match(input,RULE_DOT,FOLLOW_RULE_DOT_in_rule__BINARY__Alternatives4290); if (state.failed) return ;
+                    match(input,RULE_DOT,FOLLOW_RULE_DOT_in_rule__BINARY__Alternatives4291); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getBINARYAccess().getDOTTerminalRuleCall_3()); 
                     }
@@ -7167,7 +7243,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getCONSAccess().getSTerminalRuleCall_0()); 
                     }
-                    match(input,RULE_S,FOLLOW_RULE_S_in_rule__CONS__Alternatives4322); if (state.failed) return ;
+                    match(input,RULE_S,FOLLOW_RULE_S_in_rule__CONS__Alternatives4323); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getCONSAccess().getSTerminalRuleCall_0()); 
                     }
@@ -7186,7 +7262,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                     if ( state.backtracking==0 ) {
                        before(grammarAccess.getCONSAccess().getCONS_WO_STerminalRuleCall_1()); 
                     }
-                    match(input,RULE_CONS_WO_S,FOLLOW_RULE_CONS_WO_S_in_rule__CONS__Alternatives4339); if (state.failed) return ;
+                    match(input,RULE_CONS_WO_S,FOLLOW_RULE_CONS_WO_S_in_rule__CONS__Alternatives4340); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        after(grammarAccess.getCONSAccess().getCONS_WO_STerminalRuleCall_1()); 
                     }
@@ -7223,12 +7299,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1970:1: ( rule__Model__Group__0__Impl rule__Model__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1971:2: rule__Model__Group__0__Impl rule__Model__Group__1
             {
-            pushFollow(FOLLOW_rule__Model__Group__0__Impl_in_rule__Model__Group__04369);
+            pushFollow(FOLLOW_rule__Model__Group__0__Impl_in_rule__Model__Group__04370);
             rule__Model__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Model__Group__1_in_rule__Model__Group__04372);
+            pushFollow(FOLLOW_rule__Model__Group__1_in_rule__Model__Group__04373);
             rule__Model__Group__1();
 
             state._fsp--;
@@ -7270,7 +7346,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1985:1: ( rule__Model__DeclAssignment_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1985:2: rule__Model__DeclAssignment_0
             {
-            pushFollow(FOLLOW_rule__Model__DeclAssignment_0_in_rule__Model__Group__0__Impl4399);
+            pushFollow(FOLLOW_rule__Model__DeclAssignment_0_in_rule__Model__Group__0__Impl4400);
             rule__Model__DeclAssignment_0();
 
             state._fsp--;
@@ -7312,7 +7388,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1999:1: ( rule__Model__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2000:2: rule__Model__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__Model__Group__1__Impl_in_rule__Model__Group__14429);
+            pushFollow(FOLLOW_rule__Model__Group__1__Impl_in_rule__Model__Group__14430);
             rule__Model__Group__1__Impl();
 
             state._fsp--;
@@ -7366,7 +7442,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2013:2: rule__Model__Group_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__Model__Group_1__0_in_rule__Model__Group__1__Impl4456);
+            	    pushFollow(FOLLOW_rule__Model__Group_1__0_in_rule__Model__Group__1__Impl4457);
             	    rule__Model__Group_1__0();
 
             	    state._fsp--;
@@ -7414,12 +7490,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2031:1: ( rule__Model__Group_1__0__Impl rule__Model__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2032:2: rule__Model__Group_1__0__Impl rule__Model__Group_1__1
             {
-            pushFollow(FOLLOW_rule__Model__Group_1__0__Impl_in_rule__Model__Group_1__04491);
+            pushFollow(FOLLOW_rule__Model__Group_1__0__Impl_in_rule__Model__Group_1__04492);
             rule__Model__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Model__Group_1__1_in_rule__Model__Group_1__04494);
+            pushFollow(FOLLOW_rule__Model__Group_1__1_in_rule__Model__Group_1__04495);
             rule__Model__Group_1__1();
 
             state._fsp--;
@@ -7469,7 +7545,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2047:2: ';'
                     {
-                    match(input,31,FOLLOW_31_in_rule__Model__Group_1__0__Impl4523); if (state.failed) return ;
+                    match(input,31,FOLLOW_31_in_rule__Model__Group_1__0__Impl4524); if (state.failed) return ;
 
                     }
                     break;
@@ -7510,7 +7586,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2062:1: ( rule__Model__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2063:2: rule__Model__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__Model__Group_1__1__Impl_in_rule__Model__Group_1__14556);
+            pushFollow(FOLLOW_rule__Model__Group_1__1__Impl_in_rule__Model__Group_1__14557);
             rule__Model__Group_1__1__Impl();
 
             state._fsp--;
@@ -7552,7 +7628,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2076:1: ( rule__Model__DeclAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2076:2: rule__Model__DeclAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__Model__DeclAssignment_1_1_in_rule__Model__Group_1__1__Impl4583);
+            pushFollow(FOLLOW_rule__Model__DeclAssignment_1_1_in_rule__Model__Group_1__1__Impl4584);
             rule__Model__DeclAssignment_1_1();
 
             state._fsp--;
@@ -7594,12 +7670,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2094:1: ( rule__DeclExport__Group__0__Impl rule__DeclExport__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2095:2: rule__DeclExport__Group__0__Impl rule__DeclExport__Group__1
             {
-            pushFollow(FOLLOW_rule__DeclExport__Group__0__Impl_in_rule__DeclExport__Group__04617);
+            pushFollow(FOLLOW_rule__DeclExport__Group__0__Impl_in_rule__DeclExport__Group__04618);
             rule__DeclExport__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclExport__Group__1_in_rule__DeclExport__Group__04620);
+            pushFollow(FOLLOW_rule__DeclExport__Group__1_in_rule__DeclExport__Group__04621);
             rule__DeclExport__Group__1();
 
             state._fsp--;
@@ -7638,7 +7714,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclExportAccess().getExportKeyword_0()); 
             }
-            match(input,32,FOLLOW_32_in_rule__DeclExport__Group__0__Impl4648); if (state.failed) return ;
+            match(input,32,FOLLOW_32_in_rule__DeclExport__Group__0__Impl4649); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclExportAccess().getExportKeyword_0()); 
             }
@@ -7673,12 +7749,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2125:1: ( rule__DeclExport__Group__1__Impl rule__DeclExport__Group__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2126:2: rule__DeclExport__Group__1__Impl rule__DeclExport__Group__2
             {
-            pushFollow(FOLLOW_rule__DeclExport__Group__1__Impl_in_rule__DeclExport__Group__14679);
+            pushFollow(FOLLOW_rule__DeclExport__Group__1__Impl_in_rule__DeclExport__Group__14680);
             rule__DeclExport__Group__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclExport__Group__2_in_rule__DeclExport__Group__14682);
+            pushFollow(FOLLOW_rule__DeclExport__Group__2_in_rule__DeclExport__Group__14683);
             rule__DeclExport__Group__2();
 
             state._fsp--;
@@ -7720,7 +7796,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2140:1: ( rule__DeclExport__NameAssignment_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2140:2: rule__DeclExport__NameAssignment_1
             {
-            pushFollow(FOLLOW_rule__DeclExport__NameAssignment_1_in_rule__DeclExport__Group__1__Impl4709);
+            pushFollow(FOLLOW_rule__DeclExport__NameAssignment_1_in_rule__DeclExport__Group__1__Impl4710);
             rule__DeclExport__NameAssignment_1();
 
             state._fsp--;
@@ -7762,12 +7838,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2154:1: ( rule__DeclExport__Group__2__Impl rule__DeclExport__Group__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2155:2: rule__DeclExport__Group__2__Impl rule__DeclExport__Group__3
             {
-            pushFollow(FOLLOW_rule__DeclExport__Group__2__Impl_in_rule__DeclExport__Group__24739);
+            pushFollow(FOLLOW_rule__DeclExport__Group__2__Impl_in_rule__DeclExport__Group__24740);
             rule__DeclExport__Group__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclExport__Group__3_in_rule__DeclExport__Group__24742);
+            pushFollow(FOLLOW_rule__DeclExport__Group__3_in_rule__DeclExport__Group__24743);
             rule__DeclExport__Group__3();
 
             state._fsp--;
@@ -7817,7 +7893,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2169:2: rule__DeclExport__TyVarsAssignment_2
                     {
-                    pushFollow(FOLLOW_rule__DeclExport__TyVarsAssignment_2_in_rule__DeclExport__Group__2__Impl4769);
+                    pushFollow(FOLLOW_rule__DeclExport__TyVarsAssignment_2_in_rule__DeclExport__Group__2__Impl4770);
                     rule__DeclExport__TyVarsAssignment_2();
 
                     state._fsp--;
@@ -7862,12 +7938,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2183:1: ( rule__DeclExport__Group__3__Impl rule__DeclExport__Group__4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2184:2: rule__DeclExport__Group__3__Impl rule__DeclExport__Group__4
             {
-            pushFollow(FOLLOW_rule__DeclExport__Group__3__Impl_in_rule__DeclExport__Group__34800);
+            pushFollow(FOLLOW_rule__DeclExport__Group__3__Impl_in_rule__DeclExport__Group__34801);
             rule__DeclExport__Group__3__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclExport__Group__4_in_rule__DeclExport__Group__34803);
+            pushFollow(FOLLOW_rule__DeclExport__Group__4_in_rule__DeclExport__Group__34804);
             rule__DeclExport__Group__4();
 
             state._fsp--;
@@ -7906,7 +7982,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclExportAccess().getColonKeyword_3()); 
             }
-            match(input,33,FOLLOW_33_in_rule__DeclExport__Group__3__Impl4831); if (state.failed) return ;
+            match(input,33,FOLLOW_33_in_rule__DeclExport__Group__3__Impl4832); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclExportAccess().getColonKeyword_3()); 
             }
@@ -7941,7 +8017,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2214:1: ( rule__DeclExport__Group__4__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2215:2: rule__DeclExport__Group__4__Impl
             {
-            pushFollow(FOLLOW_rule__DeclExport__Group__4__Impl_in_rule__DeclExport__Group__44862);
+            pushFollow(FOLLOW_rule__DeclExport__Group__4__Impl_in_rule__DeclExport__Group__44863);
             rule__DeclExport__Group__4__Impl();
 
             state._fsp--;
@@ -7983,7 +8059,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2228:1: ( rule__DeclExport__TypeAssignment_4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2228:2: rule__DeclExport__TypeAssignment_4
             {
-            pushFollow(FOLLOW_rule__DeclExport__TypeAssignment_4_in_rule__DeclExport__Group__4__Impl4889);
+            pushFollow(FOLLOW_rule__DeclExport__TypeAssignment_4_in_rule__DeclExport__Group__4__Impl4890);
             rule__DeclExport__TypeAssignment_4();
 
             state._fsp--;
@@ -8025,12 +8101,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2252:1: ( rule__DeclType__Group__0__Impl rule__DeclType__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2253:2: rule__DeclType__Group__0__Impl rule__DeclType__Group__1
             {
-            pushFollow(FOLLOW_rule__DeclType__Group__0__Impl_in_rule__DeclType__Group__04929);
+            pushFollow(FOLLOW_rule__DeclType__Group__0__Impl_in_rule__DeclType__Group__04930);
             rule__DeclType__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclType__Group__1_in_rule__DeclType__Group__04932);
+            pushFollow(FOLLOW_rule__DeclType__Group__1_in_rule__DeclType__Group__04933);
             rule__DeclType__Group__1();
 
             state._fsp--;
@@ -8069,7 +8145,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getTypeKeyword_0()); 
             }
-            match(input,34,FOLLOW_34_in_rule__DeclType__Group__0__Impl4960); if (state.failed) return ;
+            match(input,34,FOLLOW_34_in_rule__DeclType__Group__0__Impl4961); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclTypeAccess().getTypeKeyword_0()); 
             }
@@ -8104,12 +8180,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2283:1: ( rule__DeclType__Group__1__Impl rule__DeclType__Group__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2284:2: rule__DeclType__Group__1__Impl rule__DeclType__Group__2
             {
-            pushFollow(FOLLOW_rule__DeclType__Group__1__Impl_in_rule__DeclType__Group__14991);
+            pushFollow(FOLLOW_rule__DeclType__Group__1__Impl_in_rule__DeclType__Group__14992);
             rule__DeclType__Group__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclType__Group__2_in_rule__DeclType__Group__14994);
+            pushFollow(FOLLOW_rule__DeclType__Group__2_in_rule__DeclType__Group__14995);
             rule__DeclType__Group__2();
 
             state._fsp--;
@@ -8151,7 +8227,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2298:1: ( rule__DeclType__NameAssignment_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2298:2: rule__DeclType__NameAssignment_1
             {
-            pushFollow(FOLLOW_rule__DeclType__NameAssignment_1_in_rule__DeclType__Group__1__Impl5021);
+            pushFollow(FOLLOW_rule__DeclType__NameAssignment_1_in_rule__DeclType__Group__1__Impl5022);
             rule__DeclType__NameAssignment_1();
 
             state._fsp--;
@@ -8193,7 +8269,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2312:1: ( rule__DeclType__Group__2__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2313:2: rule__DeclType__Group__2__Impl
             {
-            pushFollow(FOLLOW_rule__DeclType__Group__2__Impl_in_rule__DeclType__Group__25051);
+            pushFollow(FOLLOW_rule__DeclType__Group__2__Impl_in_rule__DeclType__Group__25052);
             rule__DeclType__Group__2__Impl();
 
             state._fsp--;
@@ -8235,7 +8311,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2326:1: ( rule__DeclType__Alternatives_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2326:2: rule__DeclType__Alternatives_2
             {
-            pushFollow(FOLLOW_rule__DeclType__Alternatives_2_in_rule__DeclType__Group__2__Impl5078);
+            pushFollow(FOLLOW_rule__DeclType__Alternatives_2_in_rule__DeclType__Group__2__Impl5079);
             rule__DeclType__Alternatives_2();
 
             state._fsp--;
@@ -8277,12 +8353,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2346:1: ( rule__DeclType__Group_2_0__0__Impl rule__DeclType__Group_2_0__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2347:2: rule__DeclType__Group_2_0__0__Impl rule__DeclType__Group_2_0__1
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0__0__Impl_in_rule__DeclType__Group_2_0__05114);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0__0__Impl_in_rule__DeclType__Group_2_0__05115);
             rule__DeclType__Group_2_0__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0__1_in_rule__DeclType__Group_2_0__05117);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0__1_in_rule__DeclType__Group_2_0__05118);
             rule__DeclType__Group_2_0__1();
 
             state._fsp--;
@@ -8321,7 +8397,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getEqualsSignKeyword_2_0_0()); 
             }
-            match(input,35,FOLLOW_35_in_rule__DeclType__Group_2_0__0__Impl5145); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__DeclType__Group_2_0__0__Impl5146); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclTypeAccess().getEqualsSignKeyword_2_0_0()); 
             }
@@ -8356,7 +8432,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2377:1: ( rule__DeclType__Group_2_0__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2378:2: rule__DeclType__Group_2_0__1__Impl
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0__1__Impl_in_rule__DeclType__Group_2_0__15176);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0__1__Impl_in_rule__DeclType__Group_2_0__15177);
             rule__DeclType__Group_2_0__1__Impl();
 
             state._fsp--;
@@ -8398,7 +8474,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2391:1: ( rule__DeclType__Alternatives_2_0_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2391:2: rule__DeclType__Alternatives_2_0_1
             {
-            pushFollow(FOLLOW_rule__DeclType__Alternatives_2_0_1_in_rule__DeclType__Group_2_0__1__Impl5203);
+            pushFollow(FOLLOW_rule__DeclType__Alternatives_2_0_1_in_rule__DeclType__Group_2_0__1__Impl5204);
             rule__DeclType__Alternatives_2_0_1();
 
             state._fsp--;
@@ -8440,7 +8516,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2409:1: ( rule__DeclType__Group_2_0_1_0__0__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2410:2: rule__DeclType__Group_2_0_1_0__0__Impl
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0__0__Impl_in_rule__DeclType__Group_2_0_1_0__05237);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0__0__Impl_in_rule__DeclType__Group_2_0_1_0__05238);
             rule__DeclType__Group_2_0_1_0__0__Impl();
 
             state._fsp--;
@@ -8482,7 +8558,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2423:1: ( rule__DeclType__Group_2_0_1_0_0__0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2423:2: rule__DeclType__Group_2_0_1_0_0__0
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0__0_in_rule__DeclType__Group_2_0_1_0__0__Impl5264);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0__0_in_rule__DeclType__Group_2_0_1_0__0__Impl5265);
             rule__DeclType__Group_2_0_1_0_0__0();
 
             state._fsp--;
@@ -8524,12 +8600,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2439:1: ( rule__DeclType__Group_2_0_1_0_0__0__Impl rule__DeclType__Group_2_0_1_0_0__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2440:2: rule__DeclType__Group_2_0_1_0_0__0__Impl rule__DeclType__Group_2_0_1_0_0__1
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0__0__Impl_in_rule__DeclType__Group_2_0_1_0_0__05296);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0__0__Impl_in_rule__DeclType__Group_2_0_1_0_0__05297);
             rule__DeclType__Group_2_0_1_0_0__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0__1_in_rule__DeclType__Group_2_0_1_0_0__05299);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0__1_in_rule__DeclType__Group_2_0_1_0_0__05300);
             rule__DeclType__Group_2_0_1_0_0__1();
 
             state._fsp--;
@@ -8571,7 +8647,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2454:1: ( rule__DeclType__ConDeclAssignment_2_0_1_0_0_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2454:2: rule__DeclType__ConDeclAssignment_2_0_1_0_0_0
             {
-            pushFollow(FOLLOW_rule__DeclType__ConDeclAssignment_2_0_1_0_0_0_in_rule__DeclType__Group_2_0_1_0_0__0__Impl5326);
+            pushFollow(FOLLOW_rule__DeclType__ConDeclAssignment_2_0_1_0_0_0_in_rule__DeclType__Group_2_0_1_0_0__0__Impl5327);
             rule__DeclType__ConDeclAssignment_2_0_1_0_0_0();
 
             state._fsp--;
@@ -8613,7 +8689,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2468:1: ( rule__DeclType__Group_2_0_1_0_0__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2469:2: rule__DeclType__Group_2_0_1_0_0__1__Impl
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0__1__Impl_in_rule__DeclType__Group_2_0_1_0_0__15356);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0__1__Impl_in_rule__DeclType__Group_2_0_1_0_0__15357);
             rule__DeclType__Group_2_0_1_0_0__1__Impl();
 
             state._fsp--;
@@ -8667,7 +8743,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2482:2: rule__DeclType__Group_2_0_1_0_0_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__0_in_rule__DeclType__Group_2_0_1_0_0__1__Impl5383);
+            	    pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__0_in_rule__DeclType__Group_2_0_1_0_0__1__Impl5384);
             	    rule__DeclType__Group_2_0_1_0_0_1__0();
 
             	    state._fsp--;
@@ -8715,12 +8791,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2500:1: ( rule__DeclType__Group_2_0_1_0_0_1__0__Impl rule__DeclType__Group_2_0_1_0_0_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2501:2: rule__DeclType__Group_2_0_1_0_0_1__0__Impl rule__DeclType__Group_2_0_1_0_0_1__1
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__0__Impl_in_rule__DeclType__Group_2_0_1_0_0_1__05418);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__0__Impl_in_rule__DeclType__Group_2_0_1_0_0_1__05419);
             rule__DeclType__Group_2_0_1_0_0_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__1_in_rule__DeclType__Group_2_0_1_0_0_1__05421);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__1_in_rule__DeclType__Group_2_0_1_0_0_1__05422);
             rule__DeclType__Group_2_0_1_0_0_1__1();
 
             state._fsp--;
@@ -8759,7 +8835,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getVerticalLineKeyword_2_0_1_0_0_1_0()); 
             }
-            match(input,36,FOLLOW_36_in_rule__DeclType__Group_2_0_1_0_0_1__0__Impl5449); if (state.failed) return ;
+            match(input,36,FOLLOW_36_in_rule__DeclType__Group_2_0_1_0_0_1__0__Impl5450); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclTypeAccess().getVerticalLineKeyword_2_0_1_0_0_1_0()); 
             }
@@ -8794,7 +8870,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2531:1: ( rule__DeclType__Group_2_0_1_0_0_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2532:2: rule__DeclType__Group_2_0_1_0_0_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__1__Impl_in_rule__DeclType__Group_2_0_1_0_0_1__15480);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__1__Impl_in_rule__DeclType__Group_2_0_1_0_0_1__15481);
             rule__DeclType__Group_2_0_1_0_0_1__1__Impl();
 
             state._fsp--;
@@ -8836,7 +8912,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2545:1: ( rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2545:2: rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1
             {
-            pushFollow(FOLLOW_rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1_in_rule__DeclType__Group_2_0_1_0_0_1__1__Impl5507);
+            pushFollow(FOLLOW_rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1_in_rule__DeclType__Group_2_0_1_0_0_1__1__Impl5508);
             rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1();
 
             state._fsp--;
@@ -8878,12 +8954,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2563:1: ( rule__DeclType__Group_2_1__0__Impl rule__DeclType__Group_2_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2564:2: rule__DeclType__Group_2_1__0__Impl rule__DeclType__Group_2_1__1
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1__0__Impl_in_rule__DeclType__Group_2_1__05541);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1__0__Impl_in_rule__DeclType__Group_2_1__05542);
             rule__DeclType__Group_2_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1__1_in_rule__DeclType__Group_2_1__05544);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1__1_in_rule__DeclType__Group_2_1__05545);
             rule__DeclType__Group_2_1__1();
 
             state._fsp--;
@@ -8925,7 +9001,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2578:1: ( rule__DeclType__TyVarsAssignment_2_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2578:2: rule__DeclType__TyVarsAssignment_2_1_0
             {
-            pushFollow(FOLLOW_rule__DeclType__TyVarsAssignment_2_1_0_in_rule__DeclType__Group_2_1__0__Impl5571);
+            pushFollow(FOLLOW_rule__DeclType__TyVarsAssignment_2_1_0_in_rule__DeclType__Group_2_1__0__Impl5572);
             rule__DeclType__TyVarsAssignment_2_1_0();
 
             state._fsp--;
@@ -8967,12 +9043,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2592:1: ( rule__DeclType__Group_2_1__1__Impl rule__DeclType__Group_2_1__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2593:2: rule__DeclType__Group_2_1__1__Impl rule__DeclType__Group_2_1__2
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1__1__Impl_in_rule__DeclType__Group_2_1__15601);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1__1__Impl_in_rule__DeclType__Group_2_1__15602);
             rule__DeclType__Group_2_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1__2_in_rule__DeclType__Group_2_1__15604);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1__2_in_rule__DeclType__Group_2_1__15605);
             rule__DeclType__Group_2_1__2();
 
             state._fsp--;
@@ -9011,7 +9087,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getEqualsSignKeyword_2_1_1()); 
             }
-            match(input,35,FOLLOW_35_in_rule__DeclType__Group_2_1__1__Impl5632); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__DeclType__Group_2_1__1__Impl5633); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclTypeAccess().getEqualsSignKeyword_2_1_1()); 
             }
@@ -9046,7 +9122,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2623:1: ( rule__DeclType__Group_2_1__2__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2624:2: rule__DeclType__Group_2_1__2__Impl
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1__2__Impl_in_rule__DeclType__Group_2_1__25663);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1__2__Impl_in_rule__DeclType__Group_2_1__25664);
             rule__DeclType__Group_2_1__2__Impl();
 
             state._fsp--;
@@ -9088,7 +9164,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2637:1: ( rule__DeclType__Group_2_1_2__0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2637:2: rule__DeclType__Group_2_1_2__0
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2__0_in_rule__DeclType__Group_2_1__2__Impl5690);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2__0_in_rule__DeclType__Group_2_1__2__Impl5691);
             rule__DeclType__Group_2_1_2__0();
 
             state._fsp--;
@@ -9130,12 +9206,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2657:1: ( rule__DeclType__Group_2_1_2__0__Impl rule__DeclType__Group_2_1_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2658:2: rule__DeclType__Group_2_1_2__0__Impl rule__DeclType__Group_2_1_2__1
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2__0__Impl_in_rule__DeclType__Group_2_1_2__05726);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2__0__Impl_in_rule__DeclType__Group_2_1_2__05727);
             rule__DeclType__Group_2_1_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2__1_in_rule__DeclType__Group_2_1_2__05729);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2__1_in_rule__DeclType__Group_2_1_2__05730);
             rule__DeclType__Group_2_1_2__1();
 
             state._fsp--;
@@ -9177,7 +9253,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2672:1: ( rule__DeclType__ConDeclAssignment_2_1_2_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2672:2: rule__DeclType__ConDeclAssignment_2_1_2_0
             {
-            pushFollow(FOLLOW_rule__DeclType__ConDeclAssignment_2_1_2_0_in_rule__DeclType__Group_2_1_2__0__Impl5756);
+            pushFollow(FOLLOW_rule__DeclType__ConDeclAssignment_2_1_2_0_in_rule__DeclType__Group_2_1_2__0__Impl5757);
             rule__DeclType__ConDeclAssignment_2_1_2_0();
 
             state._fsp--;
@@ -9219,7 +9295,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2686:1: ( rule__DeclType__Group_2_1_2__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2687:2: rule__DeclType__Group_2_1_2__1__Impl
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2__1__Impl_in_rule__DeclType__Group_2_1_2__15786);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2__1__Impl_in_rule__DeclType__Group_2_1_2__15787);
             rule__DeclType__Group_2_1_2__1__Impl();
 
             state._fsp--;
@@ -9273,7 +9349,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2700:2: rule__DeclType__Group_2_1_2_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__DeclType__Group_2_1_2_1__0_in_rule__DeclType__Group_2_1_2__1__Impl5813);
+            	    pushFollow(FOLLOW_rule__DeclType__Group_2_1_2_1__0_in_rule__DeclType__Group_2_1_2__1__Impl5814);
             	    rule__DeclType__Group_2_1_2_1__0();
 
             	    state._fsp--;
@@ -9321,12 +9397,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2718:1: ( rule__DeclType__Group_2_1_2_1__0__Impl rule__DeclType__Group_2_1_2_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2719:2: rule__DeclType__Group_2_1_2_1__0__Impl rule__DeclType__Group_2_1_2_1__1
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2_1__0__Impl_in_rule__DeclType__Group_2_1_2_1__05848);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2_1__0__Impl_in_rule__DeclType__Group_2_1_2_1__05849);
             rule__DeclType__Group_2_1_2_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2_1__1_in_rule__DeclType__Group_2_1_2_1__05851);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2_1__1_in_rule__DeclType__Group_2_1_2_1__05852);
             rule__DeclType__Group_2_1_2_1__1();
 
             state._fsp--;
@@ -9365,7 +9441,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getVerticalLineKeyword_2_1_2_1_0()); 
             }
-            match(input,36,FOLLOW_36_in_rule__DeclType__Group_2_1_2_1__0__Impl5879); if (state.failed) return ;
+            match(input,36,FOLLOW_36_in_rule__DeclType__Group_2_1_2_1__0__Impl5880); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclTypeAccess().getVerticalLineKeyword_2_1_2_1_0()); 
             }
@@ -9400,7 +9476,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2749:1: ( rule__DeclType__Group_2_1_2_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2750:2: rule__DeclType__Group_2_1_2_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2_1__1__Impl_in_rule__DeclType__Group_2_1_2_1__15910);
+            pushFollow(FOLLOW_rule__DeclType__Group_2_1_2_1__1__Impl_in_rule__DeclType__Group_2_1_2_1__15911);
             rule__DeclType__Group_2_1_2_1__1__Impl();
 
             state._fsp--;
@@ -9442,7 +9518,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2763:1: ( rule__DeclType__ConDeclAssignment_2_1_2_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2763:2: rule__DeclType__ConDeclAssignment_2_1_2_1_1
             {
-            pushFollow(FOLLOW_rule__DeclType__ConDeclAssignment_2_1_2_1_1_in_rule__DeclType__Group_2_1_2_1__1__Impl5937);
+            pushFollow(FOLLOW_rule__DeclType__ConDeclAssignment_2_1_2_1_1_in_rule__DeclType__Group_2_1_2_1__1__Impl5938);
             rule__DeclType__ConDeclAssignment_2_1_2_1_1();
 
             state._fsp--;
@@ -9484,12 +9560,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2781:1: ( rule__DeclVal__Group__0__Impl rule__DeclVal__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2782:2: rule__DeclVal__Group__0__Impl rule__DeclVal__Group__1
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group__0__Impl_in_rule__DeclVal__Group__05971);
+            pushFollow(FOLLOW_rule__DeclVal__Group__0__Impl_in_rule__DeclVal__Group__05972);
             rule__DeclVal__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group__1_in_rule__DeclVal__Group__05974);
+            pushFollow(FOLLOW_rule__DeclVal__Group__1_in_rule__DeclVal__Group__05975);
             rule__DeclVal__Group__1();
 
             state._fsp--;
@@ -9528,7 +9604,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getValKeyword_0()); 
             }
-            match(input,37,FOLLOW_37_in_rule__DeclVal__Group__0__Impl6002); if (state.failed) return ;
+            match(input,37,FOLLOW_37_in_rule__DeclVal__Group__0__Impl6003); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclValAccess().getValKeyword_0()); 
             }
@@ -9563,7 +9639,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2812:1: ( rule__DeclVal__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2813:2: rule__DeclVal__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group__1__Impl_in_rule__DeclVal__Group__16033);
+            pushFollow(FOLLOW_rule__DeclVal__Group__1__Impl_in_rule__DeclVal__Group__16034);
             rule__DeclVal__Group__1__Impl();
 
             state._fsp--;
@@ -9605,7 +9681,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2826:1: ( rule__DeclVal__Alternatives_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2826:2: rule__DeclVal__Alternatives_1
             {
-            pushFollow(FOLLOW_rule__DeclVal__Alternatives_1_in_rule__DeclVal__Group__1__Impl6060);
+            pushFollow(FOLLOW_rule__DeclVal__Alternatives_1_in_rule__DeclVal__Group__1__Impl6061);
             rule__DeclVal__Alternatives_1();
 
             state._fsp--;
@@ -9647,7 +9723,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2844:1: ( rule__DeclVal__Group_1_0__0__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2845:2: rule__DeclVal__Group_1_0__0__Impl
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_0__0__Impl_in_rule__DeclVal__Group_1_0__06094);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_0__0__Impl_in_rule__DeclVal__Group_1_0__06095);
             rule__DeclVal__Group_1_0__0__Impl();
 
             state._fsp--;
@@ -9689,7 +9765,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2858:1: ( rule__DeclVal__Group_1_0_0__0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2858:2: rule__DeclVal__Group_1_0_0__0
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__0_in_rule__DeclVal__Group_1_0__0__Impl6121);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__0_in_rule__DeclVal__Group_1_0__0__Impl6122);
             rule__DeclVal__Group_1_0_0__0();
 
             state._fsp--;
@@ -9731,12 +9807,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2874:1: ( rule__DeclVal__Group_1_0_0__0__Impl rule__DeclVal__Group_1_0_0__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2875:2: rule__DeclVal__Group_1_0_0__0__Impl rule__DeclVal__Group_1_0_0__1
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__0__Impl_in_rule__DeclVal__Group_1_0_0__06153);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__0__Impl_in_rule__DeclVal__Group_1_0_0__06154);
             rule__DeclVal__Group_1_0_0__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__1_in_rule__DeclVal__Group_1_0_0__06156);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__1_in_rule__DeclVal__Group_1_0_0__06157);
             rule__DeclVal__Group_1_0_0__1();
 
             state._fsp--;
@@ -9778,7 +9854,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2889:1: ( rule__DeclVal__Alternatives_1_0_0_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2889:2: rule__DeclVal__Alternatives_1_0_0_0
             {
-            pushFollow(FOLLOW_rule__DeclVal__Alternatives_1_0_0_0_in_rule__DeclVal__Group_1_0_0__0__Impl6183);
+            pushFollow(FOLLOW_rule__DeclVal__Alternatives_1_0_0_0_in_rule__DeclVal__Group_1_0_0__0__Impl6184);
             rule__DeclVal__Alternatives_1_0_0_0();
 
             state._fsp--;
@@ -9820,12 +9896,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2903:1: ( rule__DeclVal__Group_1_0_0__1__Impl rule__DeclVal__Group_1_0_0__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2904:2: rule__DeclVal__Group_1_0_0__1__Impl rule__DeclVal__Group_1_0_0__2
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__1__Impl_in_rule__DeclVal__Group_1_0_0__16213);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__1__Impl_in_rule__DeclVal__Group_1_0_0__16214);
             rule__DeclVal__Group_1_0_0__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__2_in_rule__DeclVal__Group_1_0_0__16216);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__2_in_rule__DeclVal__Group_1_0_0__16217);
             rule__DeclVal__Group_1_0_0__2();
 
             state._fsp--;
@@ -9879,7 +9955,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2918:2: rule__DeclVal__AttrAssignment_1_0_0_1
             	    {
-            	    pushFollow(FOLLOW_rule__DeclVal__AttrAssignment_1_0_0_1_in_rule__DeclVal__Group_1_0_0__1__Impl6243);
+            	    pushFollow(FOLLOW_rule__DeclVal__AttrAssignment_1_0_0_1_in_rule__DeclVal__Group_1_0_0__1__Impl6244);
             	    rule__DeclVal__AttrAssignment_1_0_0_1();
 
             	    state._fsp--;
@@ -9927,12 +10003,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2932:1: ( rule__DeclVal__Group_1_0_0__2__Impl rule__DeclVal__Group_1_0_0__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2933:2: rule__DeclVal__Group_1_0_0__2__Impl rule__DeclVal__Group_1_0_0__3
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__2__Impl_in_rule__DeclVal__Group_1_0_0__26274);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__2__Impl_in_rule__DeclVal__Group_1_0_0__26275);
             rule__DeclVal__Group_1_0_0__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__3_in_rule__DeclVal__Group_1_0_0__26277);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__3_in_rule__DeclVal__Group_1_0_0__26278);
             rule__DeclVal__Group_1_0_0__3();
 
             state._fsp--;
@@ -9971,7 +10047,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getEqualsSignKeyword_1_0_0_2()); 
             }
-            match(input,35,FOLLOW_35_in_rule__DeclVal__Group_1_0_0__2__Impl6305); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__DeclVal__Group_1_0_0__2__Impl6306); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclValAccess().getEqualsSignKeyword_1_0_0_2()); 
             }
@@ -10006,7 +10082,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2963:1: ( rule__DeclVal__Group_1_0_0__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2964:2: rule__DeclVal__Group_1_0_0__3__Impl
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__3__Impl_in_rule__DeclVal__Group_1_0_0__36336);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_0_0__3__Impl_in_rule__DeclVal__Group_1_0_0__36337);
             rule__DeclVal__Group_1_0_0__3__Impl();
 
             state._fsp--;
@@ -10048,7 +10124,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2977:1: ( rule__DeclVal__ExpAssignment_1_0_0_3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2977:2: rule__DeclVal__ExpAssignment_1_0_0_3
             {
-            pushFollow(FOLLOW_rule__DeclVal__ExpAssignment_1_0_0_3_in_rule__DeclVal__Group_1_0_0__3__Impl6363);
+            pushFollow(FOLLOW_rule__DeclVal__ExpAssignment_1_0_0_3_in_rule__DeclVal__Group_1_0_0__3__Impl6364);
             rule__DeclVal__ExpAssignment_1_0_0_3();
 
             state._fsp--;
@@ -10090,12 +10166,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:2999:1: ( rule__DeclVal__Group_1_1__0__Impl rule__DeclVal__Group_1_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3000:2: rule__DeclVal__Group_1_1__0__Impl rule__DeclVal__Group_1_1__1
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__0__Impl_in_rule__DeclVal__Group_1_1__06401);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__0__Impl_in_rule__DeclVal__Group_1_1__06402);
             rule__DeclVal__Group_1_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__1_in_rule__DeclVal__Group_1_1__06404);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__1_in_rule__DeclVal__Group_1_1__06405);
             rule__DeclVal__Group_1_1__1();
 
             state._fsp--;
@@ -10149,7 +10225,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3014:2: rule__DeclVal__Group_1_1_0__0
             	    {
-            	    pushFollow(FOLLOW_rule__DeclVal__Group_1_1_0__0_in_rule__DeclVal__Group_1_1__0__Impl6431);
+            	    pushFollow(FOLLOW_rule__DeclVal__Group_1_1_0__0_in_rule__DeclVal__Group_1_1__0__Impl6432);
             	    rule__DeclVal__Group_1_1_0__0();
 
             	    state._fsp--;
@@ -10197,12 +10273,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3028:1: ( rule__DeclVal__Group_1_1__1__Impl rule__DeclVal__Group_1_1__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3029:2: rule__DeclVal__Group_1_1__1__Impl rule__DeclVal__Group_1_1__2
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__1__Impl_in_rule__DeclVal__Group_1_1__16462);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__1__Impl_in_rule__DeclVal__Group_1_1__16463);
             rule__DeclVal__Group_1_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__2_in_rule__DeclVal__Group_1_1__16465);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__2_in_rule__DeclVal__Group_1_1__16466);
             rule__DeclVal__Group_1_1__2();
 
             state._fsp--;
@@ -10241,7 +10317,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getEqualsSignKeyword_1_1_1()); 
             }
-            match(input,35,FOLLOW_35_in_rule__DeclVal__Group_1_1__1__Impl6493); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__DeclVal__Group_1_1__1__Impl6494); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclValAccess().getEqualsSignKeyword_1_1_1()); 
             }
@@ -10276,7 +10352,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3059:1: ( rule__DeclVal__Group_1_1__2__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3060:2: rule__DeclVal__Group_1_1__2__Impl
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__2__Impl_in_rule__DeclVal__Group_1_1__26524);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_1__2__Impl_in_rule__DeclVal__Group_1_1__26525);
             rule__DeclVal__Group_1_1__2__Impl();
 
             state._fsp--;
@@ -10318,7 +10394,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3073:1: ( rule__DeclVal__ExpAssignment_1_1_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3073:2: rule__DeclVal__ExpAssignment_1_1_2
             {
-            pushFollow(FOLLOW_rule__DeclVal__ExpAssignment_1_1_2_in_rule__DeclVal__Group_1_1__2__Impl6551);
+            pushFollow(FOLLOW_rule__DeclVal__ExpAssignment_1_1_2_in_rule__DeclVal__Group_1_1__2__Impl6552);
             rule__DeclVal__ExpAssignment_1_1_2();
 
             state._fsp--;
@@ -10360,12 +10436,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3093:1: ( rule__DeclVal__Group_1_1_0__0__Impl rule__DeclVal__Group_1_1_0__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3094:2: rule__DeclVal__Group_1_1_0__0__Impl rule__DeclVal__Group_1_1_0__1
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_1_0__0__Impl_in_rule__DeclVal__Group_1_1_0__06587);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_1_0__0__Impl_in_rule__DeclVal__Group_1_1_0__06588);
             rule__DeclVal__Group_1_1_0__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_1_0__1_in_rule__DeclVal__Group_1_1_0__06590);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_1_0__1_in_rule__DeclVal__Group_1_1_0__06591);
             rule__DeclVal__Group_1_1_0__1();
 
             state._fsp--;
@@ -10407,7 +10483,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3108:1: ( rule__DeclVal__MidAssignment_1_1_0_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3108:2: rule__DeclVal__MidAssignment_1_1_0_0
             {
-            pushFollow(FOLLOW_rule__DeclVal__MidAssignment_1_1_0_0_in_rule__DeclVal__Group_1_1_0__0__Impl6617);
+            pushFollow(FOLLOW_rule__DeclVal__MidAssignment_1_1_0_0_in_rule__DeclVal__Group_1_1_0__0__Impl6618);
             rule__DeclVal__MidAssignment_1_1_0_0();
 
             state._fsp--;
@@ -10449,7 +10525,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3122:1: ( rule__DeclVal__Group_1_1_0__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3123:2: rule__DeclVal__Group_1_1_0__1__Impl
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_1_0__1__Impl_in_rule__DeclVal__Group_1_1_0__16647);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_1_0__1__Impl_in_rule__DeclVal__Group_1_1_0__16648);
             rule__DeclVal__Group_1_1_0__1__Impl();
 
             state._fsp--;
@@ -10491,7 +10567,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3136:1: ( rule__DeclVal__AttrAssignment_1_1_0_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3136:2: rule__DeclVal__AttrAssignment_1_1_0_1
             {
-            pushFollow(FOLLOW_rule__DeclVal__AttrAssignment_1_1_0_1_in_rule__DeclVal__Group_1_1_0__1__Impl6674);
+            pushFollow(FOLLOW_rule__DeclVal__AttrAssignment_1_1_0_1_in_rule__DeclVal__Group_1_1_0__1__Impl6675);
             rule__DeclVal__AttrAssignment_1_1_0_1();
 
             state._fsp--;
@@ -10533,12 +10609,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3154:1: ( rule__DeclVal__Group_1_2__0__Impl rule__DeclVal__Group_1_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3155:2: rule__DeclVal__Group_1_2__0__Impl rule__DeclVal__Group_1_2__1
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__0__Impl_in_rule__DeclVal__Group_1_2__06708);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__0__Impl_in_rule__DeclVal__Group_1_2__06709);
             rule__DeclVal__Group_1_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__1_in_rule__DeclVal__Group_1_2__06711);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__1_in_rule__DeclVal__Group_1_2__06712);
             rule__DeclVal__Group_1_2__1();
 
             state._fsp--;
@@ -10580,7 +10656,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3169:1: ( rule__DeclVal__NameAssignment_1_2_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3169:2: rule__DeclVal__NameAssignment_1_2_0
             {
-            pushFollow(FOLLOW_rule__DeclVal__NameAssignment_1_2_0_in_rule__DeclVal__Group_1_2__0__Impl6738);
+            pushFollow(FOLLOW_rule__DeclVal__NameAssignment_1_2_0_in_rule__DeclVal__Group_1_2__0__Impl6739);
             rule__DeclVal__NameAssignment_1_2_0();
 
             state._fsp--;
@@ -10622,12 +10698,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3183:1: ( rule__DeclVal__Group_1_2__1__Impl rule__DeclVal__Group_1_2__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3184:2: rule__DeclVal__Group_1_2__1__Impl rule__DeclVal__Group_1_2__2
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__1__Impl_in_rule__DeclVal__Group_1_2__16768);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__1__Impl_in_rule__DeclVal__Group_1_2__16769);
             rule__DeclVal__Group_1_2__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__2_in_rule__DeclVal__Group_1_2__16771);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__2_in_rule__DeclVal__Group_1_2__16772);
             rule__DeclVal__Group_1_2__2();
 
             state._fsp--;
@@ -10666,7 +10742,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getLeftSquareBracketKeyword_1_2_1()); 
             }
-            match(input,38,FOLLOW_38_in_rule__DeclVal__Group_1_2__1__Impl6799); if (state.failed) return ;
+            match(input,38,FOLLOW_38_in_rule__DeclVal__Group_1_2__1__Impl6800); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclValAccess().getLeftSquareBracketKeyword_1_2_1()); 
             }
@@ -10701,12 +10777,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3214:1: ( rule__DeclVal__Group_1_2__2__Impl rule__DeclVal__Group_1_2__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3215:2: rule__DeclVal__Group_1_2__2__Impl rule__DeclVal__Group_1_2__3
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__2__Impl_in_rule__DeclVal__Group_1_2__26830);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__2__Impl_in_rule__DeclVal__Group_1_2__26831);
             rule__DeclVal__Group_1_2__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__3_in_rule__DeclVal__Group_1_2__26833);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__3_in_rule__DeclVal__Group_1_2__26834);
             rule__DeclVal__Group_1_2__3();
 
             state._fsp--;
@@ -10760,7 +10836,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3229:2: rule__DeclVal__DecPatAssignment_1_2_2
             	    {
-            	    pushFollow(FOLLOW_rule__DeclVal__DecPatAssignment_1_2_2_in_rule__DeclVal__Group_1_2__2__Impl6860);
+            	    pushFollow(FOLLOW_rule__DeclVal__DecPatAssignment_1_2_2_in_rule__DeclVal__Group_1_2__2__Impl6861);
             	    rule__DeclVal__DecPatAssignment_1_2_2();
 
             	    state._fsp--;
@@ -10808,12 +10884,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3243:1: ( rule__DeclVal__Group_1_2__3__Impl rule__DeclVal__Group_1_2__4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3244:2: rule__DeclVal__Group_1_2__3__Impl rule__DeclVal__Group_1_2__4
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__3__Impl_in_rule__DeclVal__Group_1_2__36891);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__3__Impl_in_rule__DeclVal__Group_1_2__36892);
             rule__DeclVal__Group_1_2__3__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__4_in_rule__DeclVal__Group_1_2__36894);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__4_in_rule__DeclVal__Group_1_2__36895);
             rule__DeclVal__Group_1_2__4();
 
             state._fsp--;
@@ -10852,7 +10928,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getRightSquareBracketKeyword_1_2_3()); 
             }
-            match(input,39,FOLLOW_39_in_rule__DeclVal__Group_1_2__3__Impl6922); if (state.failed) return ;
+            match(input,39,FOLLOW_39_in_rule__DeclVal__Group_1_2__3__Impl6923); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclValAccess().getRightSquareBracketKeyword_1_2_3()); 
             }
@@ -10887,7 +10963,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3274:1: ( rule__DeclVal__Group_1_2__4__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3275:2: rule__DeclVal__Group_1_2__4__Impl
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__4__Impl_in_rule__DeclVal__Group_1_2__46953);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2__4__Impl_in_rule__DeclVal__Group_1_2__46954);
             rule__DeclVal__Group_1_2__4__Impl();
 
             state._fsp--;
@@ -10929,7 +11005,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3288:1: ( rule__DeclVal__Alternatives_1_2_4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3288:2: rule__DeclVal__Alternatives_1_2_4
             {
-            pushFollow(FOLLOW_rule__DeclVal__Alternatives_1_2_4_in_rule__DeclVal__Group_1_2__4__Impl6980);
+            pushFollow(FOLLOW_rule__DeclVal__Alternatives_1_2_4_in_rule__DeclVal__Group_1_2__4__Impl6981);
             rule__DeclVal__Alternatives_1_2_4();
 
             state._fsp--;
@@ -10971,12 +11047,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3312:1: ( rule__DeclVal__Group_1_2_4_0__0__Impl rule__DeclVal__Group_1_2_4_0__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3313:2: rule__DeclVal__Group_1_2_4_0__0__Impl rule__DeclVal__Group_1_2_4_0__1
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_0__0__Impl_in_rule__DeclVal__Group_1_2_4_0__07020);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_0__0__Impl_in_rule__DeclVal__Group_1_2_4_0__07021);
             rule__DeclVal__Group_1_2_4_0__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_0__1_in_rule__DeclVal__Group_1_2_4_0__07023);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_0__1_in_rule__DeclVal__Group_1_2_4_0__07024);
             rule__DeclVal__Group_1_2_4_0__1();
 
             state._fsp--;
@@ -11015,7 +11091,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getEqualsSignKeyword_1_2_4_0_0()); 
             }
-            match(input,35,FOLLOW_35_in_rule__DeclVal__Group_1_2_4_0__0__Impl7051); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__DeclVal__Group_1_2_4_0__0__Impl7052); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclValAccess().getEqualsSignKeyword_1_2_4_0_0()); 
             }
@@ -11050,7 +11126,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3343:1: ( rule__DeclVal__Group_1_2_4_0__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3344:2: rule__DeclVal__Group_1_2_4_0__1__Impl
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_0__1__Impl_in_rule__DeclVal__Group_1_2_4_0__17082);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_0__1__Impl_in_rule__DeclVal__Group_1_2_4_0__17083);
             rule__DeclVal__Group_1_2_4_0__1__Impl();
 
             state._fsp--;
@@ -11092,7 +11168,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3357:1: ( rule__DeclVal__ExpAssignment_1_2_4_0_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3357:2: rule__DeclVal__ExpAssignment_1_2_4_0_1
             {
-            pushFollow(FOLLOW_rule__DeclVal__ExpAssignment_1_2_4_0_1_in_rule__DeclVal__Group_1_2_4_0__1__Impl7109);
+            pushFollow(FOLLOW_rule__DeclVal__ExpAssignment_1_2_4_0_1_in_rule__DeclVal__Group_1_2_4_0__1__Impl7110);
             rule__DeclVal__ExpAssignment_1_2_4_0_1();
 
             state._fsp--;
@@ -11134,12 +11210,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3375:1: ( rule__DeclVal__Group_1_2_4_1__0__Impl rule__DeclVal__Group_1_2_4_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3376:2: rule__DeclVal__Group_1_2_4_1__0__Impl rule__DeclVal__Group_1_2_4_1__1
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__0__Impl_in_rule__DeclVal__Group_1_2_4_1__07143);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__0__Impl_in_rule__DeclVal__Group_1_2_4_1__07144);
             rule__DeclVal__Group_1_2_4_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__1_in_rule__DeclVal__Group_1_2_4_1__07146);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__1_in_rule__DeclVal__Group_1_2_4_1__07147);
             rule__DeclVal__Group_1_2_4_1__1();
 
             state._fsp--;
@@ -11178,7 +11254,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getVerticalLineKeyword_1_2_4_1_0()); 
             }
-            match(input,36,FOLLOW_36_in_rule__DeclVal__Group_1_2_4_1__0__Impl7174); if (state.failed) return ;
+            match(input,36,FOLLOW_36_in_rule__DeclVal__Group_1_2_4_1__0__Impl7175); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclValAccess().getVerticalLineKeyword_1_2_4_1_0()); 
             }
@@ -11213,12 +11289,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3406:1: ( rule__DeclVal__Group_1_2_4_1__1__Impl rule__DeclVal__Group_1_2_4_1__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3407:2: rule__DeclVal__Group_1_2_4_1__1__Impl rule__DeclVal__Group_1_2_4_1__2
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__1__Impl_in_rule__DeclVal__Group_1_2_4_1__17205);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__1__Impl_in_rule__DeclVal__Group_1_2_4_1__17206);
             rule__DeclVal__Group_1_2_4_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__2_in_rule__DeclVal__Group_1_2_4_1__17208);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__2_in_rule__DeclVal__Group_1_2_4_1__17209);
             rule__DeclVal__Group_1_2_4_1__2();
 
             state._fsp--;
@@ -11260,7 +11336,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3421:1: ( rule__DeclVal__ExpsAssignment_1_2_4_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3421:2: rule__DeclVal__ExpsAssignment_1_2_4_1_1
             {
-            pushFollow(FOLLOW_rule__DeclVal__ExpsAssignment_1_2_4_1_1_in_rule__DeclVal__Group_1_2_4_1__1__Impl7235);
+            pushFollow(FOLLOW_rule__DeclVal__ExpsAssignment_1_2_4_1_1_in_rule__DeclVal__Group_1_2_4_1__1__Impl7236);
             rule__DeclVal__ExpsAssignment_1_2_4_1_1();
 
             state._fsp--;
@@ -11302,12 +11378,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3435:1: ( rule__DeclVal__Group_1_2_4_1__2__Impl rule__DeclVal__Group_1_2_4_1__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3436:2: rule__DeclVal__Group_1_2_4_1__2__Impl rule__DeclVal__Group_1_2_4_1__3
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__2__Impl_in_rule__DeclVal__Group_1_2_4_1__27265);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__2__Impl_in_rule__DeclVal__Group_1_2_4_1__27266);
             rule__DeclVal__Group_1_2_4_1__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__3_in_rule__DeclVal__Group_1_2_4_1__27268);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__3_in_rule__DeclVal__Group_1_2_4_1__27269);
             rule__DeclVal__Group_1_2_4_1__3();
 
             state._fsp--;
@@ -11346,7 +11422,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getEqualsSignKeyword_1_2_4_1_2()); 
             }
-            match(input,35,FOLLOW_35_in_rule__DeclVal__Group_1_2_4_1__2__Impl7296); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__DeclVal__Group_1_2_4_1__2__Impl7297); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDeclValAccess().getEqualsSignKeyword_1_2_4_1_2()); 
             }
@@ -11381,7 +11457,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3466:1: ( rule__DeclVal__Group_1_2_4_1__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3467:2: rule__DeclVal__Group_1_2_4_1__3__Impl
             {
-            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__3__Impl_in_rule__DeclVal__Group_1_2_4_1__37327);
+            pushFollow(FOLLOW_rule__DeclVal__Group_1_2_4_1__3__Impl_in_rule__DeclVal__Group_1_2_4_1__37328);
             rule__DeclVal__Group_1_2_4_1__3__Impl();
 
             state._fsp--;
@@ -11423,7 +11499,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3480:1: ( rule__DeclVal__ExpsAssignment_1_2_4_1_3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3480:2: rule__DeclVal__ExpsAssignment_1_2_4_1_3
             {
-            pushFollow(FOLLOW_rule__DeclVal__ExpsAssignment_1_2_4_1_3_in_rule__DeclVal__Group_1_2_4_1__3__Impl7354);
+            pushFollow(FOLLOW_rule__DeclVal__ExpsAssignment_1_2_4_1_3_in_rule__DeclVal__Group_1_2_4_1__3__Impl7355);
             rule__DeclVal__ExpsAssignment_1_2_4_1_3();
 
             state._fsp--;
@@ -11465,12 +11541,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3502:1: ( rule__TyVars__Group__0__Impl rule__TyVars__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3503:2: rule__TyVars__Group__0__Impl rule__TyVars__Group__1
             {
-            pushFollow(FOLLOW_rule__TyVars__Group__0__Impl_in_rule__TyVars__Group__07392);
+            pushFollow(FOLLOW_rule__TyVars__Group__0__Impl_in_rule__TyVars__Group__07393);
             rule__TyVars__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__TyVars__Group__1_in_rule__TyVars__Group__07395);
+            pushFollow(FOLLOW_rule__TyVars__Group__1_in_rule__TyVars__Group__07396);
             rule__TyVars__Group__1();
 
             state._fsp--;
@@ -11509,7 +11585,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyVarsAccess().getLeftSquareBracketKeyword_0()); 
             }
-            match(input,38,FOLLOW_38_in_rule__TyVars__Group__0__Impl7423); if (state.failed) return ;
+            match(input,38,FOLLOW_38_in_rule__TyVars__Group__0__Impl7424); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyVarsAccess().getLeftSquareBracketKeyword_0()); 
             }
@@ -11544,12 +11620,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3533:1: ( rule__TyVars__Group__1__Impl rule__TyVars__Group__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3534:2: rule__TyVars__Group__1__Impl rule__TyVars__Group__2
             {
-            pushFollow(FOLLOW_rule__TyVars__Group__1__Impl_in_rule__TyVars__Group__17454);
+            pushFollow(FOLLOW_rule__TyVars__Group__1__Impl_in_rule__TyVars__Group__17455);
             rule__TyVars__Group__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__TyVars__Group__2_in_rule__TyVars__Group__17457);
+            pushFollow(FOLLOW_rule__TyVars__Group__2_in_rule__TyVars__Group__17458);
             rule__TyVars__Group__2();
 
             state._fsp--;
@@ -11591,7 +11667,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3548:1: ( rule__TyVars__AttrAssignment_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3548:2: rule__TyVars__AttrAssignment_1
             {
-            pushFollow(FOLLOW_rule__TyVars__AttrAssignment_1_in_rule__TyVars__Group__1__Impl7484);
+            pushFollow(FOLLOW_rule__TyVars__AttrAssignment_1_in_rule__TyVars__Group__1__Impl7485);
             rule__TyVars__AttrAssignment_1();
 
             state._fsp--;
@@ -11633,12 +11709,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3562:1: ( rule__TyVars__Group__2__Impl rule__TyVars__Group__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3563:2: rule__TyVars__Group__2__Impl rule__TyVars__Group__3
             {
-            pushFollow(FOLLOW_rule__TyVars__Group__2__Impl_in_rule__TyVars__Group__27514);
+            pushFollow(FOLLOW_rule__TyVars__Group__2__Impl_in_rule__TyVars__Group__27515);
             rule__TyVars__Group__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__TyVars__Group__3_in_rule__TyVars__Group__27517);
+            pushFollow(FOLLOW_rule__TyVars__Group__3_in_rule__TyVars__Group__27518);
             rule__TyVars__Group__3();
 
             state._fsp--;
@@ -11692,7 +11768,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3577:2: rule__TyVars__Group_2__0
             	    {
-            	    pushFollow(FOLLOW_rule__TyVars__Group_2__0_in_rule__TyVars__Group__2__Impl7544);
+            	    pushFollow(FOLLOW_rule__TyVars__Group_2__0_in_rule__TyVars__Group__2__Impl7545);
             	    rule__TyVars__Group_2__0();
 
             	    state._fsp--;
@@ -11740,7 +11816,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3591:1: ( rule__TyVars__Group__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3592:2: rule__TyVars__Group__3__Impl
             {
-            pushFollow(FOLLOW_rule__TyVars__Group__3__Impl_in_rule__TyVars__Group__37575);
+            pushFollow(FOLLOW_rule__TyVars__Group__3__Impl_in_rule__TyVars__Group__37576);
             rule__TyVars__Group__3__Impl();
 
             state._fsp--;
@@ -11779,7 +11855,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyVarsAccess().getRightSquareBracketKeyword_3()); 
             }
-            match(input,39,FOLLOW_39_in_rule__TyVars__Group__3__Impl7603); if (state.failed) return ;
+            match(input,39,FOLLOW_39_in_rule__TyVars__Group__3__Impl7604); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyVarsAccess().getRightSquareBracketKeyword_3()); 
             }
@@ -11814,12 +11890,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3629:1: ( rule__TyVars__Group_2__0__Impl rule__TyVars__Group_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3630:2: rule__TyVars__Group_2__0__Impl rule__TyVars__Group_2__1
             {
-            pushFollow(FOLLOW_rule__TyVars__Group_2__0__Impl_in_rule__TyVars__Group_2__07642);
+            pushFollow(FOLLOW_rule__TyVars__Group_2__0__Impl_in_rule__TyVars__Group_2__07643);
             rule__TyVars__Group_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__TyVars__Group_2__1_in_rule__TyVars__Group_2__07645);
+            pushFollow(FOLLOW_rule__TyVars__Group_2__1_in_rule__TyVars__Group_2__07646);
             rule__TyVars__Group_2__1();
 
             state._fsp--;
@@ -11858,7 +11934,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyVarsAccess().getCommaKeyword_2_0()); 
             }
-            match(input,40,FOLLOW_40_in_rule__TyVars__Group_2__0__Impl7673); if (state.failed) return ;
+            match(input,40,FOLLOW_40_in_rule__TyVars__Group_2__0__Impl7674); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyVarsAccess().getCommaKeyword_2_0()); 
             }
@@ -11893,7 +11969,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3660:1: ( rule__TyVars__Group_2__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3661:2: rule__TyVars__Group_2__1__Impl
             {
-            pushFollow(FOLLOW_rule__TyVars__Group_2__1__Impl_in_rule__TyVars__Group_2__17704);
+            pushFollow(FOLLOW_rule__TyVars__Group_2__1__Impl_in_rule__TyVars__Group_2__17705);
             rule__TyVars__Group_2__1__Impl();
 
             state._fsp--;
@@ -11935,7 +12011,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3674:1: ( rule__TyVars__AttrAssignment_2_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3674:2: rule__TyVars__AttrAssignment_2_1
             {
-            pushFollow(FOLLOW_rule__TyVars__AttrAssignment_2_1_in_rule__TyVars__Group_2__1__Impl7731);
+            pushFollow(FOLLOW_rule__TyVars__AttrAssignment_2_1_in_rule__TyVars__Group_2__1__Impl7732);
             rule__TyVars__AttrAssignment_2_1();
 
             state._fsp--;
@@ -11977,12 +12053,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3692:1: ( rule__ConDecl__Group__0__Impl rule__ConDecl__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3693:2: rule__ConDecl__Group__0__Impl rule__ConDecl__Group__1
             {
-            pushFollow(FOLLOW_rule__ConDecl__Group__0__Impl_in_rule__ConDecl__Group__07765);
+            pushFollow(FOLLOW_rule__ConDecl__Group__0__Impl_in_rule__ConDecl__Group__07766);
             rule__ConDecl__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ConDecl__Group__1_in_rule__ConDecl__Group__07768);
+            pushFollow(FOLLOW_rule__ConDecl__Group__1_in_rule__ConDecl__Group__07769);
             rule__ConDecl__Group__1();
 
             state._fsp--;
@@ -12024,7 +12100,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3707:1: ( rule__ConDecl__NameAssignment_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3707:2: rule__ConDecl__NameAssignment_0
             {
-            pushFollow(FOLLOW_rule__ConDecl__NameAssignment_0_in_rule__ConDecl__Group__0__Impl7795);
+            pushFollow(FOLLOW_rule__ConDecl__NameAssignment_0_in_rule__ConDecl__Group__0__Impl7796);
             rule__ConDecl__NameAssignment_0();
 
             state._fsp--;
@@ -12066,7 +12142,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3721:1: ( rule__ConDecl__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3722:2: rule__ConDecl__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__ConDecl__Group__1__Impl_in_rule__ConDecl__Group__17825);
+            pushFollow(FOLLOW_rule__ConDecl__Group__1__Impl_in_rule__ConDecl__Group__17826);
             rule__ConDecl__Group__1__Impl();
 
             state._fsp--;
@@ -12116,7 +12192,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3735:2: rule__ConDecl__Group_1__0
                     {
-                    pushFollow(FOLLOW_rule__ConDecl__Group_1__0_in_rule__ConDecl__Group__1__Impl7852);
+                    pushFollow(FOLLOW_rule__ConDecl__Group_1__0_in_rule__ConDecl__Group__1__Impl7853);
                     rule__ConDecl__Group_1__0();
 
                     state._fsp--;
@@ -12161,12 +12237,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3753:1: ( rule__ConDecl__Group_1__0__Impl rule__ConDecl__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3754:2: rule__ConDecl__Group_1__0__Impl rule__ConDecl__Group_1__1
             {
-            pushFollow(FOLLOW_rule__ConDecl__Group_1__0__Impl_in_rule__ConDecl__Group_1__07887);
+            pushFollow(FOLLOW_rule__ConDecl__Group_1__0__Impl_in_rule__ConDecl__Group_1__07888);
             rule__ConDecl__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ConDecl__Group_1__1_in_rule__ConDecl__Group_1__07890);
+            pushFollow(FOLLOW_rule__ConDecl__Group_1__1_in_rule__ConDecl__Group_1__07891);
             rule__ConDecl__Group_1__1();
 
             state._fsp--;
@@ -12205,7 +12281,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getConDeclAccess().getOfKeyword_1_0()); 
             }
-            match(input,41,FOLLOW_41_in_rule__ConDecl__Group_1__0__Impl7918); if (state.failed) return ;
+            match(input,41,FOLLOW_41_in_rule__ConDecl__Group_1__0__Impl7919); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getConDeclAccess().getOfKeyword_1_0()); 
             }
@@ -12240,7 +12316,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3784:1: ( rule__ConDecl__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3785:2: rule__ConDecl__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__ConDecl__Group_1__1__Impl_in_rule__ConDecl__Group_1__17949);
+            pushFollow(FOLLOW_rule__ConDecl__Group_1__1__Impl_in_rule__ConDecl__Group_1__17950);
             rule__ConDecl__Group_1__1__Impl();
 
             state._fsp--;
@@ -12282,7 +12358,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3798:1: ( rule__ConDecl__TyAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3798:2: rule__ConDecl__TyAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__ConDecl__TyAssignment_1_1_in_rule__ConDecl__Group_1__1__Impl7976);
+            pushFollow(FOLLOW_rule__ConDecl__TyAssignment_1_1_in_rule__ConDecl__Group_1__1__Impl7977);
             rule__ConDecl__TyAssignment_1_1();
 
             state._fsp--;
@@ -12324,12 +12400,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3816:1: ( rule__Ty__Group_1__0__Impl rule__Ty__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3817:2: rule__Ty__Group_1__0__Impl rule__Ty__Group_1__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_1__0__Impl_in_rule__Ty__Group_1__08010);
+            pushFollow(FOLLOW_rule__Ty__Group_1__0__Impl_in_rule__Ty__Group_1__08011);
             rule__Ty__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_1__1_in_rule__Ty__Group_1__08013);
+            pushFollow(FOLLOW_rule__Ty__Group_1__1_in_rule__Ty__Group_1__08014);
             rule__Ty__Group_1__1();
 
             state._fsp--;
@@ -12371,7 +12447,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3831:1: ( rule__Ty__Alternatives_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3831:2: rule__Ty__Alternatives_1_0
             {
-            pushFollow(FOLLOW_rule__Ty__Alternatives_1_0_in_rule__Ty__Group_1__0__Impl8040);
+            pushFollow(FOLLOW_rule__Ty__Alternatives_1_0_in_rule__Ty__Group_1__0__Impl8041);
             rule__Ty__Alternatives_1_0();
 
             state._fsp--;
@@ -12413,7 +12489,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3845:1: ( rule__Ty__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3846:2: rule__Ty__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_1__1__Impl_in_rule__Ty__Group_1__18070);
+            pushFollow(FOLLOW_rule__Ty__Group_1__1__Impl_in_rule__Ty__Group_1__18071);
             rule__Ty__Group_1__1__Impl();
 
             state._fsp--;
@@ -12463,7 +12539,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3859:2: rule__Ty__Group_1_1__0
                     {
-                    pushFollow(FOLLOW_rule__Ty__Group_1_1__0_in_rule__Ty__Group_1__1__Impl8097);
+                    pushFollow(FOLLOW_rule__Ty__Group_1_1__0_in_rule__Ty__Group_1__1__Impl8098);
                     rule__Ty__Group_1_1__0();
 
                     state._fsp--;
@@ -12508,12 +12584,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3877:1: ( rule__Ty__Group_1_1__0__Impl rule__Ty__Group_1_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3878:2: rule__Ty__Group_1_1__0__Impl rule__Ty__Group_1_1__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_1_1__0__Impl_in_rule__Ty__Group_1_1__08132);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1__0__Impl_in_rule__Ty__Group_1_1__08133);
             rule__Ty__Group_1_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_1_1__1_in_rule__Ty__Group_1_1__08135);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1__1_in_rule__Ty__Group_1_1__08136);
             rule__Ty__Group_1_1__1();
 
             state._fsp--;
@@ -12552,7 +12628,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getLeftSquareBracketKeyword_1_1_0()); 
             }
-            match(input,38,FOLLOW_38_in_rule__Ty__Group_1_1__0__Impl8163); if (state.failed) return ;
+            match(input,38,FOLLOW_38_in_rule__Ty__Group_1_1__0__Impl8164); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getLeftSquareBracketKeyword_1_1_0()); 
             }
@@ -12587,12 +12663,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3908:1: ( rule__Ty__Group_1_1__1__Impl rule__Ty__Group_1_1__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3909:2: rule__Ty__Group_1_1__1__Impl rule__Ty__Group_1_1__2
             {
-            pushFollow(FOLLOW_rule__Ty__Group_1_1__1__Impl_in_rule__Ty__Group_1_1__18194);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1__1__Impl_in_rule__Ty__Group_1_1__18195);
             rule__Ty__Group_1_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_1_1__2_in_rule__Ty__Group_1_1__18197);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1__2_in_rule__Ty__Group_1_1__18198);
             rule__Ty__Group_1_1__2();
 
             state._fsp--;
@@ -12634,7 +12710,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3923:1: ( rule__Ty__TyBindAssignment_1_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3923:2: rule__Ty__TyBindAssignment_1_1_1
             {
-            pushFollow(FOLLOW_rule__Ty__TyBindAssignment_1_1_1_in_rule__Ty__Group_1_1__1__Impl8224);
+            pushFollow(FOLLOW_rule__Ty__TyBindAssignment_1_1_1_in_rule__Ty__Group_1_1__1__Impl8225);
             rule__Ty__TyBindAssignment_1_1_1();
 
             state._fsp--;
@@ -12676,12 +12752,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3937:1: ( rule__Ty__Group_1_1__2__Impl rule__Ty__Group_1_1__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3938:2: rule__Ty__Group_1_1__2__Impl rule__Ty__Group_1_1__3
             {
-            pushFollow(FOLLOW_rule__Ty__Group_1_1__2__Impl_in_rule__Ty__Group_1_1__28254);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1__2__Impl_in_rule__Ty__Group_1_1__28255);
             rule__Ty__Group_1_1__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_1_1__3_in_rule__Ty__Group_1_1__28257);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1__3_in_rule__Ty__Group_1_1__28258);
             rule__Ty__Group_1_1__3();
 
             state._fsp--;
@@ -12735,7 +12811,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3952:2: rule__Ty__Group_1_1_2__0
             	    {
-            	    pushFollow(FOLLOW_rule__Ty__Group_1_1_2__0_in_rule__Ty__Group_1_1__2__Impl8284);
+            	    pushFollow(FOLLOW_rule__Ty__Group_1_1_2__0_in_rule__Ty__Group_1_1__2__Impl8285);
             	    rule__Ty__Group_1_1_2__0();
 
             	    state._fsp--;
@@ -12783,7 +12859,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3966:1: ( rule__Ty__Group_1_1__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:3967:2: rule__Ty__Group_1_1__3__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_1_1__3__Impl_in_rule__Ty__Group_1_1__38315);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1__3__Impl_in_rule__Ty__Group_1_1__38316);
             rule__Ty__Group_1_1__3__Impl();
 
             state._fsp--;
@@ -12822,7 +12898,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getRightSquareBracketKeyword_1_1_3()); 
             }
-            match(input,39,FOLLOW_39_in_rule__Ty__Group_1_1__3__Impl8343); if (state.failed) return ;
+            match(input,39,FOLLOW_39_in_rule__Ty__Group_1_1__3__Impl8344); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getRightSquareBracketKeyword_1_1_3()); 
             }
@@ -12857,12 +12933,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4004:1: ( rule__Ty__Group_1_1_2__0__Impl rule__Ty__Group_1_1_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4005:2: rule__Ty__Group_1_1_2__0__Impl rule__Ty__Group_1_1_2__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_1_1_2__0__Impl_in_rule__Ty__Group_1_1_2__08382);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1_2__0__Impl_in_rule__Ty__Group_1_1_2__08383);
             rule__Ty__Group_1_1_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_1_1_2__1_in_rule__Ty__Group_1_1_2__08385);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1_2__1_in_rule__Ty__Group_1_1_2__08386);
             rule__Ty__Group_1_1_2__1();
 
             state._fsp--;
@@ -12901,7 +12977,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getCommaKeyword_1_1_2_0()); 
             }
-            match(input,40,FOLLOW_40_in_rule__Ty__Group_1_1_2__0__Impl8413); if (state.failed) return ;
+            match(input,40,FOLLOW_40_in_rule__Ty__Group_1_1_2__0__Impl8414); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getCommaKeyword_1_1_2_0()); 
             }
@@ -12936,7 +13012,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4035:1: ( rule__Ty__Group_1_1_2__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4036:2: rule__Ty__Group_1_1_2__1__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_1_1_2__1__Impl_in_rule__Ty__Group_1_1_2__18444);
+            pushFollow(FOLLOW_rule__Ty__Group_1_1_2__1__Impl_in_rule__Ty__Group_1_1_2__18445);
             rule__Ty__Group_1_1_2__1__Impl();
 
             state._fsp--;
@@ -12978,7 +13054,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4049:1: ( rule__Ty__TyBindAssignment_1_1_2_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4049:2: rule__Ty__TyBindAssignment_1_1_2_1
             {
-            pushFollow(FOLLOW_rule__Ty__TyBindAssignment_1_1_2_1_in_rule__Ty__Group_1_1_2__1__Impl8471);
+            pushFollow(FOLLOW_rule__Ty__TyBindAssignment_1_1_2_1_in_rule__Ty__Group_1_1_2__1__Impl8472);
             rule__Ty__TyBindAssignment_1_1_2_1();
 
             state._fsp--;
@@ -13020,12 +13096,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4067:1: ( rule__Ty__Group_2__0__Impl rule__Ty__Group_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4068:2: rule__Ty__Group_2__0__Impl rule__Ty__Group_2__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_2__0__Impl_in_rule__Ty__Group_2__08505);
+            pushFollow(FOLLOW_rule__Ty__Group_2__0__Impl_in_rule__Ty__Group_2__08506);
             rule__Ty__Group_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_2__1_in_rule__Ty__Group_2__08508);
+            pushFollow(FOLLOW_rule__Ty__Group_2__1_in_rule__Ty__Group_2__08509);
             rule__Ty__Group_2__1();
 
             state._fsp--;
@@ -13099,12 +13175,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4098:1: ( rule__Ty__Group_2__1__Impl rule__Ty__Group_2__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4099:2: rule__Ty__Group_2__1__Impl rule__Ty__Group_2__2
             {
-            pushFollow(FOLLOW_rule__Ty__Group_2__1__Impl_in_rule__Ty__Group_2__18566);
+            pushFollow(FOLLOW_rule__Ty__Group_2__1__Impl_in_rule__Ty__Group_2__18567);
             rule__Ty__Group_2__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_2__2_in_rule__Ty__Group_2__18569);
+            pushFollow(FOLLOW_rule__Ty__Group_2__2_in_rule__Ty__Group_2__18570);
             rule__Ty__Group_2__2();
 
             state._fsp--;
@@ -13143,7 +13219,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getLeftCurlyBracketKeyword_2_1()); 
             }
-            match(input,42,FOLLOW_42_in_rule__Ty__Group_2__1__Impl8597); if (state.failed) return ;
+            match(input,42,FOLLOW_42_in_rule__Ty__Group_2__1__Impl8598); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getLeftCurlyBracketKeyword_2_1()); 
             }
@@ -13178,12 +13254,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4129:1: ( rule__Ty__Group_2__2__Impl rule__Ty__Group_2__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4130:2: rule__Ty__Group_2__2__Impl rule__Ty__Group_2__3
             {
-            pushFollow(FOLLOW_rule__Ty__Group_2__2__Impl_in_rule__Ty__Group_2__28628);
+            pushFollow(FOLLOW_rule__Ty__Group_2__2__Impl_in_rule__Ty__Group_2__28629);
             rule__Ty__Group_2__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_2__3_in_rule__Ty__Group_2__28631);
+            pushFollow(FOLLOW_rule__Ty__Group_2__3_in_rule__Ty__Group_2__28632);
             rule__Ty__Group_2__3();
 
             state._fsp--;
@@ -13233,7 +13309,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4144:2: rule__Ty__Group_2_2__0
                     {
-                    pushFollow(FOLLOW_rule__Ty__Group_2_2__0_in_rule__Ty__Group_2__2__Impl8658);
+                    pushFollow(FOLLOW_rule__Ty__Group_2_2__0_in_rule__Ty__Group_2__2__Impl8659);
                     rule__Ty__Group_2_2__0();
 
                     state._fsp--;
@@ -13278,7 +13354,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4158:1: ( rule__Ty__Group_2__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4159:2: rule__Ty__Group_2__3__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_2__3__Impl_in_rule__Ty__Group_2__38689);
+            pushFollow(FOLLOW_rule__Ty__Group_2__3__Impl_in_rule__Ty__Group_2__38690);
             rule__Ty__Group_2__3__Impl();
 
             state._fsp--;
@@ -13317,7 +13393,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getRightCurlyBracketKeyword_2_3()); 
             }
-            match(input,43,FOLLOW_43_in_rule__Ty__Group_2__3__Impl8717); if (state.failed) return ;
+            match(input,43,FOLLOW_43_in_rule__Ty__Group_2__3__Impl8718); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getRightCurlyBracketKeyword_2_3()); 
             }
@@ -13352,12 +13428,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4196:1: ( rule__Ty__Group_2_2__0__Impl rule__Ty__Group_2_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4197:2: rule__Ty__Group_2_2__0__Impl rule__Ty__Group_2_2__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_2_2__0__Impl_in_rule__Ty__Group_2_2__08756);
+            pushFollow(FOLLOW_rule__Ty__Group_2_2__0__Impl_in_rule__Ty__Group_2_2__08757);
             rule__Ty__Group_2_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_2_2__1_in_rule__Ty__Group_2_2__08759);
+            pushFollow(FOLLOW_rule__Ty__Group_2_2__1_in_rule__Ty__Group_2_2__08760);
             rule__Ty__Group_2_2__1();
 
             state._fsp--;
@@ -13399,7 +13475,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4211:1: ( rule__Ty__ElementsAssignment_2_2_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4211:2: rule__Ty__ElementsAssignment_2_2_0
             {
-            pushFollow(FOLLOW_rule__Ty__ElementsAssignment_2_2_0_in_rule__Ty__Group_2_2__0__Impl8786);
+            pushFollow(FOLLOW_rule__Ty__ElementsAssignment_2_2_0_in_rule__Ty__Group_2_2__0__Impl8787);
             rule__Ty__ElementsAssignment_2_2_0();
 
             state._fsp--;
@@ -13441,7 +13517,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4225:1: ( rule__Ty__Group_2_2__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4226:2: rule__Ty__Group_2_2__1__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_2_2__1__Impl_in_rule__Ty__Group_2_2__18816);
+            pushFollow(FOLLOW_rule__Ty__Group_2_2__1__Impl_in_rule__Ty__Group_2_2__18817);
             rule__Ty__Group_2_2__1__Impl();
 
             state._fsp--;
@@ -13495,7 +13571,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4239:2: rule__Ty__Group_2_2_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__Ty__Group_2_2_1__0_in_rule__Ty__Group_2_2__1__Impl8843);
+            	    pushFollow(FOLLOW_rule__Ty__Group_2_2_1__0_in_rule__Ty__Group_2_2__1__Impl8844);
             	    rule__Ty__Group_2_2_1__0();
 
             	    state._fsp--;
@@ -13543,12 +13619,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4257:1: ( rule__Ty__Group_2_2_1__0__Impl rule__Ty__Group_2_2_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4258:2: rule__Ty__Group_2_2_1__0__Impl rule__Ty__Group_2_2_1__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_2_2_1__0__Impl_in_rule__Ty__Group_2_2_1__08878);
+            pushFollow(FOLLOW_rule__Ty__Group_2_2_1__0__Impl_in_rule__Ty__Group_2_2_1__08879);
             rule__Ty__Group_2_2_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_2_2_1__1_in_rule__Ty__Group_2_2_1__08881);
+            pushFollow(FOLLOW_rule__Ty__Group_2_2_1__1_in_rule__Ty__Group_2_2_1__08882);
             rule__Ty__Group_2_2_1__1();
 
             state._fsp--;
@@ -13587,7 +13663,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getCommaKeyword_2_2_1_0()); 
             }
-            match(input,40,FOLLOW_40_in_rule__Ty__Group_2_2_1__0__Impl8909); if (state.failed) return ;
+            match(input,40,FOLLOW_40_in_rule__Ty__Group_2_2_1__0__Impl8910); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getCommaKeyword_2_2_1_0()); 
             }
@@ -13622,7 +13698,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4288:1: ( rule__Ty__Group_2_2_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4289:2: rule__Ty__Group_2_2_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_2_2_1__1__Impl_in_rule__Ty__Group_2_2_1__18940);
+            pushFollow(FOLLOW_rule__Ty__Group_2_2_1__1__Impl_in_rule__Ty__Group_2_2_1__18941);
             rule__Ty__Group_2_2_1__1__Impl();
 
             state._fsp--;
@@ -13664,7 +13740,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4302:1: ( rule__Ty__ElementsAssignment_2_2_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4302:2: rule__Ty__ElementsAssignment_2_2_1_1
             {
-            pushFollow(FOLLOW_rule__Ty__ElementsAssignment_2_2_1_1_in_rule__Ty__Group_2_2_1__1__Impl8967);
+            pushFollow(FOLLOW_rule__Ty__ElementsAssignment_2_2_1_1_in_rule__Ty__Group_2_2_1__1__Impl8968);
             rule__Ty__ElementsAssignment_2_2_1_1();
 
             state._fsp--;
@@ -13706,12 +13782,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4320:1: ( rule__Ty__Group_3__0__Impl rule__Ty__Group_3__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4321:2: rule__Ty__Group_3__0__Impl rule__Ty__Group_3__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_3__0__Impl_in_rule__Ty__Group_3__09001);
+            pushFollow(FOLLOW_rule__Ty__Group_3__0__Impl_in_rule__Ty__Group_3__09002);
             rule__Ty__Group_3__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_3__1_in_rule__Ty__Group_3__09004);
+            pushFollow(FOLLOW_rule__Ty__Group_3__1_in_rule__Ty__Group_3__09005);
             rule__Ty__Group_3__1();
 
             state._fsp--;
@@ -13750,7 +13826,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getLeftParenthesisKeyword_3_0()); 
             }
-            match(input,44,FOLLOW_44_in_rule__Ty__Group_3__0__Impl9032); if (state.failed) return ;
+            match(input,44,FOLLOW_44_in_rule__Ty__Group_3__0__Impl9033); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getLeftParenthesisKeyword_3_0()); 
             }
@@ -13785,12 +13861,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4351:1: ( rule__Ty__Group_3__1__Impl rule__Ty__Group_3__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4352:2: rule__Ty__Group_3__1__Impl rule__Ty__Group_3__2
             {
-            pushFollow(FOLLOW_rule__Ty__Group_3__1__Impl_in_rule__Ty__Group_3__19063);
+            pushFollow(FOLLOW_rule__Ty__Group_3__1__Impl_in_rule__Ty__Group_3__19064);
             rule__Ty__Group_3__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_3__2_in_rule__Ty__Group_3__19066);
+            pushFollow(FOLLOW_rule__Ty__Group_3__2_in_rule__Ty__Group_3__19067);
             rule__Ty__Group_3__2();
 
             state._fsp--;
@@ -13832,7 +13908,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4366:1: ( rule__Ty__ParamAssignment_3_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4366:2: rule__Ty__ParamAssignment_3_1
             {
-            pushFollow(FOLLOW_rule__Ty__ParamAssignment_3_1_in_rule__Ty__Group_3__1__Impl9093);
+            pushFollow(FOLLOW_rule__Ty__ParamAssignment_3_1_in_rule__Ty__Group_3__1__Impl9094);
             rule__Ty__ParamAssignment_3_1();
 
             state._fsp--;
@@ -13874,12 +13950,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4380:1: ( rule__Ty__Group_3__2__Impl rule__Ty__Group_3__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4381:2: rule__Ty__Group_3__2__Impl rule__Ty__Group_3__3
             {
-            pushFollow(FOLLOW_rule__Ty__Group_3__2__Impl_in_rule__Ty__Group_3__29123);
+            pushFollow(FOLLOW_rule__Ty__Group_3__2__Impl_in_rule__Ty__Group_3__29124);
             rule__Ty__Group_3__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_3__3_in_rule__Ty__Group_3__29126);
+            pushFollow(FOLLOW_rule__Ty__Group_3__3_in_rule__Ty__Group_3__29127);
             rule__Ty__Group_3__3();
 
             state._fsp--;
@@ -13933,7 +14009,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4395:2: rule__Ty__Group_3_2__0
             	    {
-            	    pushFollow(FOLLOW_rule__Ty__Group_3_2__0_in_rule__Ty__Group_3__2__Impl9153);
+            	    pushFollow(FOLLOW_rule__Ty__Group_3_2__0_in_rule__Ty__Group_3__2__Impl9154);
             	    rule__Ty__Group_3_2__0();
 
             	    state._fsp--;
@@ -13981,12 +14057,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4409:1: ( rule__Ty__Group_3__3__Impl rule__Ty__Group_3__4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4410:2: rule__Ty__Group_3__3__Impl rule__Ty__Group_3__4
             {
-            pushFollow(FOLLOW_rule__Ty__Group_3__3__Impl_in_rule__Ty__Group_3__39184);
+            pushFollow(FOLLOW_rule__Ty__Group_3__3__Impl_in_rule__Ty__Group_3__39185);
             rule__Ty__Group_3__3__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_3__4_in_rule__Ty__Group_3__39187);
+            pushFollow(FOLLOW_rule__Ty__Group_3__4_in_rule__Ty__Group_3__39188);
             rule__Ty__Group_3__4();
 
             state._fsp--;
@@ -14025,7 +14101,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getRightParenthesisKeyword_3_3()); 
             }
-            match(input,45,FOLLOW_45_in_rule__Ty__Group_3__3__Impl9215); if (state.failed) return ;
+            match(input,45,FOLLOW_45_in_rule__Ty__Group_3__3__Impl9216); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getRightParenthesisKeyword_3_3()); 
             }
@@ -14060,12 +14136,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4440:1: ( rule__Ty__Group_3__4__Impl rule__Ty__Group_3__5 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4441:2: rule__Ty__Group_3__4__Impl rule__Ty__Group_3__5
             {
-            pushFollow(FOLLOW_rule__Ty__Group_3__4__Impl_in_rule__Ty__Group_3__49246);
+            pushFollow(FOLLOW_rule__Ty__Group_3__4__Impl_in_rule__Ty__Group_3__49247);
             rule__Ty__Group_3__4__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_3__5_in_rule__Ty__Group_3__49249);
+            pushFollow(FOLLOW_rule__Ty__Group_3__5_in_rule__Ty__Group_3__49250);
             rule__Ty__Group_3__5();
 
             state._fsp--;
@@ -14104,7 +14180,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getHyphenMinusGreaterThanSignKeyword_3_4()); 
             }
-            match(input,46,FOLLOW_46_in_rule__Ty__Group_3__4__Impl9277); if (state.failed) return ;
+            match(input,46,FOLLOW_46_in_rule__Ty__Group_3__4__Impl9278); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getHyphenMinusGreaterThanSignKeyword_3_4()); 
             }
@@ -14139,7 +14215,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4471:1: ( rule__Ty__Group_3__5__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4472:2: rule__Ty__Group_3__5__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_3__5__Impl_in_rule__Ty__Group_3__59308);
+            pushFollow(FOLLOW_rule__Ty__Group_3__5__Impl_in_rule__Ty__Group_3__59309);
             rule__Ty__Group_3__5__Impl();
 
             state._fsp--;
@@ -14181,7 +14257,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4485:1: ( rule__Ty__ResTypeAssignment_3_5 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4485:2: rule__Ty__ResTypeAssignment_3_5
             {
-            pushFollow(FOLLOW_rule__Ty__ResTypeAssignment_3_5_in_rule__Ty__Group_3__5__Impl9335);
+            pushFollow(FOLLOW_rule__Ty__ResTypeAssignment_3_5_in_rule__Ty__Group_3__5__Impl9336);
             rule__Ty__ResTypeAssignment_3_5();
 
             state._fsp--;
@@ -14223,12 +14299,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4511:1: ( rule__Ty__Group_3_2__0__Impl rule__Ty__Group_3_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4512:2: rule__Ty__Group_3_2__0__Impl rule__Ty__Group_3_2__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_3_2__0__Impl_in_rule__Ty__Group_3_2__09377);
+            pushFollow(FOLLOW_rule__Ty__Group_3_2__0__Impl_in_rule__Ty__Group_3_2__09378);
             rule__Ty__Group_3_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_3_2__1_in_rule__Ty__Group_3_2__09380);
+            pushFollow(FOLLOW_rule__Ty__Group_3_2__1_in_rule__Ty__Group_3_2__09381);
             rule__Ty__Group_3_2__1();
 
             state._fsp--;
@@ -14267,7 +14343,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getCommaKeyword_3_2_0()); 
             }
-            match(input,40,FOLLOW_40_in_rule__Ty__Group_3_2__0__Impl9408); if (state.failed) return ;
+            match(input,40,FOLLOW_40_in_rule__Ty__Group_3_2__0__Impl9409); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getCommaKeyword_3_2_0()); 
             }
@@ -14302,7 +14378,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4542:1: ( rule__Ty__Group_3_2__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4543:2: rule__Ty__Group_3_2__1__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_3_2__1__Impl_in_rule__Ty__Group_3_2__19439);
+            pushFollow(FOLLOW_rule__Ty__Group_3_2__1__Impl_in_rule__Ty__Group_3_2__19440);
             rule__Ty__Group_3_2__1__Impl();
 
             state._fsp--;
@@ -14344,7 +14420,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4556:1: ( rule__Ty__ParamAssignment_3_2_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4556:2: rule__Ty__ParamAssignment_3_2_1
             {
-            pushFollow(FOLLOW_rule__Ty__ParamAssignment_3_2_1_in_rule__Ty__Group_3_2__1__Impl9466);
+            pushFollow(FOLLOW_rule__Ty__ParamAssignment_3_2_1_in_rule__Ty__Group_3_2__1__Impl9467);
             rule__Ty__ParamAssignment_3_2_1();
 
             state._fsp--;
@@ -14386,12 +14462,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4574:1: ( rule__Ty__Group_4__0__Impl rule__Ty__Group_4__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4575:2: rule__Ty__Group_4__0__Impl rule__Ty__Group_4__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_4__0__Impl_in_rule__Ty__Group_4__09500);
+            pushFollow(FOLLOW_rule__Ty__Group_4__0__Impl_in_rule__Ty__Group_4__09501);
             rule__Ty__Group_4__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_4__1_in_rule__Ty__Group_4__09503);
+            pushFollow(FOLLOW_rule__Ty__Group_4__1_in_rule__Ty__Group_4__09504);
             rule__Ty__Group_4__1();
 
             state._fsp--;
@@ -14465,7 +14541,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4605:1: ( rule__Ty__Group_4__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4606:2: rule__Ty__Group_4__1__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_4__1__Impl_in_rule__Ty__Group_4__19561);
+            pushFollow(FOLLOW_rule__Ty__Group_4__1__Impl_in_rule__Ty__Group_4__19562);
             rule__Ty__Group_4__1__Impl();
 
             state._fsp--;
@@ -14504,7 +14580,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getLeftParenthesisRightParenthesisKeyword_4_1()); 
             }
-            match(input,47,FOLLOW_47_in_rule__Ty__Group_4__1__Impl9589); if (state.failed) return ;
+            match(input,47,FOLLOW_47_in_rule__Ty__Group_4__1__Impl9590); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getLeftParenthesisRightParenthesisKeyword_4_1()); 
             }
@@ -14539,12 +14615,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4639:1: ( rule__Ty__Group_5__0__Impl rule__Ty__Group_5__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4640:2: rule__Ty__Group_5__0__Impl rule__Ty__Group_5__1
             {
-            pushFollow(FOLLOW_rule__Ty__Group_5__0__Impl_in_rule__Ty__Group_5__09624);
+            pushFollow(FOLLOW_rule__Ty__Group_5__0__Impl_in_rule__Ty__Group_5__09625);
             rule__Ty__Group_5__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_5__1_in_rule__Ty__Group_5__09627);
+            pushFollow(FOLLOW_rule__Ty__Group_5__1_in_rule__Ty__Group_5__09628);
             rule__Ty__Group_5__1();
 
             state._fsp--;
@@ -14583,7 +14659,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getSTerminalRuleCall_5_0()); 
             }
-            match(input,RULE_S,FOLLOW_RULE_S_in_rule__Ty__Group_5__0__Impl9654); if (state.failed) return ;
+            match(input,RULE_S,FOLLOW_RULE_S_in_rule__Ty__Group_5__0__Impl9655); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getSTerminalRuleCall_5_0()); 
             }
@@ -14618,12 +14694,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4668:1: ( rule__Ty__Group_5__1__Impl rule__Ty__Group_5__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4669:2: rule__Ty__Group_5__1__Impl rule__Ty__Group_5__2
             {
-            pushFollow(FOLLOW_rule__Ty__Group_5__1__Impl_in_rule__Ty__Group_5__19683);
+            pushFollow(FOLLOW_rule__Ty__Group_5__1__Impl_in_rule__Ty__Group_5__19684);
             rule__Ty__Group_5__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_5__2_in_rule__Ty__Group_5__19686);
+            pushFollow(FOLLOW_rule__Ty__Group_5__2_in_rule__Ty__Group_5__19687);
             rule__Ty__Group_5__2();
 
             state._fsp--;
@@ -14665,7 +14741,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4683:1: ( rule__Ty__RAssignment_5_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4683:2: rule__Ty__RAssignment_5_1
             {
-            pushFollow(FOLLOW_rule__Ty__RAssignment_5_1_in_rule__Ty__Group_5__1__Impl9713);
+            pushFollow(FOLLOW_rule__Ty__RAssignment_5_1_in_rule__Ty__Group_5__1__Impl9714);
             rule__Ty__RAssignment_5_1();
 
             state._fsp--;
@@ -14707,12 +14783,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4697:1: ( rule__Ty__Group_5__2__Impl rule__Ty__Group_5__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4698:2: rule__Ty__Group_5__2__Impl rule__Ty__Group_5__3
             {
-            pushFollow(FOLLOW_rule__Ty__Group_5__2__Impl_in_rule__Ty__Group_5__29743);
+            pushFollow(FOLLOW_rule__Ty__Group_5__2__Impl_in_rule__Ty__Group_5__29744);
             rule__Ty__Group_5__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_5__3_in_rule__Ty__Group_5__29746);
+            pushFollow(FOLLOW_rule__Ty__Group_5__3_in_rule__Ty__Group_5__29747);
             rule__Ty__Group_5__3();
 
             state._fsp--;
@@ -14751,7 +14827,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getLESSTerminalRuleCall_5_2()); 
             }
-            match(input,RULE_LESS,FOLLOW_RULE_LESS_in_rule__Ty__Group_5__2__Impl9773); if (state.failed) return ;
+            match(input,RULE_LESS,FOLLOW_RULE_LESS_in_rule__Ty__Group_5__2__Impl9774); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getLESSTerminalRuleCall_5_2()); 
             }
@@ -14786,12 +14862,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4726:1: ( rule__Ty__Group_5__3__Impl rule__Ty__Group_5__4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4727:2: rule__Ty__Group_5__3__Impl rule__Ty__Group_5__4
             {
-            pushFollow(FOLLOW_rule__Ty__Group_5__3__Impl_in_rule__Ty__Group_5__39802);
+            pushFollow(FOLLOW_rule__Ty__Group_5__3__Impl_in_rule__Ty__Group_5__39803);
             rule__Ty__Group_5__3__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_5__4_in_rule__Ty__Group_5__39805);
+            pushFollow(FOLLOW_rule__Ty__Group_5__4_in_rule__Ty__Group_5__39806);
             rule__Ty__Group_5__4();
 
             state._fsp--;
@@ -14833,7 +14909,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4741:1: ( rule__Ty__InAssignment_5_3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4741:2: rule__Ty__InAssignment_5_3
             {
-            pushFollow(FOLLOW_rule__Ty__InAssignment_5_3_in_rule__Ty__Group_5__3__Impl9832);
+            pushFollow(FOLLOW_rule__Ty__InAssignment_5_3_in_rule__Ty__Group_5__3__Impl9833);
             rule__Ty__InAssignment_5_3();
 
             state._fsp--;
@@ -14875,12 +14951,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4755:1: ( rule__Ty__Group_5__4__Impl rule__Ty__Group_5__5 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4756:2: rule__Ty__Group_5__4__Impl rule__Ty__Group_5__5
             {
-            pushFollow(FOLLOW_rule__Ty__Group_5__4__Impl_in_rule__Ty__Group_5__49862);
+            pushFollow(FOLLOW_rule__Ty__Group_5__4__Impl_in_rule__Ty__Group_5__49863);
             rule__Ty__Group_5__4__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_5__5_in_rule__Ty__Group_5__49865);
+            pushFollow(FOLLOW_rule__Ty__Group_5__5_in_rule__Ty__Group_5__49866);
             rule__Ty__Group_5__5();
 
             state._fsp--;
@@ -14919,7 +14995,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getEqualsSignGreaterThanSignKeyword_5_4()); 
             }
-            match(input,48,FOLLOW_48_in_rule__Ty__Group_5__4__Impl9893); if (state.failed) return ;
+            match(input,48,FOLLOW_48_in_rule__Ty__Group_5__4__Impl9894); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getEqualsSignGreaterThanSignKeyword_5_4()); 
             }
@@ -14954,12 +15030,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4786:1: ( rule__Ty__Group_5__5__Impl rule__Ty__Group_5__6 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4787:2: rule__Ty__Group_5__5__Impl rule__Ty__Group_5__6
             {
-            pushFollow(FOLLOW_rule__Ty__Group_5__5__Impl_in_rule__Ty__Group_5__59924);
+            pushFollow(FOLLOW_rule__Ty__Group_5__5__Impl_in_rule__Ty__Group_5__59925);
             rule__Ty__Group_5__5__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Ty__Group_5__6_in_rule__Ty__Group_5__59927);
+            pushFollow(FOLLOW_rule__Ty__Group_5__6_in_rule__Ty__Group_5__59928);
             rule__Ty__Group_5__6();
 
             state._fsp--;
@@ -15001,7 +15077,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4801:1: ( rule__Ty__OutAssignment_5_5 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4801:2: rule__Ty__OutAssignment_5_5
             {
-            pushFollow(FOLLOW_rule__Ty__OutAssignment_5_5_in_rule__Ty__Group_5__5__Impl9954);
+            pushFollow(FOLLOW_rule__Ty__OutAssignment_5_5_in_rule__Ty__Group_5__5__Impl9955);
             rule__Ty__OutAssignment_5_5();
 
             state._fsp--;
@@ -15043,7 +15119,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4815:1: ( rule__Ty__Group_5__6__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4816:2: rule__Ty__Group_5__6__Impl
             {
-            pushFollow(FOLLOW_rule__Ty__Group_5__6__Impl_in_rule__Ty__Group_5__69984);
+            pushFollow(FOLLOW_rule__Ty__Group_5__6__Impl_in_rule__Ty__Group_5__69985);
             rule__Ty__Group_5__6__Impl();
 
             state._fsp--;
@@ -15082,7 +15158,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getGREATERTerminalRuleCall_5_6()); 
             }
-            match(input,RULE_GREATER,FOLLOW_RULE_GREATER_in_rule__Ty__Group_5__6__Impl10011); if (state.failed) return ;
+            match(input,RULE_GREATER,FOLLOW_RULE_GREATER_in_rule__Ty__Group_5__6__Impl10012); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getGREATERTerminalRuleCall_5_6()); 
             }
@@ -15117,12 +15193,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4857:1: ( rule__TyBind__Group__0__Impl rule__TyBind__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4858:2: rule__TyBind__Group__0__Impl rule__TyBind__Group__1
             {
-            pushFollow(FOLLOW_rule__TyBind__Group__0__Impl_in_rule__TyBind__Group__010054);
+            pushFollow(FOLLOW_rule__TyBind__Group__0__Impl_in_rule__TyBind__Group__010055);
             rule__TyBind__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__TyBind__Group__1_in_rule__TyBind__Group__010057);
+            pushFollow(FOLLOW_rule__TyBind__Group__1_in_rule__TyBind__Group__010058);
             rule__TyBind__Group__1();
 
             state._fsp--;
@@ -15164,7 +15240,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4872:1: ( rule__TyBind__NameAssignment_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4872:2: rule__TyBind__NameAssignment_0
             {
-            pushFollow(FOLLOW_rule__TyBind__NameAssignment_0_in_rule__TyBind__Group__0__Impl10084);
+            pushFollow(FOLLOW_rule__TyBind__NameAssignment_0_in_rule__TyBind__Group__0__Impl10085);
             rule__TyBind__NameAssignment_0();
 
             state._fsp--;
@@ -15206,7 +15282,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4886:1: ( rule__TyBind__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4887:2: rule__TyBind__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__TyBind__Group__1__Impl_in_rule__TyBind__Group__110114);
+            pushFollow(FOLLOW_rule__TyBind__Group__1__Impl_in_rule__TyBind__Group__110115);
             rule__TyBind__Group__1__Impl();
 
             state._fsp--;
@@ -15256,7 +15332,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4900:2: rule__TyBind__Group_1__0
                     {
-                    pushFollow(FOLLOW_rule__TyBind__Group_1__0_in_rule__TyBind__Group__1__Impl10141);
+                    pushFollow(FOLLOW_rule__TyBind__Group_1__0_in_rule__TyBind__Group__1__Impl10142);
                     rule__TyBind__Group_1__0();
 
                     state._fsp--;
@@ -15301,12 +15377,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4918:1: ( rule__TyBind__Group_1__0__Impl rule__TyBind__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4919:2: rule__TyBind__Group_1__0__Impl rule__TyBind__Group_1__1
             {
-            pushFollow(FOLLOW_rule__TyBind__Group_1__0__Impl_in_rule__TyBind__Group_1__010176);
+            pushFollow(FOLLOW_rule__TyBind__Group_1__0__Impl_in_rule__TyBind__Group_1__010177);
             rule__TyBind__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__TyBind__Group_1__1_in_rule__TyBind__Group_1__010179);
+            pushFollow(FOLLOW_rule__TyBind__Group_1__1_in_rule__TyBind__Group_1__010180);
             rule__TyBind__Group_1__1();
 
             state._fsp--;
@@ -15345,7 +15421,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyBindAccess().getEqualsSignKeyword_1_0()); 
             }
-            match(input,35,FOLLOW_35_in_rule__TyBind__Group_1__0__Impl10207); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__TyBind__Group_1__0__Impl10208); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyBindAccess().getEqualsSignKeyword_1_0()); 
             }
@@ -15380,7 +15456,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4949:1: ( rule__TyBind__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4950:2: rule__TyBind__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__TyBind__Group_1__1__Impl_in_rule__TyBind__Group_1__110238);
+            pushFollow(FOLLOW_rule__TyBind__Group_1__1__Impl_in_rule__TyBind__Group_1__110239);
             rule__TyBind__Group_1__1__Impl();
 
             state._fsp--;
@@ -15422,7 +15498,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4963:1: ( rule__TyBind__ValueAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4963:2: rule__TyBind__ValueAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__TyBind__ValueAssignment_1_1_in_rule__TyBind__Group_1__1__Impl10265);
+            pushFollow(FOLLOW_rule__TyBind__ValueAssignment_1_1_in_rule__TyBind__Group_1__1__Impl10266);
             rule__TyBind__ValueAssignment_1_1();
 
             state._fsp--;
@@ -15464,12 +15540,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4981:1: ( rule__TyElement__Group__0__Impl rule__TyElement__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4982:2: rule__TyElement__Group__0__Impl rule__TyElement__Group__1
             {
-            pushFollow(FOLLOW_rule__TyElement__Group__0__Impl_in_rule__TyElement__Group__010299);
+            pushFollow(FOLLOW_rule__TyElement__Group__0__Impl_in_rule__TyElement__Group__010300);
             rule__TyElement__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__TyElement__Group__1_in_rule__TyElement__Group__010302);
+            pushFollow(FOLLOW_rule__TyElement__Group__1_in_rule__TyElement__Group__010303);
             rule__TyElement__Group__1();
 
             state._fsp--;
@@ -15511,7 +15587,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4996:1: ( rule__TyElement__NameAssignment_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:4996:2: rule__TyElement__NameAssignment_0
             {
-            pushFollow(FOLLOW_rule__TyElement__NameAssignment_0_in_rule__TyElement__Group__0__Impl10329);
+            pushFollow(FOLLOW_rule__TyElement__NameAssignment_0_in_rule__TyElement__Group__0__Impl10330);
             rule__TyElement__NameAssignment_0();
 
             state._fsp--;
@@ -15553,12 +15629,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5010:1: ( rule__TyElement__Group__1__Impl rule__TyElement__Group__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5011:2: rule__TyElement__Group__1__Impl rule__TyElement__Group__2
             {
-            pushFollow(FOLLOW_rule__TyElement__Group__1__Impl_in_rule__TyElement__Group__110359);
+            pushFollow(FOLLOW_rule__TyElement__Group__1__Impl_in_rule__TyElement__Group__110360);
             rule__TyElement__Group__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__TyElement__Group__2_in_rule__TyElement__Group__110362);
+            pushFollow(FOLLOW_rule__TyElement__Group__2_in_rule__TyElement__Group__110363);
             rule__TyElement__Group__2();
 
             state._fsp--;
@@ -15597,7 +15673,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyElementAccess().getColonKeyword_1()); 
             }
-            match(input,33,FOLLOW_33_in_rule__TyElement__Group__1__Impl10390); if (state.failed) return ;
+            match(input,33,FOLLOW_33_in_rule__TyElement__Group__1__Impl10391); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyElementAccess().getColonKeyword_1()); 
             }
@@ -15632,7 +15708,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5041:1: ( rule__TyElement__Group__2__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5042:2: rule__TyElement__Group__2__Impl
             {
-            pushFollow(FOLLOW_rule__TyElement__Group__2__Impl_in_rule__TyElement__Group__210421);
+            pushFollow(FOLLOW_rule__TyElement__Group__2__Impl_in_rule__TyElement__Group__210422);
             rule__TyElement__Group__2__Impl();
 
             state._fsp--;
@@ -15674,7 +15750,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5055:1: ( rule__TyElement__ValueAssignment_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5055:2: rule__TyElement__ValueAssignment_2
             {
-            pushFollow(FOLLOW_rule__TyElement__ValueAssignment_2_in_rule__TyElement__Group__2__Impl10448);
+            pushFollow(FOLLOW_rule__TyElement__ValueAssignment_2_in_rule__TyElement__Group__2__Impl10449);
             rule__TyElement__ValueAssignment_2();
 
             state._fsp--;
@@ -15716,12 +15792,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5075:1: ( rule__Exp__Group_1__0__Impl rule__Exp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5076:2: rule__Exp__Group_1__0__Impl rule__Exp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__Exp__Group_1__0__Impl_in_rule__Exp__Group_1__010484);
+            pushFollow(FOLLOW_rule__Exp__Group_1__0__Impl_in_rule__Exp__Group_1__010485);
             rule__Exp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Exp__Group_1__1_in_rule__Exp__Group_1__010487);
+            pushFollow(FOLLOW_rule__Exp__Group_1__1_in_rule__Exp__Group_1__010488);
             rule__Exp__Group_1__1();
 
             state._fsp--;
@@ -15763,7 +15839,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5090:1: ( rule__Exp__MidAssignment_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5090:2: rule__Exp__MidAssignment_1_0
             {
-            pushFollow(FOLLOW_rule__Exp__MidAssignment_1_0_in_rule__Exp__Group_1__0__Impl10514);
+            pushFollow(FOLLOW_rule__Exp__MidAssignment_1_0_in_rule__Exp__Group_1__0__Impl10515);
             rule__Exp__MidAssignment_1_0();
 
             state._fsp--;
@@ -15805,7 +15881,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5104:1: ( rule__Exp__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5105:2: rule__Exp__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__Exp__Group_1__1__Impl_in_rule__Exp__Group_1__110544);
+            pushFollow(FOLLOW_rule__Exp__Group_1__1__Impl_in_rule__Exp__Group_1__110545);
             rule__Exp__Group_1__1__Impl();
 
             state._fsp--;
@@ -15847,7 +15923,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5118:1: ( rule__Exp__CaseExpsAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5118:2: rule__Exp__CaseExpsAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__Exp__CaseExpsAssignment_1_1_in_rule__Exp__Group_1__1__Impl10571);
+            pushFollow(FOLLOW_rule__Exp__CaseExpsAssignment_1_1_in_rule__Exp__Group_1__1__Impl10572);
             rule__Exp__CaseExpsAssignment_1_1();
 
             state._fsp--;
@@ -15889,12 +15965,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5136:1: ( rule__CaseExp__Group_1__0__Impl rule__CaseExp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5137:2: rule__CaseExp__Group_1__0__Impl rule__CaseExp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1__0__Impl_in_rule__CaseExp__Group_1__010605);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1__0__Impl_in_rule__CaseExp__Group_1__010606);
             rule__CaseExp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1__1_in_rule__CaseExp__Group_1__010608);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1__1_in_rule__CaseExp__Group_1__010609);
             rule__CaseExp__Group_1__1();
 
             state._fsp--;
@@ -15936,7 +16012,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5151:1: ( rule__CaseExp__NameAssignment_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5151:2: rule__CaseExp__NameAssignment_1_0
             {
-            pushFollow(FOLLOW_rule__CaseExp__NameAssignment_1_0_in_rule__CaseExp__Group_1__0__Impl10635);
+            pushFollow(FOLLOW_rule__CaseExp__NameAssignment_1_0_in_rule__CaseExp__Group_1__0__Impl10636);
             rule__CaseExp__NameAssignment_1_0();
 
             state._fsp--;
@@ -15978,12 +16054,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5165:1: ( rule__CaseExp__Group_1__1__Impl rule__CaseExp__Group_1__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5166:2: rule__CaseExp__Group_1__1__Impl rule__CaseExp__Group_1__2
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1__1__Impl_in_rule__CaseExp__Group_1__110665);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1__1__Impl_in_rule__CaseExp__Group_1__110666);
             rule__CaseExp__Group_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1__2_in_rule__CaseExp__Group_1__110668);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1__2_in_rule__CaseExp__Group_1__110669);
             rule__CaseExp__Group_1__2();
 
             state._fsp--;
@@ -16025,7 +16101,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5180:1: ( rule__CaseExp__ClosedExpAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5180:2: rule__CaseExp__ClosedExpAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__CaseExp__ClosedExpAssignment_1_1_in_rule__CaseExp__Group_1__1__Impl10695);
+            pushFollow(FOLLOW_rule__CaseExp__ClosedExpAssignment_1_1_in_rule__CaseExp__Group_1__1__Impl10696);
             rule__CaseExp__ClosedExpAssignment_1_1();
 
             state._fsp--;
@@ -16067,12 +16143,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5194:1: ( rule__CaseExp__Group_1__2__Impl rule__CaseExp__Group_1__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5195:2: rule__CaseExp__Group_1__2__Impl rule__CaseExp__Group_1__3
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1__2__Impl_in_rule__CaseExp__Group_1__210725);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1__2__Impl_in_rule__CaseExp__Group_1__210726);
             rule__CaseExp__Group_1__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1__3_in_rule__CaseExp__Group_1__210728);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1__3_in_rule__CaseExp__Group_1__210729);
             rule__CaseExp__Group_1__3();
 
             state._fsp--;
@@ -16111,7 +16187,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getOfKeyword_1_2()); 
             }
-            match(input,41,FOLLOW_41_in_rule__CaseExp__Group_1__2__Impl10756); if (state.failed) return ;
+            match(input,41,FOLLOW_41_in_rule__CaseExp__Group_1__2__Impl10757); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getCaseExpAccess().getOfKeyword_1_2()); 
             }
@@ -16146,12 +16222,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5225:1: ( rule__CaseExp__Group_1__3__Impl rule__CaseExp__Group_1__4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5226:2: rule__CaseExp__Group_1__3__Impl rule__CaseExp__Group_1__4
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1__3__Impl_in_rule__CaseExp__Group_1__310787);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1__3__Impl_in_rule__CaseExp__Group_1__310788);
             rule__CaseExp__Group_1__3__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1__4_in_rule__CaseExp__Group_1__310790);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1__4_in_rule__CaseExp__Group_1__310791);
             rule__CaseExp__Group_1__4();
 
             state._fsp--;
@@ -16193,7 +16269,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5240:1: ( rule__CaseExp__Group_1_3__0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5240:2: rule__CaseExp__Group_1_3__0
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__0_in_rule__CaseExp__Group_1__3__Impl10817);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__0_in_rule__CaseExp__Group_1__3__Impl10818);
             rule__CaseExp__Group_1_3__0();
 
             state._fsp--;
@@ -16235,7 +16311,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5254:1: ( rule__CaseExp__Group_1__4__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5255:2: rule__CaseExp__Group_1__4__Impl
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1__4__Impl_in_rule__CaseExp__Group_1__410847);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1__4__Impl_in_rule__CaseExp__Group_1__410848);
             rule__CaseExp__Group_1__4__Impl();
 
             state._fsp--;
@@ -16274,7 +16350,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getEndKeyword_1_4()); 
             }
-            match(input,49,FOLLOW_49_in_rule__CaseExp__Group_1__4__Impl10875); if (state.failed) return ;
+            match(input,49,FOLLOW_49_in_rule__CaseExp__Group_1__4__Impl10876); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getCaseExpAccess().getEndKeyword_1_4()); 
             }
@@ -16309,12 +16385,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5294:1: ( rule__CaseExp__Group_1_3__0__Impl rule__CaseExp__Group_1_3__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5295:2: rule__CaseExp__Group_1_3__0__Impl rule__CaseExp__Group_1_3__1
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__0__Impl_in_rule__CaseExp__Group_1_3__010916);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__0__Impl_in_rule__CaseExp__Group_1_3__010917);
             rule__CaseExp__Group_1_3__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__1_in_rule__CaseExp__Group_1_3__010919);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__1_in_rule__CaseExp__Group_1_3__010920);
             rule__CaseExp__Group_1_3__1();
 
             state._fsp--;
@@ -16356,7 +16432,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5309:1: ( rule__CaseExp__PatAssignment_1_3_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5309:2: rule__CaseExp__PatAssignment_1_3_0
             {
-            pushFollow(FOLLOW_rule__CaseExp__PatAssignment_1_3_0_in_rule__CaseExp__Group_1_3__0__Impl10946);
+            pushFollow(FOLLOW_rule__CaseExp__PatAssignment_1_3_0_in_rule__CaseExp__Group_1_3__0__Impl10947);
             rule__CaseExp__PatAssignment_1_3_0();
 
             state._fsp--;
@@ -16398,12 +16474,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5323:1: ( rule__CaseExp__Group_1_3__1__Impl rule__CaseExp__Group_1_3__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5324:2: rule__CaseExp__Group_1_3__1__Impl rule__CaseExp__Group_1_3__2
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__1__Impl_in_rule__CaseExp__Group_1_3__110976);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__1__Impl_in_rule__CaseExp__Group_1_3__110977);
             rule__CaseExp__Group_1_3__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__2_in_rule__CaseExp__Group_1_3__110979);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__2_in_rule__CaseExp__Group_1_3__110980);
             rule__CaseExp__Group_1_3__2();
 
             state._fsp--;
@@ -16442,7 +16518,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getColonKeyword_1_3_1()); 
             }
-            match(input,33,FOLLOW_33_in_rule__CaseExp__Group_1_3__1__Impl11007); if (state.failed) return ;
+            match(input,33,FOLLOW_33_in_rule__CaseExp__Group_1_3__1__Impl11008); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getCaseExpAccess().getColonKeyword_1_3_1()); 
             }
@@ -16477,12 +16553,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5354:1: ( rule__CaseExp__Group_1_3__2__Impl rule__CaseExp__Group_1_3__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5355:2: rule__CaseExp__Group_1_3__2__Impl rule__CaseExp__Group_1_3__3
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__2__Impl_in_rule__CaseExp__Group_1_3__211038);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__2__Impl_in_rule__CaseExp__Group_1_3__211039);
             rule__CaseExp__Group_1_3__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__3_in_rule__CaseExp__Group_1_3__211041);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__3_in_rule__CaseExp__Group_1_3__211042);
             rule__CaseExp__Group_1_3__3();
 
             state._fsp--;
@@ -16524,7 +16600,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5369:1: ( rule__CaseExp__ExpAssignment_1_3_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5369:2: rule__CaseExp__ExpAssignment_1_3_2
             {
-            pushFollow(FOLLOW_rule__CaseExp__ExpAssignment_1_3_2_in_rule__CaseExp__Group_1_3__2__Impl11068);
+            pushFollow(FOLLOW_rule__CaseExp__ExpAssignment_1_3_2_in_rule__CaseExp__Group_1_3__2__Impl11069);
             rule__CaseExp__ExpAssignment_1_3_2();
 
             state._fsp--;
@@ -16566,7 +16642,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5383:1: ( rule__CaseExp__Group_1_3__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5384:2: rule__CaseExp__Group_1_3__3__Impl
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__3__Impl_in_rule__CaseExp__Group_1_3__311098);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3__3__Impl_in_rule__CaseExp__Group_1_3__311099);
             rule__CaseExp__Group_1_3__3__Impl();
 
             state._fsp--;
@@ -16620,7 +16696,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5397:2: rule__CaseExp__Group_1_3_3__0
             	    {
-            	    pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__0_in_rule__CaseExp__Group_1_3__3__Impl11125);
+            	    pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__0_in_rule__CaseExp__Group_1_3__3__Impl11126);
             	    rule__CaseExp__Group_1_3_3__0();
 
             	    state._fsp--;
@@ -16668,12 +16744,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5419:1: ( rule__CaseExp__Group_1_3_3__0__Impl rule__CaseExp__Group_1_3_3__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5420:2: rule__CaseExp__Group_1_3_3__0__Impl rule__CaseExp__Group_1_3_3__1
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__0__Impl_in_rule__CaseExp__Group_1_3_3__011164);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__0__Impl_in_rule__CaseExp__Group_1_3_3__011165);
             rule__CaseExp__Group_1_3_3__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__1_in_rule__CaseExp__Group_1_3_3__011167);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__1_in_rule__CaseExp__Group_1_3_3__011168);
             rule__CaseExp__Group_1_3_3__1();
 
             state._fsp--;
@@ -16712,7 +16788,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getVerticalLineKeyword_1_3_3_0()); 
             }
-            match(input,36,FOLLOW_36_in_rule__CaseExp__Group_1_3_3__0__Impl11195); if (state.failed) return ;
+            match(input,36,FOLLOW_36_in_rule__CaseExp__Group_1_3_3__0__Impl11196); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getCaseExpAccess().getVerticalLineKeyword_1_3_3_0()); 
             }
@@ -16747,12 +16823,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5450:1: ( rule__CaseExp__Group_1_3_3__1__Impl rule__CaseExp__Group_1_3_3__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5451:2: rule__CaseExp__Group_1_3_3__1__Impl rule__CaseExp__Group_1_3_3__2
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__1__Impl_in_rule__CaseExp__Group_1_3_3__111226);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__1__Impl_in_rule__CaseExp__Group_1_3_3__111227);
             rule__CaseExp__Group_1_3_3__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__2_in_rule__CaseExp__Group_1_3_3__111229);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__2_in_rule__CaseExp__Group_1_3_3__111230);
             rule__CaseExp__Group_1_3_3__2();
 
             state._fsp--;
@@ -16794,7 +16870,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5465:1: ( rule__CaseExp__PatAssignment_1_3_3_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5465:2: rule__CaseExp__PatAssignment_1_3_3_1
             {
-            pushFollow(FOLLOW_rule__CaseExp__PatAssignment_1_3_3_1_in_rule__CaseExp__Group_1_3_3__1__Impl11256);
+            pushFollow(FOLLOW_rule__CaseExp__PatAssignment_1_3_3_1_in_rule__CaseExp__Group_1_3_3__1__Impl11257);
             rule__CaseExp__PatAssignment_1_3_3_1();
 
             state._fsp--;
@@ -16836,12 +16912,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5479:1: ( rule__CaseExp__Group_1_3_3__2__Impl rule__CaseExp__Group_1_3_3__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5480:2: rule__CaseExp__Group_1_3_3__2__Impl rule__CaseExp__Group_1_3_3__3
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__2__Impl_in_rule__CaseExp__Group_1_3_3__211286);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__2__Impl_in_rule__CaseExp__Group_1_3_3__211287);
             rule__CaseExp__Group_1_3_3__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__3_in_rule__CaseExp__Group_1_3_3__211289);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__3_in_rule__CaseExp__Group_1_3_3__211290);
             rule__CaseExp__Group_1_3_3__3();
 
             state._fsp--;
@@ -16880,7 +16956,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getColonKeyword_1_3_3_2()); 
             }
-            match(input,33,FOLLOW_33_in_rule__CaseExp__Group_1_3_3__2__Impl11317); if (state.failed) return ;
+            match(input,33,FOLLOW_33_in_rule__CaseExp__Group_1_3_3__2__Impl11318); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getCaseExpAccess().getColonKeyword_1_3_3_2()); 
             }
@@ -16915,7 +16991,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5510:1: ( rule__CaseExp__Group_1_3_3__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5511:2: rule__CaseExp__Group_1_3_3__3__Impl
             {
-            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__3__Impl_in_rule__CaseExp__Group_1_3_3__311348);
+            pushFollow(FOLLOW_rule__CaseExp__Group_1_3_3__3__Impl_in_rule__CaseExp__Group_1_3_3__311349);
             rule__CaseExp__Group_1_3_3__3__Impl();
 
             state._fsp--;
@@ -16957,7 +17033,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5524:1: ( rule__CaseExp__ExpAssignment_1_3_3_3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5524:2: rule__CaseExp__ExpAssignment_1_3_3_3
             {
-            pushFollow(FOLLOW_rule__CaseExp__ExpAssignment_1_3_3_3_in_rule__CaseExp__Group_1_3_3__3__Impl11375);
+            pushFollow(FOLLOW_rule__CaseExp__ExpAssignment_1_3_3_3_in_rule__CaseExp__Group_1_3_3__3__Impl11376);
             rule__CaseExp__ExpAssignment_1_3_3_3();
 
             state._fsp--;
@@ -16999,12 +17075,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5546:1: ( rule__ClosedExp__Group_1__0__Impl rule__ClosedExp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5547:2: rule__ClosedExp__Group_1__0__Impl rule__ClosedExp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__0__Impl_in_rule__ClosedExp__Group_1__011413);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__0__Impl_in_rule__ClosedExp__Group_1__011414);
             rule__ClosedExp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__1_in_rule__ClosedExp__Group_1__011416);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__1_in_rule__ClosedExp__Group_1__011417);
             rule__ClosedExp__Group_1__1();
 
             state._fsp--;
@@ -17046,7 +17122,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5561:1: ( rule__ClosedExp__NameAssignment_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5561:2: rule__ClosedExp__NameAssignment_1_0
             {
-            pushFollow(FOLLOW_rule__ClosedExp__NameAssignment_1_0_in_rule__ClosedExp__Group_1__0__Impl11443);
+            pushFollow(FOLLOW_rule__ClosedExp__NameAssignment_1_0_in_rule__ClosedExp__Group_1__0__Impl11444);
             rule__ClosedExp__NameAssignment_1_0();
 
             state._fsp--;
@@ -17088,12 +17164,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5575:1: ( rule__ClosedExp__Group_1__1__Impl rule__ClosedExp__Group_1__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5576:2: rule__ClosedExp__Group_1__1__Impl rule__ClosedExp__Group_1__2
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__1__Impl_in_rule__ClosedExp__Group_1__111473);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__1__Impl_in_rule__ClosedExp__Group_1__111474);
             rule__ClosedExp__Group_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__2_in_rule__ClosedExp__Group_1__111476);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__2_in_rule__ClosedExp__Group_1__111477);
             rule__ClosedExp__Group_1__2();
 
             state._fsp--;
@@ -17135,7 +17211,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5590:1: ( rule__ClosedExp__IfCaseExpAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5590:2: rule__ClosedExp__IfCaseExpAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__ClosedExp__IfCaseExpAssignment_1_1_in_rule__ClosedExp__Group_1__1__Impl11503);
+            pushFollow(FOLLOW_rule__ClosedExp__IfCaseExpAssignment_1_1_in_rule__ClosedExp__Group_1__1__Impl11504);
             rule__ClosedExp__IfCaseExpAssignment_1_1();
 
             state._fsp--;
@@ -17177,12 +17253,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5604:1: ( rule__ClosedExp__Group_1__2__Impl rule__ClosedExp__Group_1__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5605:2: rule__ClosedExp__Group_1__2__Impl rule__ClosedExp__Group_1__3
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__2__Impl_in_rule__ClosedExp__Group_1__211533);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__2__Impl_in_rule__ClosedExp__Group_1__211534);
             rule__ClosedExp__Group_1__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__3_in_rule__ClosedExp__Group_1__211536);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__3_in_rule__ClosedExp__Group_1__211537);
             rule__ClosedExp__Group_1__3();
 
             state._fsp--;
@@ -17221,7 +17297,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getThenKeyword_1_2()); 
             }
-            match(input,50,FOLLOW_50_in_rule__ClosedExp__Group_1__2__Impl11564); if (state.failed) return ;
+            match(input,50,FOLLOW_50_in_rule__ClosedExp__Group_1__2__Impl11565); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getClosedExpAccess().getThenKeyword_1_2()); 
             }
@@ -17256,12 +17332,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5635:1: ( rule__ClosedExp__Group_1__3__Impl rule__ClosedExp__Group_1__4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5636:2: rule__ClosedExp__Group_1__3__Impl rule__ClosedExp__Group_1__4
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__3__Impl_in_rule__ClosedExp__Group_1__311595);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__3__Impl_in_rule__ClosedExp__Group_1__311596);
             rule__ClosedExp__Group_1__3__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__4_in_rule__ClosedExp__Group_1__311598);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__4_in_rule__ClosedExp__Group_1__311599);
             rule__ClosedExp__Group_1__4();
 
             state._fsp--;
@@ -17303,7 +17379,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5650:1: ( rule__ClosedExp__ThenCaseExpAssignment_1_3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5650:2: rule__ClosedExp__ThenCaseExpAssignment_1_3
             {
-            pushFollow(FOLLOW_rule__ClosedExp__ThenCaseExpAssignment_1_3_in_rule__ClosedExp__Group_1__3__Impl11625);
+            pushFollow(FOLLOW_rule__ClosedExp__ThenCaseExpAssignment_1_3_in_rule__ClosedExp__Group_1__3__Impl11626);
             rule__ClosedExp__ThenCaseExpAssignment_1_3();
 
             state._fsp--;
@@ -17345,12 +17421,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5664:1: ( rule__ClosedExp__Group_1__4__Impl rule__ClosedExp__Group_1__5 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5665:2: rule__ClosedExp__Group_1__4__Impl rule__ClosedExp__Group_1__5
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__4__Impl_in_rule__ClosedExp__Group_1__411655);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__4__Impl_in_rule__ClosedExp__Group_1__411656);
             rule__ClosedExp__Group_1__4__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__5_in_rule__ClosedExp__Group_1__411658);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__5_in_rule__ClosedExp__Group_1__411659);
             rule__ClosedExp__Group_1__5();
 
             state._fsp--;
@@ -17389,7 +17465,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getElseKeyword_1_4()); 
             }
-            match(input,51,FOLLOW_51_in_rule__ClosedExp__Group_1__4__Impl11686); if (state.failed) return ;
+            match(input,51,FOLLOW_51_in_rule__ClosedExp__Group_1__4__Impl11687); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getClosedExpAccess().getElseKeyword_1_4()); 
             }
@@ -17424,7 +17500,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5695:1: ( rule__ClosedExp__Group_1__5__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5696:2: rule__ClosedExp__Group_1__5__Impl
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_1__5__Impl_in_rule__ClosedExp__Group_1__511717);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_1__5__Impl_in_rule__ClosedExp__Group_1__511718);
             rule__ClosedExp__Group_1__5__Impl();
 
             state._fsp--;
@@ -17466,7 +17542,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5709:1: ( rule__ClosedExp__ElseCaseExpAssignment_1_5 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5709:2: rule__ClosedExp__ElseCaseExpAssignment_1_5
             {
-            pushFollow(FOLLOW_rule__ClosedExp__ElseCaseExpAssignment_1_5_in_rule__ClosedExp__Group_1__5__Impl11744);
+            pushFollow(FOLLOW_rule__ClosedExp__ElseCaseExpAssignment_1_5_in_rule__ClosedExp__Group_1__5__Impl11745);
             rule__ClosedExp__ElseCaseExpAssignment_1_5();
 
             state._fsp--;
@@ -17508,12 +17584,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5735:1: ( rule__ClosedExp__Group_2__0__Impl rule__ClosedExp__Group_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5736:2: rule__ClosedExp__Group_2__0__Impl rule__ClosedExp__Group_2__1
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2__0__Impl_in_rule__ClosedExp__Group_2__011786);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2__0__Impl_in_rule__ClosedExp__Group_2__011787);
             rule__ClosedExp__Group_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2__1_in_rule__ClosedExp__Group_2__011789);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2__1_in_rule__ClosedExp__Group_2__011790);
             rule__ClosedExp__Group_2__1();
 
             state._fsp--;
@@ -17555,7 +17631,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5750:1: ( rule__ClosedExp__NameAssignment_2_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5750:2: rule__ClosedExp__NameAssignment_2_0
             {
-            pushFollow(FOLLOW_rule__ClosedExp__NameAssignment_2_0_in_rule__ClosedExp__Group_2__0__Impl11816);
+            pushFollow(FOLLOW_rule__ClosedExp__NameAssignment_2_0_in_rule__ClosedExp__Group_2__0__Impl11817);
             rule__ClosedExp__NameAssignment_2_0();
 
             state._fsp--;
@@ -17597,12 +17673,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5764:1: ( rule__ClosedExp__Group_2__1__Impl rule__ClosedExp__Group_2__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5765:2: rule__ClosedExp__Group_2__1__Impl rule__ClosedExp__Group_2__2
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2__1__Impl_in_rule__ClosedExp__Group_2__111846);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2__1__Impl_in_rule__ClosedExp__Group_2__111847);
             rule__ClosedExp__Group_2__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2__2_in_rule__ClosedExp__Group_2__111849);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2__2_in_rule__ClosedExp__Group_2__111850);
             rule__ClosedExp__Group_2__2();
 
             state._fsp--;
@@ -17644,7 +17720,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5779:1: ( rule__ClosedExp__DoExpAssignment_2_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5779:2: rule__ClosedExp__DoExpAssignment_2_1
             {
-            pushFollow(FOLLOW_rule__ClosedExp__DoExpAssignment_2_1_in_rule__ClosedExp__Group_2__1__Impl11876);
+            pushFollow(FOLLOW_rule__ClosedExp__DoExpAssignment_2_1_in_rule__ClosedExp__Group_2__1__Impl11877);
             rule__ClosedExp__DoExpAssignment_2_1();
 
             state._fsp--;
@@ -17686,12 +17762,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5793:1: ( rule__ClosedExp__Group_2__2__Impl rule__ClosedExp__Group_2__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5794:2: rule__ClosedExp__Group_2__2__Impl rule__ClosedExp__Group_2__3
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2__2__Impl_in_rule__ClosedExp__Group_2__211906);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2__2__Impl_in_rule__ClosedExp__Group_2__211907);
             rule__ClosedExp__Group_2__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2__3_in_rule__ClosedExp__Group_2__211909);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2__3_in_rule__ClosedExp__Group_2__211910);
             rule__ClosedExp__Group_2__3();
 
             state._fsp--;
@@ -17745,7 +17821,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5808:2: rule__ClosedExp__Group_2_2__0
             	    {
-            	    pushFollow(FOLLOW_rule__ClosedExp__Group_2_2__0_in_rule__ClosedExp__Group_2__2__Impl11936);
+            	    pushFollow(FOLLOW_rule__ClosedExp__Group_2_2__0_in_rule__ClosedExp__Group_2__2__Impl11937);
             	    rule__ClosedExp__Group_2_2__0();
 
             	    state._fsp--;
@@ -17793,7 +17869,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5822:1: ( rule__ClosedExp__Group_2__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5823:2: rule__ClosedExp__Group_2__3__Impl
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2__3__Impl_in_rule__ClosedExp__Group_2__311967);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2__3__Impl_in_rule__ClosedExp__Group_2__311968);
             rule__ClosedExp__Group_2__3__Impl();
 
             state._fsp--;
@@ -17832,7 +17908,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getEndKeyword_2_3()); 
             }
-            match(input,49,FOLLOW_49_in_rule__ClosedExp__Group_2__3__Impl11995); if (state.failed) return ;
+            match(input,49,FOLLOW_49_in_rule__ClosedExp__Group_2__3__Impl11996); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getClosedExpAccess().getEndKeyword_2_3()); 
             }
@@ -17867,12 +17943,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5860:1: ( rule__ClosedExp__Group_2_2__0__Impl rule__ClosedExp__Group_2_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5861:2: rule__ClosedExp__Group_2_2__0__Impl rule__ClosedExp__Group_2_2__1
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2_2__0__Impl_in_rule__ClosedExp__Group_2_2__012034);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2_2__0__Impl_in_rule__ClosedExp__Group_2_2__012035);
             rule__ClosedExp__Group_2_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2_2__1_in_rule__ClosedExp__Group_2_2__012037);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2_2__1_in_rule__ClosedExp__Group_2_2__012038);
             rule__ClosedExp__Group_2_2__1();
 
             state._fsp--;
@@ -17911,7 +17987,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getSemicolonKeyword_2_2_0()); 
             }
-            match(input,31,FOLLOW_31_in_rule__ClosedExp__Group_2_2__0__Impl12065); if (state.failed) return ;
+            match(input,31,FOLLOW_31_in_rule__ClosedExp__Group_2_2__0__Impl12066); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getClosedExpAccess().getSemicolonKeyword_2_2_0()); 
             }
@@ -17946,7 +18022,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5891:1: ( rule__ClosedExp__Group_2_2__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5892:2: rule__ClosedExp__Group_2_2__1__Impl
             {
-            pushFollow(FOLLOW_rule__ClosedExp__Group_2_2__1__Impl_in_rule__ClosedExp__Group_2_2__112096);
+            pushFollow(FOLLOW_rule__ClosedExp__Group_2_2__1__Impl_in_rule__ClosedExp__Group_2_2__112097);
             rule__ClosedExp__Group_2_2__1__Impl();
 
             state._fsp--;
@@ -17988,7 +18064,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5905:1: ( rule__ClosedExp__DoExpAssignment_2_2_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5905:2: rule__ClosedExp__DoExpAssignment_2_2_1
             {
-            pushFollow(FOLLOW_rule__ClosedExp__DoExpAssignment_2_2_1_in_rule__ClosedExp__Group_2_2__1__Impl12123);
+            pushFollow(FOLLOW_rule__ClosedExp__DoExpAssignment_2_2_1_in_rule__ClosedExp__Group_2_2__1__Impl12124);
             rule__ClosedExp__DoExpAssignment_2_2_1();
 
             state._fsp--;
@@ -18030,12 +18106,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5923:1: ( rule__MonadicExp__Group_1__0__Impl rule__MonadicExp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5924:2: rule__MonadicExp__Group_1__0__Impl rule__MonadicExp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__MonadicExp__Group_1__0__Impl_in_rule__MonadicExp__Group_1__012157);
+            pushFollow(FOLLOW_rule__MonadicExp__Group_1__0__Impl_in_rule__MonadicExp__Group_1__012158);
             rule__MonadicExp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__MonadicExp__Group_1__1_in_rule__MonadicExp__Group_1__012160);
+            pushFollow(FOLLOW_rule__MonadicExp__Group_1__1_in_rule__MonadicExp__Group_1__012161);
             rule__MonadicExp__Group_1__1();
 
             state._fsp--;
@@ -18077,7 +18153,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5938:1: ( rule__MonadicExp__NameAssignment_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5938:2: rule__MonadicExp__NameAssignment_1_0
             {
-            pushFollow(FOLLOW_rule__MonadicExp__NameAssignment_1_0_in_rule__MonadicExp__Group_1__0__Impl12187);
+            pushFollow(FOLLOW_rule__MonadicExp__NameAssignment_1_0_in_rule__MonadicExp__Group_1__0__Impl12188);
             rule__MonadicExp__NameAssignment_1_0();
 
             state._fsp--;
@@ -18119,12 +18195,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5952:1: ( rule__MonadicExp__Group_1__1__Impl rule__MonadicExp__Group_1__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5953:2: rule__MonadicExp__Group_1__1__Impl rule__MonadicExp__Group_1__2
             {
-            pushFollow(FOLLOW_rule__MonadicExp__Group_1__1__Impl_in_rule__MonadicExp__Group_1__112217);
+            pushFollow(FOLLOW_rule__MonadicExp__Group_1__1__Impl_in_rule__MonadicExp__Group_1__112218);
             rule__MonadicExp__Group_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__MonadicExp__Group_1__2_in_rule__MonadicExp__Group_1__112220);
+            pushFollow(FOLLOW_rule__MonadicExp__Group_1__2_in_rule__MonadicExp__Group_1__112221);
             rule__MonadicExp__Group_1__2();
 
             state._fsp--;
@@ -18163,7 +18239,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getMonadicExpAccess().getLessThanSignHyphenMinusKeyword_1_1()); 
             }
-            match(input,52,FOLLOW_52_in_rule__MonadicExp__Group_1__1__Impl12248); if (state.failed) return ;
+            match(input,52,FOLLOW_52_in_rule__MonadicExp__Group_1__1__Impl12249); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getMonadicExpAccess().getLessThanSignHyphenMinusKeyword_1_1()); 
             }
@@ -18198,7 +18274,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5983:1: ( rule__MonadicExp__Group_1__2__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5984:2: rule__MonadicExp__Group_1__2__Impl
             {
-            pushFollow(FOLLOW_rule__MonadicExp__Group_1__2__Impl_in_rule__MonadicExp__Group_1__212279);
+            pushFollow(FOLLOW_rule__MonadicExp__Group_1__2__Impl_in_rule__MonadicExp__Group_1__212280);
             rule__MonadicExp__Group_1__2__Impl();
 
             state._fsp--;
@@ -18240,7 +18316,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5997:1: ( rule__MonadicExp__ExpAssignment_1_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:5997:2: rule__MonadicExp__ExpAssignment_1_2
             {
-            pushFollow(FOLLOW_rule__MonadicExp__ExpAssignment_1_2_in_rule__MonadicExp__Group_1__2__Impl12306);
+            pushFollow(FOLLOW_rule__MonadicExp__ExpAssignment_1_2_in_rule__MonadicExp__Group_1__2__Impl12307);
             rule__MonadicExp__ExpAssignment_1_2();
 
             state._fsp--;
@@ -18282,12 +18358,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6017:1: ( rule__OrElseExp__Group__0__Impl rule__OrElseExp__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6018:2: rule__OrElseExp__Group__0__Impl rule__OrElseExp__Group__1
             {
-            pushFollow(FOLLOW_rule__OrElseExp__Group__0__Impl_in_rule__OrElseExp__Group__012342);
+            pushFollow(FOLLOW_rule__OrElseExp__Group__0__Impl_in_rule__OrElseExp__Group__012343);
             rule__OrElseExp__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__OrElseExp__Group__1_in_rule__OrElseExp__Group__012345);
+            pushFollow(FOLLOW_rule__OrElseExp__Group__1_in_rule__OrElseExp__Group__012346);
             rule__OrElseExp__Group__1();
 
             state._fsp--;
@@ -18326,7 +18402,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getOrElseExpAccess().getAndAlsoExpParserRuleCall_0()); 
             }
-            pushFollow(FOLLOW_ruleAndAlsoExp_in_rule__OrElseExp__Group__0__Impl12372);
+            pushFollow(FOLLOW_ruleAndAlsoExp_in_rule__OrElseExp__Group__0__Impl12373);
             ruleAndAlsoExp();
 
             state._fsp--;
@@ -18365,7 +18441,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6046:1: ( rule__OrElseExp__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6047:2: rule__OrElseExp__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__OrElseExp__Group__1__Impl_in_rule__OrElseExp__Group__112401);
+            pushFollow(FOLLOW_rule__OrElseExp__Group__1__Impl_in_rule__OrElseExp__Group__112402);
             rule__OrElseExp__Group__1__Impl();
 
             state._fsp--;
@@ -18419,7 +18495,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6060:2: rule__OrElseExp__Group_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__OrElseExp__Group_1__0_in_rule__OrElseExp__Group__1__Impl12428);
+            	    pushFollow(FOLLOW_rule__OrElseExp__Group_1__0_in_rule__OrElseExp__Group__1__Impl12429);
             	    rule__OrElseExp__Group_1__0();
 
             	    state._fsp--;
@@ -18467,12 +18543,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6078:1: ( rule__OrElseExp__Group_1__0__Impl rule__OrElseExp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6079:2: rule__OrElseExp__Group_1__0__Impl rule__OrElseExp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__OrElseExp__Group_1__0__Impl_in_rule__OrElseExp__Group_1__012463);
+            pushFollow(FOLLOW_rule__OrElseExp__Group_1__0__Impl_in_rule__OrElseExp__Group_1__012464);
             rule__OrElseExp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__OrElseExp__Group_1__1_in_rule__OrElseExp__Group_1__012466);
+            pushFollow(FOLLOW_rule__OrElseExp__Group_1__1_in_rule__OrElseExp__Group_1__012467);
             rule__OrElseExp__Group_1__1();
 
             state._fsp--;
@@ -18546,12 +18622,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6109:1: ( rule__OrElseExp__Group_1__1__Impl rule__OrElseExp__Group_1__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6110:2: rule__OrElseExp__Group_1__1__Impl rule__OrElseExp__Group_1__2
             {
-            pushFollow(FOLLOW_rule__OrElseExp__Group_1__1__Impl_in_rule__OrElseExp__Group_1__112524);
+            pushFollow(FOLLOW_rule__OrElseExp__Group_1__1__Impl_in_rule__OrElseExp__Group_1__112525);
             rule__OrElseExp__Group_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__OrElseExp__Group_1__2_in_rule__OrElseExp__Group_1__112527);
+            pushFollow(FOLLOW_rule__OrElseExp__Group_1__2_in_rule__OrElseExp__Group_1__112528);
             rule__OrElseExp__Group_1__2();
 
             state._fsp--;
@@ -18593,7 +18669,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6124:1: ( rule__OrElseExp__NameAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6124:2: rule__OrElseExp__NameAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__OrElseExp__NameAssignment_1_1_in_rule__OrElseExp__Group_1__1__Impl12554);
+            pushFollow(FOLLOW_rule__OrElseExp__NameAssignment_1_1_in_rule__OrElseExp__Group_1__1__Impl12555);
             rule__OrElseExp__NameAssignment_1_1();
 
             state._fsp--;
@@ -18635,7 +18711,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6138:1: ( rule__OrElseExp__Group_1__2__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6139:2: rule__OrElseExp__Group_1__2__Impl
             {
-            pushFollow(FOLLOW_rule__OrElseExp__Group_1__2__Impl_in_rule__OrElseExp__Group_1__212584);
+            pushFollow(FOLLOW_rule__OrElseExp__Group_1__2__Impl_in_rule__OrElseExp__Group_1__212585);
             rule__OrElseExp__Group_1__2__Impl();
 
             state._fsp--;
@@ -18677,7 +18753,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6152:1: ( rule__OrElseExp__RightAssignment_1_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6152:2: rule__OrElseExp__RightAssignment_1_2
             {
-            pushFollow(FOLLOW_rule__OrElseExp__RightAssignment_1_2_in_rule__OrElseExp__Group_1__2__Impl12611);
+            pushFollow(FOLLOW_rule__OrElseExp__RightAssignment_1_2_in_rule__OrElseExp__Group_1__2__Impl12612);
             rule__OrElseExp__RightAssignment_1_2();
 
             state._fsp--;
@@ -18719,12 +18795,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6172:1: ( rule__AndAlsoExp__Group__0__Impl rule__AndAlsoExp__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6173:2: rule__AndAlsoExp__Group__0__Impl rule__AndAlsoExp__Group__1
             {
-            pushFollow(FOLLOW_rule__AndAlsoExp__Group__0__Impl_in_rule__AndAlsoExp__Group__012647);
+            pushFollow(FOLLOW_rule__AndAlsoExp__Group__0__Impl_in_rule__AndAlsoExp__Group__012648);
             rule__AndAlsoExp__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AndAlsoExp__Group__1_in_rule__AndAlsoExp__Group__012650);
+            pushFollow(FOLLOW_rule__AndAlsoExp__Group__1_in_rule__AndAlsoExp__Group__012651);
             rule__AndAlsoExp__Group__1();
 
             state._fsp--;
@@ -18763,7 +18839,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAndAlsoExpAccess().getRExpParserRuleCall_0()); 
             }
-            pushFollow(FOLLOW_ruleRExp_in_rule__AndAlsoExp__Group__0__Impl12677);
+            pushFollow(FOLLOW_ruleRExp_in_rule__AndAlsoExp__Group__0__Impl12678);
             ruleRExp();
 
             state._fsp--;
@@ -18802,7 +18878,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6201:1: ( rule__AndAlsoExp__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6202:2: rule__AndAlsoExp__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__AndAlsoExp__Group__1__Impl_in_rule__AndAlsoExp__Group__112706);
+            pushFollow(FOLLOW_rule__AndAlsoExp__Group__1__Impl_in_rule__AndAlsoExp__Group__112707);
             rule__AndAlsoExp__Group__1__Impl();
 
             state._fsp--;
@@ -18856,7 +18932,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6215:2: rule__AndAlsoExp__Group_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__0_in_rule__AndAlsoExp__Group__1__Impl12733);
+            	    pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__0_in_rule__AndAlsoExp__Group__1__Impl12734);
             	    rule__AndAlsoExp__Group_1__0();
 
             	    state._fsp--;
@@ -18904,12 +18980,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6233:1: ( rule__AndAlsoExp__Group_1__0__Impl rule__AndAlsoExp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6234:2: rule__AndAlsoExp__Group_1__0__Impl rule__AndAlsoExp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__0__Impl_in_rule__AndAlsoExp__Group_1__012768);
+            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__0__Impl_in_rule__AndAlsoExp__Group_1__012769);
             rule__AndAlsoExp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__1_in_rule__AndAlsoExp__Group_1__012771);
+            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__1_in_rule__AndAlsoExp__Group_1__012772);
             rule__AndAlsoExp__Group_1__1();
 
             state._fsp--;
@@ -18983,12 +19059,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6264:1: ( rule__AndAlsoExp__Group_1__1__Impl rule__AndAlsoExp__Group_1__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6265:2: rule__AndAlsoExp__Group_1__1__Impl rule__AndAlsoExp__Group_1__2
             {
-            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__1__Impl_in_rule__AndAlsoExp__Group_1__112829);
+            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__1__Impl_in_rule__AndAlsoExp__Group_1__112830);
             rule__AndAlsoExp__Group_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__2_in_rule__AndAlsoExp__Group_1__112832);
+            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__2_in_rule__AndAlsoExp__Group_1__112833);
             rule__AndAlsoExp__Group_1__2();
 
             state._fsp--;
@@ -19030,7 +19106,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6279:1: ( rule__AndAlsoExp__NameAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6279:2: rule__AndAlsoExp__NameAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__AndAlsoExp__NameAssignment_1_1_in_rule__AndAlsoExp__Group_1__1__Impl12859);
+            pushFollow(FOLLOW_rule__AndAlsoExp__NameAssignment_1_1_in_rule__AndAlsoExp__Group_1__1__Impl12860);
             rule__AndAlsoExp__NameAssignment_1_1();
 
             state._fsp--;
@@ -19072,7 +19148,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6293:1: ( rule__AndAlsoExp__Group_1__2__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6294:2: rule__AndAlsoExp__Group_1__2__Impl
             {
-            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__2__Impl_in_rule__AndAlsoExp__Group_1__212889);
+            pushFollow(FOLLOW_rule__AndAlsoExp__Group_1__2__Impl_in_rule__AndAlsoExp__Group_1__212890);
             rule__AndAlsoExp__Group_1__2__Impl();
 
             state._fsp--;
@@ -19114,7 +19190,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6307:1: ( rule__AndAlsoExp__RightAssignment_1_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6307:2: rule__AndAlsoExp__RightAssignment_1_2
             {
-            pushFollow(FOLLOW_rule__AndAlsoExp__RightAssignment_1_2_in_rule__AndAlsoExp__Group_1__2__Impl12916);
+            pushFollow(FOLLOW_rule__AndAlsoExp__RightAssignment_1_2_in_rule__AndAlsoExp__Group_1__2__Impl12917);
             rule__AndAlsoExp__RightAssignment_1_2();
 
             state._fsp--;
@@ -19156,12 +19232,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6327:1: ( rule__RExp__Group__0__Impl rule__RExp__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6328:2: rule__RExp__Group__0__Impl rule__RExp__Group__1
             {
-            pushFollow(FOLLOW_rule__RExp__Group__0__Impl_in_rule__RExp__Group__012952);
+            pushFollow(FOLLOW_rule__RExp__Group__0__Impl_in_rule__RExp__Group__012953);
             rule__RExp__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__RExp__Group__1_in_rule__RExp__Group__012955);
+            pushFollow(FOLLOW_rule__RExp__Group__1_in_rule__RExp__Group__012956);
             rule__RExp__Group__1();
 
             state._fsp--;
@@ -19200,7 +19276,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getRExpAccess().getAExpParserRuleCall_0()); 
             }
-            pushFollow(FOLLOW_ruleAExp_in_rule__RExp__Group__0__Impl12982);
+            pushFollow(FOLLOW_ruleAExp_in_rule__RExp__Group__0__Impl12983);
             ruleAExp();
 
             state._fsp--;
@@ -19239,7 +19315,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6356:1: ( rule__RExp__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6357:2: rule__RExp__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__RExp__Group__1__Impl_in_rule__RExp__Group__113011);
+            pushFollow(FOLLOW_rule__RExp__Group__1__Impl_in_rule__RExp__Group__113012);
             rule__RExp__Group__1__Impl();
 
             state._fsp--;
@@ -19287,7 +19363,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6370:2: rule__RExp__Group_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__RExp__Group_1__0_in_rule__RExp__Group__1__Impl13038);
+            	    pushFollow(FOLLOW_rule__RExp__Group_1__0_in_rule__RExp__Group__1__Impl13039);
             	    rule__RExp__Group_1__0();
 
             	    state._fsp--;
@@ -19335,12 +19411,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6388:1: ( rule__RExp__Group_1__0__Impl rule__RExp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6389:2: rule__RExp__Group_1__0__Impl rule__RExp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__RExp__Group_1__0__Impl_in_rule__RExp__Group_1__013073);
+            pushFollow(FOLLOW_rule__RExp__Group_1__0__Impl_in_rule__RExp__Group_1__013074);
             rule__RExp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__RExp__Group_1__1_in_rule__RExp__Group_1__013076);
+            pushFollow(FOLLOW_rule__RExp__Group_1__1_in_rule__RExp__Group_1__013077);
             rule__RExp__Group_1__1();
 
             state._fsp--;
@@ -19382,7 +19458,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6403:1: ( rule__RExp__SymAssignment_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6403:2: rule__RExp__SymAssignment_1_0
             {
-            pushFollow(FOLLOW_rule__RExp__SymAssignment_1_0_in_rule__RExp__Group_1__0__Impl13103);
+            pushFollow(FOLLOW_rule__RExp__SymAssignment_1_0_in_rule__RExp__Group_1__0__Impl13104);
             rule__RExp__SymAssignment_1_0();
 
             state._fsp--;
@@ -19424,7 +19500,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6417:1: ( rule__RExp__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6418:2: rule__RExp__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__RExp__Group_1__1__Impl_in_rule__RExp__Group_1__113133);
+            pushFollow(FOLLOW_rule__RExp__Group_1__1__Impl_in_rule__RExp__Group_1__113134);
             rule__RExp__Group_1__1__Impl();
 
             state._fsp--;
@@ -19466,7 +19542,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6431:1: ( rule__RExp__AexpsAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6431:2: rule__RExp__AexpsAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__RExp__AexpsAssignment_1_1_in_rule__RExp__Group_1__1__Impl13160);
+            pushFollow(FOLLOW_rule__RExp__AexpsAssignment_1_1_in_rule__RExp__Group_1__1__Impl13161);
             rule__RExp__AexpsAssignment_1_1();
 
             state._fsp--;
@@ -19508,12 +19584,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6449:1: ( rule__AExp__Group__0__Impl rule__AExp__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6450:2: rule__AExp__Group__0__Impl rule__AExp__Group__1
             {
-            pushFollow(FOLLOW_rule__AExp__Group__0__Impl_in_rule__AExp__Group__013194);
+            pushFollow(FOLLOW_rule__AExp__Group__0__Impl_in_rule__AExp__Group__013195);
             rule__AExp__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AExp__Group__1_in_rule__AExp__Group__013197);
+            pushFollow(FOLLOW_rule__AExp__Group__1_in_rule__AExp__Group__013198);
             rule__AExp__Group__1();
 
             state._fsp--;
@@ -19552,7 +19628,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAExpAccess().getMExpParserRuleCall_0()); 
             }
-            pushFollow(FOLLOW_ruleMExp_in_rule__AExp__Group__0__Impl13224);
+            pushFollow(FOLLOW_ruleMExp_in_rule__AExp__Group__0__Impl13225);
             ruleMExp();
 
             state._fsp--;
@@ -19591,7 +19667,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6478:1: ( rule__AExp__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6479:2: rule__AExp__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__AExp__Group__1__Impl_in_rule__AExp__Group__113253);
+            pushFollow(FOLLOW_rule__AExp__Group__1__Impl_in_rule__AExp__Group__113254);
             rule__AExp__Group__1__Impl();
 
             state._fsp--;
@@ -19645,7 +19721,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6492:2: rule__AExp__Group_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__AExp__Group_1__0_in_rule__AExp__Group__1__Impl13280);
+            	    pushFollow(FOLLOW_rule__AExp__Group_1__0_in_rule__AExp__Group__1__Impl13281);
             	    rule__AExp__Group_1__0();
 
             	    state._fsp--;
@@ -19693,12 +19769,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6510:1: ( rule__AExp__Group_1__0__Impl rule__AExp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6511:2: rule__AExp__Group_1__0__Impl rule__AExp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__AExp__Group_1__0__Impl_in_rule__AExp__Group_1__013315);
+            pushFollow(FOLLOW_rule__AExp__Group_1__0__Impl_in_rule__AExp__Group_1__013316);
             rule__AExp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AExp__Group_1__1_in_rule__AExp__Group_1__013318);
+            pushFollow(FOLLOW_rule__AExp__Group_1__1_in_rule__AExp__Group_1__013319);
             rule__AExp__Group_1__1();
 
             state._fsp--;
@@ -19740,7 +19816,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6525:1: ( rule__AExp__SignAssignment_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6525:2: rule__AExp__SignAssignment_1_0
             {
-            pushFollow(FOLLOW_rule__AExp__SignAssignment_1_0_in_rule__AExp__Group_1__0__Impl13345);
+            pushFollow(FOLLOW_rule__AExp__SignAssignment_1_0_in_rule__AExp__Group_1__0__Impl13346);
             rule__AExp__SignAssignment_1_0();
 
             state._fsp--;
@@ -19782,7 +19858,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6539:1: ( rule__AExp__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6540:2: rule__AExp__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__AExp__Group_1__1__Impl_in_rule__AExp__Group_1__113375);
+            pushFollow(FOLLOW_rule__AExp__Group_1__1__Impl_in_rule__AExp__Group_1__113376);
             rule__AExp__Group_1__1__Impl();
 
             state._fsp--;
@@ -19824,7 +19900,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6553:1: ( rule__AExp__MexpsAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6553:2: rule__AExp__MexpsAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__AExp__MexpsAssignment_1_1_in_rule__AExp__Group_1__1__Impl13402);
+            pushFollow(FOLLOW_rule__AExp__MexpsAssignment_1_1_in_rule__AExp__Group_1__1__Impl13403);
             rule__AExp__MexpsAssignment_1_1();
 
             state._fsp--;
@@ -19866,12 +19942,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6571:1: ( rule__MExp__Group__0__Impl rule__MExp__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6572:2: rule__MExp__Group__0__Impl rule__MExp__Group__1
             {
-            pushFollow(FOLLOW_rule__MExp__Group__0__Impl_in_rule__MExp__Group__013436);
+            pushFollow(FOLLOW_rule__MExp__Group__0__Impl_in_rule__MExp__Group__013437);
             rule__MExp__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__MExp__Group__1_in_rule__MExp__Group__013439);
+            pushFollow(FOLLOW_rule__MExp__Group__1_in_rule__MExp__Group__013440);
             rule__MExp__Group__1();
 
             state._fsp--;
@@ -19910,7 +19986,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getMExpAccess().getSelectExpParserRuleCall_0()); 
             }
-            pushFollow(FOLLOW_ruleSelectExp_in_rule__MExp__Group__0__Impl13466);
+            pushFollow(FOLLOW_ruleSelectExp_in_rule__MExp__Group__0__Impl13467);
             ruleSelectExp();
 
             state._fsp--;
@@ -19949,7 +20025,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6600:1: ( rule__MExp__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6601:2: rule__MExp__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__MExp__Group__1__Impl_in_rule__MExp__Group__113495);
+            pushFollow(FOLLOW_rule__MExp__Group__1__Impl_in_rule__MExp__Group__113496);
             rule__MExp__Group__1__Impl();
 
             state._fsp--;
@@ -20003,7 +20079,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6614:2: rule__MExp__Group_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__MExp__Group_1__0_in_rule__MExp__Group__1__Impl13522);
+            	    pushFollow(FOLLOW_rule__MExp__Group_1__0_in_rule__MExp__Group__1__Impl13523);
             	    rule__MExp__Group_1__0();
 
             	    state._fsp--;
@@ -20051,12 +20127,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6632:1: ( rule__MExp__Group_1__0__Impl rule__MExp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6633:2: rule__MExp__Group_1__0__Impl rule__MExp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__MExp__Group_1__0__Impl_in_rule__MExp__Group_1__013557);
+            pushFollow(FOLLOW_rule__MExp__Group_1__0__Impl_in_rule__MExp__Group_1__013558);
             rule__MExp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__MExp__Group_1__1_in_rule__MExp__Group_1__013560);
+            pushFollow(FOLLOW_rule__MExp__Group_1__1_in_rule__MExp__Group_1__013561);
             rule__MExp__Group_1__1();
 
             state._fsp--;
@@ -20098,7 +20174,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6647:1: ( rule__MExp__SymbolAssignment_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6647:2: rule__MExp__SymbolAssignment_1_0
             {
-            pushFollow(FOLLOW_rule__MExp__SymbolAssignment_1_0_in_rule__MExp__Group_1__0__Impl13587);
+            pushFollow(FOLLOW_rule__MExp__SymbolAssignment_1_0_in_rule__MExp__Group_1__0__Impl13588);
             rule__MExp__SymbolAssignment_1_0();
 
             state._fsp--;
@@ -20140,7 +20216,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6661:1: ( rule__MExp__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6662:2: rule__MExp__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__MExp__Group_1__1__Impl_in_rule__MExp__Group_1__113617);
+            pushFollow(FOLLOW_rule__MExp__Group_1__1__Impl_in_rule__MExp__Group_1__113618);
             rule__MExp__Group_1__1__Impl();
 
             state._fsp--;
@@ -20182,7 +20258,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6675:1: ( rule__MExp__ApplyexpsAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6675:2: rule__MExp__ApplyexpsAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__MExp__ApplyexpsAssignment_1_1_in_rule__MExp__Group_1__1__Impl13644);
+            pushFollow(FOLLOW_rule__MExp__ApplyexpsAssignment_1_1_in_rule__MExp__Group_1__1__Impl13645);
             rule__MExp__ApplyexpsAssignment_1_1();
 
             state._fsp--;
@@ -20224,12 +20300,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6693:1: ( rule__SelectExp__Group__0__Impl rule__SelectExp__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6694:2: rule__SelectExp__Group__0__Impl rule__SelectExp__Group__1
             {
-            pushFollow(FOLLOW_rule__SelectExp__Group__0__Impl_in_rule__SelectExp__Group__013678);
+            pushFollow(FOLLOW_rule__SelectExp__Group__0__Impl_in_rule__SelectExp__Group__013679);
             rule__SelectExp__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__SelectExp__Group__1_in_rule__SelectExp__Group__013681);
+            pushFollow(FOLLOW_rule__SelectExp__Group__1_in_rule__SelectExp__Group__013682);
             rule__SelectExp__Group__1();
 
             state._fsp--;
@@ -20268,7 +20344,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getSelectExpAccess().getApplyExpParserRuleCall_0()); 
             }
-            pushFollow(FOLLOW_ruleApplyExp_in_rule__SelectExp__Group__0__Impl13708);
+            pushFollow(FOLLOW_ruleApplyExp_in_rule__SelectExp__Group__0__Impl13709);
             ruleApplyExp();
 
             state._fsp--;
@@ -20307,7 +20383,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6722:1: ( rule__SelectExp__Group__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6723:2: rule__SelectExp__Group__1__Impl
             {
-            pushFollow(FOLLOW_rule__SelectExp__Group__1__Impl_in_rule__SelectExp__Group__113737);
+            pushFollow(FOLLOW_rule__SelectExp__Group__1__Impl_in_rule__SelectExp__Group__113738);
             rule__SelectExp__Group__1__Impl();
 
             state._fsp--;
@@ -20361,7 +20437,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6736:2: rule__SelectExp__Group_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__SelectExp__Group_1__0_in_rule__SelectExp__Group__1__Impl13764);
+            	    pushFollow(FOLLOW_rule__SelectExp__Group_1__0_in_rule__SelectExp__Group__1__Impl13765);
             	    rule__SelectExp__Group_1__0();
 
             	    state._fsp--;
@@ -20409,12 +20485,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6754:1: ( rule__SelectExp__Group_1__0__Impl rule__SelectExp__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6755:2: rule__SelectExp__Group_1__0__Impl rule__SelectExp__Group_1__1
             {
-            pushFollow(FOLLOW_rule__SelectExp__Group_1__0__Impl_in_rule__SelectExp__Group_1__013799);
+            pushFollow(FOLLOW_rule__SelectExp__Group_1__0__Impl_in_rule__SelectExp__Group_1__013800);
             rule__SelectExp__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__SelectExp__Group_1__1_in_rule__SelectExp__Group_1__013802);
+            pushFollow(FOLLOW_rule__SelectExp__Group_1__1_in_rule__SelectExp__Group_1__013803);
             rule__SelectExp__Group_1__1();
 
             state._fsp--;
@@ -20453,7 +20529,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getSelectExpAccess().getCircumflexAccentKeyword_1_0()); 
             }
-            match(input,53,FOLLOW_53_in_rule__SelectExp__Group_1__0__Impl13830); if (state.failed) return ;
+            match(input,53,FOLLOW_53_in_rule__SelectExp__Group_1__0__Impl13831); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getSelectExpAccess().getCircumflexAccentKeyword_1_0()); 
             }
@@ -20488,7 +20564,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6785:1: ( rule__SelectExp__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6786:2: rule__SelectExp__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__SelectExp__Group_1__1__Impl_in_rule__SelectExp__Group_1__113861);
+            pushFollow(FOLLOW_rule__SelectExp__Group_1__1__Impl_in_rule__SelectExp__Group_1__113862);
             rule__SelectExp__Group_1__1__Impl();
 
             state._fsp--;
@@ -20530,7 +20606,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6799:1: ( rule__SelectExp__ApplyexpsAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6799:2: rule__SelectExp__ApplyexpsAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__SelectExp__ApplyexpsAssignment_1_1_in_rule__SelectExp__Group_1__1__Impl13888);
+            pushFollow(FOLLOW_rule__SelectExp__ApplyexpsAssignment_1_1_in_rule__SelectExp__Group_1__1__Impl13889);
             rule__SelectExp__ApplyexpsAssignment_1_1();
 
             state._fsp--;
@@ -20572,12 +20648,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6817:1: ( rule__ApplyExp__Group_0__0__Impl rule__ApplyExp__Group_0__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6818:2: rule__ApplyExp__Group_0__0__Impl rule__ApplyExp__Group_0__1
             {
-            pushFollow(FOLLOW_rule__ApplyExp__Group_0__0__Impl_in_rule__ApplyExp__Group_0__013922);
+            pushFollow(FOLLOW_rule__ApplyExp__Group_0__0__Impl_in_rule__ApplyExp__Group_0__013923);
             rule__ApplyExp__Group_0__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ApplyExp__Group_0__1_in_rule__ApplyExp__Group_0__013925);
+            pushFollow(FOLLOW_rule__ApplyExp__Group_0__1_in_rule__ApplyExp__Group_0__013926);
             rule__ApplyExp__Group_0__1();
 
             state._fsp--;
@@ -20616,7 +20692,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getApplyExpAccess().getTildeKeyword_0_0()); 
             }
-            match(input,54,FOLLOW_54_in_rule__ApplyExp__Group_0__0__Impl13953); if (state.failed) return ;
+            match(input,54,FOLLOW_54_in_rule__ApplyExp__Group_0__0__Impl13954); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getApplyExpAccess().getTildeKeyword_0_0()); 
             }
@@ -20651,7 +20727,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6848:1: ( rule__ApplyExp__Group_0__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6849:2: rule__ApplyExp__Group_0__1__Impl
             {
-            pushFollow(FOLLOW_rule__ApplyExp__Group_0__1__Impl_in_rule__ApplyExp__Group_0__113984);
+            pushFollow(FOLLOW_rule__ApplyExp__Group_0__1__Impl_in_rule__ApplyExp__Group_0__113985);
             rule__ApplyExp__Group_0__1__Impl();
 
             state._fsp--;
@@ -20690,7 +20766,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getApplyExpAccess().getAtomicExpParserRuleCall_0_1()); 
             }
-            pushFollow(FOLLOW_ruleAtomicExp_in_rule__ApplyExp__Group_0__1__Impl14011);
+            pushFollow(FOLLOW_ruleAtomicExp_in_rule__ApplyExp__Group_0__1__Impl14012);
             ruleAtomicExp();
 
             state._fsp--;
@@ -20729,7 +20805,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6880:1: ( rule__ApplyExp__Group_1__0__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6881:2: rule__ApplyExp__Group_1__0__Impl
             {
-            pushFollow(FOLLOW_rule__ApplyExp__Group_1__0__Impl_in_rule__ApplyExp__Group_1__014044);
+            pushFollow(FOLLOW_rule__ApplyExp__Group_1__0__Impl_in_rule__ApplyExp__Group_1__014045);
             rule__ApplyExp__Group_1__0__Impl();
 
             state._fsp--;
@@ -20771,7 +20847,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6894:1: ( rule__ApplyExp__AtomicExpAssignment_1_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6894:2: rule__ApplyExp__AtomicExpAssignment_1_0
             {
-            pushFollow(FOLLOW_rule__ApplyExp__AtomicExpAssignment_1_0_in_rule__ApplyExp__Group_1__0__Impl14071);
+            pushFollow(FOLLOW_rule__ApplyExp__AtomicExpAssignment_1_0_in_rule__ApplyExp__Group_1__0__Impl14072);
             rule__ApplyExp__AtomicExpAssignment_1_0();
 
             state._fsp--;
@@ -20813,7 +20889,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6910:1: ( rule__AtomicExp__Group_2__0__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6911:2: rule__AtomicExp__Group_2__0__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_2__0__Impl_in_rule__AtomicExp__Group_2__014103);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_2__0__Impl_in_rule__AtomicExp__Group_2__014104);
             rule__AtomicExp__Group_2__0__Impl();
 
             state._fsp--;
@@ -20855,7 +20931,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6924:1: ( rule__AtomicExp__NameAssignment_2_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6924:2: rule__AtomicExp__NameAssignment_2_0
             {
-            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_2_0_in_rule__AtomicExp__Group_2__0__Impl14130);
+            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_2_0_in_rule__AtomicExp__Group_2__0__Impl14131);
             rule__AtomicExp__NameAssignment_2_0();
 
             state._fsp--;
@@ -20897,12 +20973,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6940:1: ( rule__AtomicExp__Group_3__0__Impl rule__AtomicExp__Group_3__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6941:2: rule__AtomicExp__Group_3__0__Impl rule__AtomicExp__Group_3__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_3__0__Impl_in_rule__AtomicExp__Group_3__014162);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_3__0__Impl_in_rule__AtomicExp__Group_3__014163);
             rule__AtomicExp__Group_3__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_3__1_in_rule__AtomicExp__Group_3__014165);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_3__1_in_rule__AtomicExp__Group_3__014166);
             rule__AtomicExp__Group_3__1();
 
             state._fsp--;
@@ -20944,7 +21020,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6955:1: ( rule__AtomicExp__NameAssignment_3_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6955:2: rule__AtomicExp__NameAssignment_3_0
             {
-            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_3_0_in_rule__AtomicExp__Group_3__0__Impl14192);
+            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_3_0_in_rule__AtomicExp__Group_3__0__Impl14193);
             rule__AtomicExp__NameAssignment_3_0();
 
             state._fsp--;
@@ -20986,7 +21062,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6969:1: ( rule__AtomicExp__Group_3__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6970:2: rule__AtomicExp__Group_3__1__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_3__1__Impl_in_rule__AtomicExp__Group_3__114222);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_3__1__Impl_in_rule__AtomicExp__Group_3__114223);
             rule__AtomicExp__Group_3__1__Impl();
 
             state._fsp--;
@@ -21087,7 +21163,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6983:2: rule__AtomicExp__Group_3_1__0
             	    {
-            	    pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__0_in_rule__AtomicExp__Group_3__1__Impl14249);
+            	    pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__0_in_rule__AtomicExp__Group_3__1__Impl14250);
             	    rule__AtomicExp__Group_3_1__0();
 
             	    state._fsp--;
@@ -21135,12 +21211,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7001:1: ( rule__AtomicExp__Group_3_1__0__Impl rule__AtomicExp__Group_3_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7002:2: rule__AtomicExp__Group_3_1__0__Impl rule__AtomicExp__Group_3_1__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__0__Impl_in_rule__AtomicExp__Group_3_1__014284);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__0__Impl_in_rule__AtomicExp__Group_3_1__014285);
             rule__AtomicExp__Group_3_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__1_in_rule__AtomicExp__Group_3_1__014287);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__1_in_rule__AtomicExp__Group_3_1__014288);
             rule__AtomicExp__Group_3_1__1();
 
             state._fsp--;
@@ -21182,7 +21258,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7016:1: ( RULE_DOT )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7016:3: RULE_DOT
             {
-            match(input,RULE_DOT,FOLLOW_RULE_DOT_in_rule__AtomicExp__Group_3_1__0__Impl14315); if (state.failed) return ;
+            match(input,RULE_DOT,FOLLOW_RULE_DOT_in_rule__AtomicExp__Group_3_1__0__Impl14316); if (state.failed) return ;
 
             }
 
@@ -21220,7 +21296,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7030:1: ( rule__AtomicExp__Group_3_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7031:2: rule__AtomicExp__Group_3_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__1__Impl_in_rule__AtomicExp__Group_3_1__114345);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__1__Impl_in_rule__AtomicExp__Group_3_1__114346);
             rule__AtomicExp__Group_3_1__1__Impl();
 
             state._fsp--;
@@ -21262,7 +21338,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7044:1: ( rule__AtomicExp__IdAssignment_3_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7044:2: rule__AtomicExp__IdAssignment_3_1_1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__IdAssignment_3_1_1_in_rule__AtomicExp__Group_3_1__1__Impl14372);
+            pushFollow(FOLLOW_rule__AtomicExp__IdAssignment_3_1_1_in_rule__AtomicExp__Group_3_1__1__Impl14373);
             rule__AtomicExp__IdAssignment_3_1_1();
 
             state._fsp--;
@@ -21304,12 +21380,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7062:1: ( rule__AtomicExp__Group_4__0__Impl rule__AtomicExp__Group_4__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7063:2: rule__AtomicExp__Group_4__0__Impl rule__AtomicExp__Group_4__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4__0__Impl_in_rule__AtomicExp__Group_4__014406);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4__0__Impl_in_rule__AtomicExp__Group_4__014407);
             rule__AtomicExp__Group_4__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4__1_in_rule__AtomicExp__Group_4__014409);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4__1_in_rule__AtomicExp__Group_4__014410);
             rule__AtomicExp__Group_4__1();
 
             state._fsp--;
@@ -21351,7 +21427,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7077:1: ( rule__AtomicExp__NameAssignment_4_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7077:2: rule__AtomicExp__NameAssignment_4_0
             {
-            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_4_0_in_rule__AtomicExp__Group_4__0__Impl14436);
+            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_4_0_in_rule__AtomicExp__Group_4__0__Impl14437);
             rule__AtomicExp__NameAssignment_4_0();
 
             state._fsp--;
@@ -21393,12 +21469,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7091:1: ( rule__AtomicExp__Group_4__1__Impl rule__AtomicExp__Group_4__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7092:2: rule__AtomicExp__Group_4__1__Impl rule__AtomicExp__Group_4__2
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4__1__Impl_in_rule__AtomicExp__Group_4__114466);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4__1__Impl_in_rule__AtomicExp__Group_4__114467);
             rule__AtomicExp__Group_4__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4__2_in_rule__AtomicExp__Group_4__114469);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4__2_in_rule__AtomicExp__Group_4__114470);
             rule__AtomicExp__Group_4__2();
 
             state._fsp--;
@@ -21437,7 +21513,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getLeftCurlyBracketKeyword_4_1()); 
             }
-            match(input,42,FOLLOW_42_in_rule__AtomicExp__Group_4__1__Impl14497); if (state.failed) return ;
+            match(input,42,FOLLOW_42_in_rule__AtomicExp__Group_4__1__Impl14498); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getLeftCurlyBracketKeyword_4_1()); 
             }
@@ -21472,12 +21548,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7122:1: ( rule__AtomicExp__Group_4__2__Impl rule__AtomicExp__Group_4__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7123:2: rule__AtomicExp__Group_4__2__Impl rule__AtomicExp__Group_4__3
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4__2__Impl_in_rule__AtomicExp__Group_4__214528);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4__2__Impl_in_rule__AtomicExp__Group_4__214529);
             rule__AtomicExp__Group_4__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4__3_in_rule__AtomicExp__Group_4__214531);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4__3_in_rule__AtomicExp__Group_4__214532);
             rule__AtomicExp__Group_4__3();
 
             state._fsp--;
@@ -21519,7 +21595,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7137:1: ( rule__AtomicExp__FieldsAssignment_4_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7137:2: rule__AtomicExp__FieldsAssignment_4_2
             {
-            pushFollow(FOLLOW_rule__AtomicExp__FieldsAssignment_4_2_in_rule__AtomicExp__Group_4__2__Impl14558);
+            pushFollow(FOLLOW_rule__AtomicExp__FieldsAssignment_4_2_in_rule__AtomicExp__Group_4__2__Impl14559);
             rule__AtomicExp__FieldsAssignment_4_2();
 
             state._fsp--;
@@ -21561,12 +21637,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7151:1: ( rule__AtomicExp__Group_4__3__Impl rule__AtomicExp__Group_4__4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7152:2: rule__AtomicExp__Group_4__3__Impl rule__AtomicExp__Group_4__4
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4__3__Impl_in_rule__AtomicExp__Group_4__314588);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4__3__Impl_in_rule__AtomicExp__Group_4__314589);
             rule__AtomicExp__Group_4__3__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4__4_in_rule__AtomicExp__Group_4__314591);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4__4_in_rule__AtomicExp__Group_4__314592);
             rule__AtomicExp__Group_4__4();
 
             state._fsp--;
@@ -21620,7 +21696,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7166:2: rule__AtomicExp__Group_4_3__0
             	    {
-            	    pushFollow(FOLLOW_rule__AtomicExp__Group_4_3__0_in_rule__AtomicExp__Group_4__3__Impl14618);
+            	    pushFollow(FOLLOW_rule__AtomicExp__Group_4_3__0_in_rule__AtomicExp__Group_4__3__Impl14619);
             	    rule__AtomicExp__Group_4_3__0();
 
             	    state._fsp--;
@@ -21668,7 +21744,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7180:1: ( rule__AtomicExp__Group_4__4__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7181:2: rule__AtomicExp__Group_4__4__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4__4__Impl_in_rule__AtomicExp__Group_4__414649);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4__4__Impl_in_rule__AtomicExp__Group_4__414650);
             rule__AtomicExp__Group_4__4__Impl();
 
             state._fsp--;
@@ -21707,7 +21783,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getRightCurlyBracketKeyword_4_4()); 
             }
-            match(input,43,FOLLOW_43_in_rule__AtomicExp__Group_4__4__Impl14677); if (state.failed) return ;
+            match(input,43,FOLLOW_43_in_rule__AtomicExp__Group_4__4__Impl14678); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getRightCurlyBracketKeyword_4_4()); 
             }
@@ -21742,12 +21818,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7220:1: ( rule__AtomicExp__Group_4_3__0__Impl rule__AtomicExp__Group_4_3__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7221:2: rule__AtomicExp__Group_4_3__0__Impl rule__AtomicExp__Group_4_3__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4_3__0__Impl_in_rule__AtomicExp__Group_4_3__014718);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4_3__0__Impl_in_rule__AtomicExp__Group_4_3__014719);
             rule__AtomicExp__Group_4_3__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4_3__1_in_rule__AtomicExp__Group_4_3__014721);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4_3__1_in_rule__AtomicExp__Group_4_3__014722);
             rule__AtomicExp__Group_4_3__1();
 
             state._fsp--;
@@ -21786,7 +21862,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getCommaKeyword_4_3_0()); 
             }
-            match(input,40,FOLLOW_40_in_rule__AtomicExp__Group_4_3__0__Impl14749); if (state.failed) return ;
+            match(input,40,FOLLOW_40_in_rule__AtomicExp__Group_4_3__0__Impl14750); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getCommaKeyword_4_3_0()); 
             }
@@ -21821,7 +21897,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7251:1: ( rule__AtomicExp__Group_4_3__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7252:2: rule__AtomicExp__Group_4_3__1__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_4_3__1__Impl_in_rule__AtomicExp__Group_4_3__114780);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_4_3__1__Impl_in_rule__AtomicExp__Group_4_3__114781);
             rule__AtomicExp__Group_4_3__1__Impl();
 
             state._fsp--;
@@ -21863,7 +21939,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7265:1: ( rule__AtomicExp__FieldsAssignment_4_3_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7265:2: rule__AtomicExp__FieldsAssignment_4_3_1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__FieldsAssignment_4_3_1_in_rule__AtomicExp__Group_4_3__1__Impl14807);
+            pushFollow(FOLLOW_rule__AtomicExp__FieldsAssignment_4_3_1_in_rule__AtomicExp__Group_4_3__1__Impl14808);
             rule__AtomicExp__FieldsAssignment_4_3_1();
 
             state._fsp--;
@@ -21905,12 +21981,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7283:1: ( rule__AtomicExp__Group_5__0__Impl rule__AtomicExp__Group_5__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7284:2: rule__AtomicExp__Group_5__0__Impl rule__AtomicExp__Group_5__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_5__0__Impl_in_rule__AtomicExp__Group_5__014841);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_5__0__Impl_in_rule__AtomicExp__Group_5__014842);
             rule__AtomicExp__Group_5__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_5__1_in_rule__AtomicExp__Group_5__014844);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_5__1_in_rule__AtomicExp__Group_5__014845);
             rule__AtomicExp__Group_5__1();
 
             state._fsp--;
@@ -21949,7 +22025,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getDollarSignKeyword_5_0()); 
             }
-            match(input,55,FOLLOW_55_in_rule__AtomicExp__Group_5__0__Impl14872); if (state.failed) return ;
+            match(input,55,FOLLOW_55_in_rule__AtomicExp__Group_5__0__Impl14873); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getDollarSignKeyword_5_0()); 
             }
@@ -21984,7 +22060,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7314:1: ( rule__AtomicExp__Group_5__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7315:2: rule__AtomicExp__Group_5__1__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_5__1__Impl_in_rule__AtomicExp__Group_5__114903);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_5__1__Impl_in_rule__AtomicExp__Group_5__114904);
             rule__AtomicExp__Group_5__1__Impl();
 
             state._fsp--;
@@ -22026,7 +22102,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7328:1: ( rule__AtomicExp__NameAssignment_5_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7328:2: rule__AtomicExp__NameAssignment_5_1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_5_1_in_rule__AtomicExp__Group_5__1__Impl14930);
+            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_5_1_in_rule__AtomicExp__Group_5__1__Impl14931);
             rule__AtomicExp__NameAssignment_5_1();
 
             state._fsp--;
@@ -22068,12 +22144,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7346:1: ( rule__AtomicExp__Group_6__0__Impl rule__AtomicExp__Group_6__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7347:2: rule__AtomicExp__Group_6__0__Impl rule__AtomicExp__Group_6__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6__0__Impl_in_rule__AtomicExp__Group_6__014964);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6__0__Impl_in_rule__AtomicExp__Group_6__014965);
             rule__AtomicExp__Group_6__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6__1_in_rule__AtomicExp__Group_6__014967);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6__1_in_rule__AtomicExp__Group_6__014968);
             rule__AtomicExp__Group_6__1();
 
             state._fsp--;
@@ -22112,7 +22188,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getLeftParenthesisKeyword_6_0()); 
             }
-            match(input,44,FOLLOW_44_in_rule__AtomicExp__Group_6__0__Impl14995); if (state.failed) return ;
+            match(input,44,FOLLOW_44_in_rule__AtomicExp__Group_6__0__Impl14996); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getLeftParenthesisKeyword_6_0()); 
             }
@@ -22147,12 +22223,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7377:1: ( rule__AtomicExp__Group_6__1__Impl rule__AtomicExp__Group_6__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7378:2: rule__AtomicExp__Group_6__1__Impl rule__AtomicExp__Group_6__2
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6__1__Impl_in_rule__AtomicExp__Group_6__115026);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6__1__Impl_in_rule__AtomicExp__Group_6__115027);
             rule__AtomicExp__Group_6__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6__2_in_rule__AtomicExp__Group_6__115029);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6__2_in_rule__AtomicExp__Group_6__115030);
             rule__AtomicExp__Group_6__2();
 
             state._fsp--;
@@ -22194,7 +22270,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7392:1: ( rule__AtomicExp__ExprAssignment_6_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7392:2: rule__AtomicExp__ExprAssignment_6_1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__ExprAssignment_6_1_in_rule__AtomicExp__Group_6__1__Impl15056);
+            pushFollow(FOLLOW_rule__AtomicExp__ExprAssignment_6_1_in_rule__AtomicExp__Group_6__1__Impl15057);
             rule__AtomicExp__ExprAssignment_6_1();
 
             state._fsp--;
@@ -22236,12 +22312,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7406:1: ( rule__AtomicExp__Group_6__2__Impl rule__AtomicExp__Group_6__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7407:2: rule__AtomicExp__Group_6__2__Impl rule__AtomicExp__Group_6__3
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6__2__Impl_in_rule__AtomicExp__Group_6__215086);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6__2__Impl_in_rule__AtomicExp__Group_6__215087);
             rule__AtomicExp__Group_6__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6__3_in_rule__AtomicExp__Group_6__215089);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6__3_in_rule__AtomicExp__Group_6__215090);
             rule__AtomicExp__Group_6__3();
 
             state._fsp--;
@@ -22280,7 +22356,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getRightParenthesisKeyword_6_2()); 
             }
-            match(input,45,FOLLOW_45_in_rule__AtomicExp__Group_6__2__Impl15117); if (state.failed) return ;
+            match(input,45,FOLLOW_45_in_rule__AtomicExp__Group_6__2__Impl15118); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getRightParenthesisKeyword_6_2()); 
             }
@@ -22315,7 +22391,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7437:1: ( rule__AtomicExp__Group_6__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7438:2: rule__AtomicExp__Group_6__3__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6__3__Impl_in_rule__AtomicExp__Group_6__315148);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6__3__Impl_in_rule__AtomicExp__Group_6__315149);
             rule__AtomicExp__Group_6__3__Impl();
 
             state._fsp--;
@@ -22416,7 +22492,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7451:2: rule__AtomicExp__Group_6_3__0
             	    {
-            	    pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__0_in_rule__AtomicExp__Group_6__3__Impl15175);
+            	    pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__0_in_rule__AtomicExp__Group_6__3__Impl15176);
             	    rule__AtomicExp__Group_6_3__0();
 
             	    state._fsp--;
@@ -22464,12 +22540,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7473:1: ( rule__AtomicExp__Group_6_3__0__Impl rule__AtomicExp__Group_6_3__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7474:2: rule__AtomicExp__Group_6_3__0__Impl rule__AtomicExp__Group_6_3__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__0__Impl_in_rule__AtomicExp__Group_6_3__015214);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__0__Impl_in_rule__AtomicExp__Group_6_3__015215);
             rule__AtomicExp__Group_6_3__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__1_in_rule__AtomicExp__Group_6_3__015217);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__1_in_rule__AtomicExp__Group_6_3__015218);
             rule__AtomicExp__Group_6_3__1();
 
             state._fsp--;
@@ -22511,7 +22587,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7488:1: ( RULE_DOT )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7488:3: RULE_DOT
             {
-            match(input,RULE_DOT,FOLLOW_RULE_DOT_in_rule__AtomicExp__Group_6_3__0__Impl15245); if (state.failed) return ;
+            match(input,RULE_DOT,FOLLOW_RULE_DOT_in_rule__AtomicExp__Group_6_3__0__Impl15246); if (state.failed) return ;
 
             }
 
@@ -22549,7 +22625,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7502:1: ( rule__AtomicExp__Group_6_3__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7503:2: rule__AtomicExp__Group_6_3__1__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__1__Impl_in_rule__AtomicExp__Group_6_3__115275);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__1__Impl_in_rule__AtomicExp__Group_6_3__115276);
             rule__AtomicExp__Group_6_3__1__Impl();
 
             state._fsp--;
@@ -22591,7 +22667,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7516:1: ( rule__AtomicExp__IdAssignment_6_3_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7516:2: rule__AtomicExp__IdAssignment_6_3_1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__IdAssignment_6_3_1_in_rule__AtomicExp__Group_6_3__1__Impl15302);
+            pushFollow(FOLLOW_rule__AtomicExp__IdAssignment_6_3_1_in_rule__AtomicExp__Group_6_3__1__Impl15303);
             rule__AtomicExp__IdAssignment_6_3_1();
 
             state._fsp--;
@@ -22633,12 +22709,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7534:1: ( rule__AtomicExp__Group_7__0__Impl rule__AtomicExp__Group_7__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7535:2: rule__AtomicExp__Group_7__0__Impl rule__AtomicExp__Group_7__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7__0__Impl_in_rule__AtomicExp__Group_7__015336);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7__0__Impl_in_rule__AtomicExp__Group_7__015337);
             rule__AtomicExp__Group_7__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7__1_in_rule__AtomicExp__Group_7__015339);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7__1_in_rule__AtomicExp__Group_7__015340);
             rule__AtomicExp__Group_7__1();
 
             state._fsp--;
@@ -22712,12 +22788,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7565:1: ( rule__AtomicExp__Group_7__1__Impl rule__AtomicExp__Group_7__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7566:2: rule__AtomicExp__Group_7__1__Impl rule__AtomicExp__Group_7__2
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7__1__Impl_in_rule__AtomicExp__Group_7__115397);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7__1__Impl_in_rule__AtomicExp__Group_7__115398);
             rule__AtomicExp__Group_7__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7__2_in_rule__AtomicExp__Group_7__115400);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7__2_in_rule__AtomicExp__Group_7__115401);
             rule__AtomicExp__Group_7__2();
 
             state._fsp--;
@@ -22756,7 +22832,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getLeftCurlyBracketKeyword_7_1()); 
             }
-            match(input,42,FOLLOW_42_in_rule__AtomicExp__Group_7__1__Impl15428); if (state.failed) return ;
+            match(input,42,FOLLOW_42_in_rule__AtomicExp__Group_7__1__Impl15429); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getLeftCurlyBracketKeyword_7_1()); 
             }
@@ -22791,12 +22867,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7596:1: ( rule__AtomicExp__Group_7__2__Impl rule__AtomicExp__Group_7__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7597:2: rule__AtomicExp__Group_7__2__Impl rule__AtomicExp__Group_7__3
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7__2__Impl_in_rule__AtomicExp__Group_7__215459);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7__2__Impl_in_rule__AtomicExp__Group_7__215460);
             rule__AtomicExp__Group_7__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7__3_in_rule__AtomicExp__Group_7__215462);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7__3_in_rule__AtomicExp__Group_7__215463);
             rule__AtomicExp__Group_7__3();
 
             state._fsp--;
@@ -22846,7 +22922,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7611:2: rule__AtomicExp__Group_7_2__0
                     {
-                    pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__0_in_rule__AtomicExp__Group_7__2__Impl15489);
+                    pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__0_in_rule__AtomicExp__Group_7__2__Impl15490);
                     rule__AtomicExp__Group_7_2__0();
 
                     state._fsp--;
@@ -22891,7 +22967,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7625:1: ( rule__AtomicExp__Group_7__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7626:2: rule__AtomicExp__Group_7__3__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7__3__Impl_in_rule__AtomicExp__Group_7__315520);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7__3__Impl_in_rule__AtomicExp__Group_7__315521);
             rule__AtomicExp__Group_7__3__Impl();
 
             state._fsp--;
@@ -22930,7 +23006,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getRightCurlyBracketKeyword_7_3()); 
             }
-            match(input,43,FOLLOW_43_in_rule__AtomicExp__Group_7__3__Impl15548); if (state.failed) return ;
+            match(input,43,FOLLOW_43_in_rule__AtomicExp__Group_7__3__Impl15549); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getRightCurlyBracketKeyword_7_3()); 
             }
@@ -22965,12 +23041,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7663:1: ( rule__AtomicExp__Group_7_2__0__Impl rule__AtomicExp__Group_7_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7664:2: rule__AtomicExp__Group_7_2__0__Impl rule__AtomicExp__Group_7_2__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__0__Impl_in_rule__AtomicExp__Group_7_2__015587);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__0__Impl_in_rule__AtomicExp__Group_7_2__015588);
             rule__AtomicExp__Group_7_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__1_in_rule__AtomicExp__Group_7_2__015590);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__1_in_rule__AtomicExp__Group_7_2__015591);
             rule__AtomicExp__Group_7_2__1();
 
             state._fsp--;
@@ -23012,7 +23088,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7678:1: ( rule__AtomicExp__IdAssignment_7_2_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7678:2: rule__AtomicExp__IdAssignment_7_2_0
             {
-            pushFollow(FOLLOW_rule__AtomicExp__IdAssignment_7_2_0_in_rule__AtomicExp__Group_7_2__0__Impl15617);
+            pushFollow(FOLLOW_rule__AtomicExp__IdAssignment_7_2_0_in_rule__AtomicExp__Group_7_2__0__Impl15618);
             rule__AtomicExp__IdAssignment_7_2_0();
 
             state._fsp--;
@@ -23054,12 +23130,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7692:1: ( rule__AtomicExp__Group_7_2__1__Impl rule__AtomicExp__Group_7_2__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7693:2: rule__AtomicExp__Group_7_2__1__Impl rule__AtomicExp__Group_7_2__2
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__1__Impl_in_rule__AtomicExp__Group_7_2__115647);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__1__Impl_in_rule__AtomicExp__Group_7_2__115648);
             rule__AtomicExp__Group_7_2__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__2_in_rule__AtomicExp__Group_7_2__115650);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__2_in_rule__AtomicExp__Group_7_2__115651);
             rule__AtomicExp__Group_7_2__2();
 
             state._fsp--;
@@ -23098,7 +23174,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getEqualsSignKeyword_7_2_1()); 
             }
-            match(input,35,FOLLOW_35_in_rule__AtomicExp__Group_7_2__1__Impl15678); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__AtomicExp__Group_7_2__1__Impl15679); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getEqualsSignKeyword_7_2_1()); 
             }
@@ -23133,12 +23209,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7723:1: ( rule__AtomicExp__Group_7_2__2__Impl rule__AtomicExp__Group_7_2__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7724:2: rule__AtomicExp__Group_7_2__2__Impl rule__AtomicExp__Group_7_2__3
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__2__Impl_in_rule__AtomicExp__Group_7_2__215709);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__2__Impl_in_rule__AtomicExp__Group_7_2__215710);
             rule__AtomicExp__Group_7_2__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__3_in_rule__AtomicExp__Group_7_2__215712);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__3_in_rule__AtomicExp__Group_7_2__215713);
             rule__AtomicExp__Group_7_2__3();
 
             state._fsp--;
@@ -23180,7 +23256,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7738:1: ( rule__AtomicExp__ExpsAssignment_7_2_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7738:2: rule__AtomicExp__ExpsAssignment_7_2_2
             {
-            pushFollow(FOLLOW_rule__AtomicExp__ExpsAssignment_7_2_2_in_rule__AtomicExp__Group_7_2__2__Impl15739);
+            pushFollow(FOLLOW_rule__AtomicExp__ExpsAssignment_7_2_2_in_rule__AtomicExp__Group_7_2__2__Impl15740);
             rule__AtomicExp__ExpsAssignment_7_2_2();
 
             state._fsp--;
@@ -23222,7 +23298,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7752:1: ( rule__AtomicExp__Group_7_2__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7753:2: rule__AtomicExp__Group_7_2__3__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__3__Impl_in_rule__AtomicExp__Group_7_2__315769);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2__3__Impl_in_rule__AtomicExp__Group_7_2__315770);
             rule__AtomicExp__Group_7_2__3__Impl();
 
             state._fsp--;
@@ -23276,7 +23352,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7766:2: rule__AtomicExp__Group_7_2_3__0
             	    {
-            	    pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__0_in_rule__AtomicExp__Group_7_2__3__Impl15796);
+            	    pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__0_in_rule__AtomicExp__Group_7_2__3__Impl15797);
             	    rule__AtomicExp__Group_7_2_3__0();
 
             	    state._fsp--;
@@ -23324,12 +23400,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7788:1: ( rule__AtomicExp__Group_7_2_3__0__Impl rule__AtomicExp__Group_7_2_3__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7789:2: rule__AtomicExp__Group_7_2_3__0__Impl rule__AtomicExp__Group_7_2_3__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__0__Impl_in_rule__AtomicExp__Group_7_2_3__015835);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__0__Impl_in_rule__AtomicExp__Group_7_2_3__015836);
             rule__AtomicExp__Group_7_2_3__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__1_in_rule__AtomicExp__Group_7_2_3__015838);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__1_in_rule__AtomicExp__Group_7_2_3__015839);
             rule__AtomicExp__Group_7_2_3__1();
 
             state._fsp--;
@@ -23368,7 +23444,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getCommaKeyword_7_2_3_0()); 
             }
-            match(input,40,FOLLOW_40_in_rule__AtomicExp__Group_7_2_3__0__Impl15866); if (state.failed) return ;
+            match(input,40,FOLLOW_40_in_rule__AtomicExp__Group_7_2_3__0__Impl15867); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getCommaKeyword_7_2_3_0()); 
             }
@@ -23403,12 +23479,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7819:1: ( rule__AtomicExp__Group_7_2_3__1__Impl rule__AtomicExp__Group_7_2_3__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7820:2: rule__AtomicExp__Group_7_2_3__1__Impl rule__AtomicExp__Group_7_2_3__2
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__1__Impl_in_rule__AtomicExp__Group_7_2_3__115897);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__1__Impl_in_rule__AtomicExp__Group_7_2_3__115898);
             rule__AtomicExp__Group_7_2_3__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__2_in_rule__AtomicExp__Group_7_2_3__115900);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__2_in_rule__AtomicExp__Group_7_2_3__115901);
             rule__AtomicExp__Group_7_2_3__2();
 
             state._fsp--;
@@ -23450,7 +23526,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7834:1: ( rule__AtomicExp__IdAssignment_7_2_3_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7834:2: rule__AtomicExp__IdAssignment_7_2_3_1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__IdAssignment_7_2_3_1_in_rule__AtomicExp__Group_7_2_3__1__Impl15927);
+            pushFollow(FOLLOW_rule__AtomicExp__IdAssignment_7_2_3_1_in_rule__AtomicExp__Group_7_2_3__1__Impl15928);
             rule__AtomicExp__IdAssignment_7_2_3_1();
 
             state._fsp--;
@@ -23492,12 +23568,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7848:1: ( rule__AtomicExp__Group_7_2_3__2__Impl rule__AtomicExp__Group_7_2_3__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7849:2: rule__AtomicExp__Group_7_2_3__2__Impl rule__AtomicExp__Group_7_2_3__3
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__2__Impl_in_rule__AtomicExp__Group_7_2_3__215957);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__2__Impl_in_rule__AtomicExp__Group_7_2_3__215958);
             rule__AtomicExp__Group_7_2_3__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__3_in_rule__AtomicExp__Group_7_2_3__215960);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__3_in_rule__AtomicExp__Group_7_2_3__215961);
             rule__AtomicExp__Group_7_2_3__3();
 
             state._fsp--;
@@ -23536,7 +23612,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getEqualsSignKeyword_7_2_3_2()); 
             }
-            match(input,35,FOLLOW_35_in_rule__AtomicExp__Group_7_2_3__2__Impl15988); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__AtomicExp__Group_7_2_3__2__Impl15989); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getEqualsSignKeyword_7_2_3_2()); 
             }
@@ -23571,7 +23647,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7879:1: ( rule__AtomicExp__Group_7_2_3__3__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7880:2: rule__AtomicExp__Group_7_2_3__3__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__3__Impl_in_rule__AtomicExp__Group_7_2_3__316019);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_7_2_3__3__Impl_in_rule__AtomicExp__Group_7_2_3__316020);
             rule__AtomicExp__Group_7_2_3__3__Impl();
 
             state._fsp--;
@@ -23613,7 +23689,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7893:1: ( rule__AtomicExp__ExpsAssignment_7_2_3_3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7893:2: rule__AtomicExp__ExpsAssignment_7_2_3_3
             {
-            pushFollow(FOLLOW_rule__AtomicExp__ExpsAssignment_7_2_3_3_in_rule__AtomicExp__Group_7_2_3__3__Impl16046);
+            pushFollow(FOLLOW_rule__AtomicExp__ExpsAssignment_7_2_3_3_in_rule__AtomicExp__Group_7_2_3__3__Impl16047);
             rule__AtomicExp__ExpsAssignment_7_2_3_3();
 
             state._fsp--;
@@ -23655,12 +23731,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7915:1: ( rule__AtomicExp__Group_8__0__Impl rule__AtomicExp__Group_8__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7916:2: rule__AtomicExp__Group_8__0__Impl rule__AtomicExp__Group_8__1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_8__0__Impl_in_rule__AtomicExp__Group_8__016084);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_8__0__Impl_in_rule__AtomicExp__Group_8__016085);
             rule__AtomicExp__Group_8__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_8__1_in_rule__AtomicExp__Group_8__016087);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_8__1_in_rule__AtomicExp__Group_8__016088);
             rule__AtomicExp__Group_8__1();
 
             state._fsp--;
@@ -23702,7 +23778,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7930:1: ( rule__AtomicExp__NameAssignment_8_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7930:2: rule__AtomicExp__NameAssignment_8_0
             {
-            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_8_0_in_rule__AtomicExp__Group_8__0__Impl16114);
+            pushFollow(FOLLOW_rule__AtomicExp__NameAssignment_8_0_in_rule__AtomicExp__Group_8__0__Impl16115);
             rule__AtomicExp__NameAssignment_8_0();
 
             state._fsp--;
@@ -23744,12 +23820,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7944:1: ( rule__AtomicExp__Group_8__1__Impl rule__AtomicExp__Group_8__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7945:2: rule__AtomicExp__Group_8__1__Impl rule__AtomicExp__Group_8__2
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_8__1__Impl_in_rule__AtomicExp__Group_8__116144);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_8__1__Impl_in_rule__AtomicExp__Group_8__116145);
             rule__AtomicExp__Group_8__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_8__2_in_rule__AtomicExp__Group_8__116147);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_8__2_in_rule__AtomicExp__Group_8__116148);
             rule__AtomicExp__Group_8__2();
 
             state._fsp--;
@@ -23794,7 +23870,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7960:1: ( rule__AtomicExp__ValDeclAssignment_8_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7960:2: rule__AtomicExp__ValDeclAssignment_8_1
             {
-            pushFollow(FOLLOW_rule__AtomicExp__ValDeclAssignment_8_1_in_rule__AtomicExp__Group_8__1__Impl16176);
+            pushFollow(FOLLOW_rule__AtomicExp__ValDeclAssignment_8_1_in_rule__AtomicExp__Group_8__1__Impl16177);
             rule__AtomicExp__ValDeclAssignment_8_1();
 
             state._fsp--;
@@ -23829,7 +23905,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7965:2: rule__AtomicExp__ValDeclAssignment_8_1
             	    {
-            	    pushFollow(FOLLOW_rule__AtomicExp__ValDeclAssignment_8_1_in_rule__AtomicExp__Group_8__1__Impl16188);
+            	    pushFollow(FOLLOW_rule__AtomicExp__ValDeclAssignment_8_1_in_rule__AtomicExp__Group_8__1__Impl16189);
             	    rule__AtomicExp__ValDeclAssignment_8_1();
 
             	    state._fsp--;
@@ -23880,12 +23956,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7980:1: ( rule__AtomicExp__Group_8__2__Impl rule__AtomicExp__Group_8__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7981:2: rule__AtomicExp__Group_8__2__Impl rule__AtomicExp__Group_8__3
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_8__2__Impl_in_rule__AtomicExp__Group_8__216221);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_8__2__Impl_in_rule__AtomicExp__Group_8__216222);
             rule__AtomicExp__Group_8__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_8__3_in_rule__AtomicExp__Group_8__216224);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_8__3_in_rule__AtomicExp__Group_8__216225);
             rule__AtomicExp__Group_8__3();
 
             state._fsp--;
@@ -23924,7 +24000,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getInKeyword_8_2()); 
             }
-            match(input,56,FOLLOW_56_in_rule__AtomicExp__Group_8__2__Impl16252); if (state.failed) return ;
+            match(input,56,FOLLOW_56_in_rule__AtomicExp__Group_8__2__Impl16253); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getInKeyword_8_2()); 
             }
@@ -23959,12 +24035,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8011:1: ( rule__AtomicExp__Group_8__3__Impl rule__AtomicExp__Group_8__4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8012:2: rule__AtomicExp__Group_8__3__Impl rule__AtomicExp__Group_8__4
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_8__3__Impl_in_rule__AtomicExp__Group_8__316283);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_8__3__Impl_in_rule__AtomicExp__Group_8__316284);
             rule__AtomicExp__Group_8__3__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__AtomicExp__Group_8__4_in_rule__AtomicExp__Group_8__316286);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_8__4_in_rule__AtomicExp__Group_8__316287);
             rule__AtomicExp__Group_8__4();
 
             state._fsp--;
@@ -24006,7 +24082,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8026:1: ( rule__AtomicExp__ExprAssignment_8_3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8026:2: rule__AtomicExp__ExprAssignment_8_3
             {
-            pushFollow(FOLLOW_rule__AtomicExp__ExprAssignment_8_3_in_rule__AtomicExp__Group_8__3__Impl16313);
+            pushFollow(FOLLOW_rule__AtomicExp__ExprAssignment_8_3_in_rule__AtomicExp__Group_8__3__Impl16314);
             rule__AtomicExp__ExprAssignment_8_3();
 
             state._fsp--;
@@ -24048,7 +24124,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8040:1: ( rule__AtomicExp__Group_8__4__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8041:2: rule__AtomicExp__Group_8__4__Impl
             {
-            pushFollow(FOLLOW_rule__AtomicExp__Group_8__4__Impl_in_rule__AtomicExp__Group_8__416343);
+            pushFollow(FOLLOW_rule__AtomicExp__Group_8__4__Impl_in_rule__AtomicExp__Group_8__416344);
             rule__AtomicExp__Group_8__4__Impl();
 
             state._fsp--;
@@ -24087,7 +24163,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getEndKeyword_8_4()); 
             }
-            match(input,49,FOLLOW_49_in_rule__AtomicExp__Group_8__4__Impl16371); if (state.failed) return ;
+            match(input,49,FOLLOW_49_in_rule__AtomicExp__Group_8__4__Impl16372); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getEndKeyword_8_4()); 
             }
@@ -24122,12 +24198,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8080:1: ( rule__Field__Group_0__0__Impl rule__Field__Group_0__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8081:2: rule__Field__Group_0__0__Impl rule__Field__Group_0__1
             {
-            pushFollow(FOLLOW_rule__Field__Group_0__0__Impl_in_rule__Field__Group_0__016412);
+            pushFollow(FOLLOW_rule__Field__Group_0__0__Impl_in_rule__Field__Group_0__016413);
             rule__Field__Group_0__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Field__Group_0__1_in_rule__Field__Group_0__016415);
+            pushFollow(FOLLOW_rule__Field__Group_0__1_in_rule__Field__Group_0__016416);
             rule__Field__Group_0__1();
 
             state._fsp--;
@@ -24169,7 +24245,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8095:1: ( rule__Field__NameAssignment_0_0 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8095:2: rule__Field__NameAssignment_0_0
             {
-            pushFollow(FOLLOW_rule__Field__NameAssignment_0_0_in_rule__Field__Group_0__0__Impl16442);
+            pushFollow(FOLLOW_rule__Field__NameAssignment_0_0_in_rule__Field__Group_0__0__Impl16443);
             rule__Field__NameAssignment_0_0();
 
             state._fsp--;
@@ -24211,12 +24287,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8109:1: ( rule__Field__Group_0__1__Impl rule__Field__Group_0__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8110:2: rule__Field__Group_0__1__Impl rule__Field__Group_0__2
             {
-            pushFollow(FOLLOW_rule__Field__Group_0__1__Impl_in_rule__Field__Group_0__116472);
+            pushFollow(FOLLOW_rule__Field__Group_0__1__Impl_in_rule__Field__Group_0__116473);
             rule__Field__Group_0__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Field__Group_0__2_in_rule__Field__Group_0__116475);
+            pushFollow(FOLLOW_rule__Field__Group_0__2_in_rule__Field__Group_0__116476);
             rule__Field__Group_0__2();
 
             state._fsp--;
@@ -24255,7 +24331,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getFieldAccess().getEqualsSignKeyword_0_1()); 
             }
-            match(input,35,FOLLOW_35_in_rule__Field__Group_0__1__Impl16503); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__Field__Group_0__1__Impl16504); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getFieldAccess().getEqualsSignKeyword_0_1()); 
             }
@@ -24290,7 +24366,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8140:1: ( rule__Field__Group_0__2__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8141:2: rule__Field__Group_0__2__Impl
             {
-            pushFollow(FOLLOW_rule__Field__Group_0__2__Impl_in_rule__Field__Group_0__216534);
+            pushFollow(FOLLOW_rule__Field__Group_0__2__Impl_in_rule__Field__Group_0__216535);
             rule__Field__Group_0__2__Impl();
 
             state._fsp--;
@@ -24332,7 +24408,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8154:1: ( rule__Field__ExpAssignment_0_2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8154:2: rule__Field__ExpAssignment_0_2
             {
-            pushFollow(FOLLOW_rule__Field__ExpAssignment_0_2_in_rule__Field__Group_0__2__Impl16561);
+            pushFollow(FOLLOW_rule__Field__ExpAssignment_0_2_in_rule__Field__Group_0__2__Impl16562);
             rule__Field__ExpAssignment_0_2();
 
             state._fsp--;
@@ -24374,12 +24450,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8174:1: ( rule__Field__Group_1__0__Impl rule__Field__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8175:2: rule__Field__Group_1__0__Impl rule__Field__Group_1__1
             {
-            pushFollow(FOLLOW_rule__Field__Group_1__0__Impl_in_rule__Field__Group_1__016597);
+            pushFollow(FOLLOW_rule__Field__Group_1__0__Impl_in_rule__Field__Group_1__016598);
             rule__Field__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__Field__Group_1__1_in_rule__Field__Group_1__016600);
+            pushFollow(FOLLOW_rule__Field__Group_1__1_in_rule__Field__Group_1__016601);
             rule__Field__Group_1__1();
 
             state._fsp--;
@@ -24418,7 +24494,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getFieldAccess().getTildeKeyword_1_0()); 
             }
-            match(input,54,FOLLOW_54_in_rule__Field__Group_1__0__Impl16628); if (state.failed) return ;
+            match(input,54,FOLLOW_54_in_rule__Field__Group_1__0__Impl16629); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getFieldAccess().getTildeKeyword_1_0()); 
             }
@@ -24453,7 +24529,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8205:1: ( rule__Field__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8206:2: rule__Field__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__Field__Group_1__1__Impl_in_rule__Field__Group_1__116659);
+            pushFollow(FOLLOW_rule__Field__Group_1__1__Impl_in_rule__Field__Group_1__116660);
             rule__Field__Group_1__1__Impl();
 
             state._fsp--;
@@ -24495,7 +24571,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8219:1: ( rule__Field__NameAssignment_1_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8219:2: rule__Field__NameAssignment_1_1
             {
-            pushFollow(FOLLOW_rule__Field__NameAssignment_1_1_in_rule__Field__Group_1__1__Impl16686);
+            pushFollow(FOLLOW_rule__Field__NameAssignment_1_1_in_rule__Field__Group_1__1__Impl16687);
             rule__Field__NameAssignment_1_1();
 
             state._fsp--;
@@ -24537,12 +24613,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8237:1: ( rule__ValueDecl__Group__0__Impl rule__ValueDecl__Group__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8238:2: rule__ValueDecl__Group__0__Impl rule__ValueDecl__Group__1
             {
-            pushFollow(FOLLOW_rule__ValueDecl__Group__0__Impl_in_rule__ValueDecl__Group__016720);
+            pushFollow(FOLLOW_rule__ValueDecl__Group__0__Impl_in_rule__ValueDecl__Group__016721);
             rule__ValueDecl__Group__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ValueDecl__Group__1_in_rule__ValueDecl__Group__016723);
+            pushFollow(FOLLOW_rule__ValueDecl__Group__1_in_rule__ValueDecl__Group__016724);
             rule__ValueDecl__Group__1();
 
             state._fsp--;
@@ -24581,7 +24657,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getValueDeclAccess().getValKeyword_0()); 
             }
-            match(input,37,FOLLOW_37_in_rule__ValueDecl__Group__0__Impl16751); if (state.failed) return ;
+            match(input,37,FOLLOW_37_in_rule__ValueDecl__Group__0__Impl16752); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getValueDeclAccess().getValKeyword_0()); 
             }
@@ -24616,12 +24692,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8268:1: ( rule__ValueDecl__Group__1__Impl rule__ValueDecl__Group__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8269:2: rule__ValueDecl__Group__1__Impl rule__ValueDecl__Group__2
             {
-            pushFollow(FOLLOW_rule__ValueDecl__Group__1__Impl_in_rule__ValueDecl__Group__116782);
+            pushFollow(FOLLOW_rule__ValueDecl__Group__1__Impl_in_rule__ValueDecl__Group__116783);
             rule__ValueDecl__Group__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ValueDecl__Group__2_in_rule__ValueDecl__Group__116785);
+            pushFollow(FOLLOW_rule__ValueDecl__Group__2_in_rule__ValueDecl__Group__116786);
             rule__ValueDecl__Group__2();
 
             state._fsp--;
@@ -24663,7 +24739,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8283:1: ( rule__ValueDecl__Alternatives_1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8283:2: rule__ValueDecl__Alternatives_1
             {
-            pushFollow(FOLLOW_rule__ValueDecl__Alternatives_1_in_rule__ValueDecl__Group__1__Impl16812);
+            pushFollow(FOLLOW_rule__ValueDecl__Alternatives_1_in_rule__ValueDecl__Group__1__Impl16813);
             rule__ValueDecl__Alternatives_1();
 
             state._fsp--;
@@ -24705,12 +24781,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8297:1: ( rule__ValueDecl__Group__2__Impl rule__ValueDecl__Group__3 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8298:2: rule__ValueDecl__Group__2__Impl rule__ValueDecl__Group__3
             {
-            pushFollow(FOLLOW_rule__ValueDecl__Group__2__Impl_in_rule__ValueDecl__Group__216842);
+            pushFollow(FOLLOW_rule__ValueDecl__Group__2__Impl_in_rule__ValueDecl__Group__216843);
             rule__ValueDecl__Group__2__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ValueDecl__Group__3_in_rule__ValueDecl__Group__216845);
+            pushFollow(FOLLOW_rule__ValueDecl__Group__3_in_rule__ValueDecl__Group__216846);
             rule__ValueDecl__Group__3();
 
             state._fsp--;
@@ -24764,7 +24840,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8312:2: rule__ValueDecl__IdsAssignment_2
             	    {
-            	    pushFollow(FOLLOW_rule__ValueDecl__IdsAssignment_2_in_rule__ValueDecl__Group__2__Impl16872);
+            	    pushFollow(FOLLOW_rule__ValueDecl__IdsAssignment_2_in_rule__ValueDecl__Group__2__Impl16873);
             	    rule__ValueDecl__IdsAssignment_2();
 
             	    state._fsp--;
@@ -24812,12 +24888,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8326:1: ( rule__ValueDecl__Group__3__Impl rule__ValueDecl__Group__4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8327:2: rule__ValueDecl__Group__3__Impl rule__ValueDecl__Group__4
             {
-            pushFollow(FOLLOW_rule__ValueDecl__Group__3__Impl_in_rule__ValueDecl__Group__316903);
+            pushFollow(FOLLOW_rule__ValueDecl__Group__3__Impl_in_rule__ValueDecl__Group__316904);
             rule__ValueDecl__Group__3__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__ValueDecl__Group__4_in_rule__ValueDecl__Group__316906);
+            pushFollow(FOLLOW_rule__ValueDecl__Group__4_in_rule__ValueDecl__Group__316907);
             rule__ValueDecl__Group__4();
 
             state._fsp--;
@@ -24856,7 +24932,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getValueDeclAccess().getEqualsSignKeyword_3()); 
             }
-            match(input,35,FOLLOW_35_in_rule__ValueDecl__Group__3__Impl16934); if (state.failed) return ;
+            match(input,35,FOLLOW_35_in_rule__ValueDecl__Group__3__Impl16935); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getValueDeclAccess().getEqualsSignKeyword_3()); 
             }
@@ -24891,7 +24967,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8357:1: ( rule__ValueDecl__Group__4__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8358:2: rule__ValueDecl__Group__4__Impl
             {
-            pushFollow(FOLLOW_rule__ValueDecl__Group__4__Impl_in_rule__ValueDecl__Group__416965);
+            pushFollow(FOLLOW_rule__ValueDecl__Group__4__Impl_in_rule__ValueDecl__Group__416966);
             rule__ValueDecl__Group__4__Impl();
 
             state._fsp--;
@@ -24933,7 +25009,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8371:1: ( rule__ValueDecl__ExpAssignment_4 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8371:2: rule__ValueDecl__ExpAssignment_4
             {
-            pushFollow(FOLLOW_rule__ValueDecl__ExpAssignment_4_in_rule__ValueDecl__Group__4__Impl16992);
+            pushFollow(FOLLOW_rule__ValueDecl__ExpAssignment_4_in_rule__ValueDecl__Group__4__Impl16993);
             rule__ValueDecl__ExpAssignment_4();
 
             state._fsp--;
@@ -24975,12 +25051,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8395:1: ( rule__DECODEPAT__Group_0__0__Impl rule__DECODEPAT__Group_0__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8396:2: rule__DECODEPAT__Group_0__0__Impl rule__DECODEPAT__Group_0__1
             {
-            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__0__Impl_in_rule__DECODEPAT__Group_0__017032);
+            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__0__Impl_in_rule__DECODEPAT__Group_0__017033);
             rule__DECODEPAT__Group_0__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__1_in_rule__DECODEPAT__Group_0__017035);
+            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__1_in_rule__DECODEPAT__Group_0__017036);
             rule__DECODEPAT__Group_0__1();
 
             state._fsp--;
@@ -25019,7 +25095,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDECODEPATAccess().getApostropheKeyword_0_0()); 
             }
-            match(input,57,FOLLOW_57_in_rule__DECODEPAT__Group_0__0__Impl17063); if (state.failed) return ;
+            match(input,57,FOLLOW_57_in_rule__DECODEPAT__Group_0__0__Impl17064); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDECODEPATAccess().getApostropheKeyword_0_0()); 
             }
@@ -25054,12 +25130,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8426:1: ( rule__DECODEPAT__Group_0__1__Impl rule__DECODEPAT__Group_0__2 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8427:2: rule__DECODEPAT__Group_0__1__Impl rule__DECODEPAT__Group_0__2
             {
-            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__1__Impl_in_rule__DECODEPAT__Group_0__117094);
+            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__1__Impl_in_rule__DECODEPAT__Group_0__117095);
             rule__DECODEPAT__Group_0__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__2_in_rule__DECODEPAT__Group_0__117097);
+            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__2_in_rule__DECODEPAT__Group_0__117098);
             rule__DECODEPAT__Group_0__2();
 
             state._fsp--;
@@ -25104,7 +25180,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8442:1: ( ruleBITPAT )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8442:3: ruleBITPAT
             {
-            pushFollow(FOLLOW_ruleBITPAT_in_rule__DECODEPAT__Group_0__1__Impl17127);
+            pushFollow(FOLLOW_ruleBITPAT_in_rule__DECODEPAT__Group_0__1__Impl17128);
             ruleBITPAT();
 
             state._fsp--;
@@ -25139,7 +25215,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             	case 1 :
             	    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8447:3: ruleBITPAT
             	    {
-            	    pushFollow(FOLLOW_ruleBITPAT_in_rule__DECODEPAT__Group_0__1__Impl17140);
+            	    pushFollow(FOLLOW_ruleBITPAT_in_rule__DECODEPAT__Group_0__1__Impl17141);
             	    ruleBITPAT();
 
             	    state._fsp--;
@@ -25190,7 +25266,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8462:1: ( rule__DECODEPAT__Group_0__2__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8463:2: rule__DECODEPAT__Group_0__2__Impl
             {
-            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__2__Impl_in_rule__DECODEPAT__Group_0__217173);
+            pushFollow(FOLLOW_rule__DECODEPAT__Group_0__2__Impl_in_rule__DECODEPAT__Group_0__217174);
             rule__DECODEPAT__Group_0__2__Impl();
 
             state._fsp--;
@@ -25229,7 +25305,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDECODEPATAccess().getApostropheKeyword_0_2()); 
             }
-            match(input,57,FOLLOW_57_in_rule__DECODEPAT__Group_0__2__Impl17201); if (state.failed) return ;
+            match(input,57,FOLLOW_57_in_rule__DECODEPAT__Group_0__2__Impl17202); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getDECODEPATAccess().getApostropheKeyword_0_2()); 
             }
@@ -25264,12 +25340,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8498:1: ( rule__BITPAT__Group_1__0__Impl rule__BITPAT__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8499:2: rule__BITPAT__Group_1__0__Impl rule__BITPAT__Group_1__1
             {
-            pushFollow(FOLLOW_rule__BITPAT__Group_1__0__Impl_in_rule__BITPAT__Group_1__017238);
+            pushFollow(FOLLOW_rule__BITPAT__Group_1__0__Impl_in_rule__BITPAT__Group_1__017239);
             rule__BITPAT__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__BITPAT__Group_1__1_in_rule__BITPAT__Group_1__017241);
+            pushFollow(FOLLOW_rule__BITPAT__Group_1__1_in_rule__BITPAT__Group_1__017242);
             rule__BITPAT__Group_1__1();
 
             state._fsp--;
@@ -25308,7 +25384,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getBITPATAccess().getIDParserRuleCall_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__BITPAT__Group_1__0__Impl17268);
+            pushFollow(FOLLOW_ruleID_in_rule__BITPAT__Group_1__0__Impl17269);
             ruleID();
 
             state._fsp--;
@@ -25347,7 +25423,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8527:1: ( rule__BITPAT__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8528:2: rule__BITPAT__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__BITPAT__Group_1__1__Impl_in_rule__BITPAT__Group_1__117297);
+            pushFollow(FOLLOW_rule__BITPAT__Group_1__1__Impl_in_rule__BITPAT__Group_1__117298);
             rule__BITPAT__Group_1__1__Impl();
 
             state._fsp--;
@@ -25388,12 +25464,16 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             }
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8541:1: ( ruleBITPATORINT )?
             int alt67=2;
-            alt67 = dfa67.predict(input);
+            int LA67_0 = input.LA(1);
+
+            if ( (LA67_0==33||LA67_0==58) ) {
+                alt67=1;
+            }
             switch (alt67) {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8541:3: ruleBITPATORINT
                     {
-                    pushFollow(FOLLOW_ruleBITPATORINT_in_rule__BITPAT__Group_1__1__Impl17325);
+                    pushFollow(FOLLOW_ruleBITPATORINT_in_rule__BITPAT__Group_1__1__Impl17326);
                     ruleBITPATORINT();
 
                     state._fsp--;
@@ -25438,12 +25518,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8559:1: ( rule__BITPATORINT__Group_0__0__Impl rule__BITPATORINT__Group_0__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8560:2: rule__BITPATORINT__Group_0__0__Impl rule__BITPATORINT__Group_0__1
             {
-            pushFollow(FOLLOW_rule__BITPATORINT__Group_0__0__Impl_in_rule__BITPATORINT__Group_0__017360);
+            pushFollow(FOLLOW_rule__BITPATORINT__Group_0__0__Impl_in_rule__BITPATORINT__Group_0__017361);
             rule__BITPATORINT__Group_0__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__BITPATORINT__Group_0__1_in_rule__BITPATORINT__Group_0__017363);
+            pushFollow(FOLLOW_rule__BITPATORINT__Group_0__1_in_rule__BITPATORINT__Group_0__017364);
             rule__BITPATORINT__Group_0__1();
 
             state._fsp--;
@@ -25482,7 +25562,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getBITPATORINTAccess().getColonKeyword_0_0()); 
             }
-            match(input,33,FOLLOW_33_in_rule__BITPATORINT__Group_0__0__Impl17391); if (state.failed) return ;
+            match(input,33,FOLLOW_33_in_rule__BITPATORINT__Group_0__0__Impl17392); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getBITPATORINTAccess().getColonKeyword_0_0()); 
             }
@@ -25517,7 +25597,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8590:1: ( rule__BITPATORINT__Group_0__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8591:2: rule__BITPATORINT__Group_0__1__Impl
             {
-            pushFollow(FOLLOW_rule__BITPATORINT__Group_0__1__Impl_in_rule__BITPATORINT__Group_0__117422);
+            pushFollow(FOLLOW_rule__BITPATORINT__Group_0__1__Impl_in_rule__BITPATORINT__Group_0__117423);
             rule__BITPATORINT__Group_0__1__Impl();
 
             state._fsp--;
@@ -25556,7 +25636,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getBITPATORINTAccess().getPOSINTParserRuleCall_0_1()); 
             }
-            pushFollow(FOLLOW_rulePOSINT_in_rule__BITPATORINT__Group_0__1__Impl17449);
+            pushFollow(FOLLOW_rulePOSINT_in_rule__BITPATORINT__Group_0__1__Impl17450);
             rulePOSINT();
 
             state._fsp--;
@@ -25595,12 +25675,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8622:1: ( rule__BITPATORINT__Group_1__0__Impl rule__BITPATORINT__Group_1__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8623:2: rule__BITPATORINT__Group_1__0__Impl rule__BITPATORINT__Group_1__1
             {
-            pushFollow(FOLLOW_rule__BITPATORINT__Group_1__0__Impl_in_rule__BITPATORINT__Group_1__017482);
+            pushFollow(FOLLOW_rule__BITPATORINT__Group_1__0__Impl_in_rule__BITPATORINT__Group_1__017483);
             rule__BITPATORINT__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__BITPATORINT__Group_1__1_in_rule__BITPATORINT__Group_1__017485);
+            pushFollow(FOLLOW_rule__BITPATORINT__Group_1__1_in_rule__BITPATORINT__Group_1__017486);
             rule__BITPATORINT__Group_1__1();
 
             state._fsp--;
@@ -25639,7 +25719,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getBITPATORINTAccess().getCommercialAtKeyword_1_0()); 
             }
-            match(input,58,FOLLOW_58_in_rule__BITPATORINT__Group_1__0__Impl17513); if (state.failed) return ;
+            match(input,58,FOLLOW_58_in_rule__BITPATORINT__Group_1__0__Impl17514); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getBITPATORINTAccess().getCommercialAtKeyword_1_0()); 
             }
@@ -25674,7 +25754,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8653:1: ( rule__BITPATORINT__Group_1__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8654:2: rule__BITPATORINT__Group_1__1__Impl
             {
-            pushFollow(FOLLOW_rule__BITPATORINT__Group_1__1__Impl_in_rule__BITPATORINT__Group_1__117544);
+            pushFollow(FOLLOW_rule__BITPATORINT__Group_1__1__Impl_in_rule__BITPATORINT__Group_1__117545);
             rule__BITPATORINT__Group_1__1__Impl();
 
             state._fsp--;
@@ -25713,7 +25793,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getBITPATORINTAccess().getBINARYParserRuleCall_1_1()); 
             }
-            pushFollow(FOLLOW_ruleBINARY_in_rule__BITPATORINT__Group_1__1__Impl17571);
+            pushFollow(FOLLOW_ruleBINARY_in_rule__BITPATORINT__Group_1__1__Impl17572);
             ruleBINARY();
 
             state._fsp--;
@@ -25752,12 +25832,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8685:1: ( rule__PAT__Group_2__0__Impl rule__PAT__Group_2__1 )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8686:2: rule__PAT__Group_2__0__Impl rule__PAT__Group_2__1
             {
-            pushFollow(FOLLOW_rule__PAT__Group_2__0__Impl_in_rule__PAT__Group_2__017604);
+            pushFollow(FOLLOW_rule__PAT__Group_2__0__Impl_in_rule__PAT__Group_2__017605);
             rule__PAT__Group_2__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__PAT__Group_2__1_in_rule__PAT__Group_2__017607);
+            pushFollow(FOLLOW_rule__PAT__Group_2__1_in_rule__PAT__Group_2__017608);
             rule__PAT__Group_2__1();
 
             state._fsp--;
@@ -25799,7 +25879,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8700:1: ( ruleCONS )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8700:3: ruleCONS
             {
-            pushFollow(FOLLOW_ruleCONS_in_rule__PAT__Group_2__0__Impl17635);
+            pushFollow(FOLLOW_ruleCONS_in_rule__PAT__Group_2__0__Impl17636);
             ruleCONS();
 
             state._fsp--;
@@ -25841,7 +25921,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8714:1: ( rule__PAT__Group_2__1__Impl )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8715:2: rule__PAT__Group_2__1__Impl
             {
-            pushFollow(FOLLOW_rule__PAT__Group_2__1__Impl_in_rule__PAT__Group_2__117665);
+            pushFollow(FOLLOW_rule__PAT__Group_2__1__Impl_in_rule__PAT__Group_2__117666);
             rule__PAT__Group_2__1__Impl();
 
             state._fsp--;
@@ -25884,14 +25964,14 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             int alt68=2;
             int LA68_0 = input.LA(1);
 
-            if ( ((LA68_0>=RULE_HEXINT && LA68_0<=RULE_SLASH)||(LA68_0>=RULE_BS && LA68_0<=RULE_DOT)||(LA68_0>=RULE_NEGINT && LA68_0<=RULE_CONS_WO_S)) ) {
+            if ( ((LA68_0>=RULE_HEXINT && LA68_0<=RULE_SLASH)||(LA68_0>=RULE_NEGINT && LA68_0<=RULE_DUALS)||(LA68_0>=RULE_S && LA68_0<=RULE_CONS_WO_S)||LA68_0==57) ) {
                 alt68=1;
             }
             switch (alt68) {
                 case 1 :
                     // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8728:3: rulePAT
                     {
-                    pushFollow(FOLLOW_rulePAT_in_rule__PAT__Group_2__1__Impl17693);
+                    pushFollow(FOLLOW_rulePAT_in_rule__PAT__Group_2__1__Impl17694);
                     rulePAT();
 
                     state._fsp--;
@@ -25926,22 +26006,258 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
     // $ANTLR end "rule__PAT__Group_2__1__Impl"
 
 
+    // $ANTLR start "rule__PAT__Group_4__0"
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8742:1: rule__PAT__Group_4__0 : rule__PAT__Group_4__0__Impl rule__PAT__Group_4__1 ;
+    public final void rule__PAT__Group_4__0() throws RecognitionException {
+
+        		int stackSize = keepStackSize();
+            
+        try {
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8746:1: ( rule__PAT__Group_4__0__Impl rule__PAT__Group_4__1 )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8747:2: rule__PAT__Group_4__0__Impl rule__PAT__Group_4__1
+            {
+            pushFollow(FOLLOW_rule__PAT__Group_4__0__Impl_in_rule__PAT__Group_4__017729);
+            rule__PAT__Group_4__0__Impl();
+
+            state._fsp--;
+            if (state.failed) return ;
+            pushFollow(FOLLOW_rule__PAT__Group_4__1_in_rule__PAT__Group_4__017732);
+            rule__PAT__Group_4__1();
+
+            state._fsp--;
+            if (state.failed) return ;
+
+            }
+
+        }
+        catch (RecognitionException re) {
+            reportError(re);
+            recover(input,re);
+        }
+        finally {
+
+            	restoreStackSize(stackSize);
+
+        }
+        return ;
+    }
+    // $ANTLR end "rule__PAT__Group_4__0"
+
+
+    // $ANTLR start "rule__PAT__Group_4__0__Impl"
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8754:1: rule__PAT__Group_4__0__Impl : ( '\\'' ) ;
+    public final void rule__PAT__Group_4__0__Impl() throws RecognitionException {
+
+        		int stackSize = keepStackSize();
+            
+        try {
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8758:1: ( ( '\\'' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8759:1: ( '\\'' )
+            {
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8759:1: ( '\\'' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8760:1: '\\''
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getPATAccess().getApostropheKeyword_4_0()); 
+            }
+            match(input,57,FOLLOW_57_in_rule__PAT__Group_4__0__Impl17760); if (state.failed) return ;
+            if ( state.backtracking==0 ) {
+               after(grammarAccess.getPATAccess().getApostropheKeyword_4_0()); 
+            }
+
+            }
+
+
+            }
+
+        }
+        catch (RecognitionException re) {
+            reportError(re);
+            recover(input,re);
+        }
+        finally {
+
+            	restoreStackSize(stackSize);
+
+        }
+        return ;
+    }
+    // $ANTLR end "rule__PAT__Group_4__0__Impl"
+
+
+    // $ANTLR start "rule__PAT__Group_4__1"
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8773:1: rule__PAT__Group_4__1 : rule__PAT__Group_4__1__Impl rule__PAT__Group_4__2 ;
+    public final void rule__PAT__Group_4__1() throws RecognitionException {
+
+        		int stackSize = keepStackSize();
+            
+        try {
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8777:1: ( rule__PAT__Group_4__1__Impl rule__PAT__Group_4__2 )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8778:2: rule__PAT__Group_4__1__Impl rule__PAT__Group_4__2
+            {
+            pushFollow(FOLLOW_rule__PAT__Group_4__1__Impl_in_rule__PAT__Group_4__117791);
+            rule__PAT__Group_4__1__Impl();
+
+            state._fsp--;
+            if (state.failed) return ;
+            pushFollow(FOLLOW_rule__PAT__Group_4__2_in_rule__PAT__Group_4__117794);
+            rule__PAT__Group_4__2();
+
+            state._fsp--;
+            if (state.failed) return ;
+
+            }
+
+        }
+        catch (RecognitionException re) {
+            reportError(re);
+            recover(input,re);
+        }
+        finally {
+
+            	restoreStackSize(stackSize);
+
+        }
+        return ;
+    }
+    // $ANTLR end "rule__PAT__Group_4__1"
+
+
+    // $ANTLR start "rule__PAT__Group_4__1__Impl"
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8785:1: rule__PAT__Group_4__1__Impl : ( ruleBITPAT ) ;
+    public final void rule__PAT__Group_4__1__Impl() throws RecognitionException {
+
+        		int stackSize = keepStackSize();
+            
+        try {
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8789:1: ( ( ruleBITPAT ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8790:1: ( ruleBITPAT )
+            {
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8790:1: ( ruleBITPAT )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8791:1: ruleBITPAT
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getPATAccess().getBITPATParserRuleCall_4_1()); 
+            }
+            pushFollow(FOLLOW_ruleBITPAT_in_rule__PAT__Group_4__1__Impl17821);
+            ruleBITPAT();
+
+            state._fsp--;
+            if (state.failed) return ;
+            if ( state.backtracking==0 ) {
+               after(grammarAccess.getPATAccess().getBITPATParserRuleCall_4_1()); 
+            }
+
+            }
+
+
+            }
+
+        }
+        catch (RecognitionException re) {
+            reportError(re);
+            recover(input,re);
+        }
+        finally {
+
+            	restoreStackSize(stackSize);
+
+        }
+        return ;
+    }
+    // $ANTLR end "rule__PAT__Group_4__1__Impl"
+
+
+    // $ANTLR start "rule__PAT__Group_4__2"
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8802:1: rule__PAT__Group_4__2 : rule__PAT__Group_4__2__Impl ;
+    public final void rule__PAT__Group_4__2() throws RecognitionException {
+
+        		int stackSize = keepStackSize();
+            
+        try {
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8806:1: ( rule__PAT__Group_4__2__Impl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8807:2: rule__PAT__Group_4__2__Impl
+            {
+            pushFollow(FOLLOW_rule__PAT__Group_4__2__Impl_in_rule__PAT__Group_4__217850);
+            rule__PAT__Group_4__2__Impl();
+
+            state._fsp--;
+            if (state.failed) return ;
+
+            }
+
+        }
+        catch (RecognitionException re) {
+            reportError(re);
+            recover(input,re);
+        }
+        finally {
+
+            	restoreStackSize(stackSize);
+
+        }
+        return ;
+    }
+    // $ANTLR end "rule__PAT__Group_4__2"
+
+
+    // $ANTLR start "rule__PAT__Group_4__2__Impl"
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8813:1: rule__PAT__Group_4__2__Impl : ( '\\'' ) ;
+    public final void rule__PAT__Group_4__2__Impl() throws RecognitionException {
+
+        		int stackSize = keepStackSize();
+            
+        try {
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8817:1: ( ( '\\'' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8818:1: ( '\\'' )
+            {
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8818:1: ( '\\'' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8819:1: '\\''
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getPATAccess().getApostropheKeyword_4_2()); 
+            }
+            match(input,57,FOLLOW_57_in_rule__PAT__Group_4__2__Impl17878); if (state.failed) return ;
+            if ( state.backtracking==0 ) {
+               after(grammarAccess.getPATAccess().getApostropheKeyword_4_2()); 
+            }
+
+            }
+
+
+            }
+
+        }
+        catch (RecognitionException re) {
+            reportError(re);
+            recover(input,re);
+        }
+        finally {
+
+            	restoreStackSize(stackSize);
+
+        }
+        return ;
+    }
+    // $ANTLR end "rule__PAT__Group_4__2__Impl"
+
+
     // $ANTLR start "rule__LIT__Group_1__0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8742:1: rule__LIT__Group_1__0 : rule__LIT__Group_1__0__Impl rule__LIT__Group_1__1 ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8838:1: rule__LIT__Group_1__0 : rule__LIT__Group_1__0__Impl rule__LIT__Group_1__1 ;
     public final void rule__LIT__Group_1__0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8746:1: ( rule__LIT__Group_1__0__Impl rule__LIT__Group_1__1 )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8747:2: rule__LIT__Group_1__0__Impl rule__LIT__Group_1__1
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8842:1: ( rule__LIT__Group_1__0__Impl rule__LIT__Group_1__1 )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8843:2: rule__LIT__Group_1__0__Impl rule__LIT__Group_1__1
             {
-            pushFollow(FOLLOW_rule__LIT__Group_1__0__Impl_in_rule__LIT__Group_1__017728);
+            pushFollow(FOLLOW_rule__LIT__Group_1__0__Impl_in_rule__LIT__Group_1__017915);
             rule__LIT__Group_1__0__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__LIT__Group_1__1_in_rule__LIT__Group_1__017731);
+            pushFollow(FOLLOW_rule__LIT__Group_1__1_in_rule__LIT__Group_1__017918);
             rule__LIT__Group_1__1();
 
             state._fsp--;
@@ -25965,22 +26281,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__LIT__Group_1__0__Impl"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8754:1: rule__LIT__Group_1__0__Impl : ( '\\'' ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8850:1: rule__LIT__Group_1__0__Impl : ( '\\'' ) ;
     public final void rule__LIT__Group_1__0__Impl() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8758:1: ( ( '\\'' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8759:1: ( '\\'' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8854:1: ( ( '\\'' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8855:1: ( '\\'' )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8759:1: ( '\\'' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8760:1: '\\''
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8855:1: ( '\\'' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8856:1: '\\''
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getLITAccess().getApostropheKeyword_1_0()); 
             }
-            match(input,57,FOLLOW_57_in_rule__LIT__Group_1__0__Impl17759); if (state.failed) return ;
+            match(input,57,FOLLOW_57_in_rule__LIT__Group_1__0__Impl17946); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getLITAccess().getApostropheKeyword_1_0()); 
             }
@@ -26006,21 +26322,21 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__LIT__Group_1__1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8773:1: rule__LIT__Group_1__1 : rule__LIT__Group_1__1__Impl rule__LIT__Group_1__2 ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8869:1: rule__LIT__Group_1__1 : rule__LIT__Group_1__1__Impl rule__LIT__Group_1__2 ;
     public final void rule__LIT__Group_1__1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8777:1: ( rule__LIT__Group_1__1__Impl rule__LIT__Group_1__2 )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8778:2: rule__LIT__Group_1__1__Impl rule__LIT__Group_1__2
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8873:1: ( rule__LIT__Group_1__1__Impl rule__LIT__Group_1__2 )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8874:2: rule__LIT__Group_1__1__Impl rule__LIT__Group_1__2
             {
-            pushFollow(FOLLOW_rule__LIT__Group_1__1__Impl_in_rule__LIT__Group_1__117790);
+            pushFollow(FOLLOW_rule__LIT__Group_1__1__Impl_in_rule__LIT__Group_1__117977);
             rule__LIT__Group_1__1__Impl();
 
             state._fsp--;
             if (state.failed) return ;
-            pushFollow(FOLLOW_rule__LIT__Group_1__2_in_rule__LIT__Group_1__117793);
+            pushFollow(FOLLOW_rule__LIT__Group_1__2_in_rule__LIT__Group_1__117980);
             rule__LIT__Group_1__2();
 
             state._fsp--;
@@ -26044,22 +26360,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__LIT__Group_1__1__Impl"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8785:1: rule__LIT__Group_1__1__Impl : ( ( ruleBINARY )? ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8881:1: rule__LIT__Group_1__1__Impl : ( ( ruleBINARY )? ) ;
     public final void rule__LIT__Group_1__1__Impl() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8789:1: ( ( ( ruleBINARY )? ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8790:1: ( ( ruleBINARY )? )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8885:1: ( ( ( ruleBINARY )? ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8886:1: ( ( ruleBINARY )? )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8790:1: ( ( ruleBINARY )? )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8791:1: ( ruleBINARY )?
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8886:1: ( ( ruleBINARY )? )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8887:1: ( ruleBINARY )?
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getLITAccess().getBINARYParserRuleCall_1_1()); 
             }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8792:1: ( ruleBINARY )?
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8888:1: ( ruleBINARY )?
             int alt69=2;
             int LA69_0 = input.LA(1);
 
@@ -26068,9 +26384,9 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             }
             switch (alt69) {
                 case 1 :
-                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8792:3: ruleBINARY
+                    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8888:3: ruleBINARY
                     {
-                    pushFollow(FOLLOW_ruleBINARY_in_rule__LIT__Group_1__1__Impl17821);
+                    pushFollow(FOLLOW_ruleBINARY_in_rule__LIT__Group_1__1__Impl18008);
                     ruleBINARY();
 
                     state._fsp--;
@@ -26106,16 +26422,16 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__LIT__Group_1__2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8802:1: rule__LIT__Group_1__2 : rule__LIT__Group_1__2__Impl ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8898:1: rule__LIT__Group_1__2 : rule__LIT__Group_1__2__Impl ;
     public final void rule__LIT__Group_1__2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8806:1: ( rule__LIT__Group_1__2__Impl )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8807:2: rule__LIT__Group_1__2__Impl
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8902:1: ( rule__LIT__Group_1__2__Impl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8903:2: rule__LIT__Group_1__2__Impl
             {
-            pushFollow(FOLLOW_rule__LIT__Group_1__2__Impl_in_rule__LIT__Group_1__217852);
+            pushFollow(FOLLOW_rule__LIT__Group_1__2__Impl_in_rule__LIT__Group_1__218039);
             rule__LIT__Group_1__2__Impl();
 
             state._fsp--;
@@ -26139,22 +26455,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__LIT__Group_1__2__Impl"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8813:1: rule__LIT__Group_1__2__Impl : ( '\\'' ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8909:1: rule__LIT__Group_1__2__Impl : ( '\\'' ) ;
     public final void rule__LIT__Group_1__2__Impl() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8817:1: ( ( '\\'' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8818:1: ( '\\'' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8913:1: ( ( '\\'' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8914:1: ( '\\'' )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8818:1: ( '\\'' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8819:1: '\\''
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8914:1: ( '\\'' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8915:1: '\\''
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getLITAccess().getApostropheKeyword_1_2()); 
             }
-            match(input,57,FOLLOW_57_in_rule__LIT__Group_1__2__Impl17880); if (state.failed) return ;
+            match(input,57,FOLLOW_57_in_rule__LIT__Group_1__2__Impl18067); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getLITAccess().getApostropheKeyword_1_2()); 
             }
@@ -26180,22 +26496,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Model__DeclAssignment_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8839:1: rule__Model__DeclAssignment_0 : ( ruleDecl ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8935:1: rule__Model__DeclAssignment_0 : ( ruleDecl ) ;
     public final void rule__Model__DeclAssignment_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8843:1: ( ( ruleDecl ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8844:1: ( ruleDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8939:1: ( ( ruleDecl ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8940:1: ( ruleDecl )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8844:1: ( ruleDecl )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8845:1: ruleDecl
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8940:1: ( ruleDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8941:1: ruleDecl
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getModelAccess().getDeclDeclParserRuleCall_0_0()); 
             }
-            pushFollow(FOLLOW_ruleDecl_in_rule__Model__DeclAssignment_017922);
+            pushFollow(FOLLOW_ruleDecl_in_rule__Model__DeclAssignment_018109);
             ruleDecl();
 
             state._fsp--;
@@ -26225,22 +26541,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Model__DeclAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8854:1: rule__Model__DeclAssignment_1_1 : ( ruleDecl ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8950:1: rule__Model__DeclAssignment_1_1 : ( ruleDecl ) ;
     public final void rule__Model__DeclAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8858:1: ( ( ruleDecl ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8859:1: ( ruleDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8954:1: ( ( ruleDecl ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8955:1: ( ruleDecl )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8859:1: ( ruleDecl )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8860:1: ruleDecl
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8955:1: ( ruleDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8956:1: ruleDecl
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getModelAccess().getDeclDeclParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleDecl_in_rule__Model__DeclAssignment_1_117953);
+            pushFollow(FOLLOW_ruleDecl_in_rule__Model__DeclAssignment_1_118140);
             ruleDecl();
 
             state._fsp--;
@@ -26270,28 +26586,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclExport__NameAssignment_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8869:1: rule__DeclExport__NameAssignment_1 : ( ( ruleID ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8965:1: rule__DeclExport__NameAssignment_1 : ( ( ruleID ) ) ;
     public final void rule__DeclExport__NameAssignment_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8873:1: ( ( ( ruleID ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8874:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8969:1: ( ( ( ruleID ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8970:1: ( ( ruleID ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8874:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8875:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8970:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8971:1: ( ruleID )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclExportAccess().getNameDeclValCrossReference_1_0()); 
             }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8876:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8877:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8972:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8973:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclExportAccess().getNameDeclValIDParserRuleCall_1_0_1()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__DeclExport__NameAssignment_117988);
+            pushFollow(FOLLOW_ruleID_in_rule__DeclExport__NameAssignment_118175);
             ruleID();
 
             state._fsp--;
@@ -26327,22 +26643,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclExport__TyVarsAssignment_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8888:1: rule__DeclExport__TyVarsAssignment_2 : ( ruleTyVars ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8984:1: rule__DeclExport__TyVarsAssignment_2 : ( ruleTyVars ) ;
     public final void rule__DeclExport__TyVarsAssignment_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8892:1: ( ( ruleTyVars ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8893:1: ( ruleTyVars )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8988:1: ( ( ruleTyVars ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8989:1: ( ruleTyVars )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8893:1: ( ruleTyVars )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8894:1: ruleTyVars
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8989:1: ( ruleTyVars )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8990:1: ruleTyVars
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclExportAccess().getTyVarsTyVarsParserRuleCall_2_0()); 
             }
-            pushFollow(FOLLOW_ruleTyVars_in_rule__DeclExport__TyVarsAssignment_218023);
+            pushFollow(FOLLOW_ruleTyVars_in_rule__DeclExport__TyVarsAssignment_218210);
             ruleTyVars();
 
             state._fsp--;
@@ -26372,22 +26688,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclExport__TypeAssignment_4"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8903:1: rule__DeclExport__TypeAssignment_4 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8999:1: rule__DeclExport__TypeAssignment_4 : ( ruleTy ) ;
     public final void rule__DeclExport__TypeAssignment_4() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8907:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8908:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9003:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9004:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8908:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8909:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9004:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9005:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclExportAccess().getTypeTyParserRuleCall_4_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__DeclExport__TypeAssignment_418054);
+            pushFollow(FOLLOW_ruleTy_in_rule__DeclExport__TypeAssignment_418241);
             ruleTy();
 
             state._fsp--;
@@ -26417,22 +26733,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclType__NameAssignment_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8918:1: rule__DeclType__NameAssignment_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9014:1: rule__DeclType__NameAssignment_1 : ( ruleID ) ;
     public final void rule__DeclType__NameAssignment_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8922:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8923:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9018:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9019:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8923:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8924:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9019:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9020:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getNameIDParserRuleCall_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__DeclType__NameAssignment_118085);
+            pushFollow(FOLLOW_ruleID_in_rule__DeclType__NameAssignment_118272);
             ruleID();
 
             state._fsp--;
@@ -26462,22 +26778,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclType__ConDeclAssignment_2_0_1_0_0_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8933:1: rule__DeclType__ConDeclAssignment_2_0_1_0_0_0 : ( ruleConDecl ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9029:1: rule__DeclType__ConDeclAssignment_2_0_1_0_0_0 : ( ruleConDecl ) ;
     public final void rule__DeclType__ConDeclAssignment_2_0_1_0_0_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8937:1: ( ( ruleConDecl ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8938:1: ( ruleConDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9033:1: ( ( ruleConDecl ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9034:1: ( ruleConDecl )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8938:1: ( ruleConDecl )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8939:1: ruleConDecl
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9034:1: ( ruleConDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9035:1: ruleConDecl
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getConDeclConDeclParserRuleCall_2_0_1_0_0_0_0()); 
             }
-            pushFollow(FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_0_1_0_0_018116);
+            pushFollow(FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_0_1_0_0_018303);
             ruleConDecl();
 
             state._fsp--;
@@ -26507,22 +26823,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8948:1: rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1 : ( ruleConDecl ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9044:1: rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1 : ( ruleConDecl ) ;
     public final void rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8952:1: ( ( ruleConDecl ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8953:1: ( ruleConDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9048:1: ( ( ruleConDecl ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9049:1: ( ruleConDecl )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8953:1: ( ruleConDecl )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8954:1: ruleConDecl
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9049:1: ( ruleConDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9050:1: ruleConDecl
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getConDeclConDeclParserRuleCall_2_0_1_0_0_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_118147);
+            pushFollow(FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_118334);
             ruleConDecl();
 
             state._fsp--;
@@ -26552,22 +26868,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclType__ValueAssignment_2_0_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8963:1: rule__DeclType__ValueAssignment_2_0_1_1 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9059:1: rule__DeclType__ValueAssignment_2_0_1_1 : ( ruleTy ) ;
     public final void rule__DeclType__ValueAssignment_2_0_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8967:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8968:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9063:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9064:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8968:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8969:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9064:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9065:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getValueTyParserRuleCall_2_0_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__DeclType__ValueAssignment_2_0_1_118178);
+            pushFollow(FOLLOW_ruleTy_in_rule__DeclType__ValueAssignment_2_0_1_118365);
             ruleTy();
 
             state._fsp--;
@@ -26597,22 +26913,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclType__TyVarsAssignment_2_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8978:1: rule__DeclType__TyVarsAssignment_2_1_0 : ( ruleTyVars ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9074:1: rule__DeclType__TyVarsAssignment_2_1_0 : ( ruleTyVars ) ;
     public final void rule__DeclType__TyVarsAssignment_2_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8982:1: ( ( ruleTyVars ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8983:1: ( ruleTyVars )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9078:1: ( ( ruleTyVars ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9079:1: ( ruleTyVars )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8983:1: ( ruleTyVars )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8984:1: ruleTyVars
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9079:1: ( ruleTyVars )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9080:1: ruleTyVars
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getTyVarsTyVarsParserRuleCall_2_1_0_0()); 
             }
-            pushFollow(FOLLOW_ruleTyVars_in_rule__DeclType__TyVarsAssignment_2_1_018209);
+            pushFollow(FOLLOW_ruleTyVars_in_rule__DeclType__TyVarsAssignment_2_1_018396);
             ruleTyVars();
 
             state._fsp--;
@@ -26642,22 +26958,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclType__ConDeclAssignment_2_1_2_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8993:1: rule__DeclType__ConDeclAssignment_2_1_2_0 : ( ruleConDecl ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9089:1: rule__DeclType__ConDeclAssignment_2_1_2_0 : ( ruleConDecl ) ;
     public final void rule__DeclType__ConDeclAssignment_2_1_2_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8997:1: ( ( ruleConDecl ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8998:1: ( ruleConDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9093:1: ( ( ruleConDecl ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9094:1: ( ruleConDecl )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8998:1: ( ruleConDecl )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8999:1: ruleConDecl
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9094:1: ( ruleConDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9095:1: ruleConDecl
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getConDeclConDeclParserRuleCall_2_1_2_0_0()); 
             }
-            pushFollow(FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_1_2_018240);
+            pushFollow(FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_1_2_018427);
             ruleConDecl();
 
             state._fsp--;
@@ -26687,22 +27003,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclType__ConDeclAssignment_2_1_2_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9008:1: rule__DeclType__ConDeclAssignment_2_1_2_1_1 : ( ruleConDecl ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9104:1: rule__DeclType__ConDeclAssignment_2_1_2_1_1 : ( ruleConDecl ) ;
     public final void rule__DeclType__ConDeclAssignment_2_1_2_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9012:1: ( ( ruleConDecl ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9013:1: ( ruleConDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9108:1: ( ( ruleConDecl ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9109:1: ( ruleConDecl )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9013:1: ( ruleConDecl )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9014:1: ruleConDecl
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9109:1: ( ruleConDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9110:1: ruleConDecl
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclTypeAccess().getConDeclConDeclParserRuleCall_2_1_2_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_1_2_1_118271);
+            pushFollow(FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_1_2_1_118458);
             ruleConDecl();
 
             state._fsp--;
@@ -26732,22 +27048,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__NameAssignment_1_0_0_0_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9023:1: rule__DeclVal__NameAssignment_1_0_0_0_0 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9119:1: rule__DeclVal__NameAssignment_1_0_0_0_0 : ( ruleID ) ;
     public final void rule__DeclVal__NameAssignment_1_0_0_0_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9027:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9028:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9123:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9124:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9028:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9029:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9124:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9125:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getNameIDParserRuleCall_1_0_0_0_0_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__DeclVal__NameAssignment_1_0_0_0_018302);
+            pushFollow(FOLLOW_ruleID_in_rule__DeclVal__NameAssignment_1_0_0_0_018489);
             ruleID();
 
             state._fsp--;
@@ -26777,22 +27093,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__NameAssignment_1_0_0_0_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9038:1: rule__DeclVal__NameAssignment_1_0_0_0_1 : ( ruleSYM ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9134:1: rule__DeclVal__NameAssignment_1_0_0_0_1 : ( ruleSYM ) ;
     public final void rule__DeclVal__NameAssignment_1_0_0_0_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9042:1: ( ( ruleSYM ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9043:1: ( ruleSYM )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9138:1: ( ( ruleSYM ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9139:1: ( ruleSYM )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9043:1: ( ruleSYM )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9044:1: ruleSYM
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9139:1: ( ruleSYM )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9140:1: ruleSYM
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getNameSYMParserRuleCall_1_0_0_0_1_0()); 
             }
-            pushFollow(FOLLOW_ruleSYM_in_rule__DeclVal__NameAssignment_1_0_0_0_118333);
+            pushFollow(FOLLOW_ruleSYM_in_rule__DeclVal__NameAssignment_1_0_0_0_118520);
             ruleSYM();
 
             state._fsp--;
@@ -26822,22 +27138,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__AttrAssignment_1_0_0_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9053:1: rule__DeclVal__AttrAssignment_1_0_0_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9149:1: rule__DeclVal__AttrAssignment_1_0_0_1 : ( ruleID ) ;
     public final void rule__DeclVal__AttrAssignment_1_0_0_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9057:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9058:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9153:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9154:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9058:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9059:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9154:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9155:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getAttrIDParserRuleCall_1_0_0_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__DeclVal__AttrAssignment_1_0_0_118364);
+            pushFollow(FOLLOW_ruleID_in_rule__DeclVal__AttrAssignment_1_0_0_118551);
             ruleID();
 
             state._fsp--;
@@ -26867,22 +27183,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__ExpAssignment_1_0_0_3"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9068:1: rule__DeclVal__ExpAssignment_1_0_0_3 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9164:1: rule__DeclVal__ExpAssignment_1_0_0_3 : ( ruleExp ) ;
     public final void rule__DeclVal__ExpAssignment_1_0_0_3() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9072:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9073:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9168:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9169:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9073:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9074:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9169:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9170:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getExpExpParserRuleCall_1_0_0_3_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_0_0_318395);
+            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_0_0_318582);
             ruleExp();
 
             state._fsp--;
@@ -26912,22 +27228,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__MidAssignment_1_1_0_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9083:1: rule__DeclVal__MidAssignment_1_1_0_0 : ( ruleMID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9179:1: rule__DeclVal__MidAssignment_1_1_0_0 : ( ruleMID ) ;
     public final void rule__DeclVal__MidAssignment_1_1_0_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9087:1: ( ( ruleMID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9088:1: ( ruleMID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9183:1: ( ( ruleMID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9184:1: ( ruleMID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9088:1: ( ruleMID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9089:1: ruleMID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9184:1: ( ruleMID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9185:1: ruleMID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getMidMIDParserRuleCall_1_1_0_0_0()); 
             }
-            pushFollow(FOLLOW_ruleMID_in_rule__DeclVal__MidAssignment_1_1_0_018426);
+            pushFollow(FOLLOW_ruleMID_in_rule__DeclVal__MidAssignment_1_1_0_018613);
             ruleMID();
 
             state._fsp--;
@@ -26957,22 +27273,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__AttrAssignment_1_1_0_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9098:1: rule__DeclVal__AttrAssignment_1_1_0_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9194:1: rule__DeclVal__AttrAssignment_1_1_0_1 : ( ruleID ) ;
     public final void rule__DeclVal__AttrAssignment_1_1_0_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9102:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9103:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9198:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9199:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9103:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9104:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9199:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9200:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getAttrIDParserRuleCall_1_1_0_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__DeclVal__AttrAssignment_1_1_0_118457);
+            pushFollow(FOLLOW_ruleID_in_rule__DeclVal__AttrAssignment_1_1_0_118644);
             ruleID();
 
             state._fsp--;
@@ -27002,22 +27318,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__ExpAssignment_1_1_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9113:1: rule__DeclVal__ExpAssignment_1_1_2 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9209:1: rule__DeclVal__ExpAssignment_1_1_2 : ( ruleExp ) ;
     public final void rule__DeclVal__ExpAssignment_1_1_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9117:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9118:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9213:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9214:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9118:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9119:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9214:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9215:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getExpExpParserRuleCall_1_1_2_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_1_218488);
+            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_1_218675);
             ruleExp();
 
             state._fsp--;
@@ -27047,22 +27363,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__NameAssignment_1_2_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9128:1: rule__DeclVal__NameAssignment_1_2_0 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9224:1: rule__DeclVal__NameAssignment_1_2_0 : ( ruleID ) ;
     public final void rule__DeclVal__NameAssignment_1_2_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9132:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9133:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9228:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9229:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9133:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9134:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9229:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9230:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getNameIDParserRuleCall_1_2_0_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__DeclVal__NameAssignment_1_2_018519);
+            pushFollow(FOLLOW_ruleID_in_rule__DeclVal__NameAssignment_1_2_018706);
             ruleID();
 
             state._fsp--;
@@ -27092,22 +27408,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__DecPatAssignment_1_2_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9143:1: rule__DeclVal__DecPatAssignment_1_2_2 : ( ruleDECODEPAT ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9239:1: rule__DeclVal__DecPatAssignment_1_2_2 : ( ruleDECODEPAT ) ;
     public final void rule__DeclVal__DecPatAssignment_1_2_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9147:1: ( ( ruleDECODEPAT ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9148:1: ( ruleDECODEPAT )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9243:1: ( ( ruleDECODEPAT ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9244:1: ( ruleDECODEPAT )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9148:1: ( ruleDECODEPAT )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9149:1: ruleDECODEPAT
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9244:1: ( ruleDECODEPAT )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9245:1: ruleDECODEPAT
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getDecPatDECODEPATParserRuleCall_1_2_2_0()); 
             }
-            pushFollow(FOLLOW_ruleDECODEPAT_in_rule__DeclVal__DecPatAssignment_1_2_218550);
+            pushFollow(FOLLOW_ruleDECODEPAT_in_rule__DeclVal__DecPatAssignment_1_2_218737);
             ruleDECODEPAT();
 
             state._fsp--;
@@ -27137,22 +27453,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__ExpAssignment_1_2_4_0_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9158:1: rule__DeclVal__ExpAssignment_1_2_4_0_1 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9254:1: rule__DeclVal__ExpAssignment_1_2_4_0_1 : ( ruleExp ) ;
     public final void rule__DeclVal__ExpAssignment_1_2_4_0_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9162:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9163:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9258:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9259:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9163:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9164:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9259:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9260:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getExpExpParserRuleCall_1_2_4_0_1_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_2_4_0_118581);
+            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_2_4_0_118768);
             ruleExp();
 
             state._fsp--;
@@ -27182,22 +27498,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__ExpsAssignment_1_2_4_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9173:1: rule__DeclVal__ExpsAssignment_1_2_4_1_1 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9269:1: rule__DeclVal__ExpsAssignment_1_2_4_1_1 : ( ruleExp ) ;
     public final void rule__DeclVal__ExpsAssignment_1_2_4_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9177:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9178:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9273:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9274:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9178:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9179:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9274:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9275:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getExpsExpParserRuleCall_1_2_4_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpsAssignment_1_2_4_1_118612);
+            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpsAssignment_1_2_4_1_118799);
             ruleExp();
 
             state._fsp--;
@@ -27227,22 +27543,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__DeclVal__ExpsAssignment_1_2_4_1_3"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9188:1: rule__DeclVal__ExpsAssignment_1_2_4_1_3 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9284:1: rule__DeclVal__ExpsAssignment_1_2_4_1_3 : ( ruleExp ) ;
     public final void rule__DeclVal__ExpsAssignment_1_2_4_1_3() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9192:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9193:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9288:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9289:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9193:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9194:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9289:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9290:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getDeclValAccess().getExpsExpParserRuleCall_1_2_4_1_3_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpsAssignment_1_2_4_1_318643);
+            pushFollow(FOLLOW_ruleExp_in_rule__DeclVal__ExpsAssignment_1_2_4_1_318830);
             ruleExp();
 
             state._fsp--;
@@ -27272,22 +27588,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__TyVars__AttrAssignment_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9203:1: rule__TyVars__AttrAssignment_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9299:1: rule__TyVars__AttrAssignment_1 : ( ruleID ) ;
     public final void rule__TyVars__AttrAssignment_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9207:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9208:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9303:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9304:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9208:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9209:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9304:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9305:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyVarsAccess().getAttrIDParserRuleCall_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__TyVars__AttrAssignment_118674);
+            pushFollow(FOLLOW_ruleID_in_rule__TyVars__AttrAssignment_118861);
             ruleID();
 
             state._fsp--;
@@ -27317,22 +27633,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__TyVars__AttrAssignment_2_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9218:1: rule__TyVars__AttrAssignment_2_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9314:1: rule__TyVars__AttrAssignment_2_1 : ( ruleID ) ;
     public final void rule__TyVars__AttrAssignment_2_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9222:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9223:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9318:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9319:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9223:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9224:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9319:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9320:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyVarsAccess().getAttrIDParserRuleCall_2_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__TyVars__AttrAssignment_2_118705);
+            pushFollow(FOLLOW_ruleID_in_rule__TyVars__AttrAssignment_2_118892);
             ruleID();
 
             state._fsp--;
@@ -27362,22 +27678,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ConDecl__NameAssignment_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9233:1: rule__ConDecl__NameAssignment_0 : ( ruleCONS ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9329:1: rule__ConDecl__NameAssignment_0 : ( ruleCONS ) ;
     public final void rule__ConDecl__NameAssignment_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9237:1: ( ( ruleCONS ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9238:1: ( ruleCONS )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9333:1: ( ( ruleCONS ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9334:1: ( ruleCONS )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9238:1: ( ruleCONS )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9239:1: ruleCONS
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9334:1: ( ruleCONS )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9335:1: ruleCONS
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getConDeclAccess().getNameCONSParserRuleCall_0_0()); 
             }
-            pushFollow(FOLLOW_ruleCONS_in_rule__ConDecl__NameAssignment_018736);
+            pushFollow(FOLLOW_ruleCONS_in_rule__ConDecl__NameAssignment_018923);
             ruleCONS();
 
             state._fsp--;
@@ -27407,22 +27723,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ConDecl__TyAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9248:1: rule__ConDecl__TyAssignment_1_1 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9344:1: rule__ConDecl__TyAssignment_1_1 : ( ruleTy ) ;
     public final void rule__ConDecl__TyAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9252:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9253:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9348:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9349:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9253:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9254:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9349:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9350:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getConDeclAccess().getTyTyParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__ConDecl__TyAssignment_1_118767);
+            pushFollow(FOLLOW_ruleTy_in_rule__ConDecl__TyAssignment_1_118954);
             ruleTy();
 
             state._fsp--;
@@ -27452,22 +27768,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__ValueAssignment_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9263:1: rule__Ty__ValueAssignment_0 : ( ruleINTEGER ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9359:1: rule__Ty__ValueAssignment_0 : ( ruleINTEGER ) ;
     public final void rule__Ty__ValueAssignment_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9267:1: ( ( ruleINTEGER ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9268:1: ( ruleINTEGER )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9363:1: ( ( ruleINTEGER ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9364:1: ( ruleINTEGER )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9268:1: ( ruleINTEGER )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9269:1: ruleINTEGER
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9364:1: ( ruleINTEGER )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9365:1: ruleINTEGER
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getValueINTEGERParserRuleCall_0_0()); 
             }
-            pushFollow(FOLLOW_ruleINTEGER_in_rule__Ty__ValueAssignment_018798);
+            pushFollow(FOLLOW_ruleINTEGER_in_rule__Ty__ValueAssignment_018985);
             ruleINTEGER();
 
             state._fsp--;
@@ -27497,28 +27813,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__DeclAssignment_1_0_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9278:1: rule__Ty__DeclAssignment_1_0_0 : ( ( ruleID ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9374:1: rule__Ty__DeclAssignment_1_0_0 : ( ( ruleID ) ) ;
     public final void rule__Ty__DeclAssignment_1_0_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9282:1: ( ( ( ruleID ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9283:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9378:1: ( ( ( ruleID ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9379:1: ( ( ruleID ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9283:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9284:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9379:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9380:1: ( ruleID )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getDeclDeclTypeCrossReference_1_0_0_0()); 
             }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9285:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9286:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9381:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9382:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getDeclDeclTypeIDParserRuleCall_1_0_0_0_1()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__Ty__DeclAssignment_1_0_018833);
+            pushFollow(FOLLOW_ruleID_in_rule__Ty__DeclAssignment_1_0_019020);
             ruleID();
 
             state._fsp--;
@@ -27554,28 +27870,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__TypeAssignment_1_0_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9297:1: rule__Ty__TypeAssignment_1_0_1 : ( ( 'int' ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9393:1: rule__Ty__TypeAssignment_1_0_1 : ( ( 'int' ) ) ;
     public final void rule__Ty__TypeAssignment_1_0_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9301:1: ( ( ( 'int' ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9302:1: ( ( 'int' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9397:1: ( ( ( 'int' ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9398:1: ( ( 'int' ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9302:1: ( ( 'int' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9303:1: ( 'int' )
-            {
-            if ( state.backtracking==0 ) {
-               before(grammarAccess.getTyAccess().getTypeIntKeyword_1_0_1_0()); 
-            }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9304:1: ( 'int' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9305:1: 'int'
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9398:1: ( ( 'int' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9399:1: ( 'int' )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getTypeIntKeyword_1_0_1_0()); 
             }
-            match(input,59,FOLLOW_59_in_rule__Ty__TypeAssignment_1_0_118873); if (state.failed) return ;
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9400:1: ( 'int' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9401:1: 'int'
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getTyAccess().getTypeIntKeyword_1_0_1_0()); 
+            }
+            match(input,59,FOLLOW_59_in_rule__Ty__TypeAssignment_1_0_119060); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getTyAccess().getTypeIntKeyword_1_0_1_0()); 
             }
@@ -27607,22 +27923,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__TyBindAssignment_1_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9320:1: rule__Ty__TyBindAssignment_1_1_1 : ( ruleTyBind ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9416:1: rule__Ty__TyBindAssignment_1_1_1 : ( ruleTyBind ) ;
     public final void rule__Ty__TyBindAssignment_1_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9324:1: ( ( ruleTyBind ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9325:1: ( ruleTyBind )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9420:1: ( ( ruleTyBind ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9421:1: ( ruleTyBind )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9325:1: ( ruleTyBind )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9326:1: ruleTyBind
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9421:1: ( ruleTyBind )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9422:1: ruleTyBind
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getTyBindTyBindParserRuleCall_1_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleTyBind_in_rule__Ty__TyBindAssignment_1_1_118912);
+            pushFollow(FOLLOW_ruleTyBind_in_rule__Ty__TyBindAssignment_1_1_119099);
             ruleTyBind();
 
             state._fsp--;
@@ -27652,22 +27968,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__TyBindAssignment_1_1_2_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9335:1: rule__Ty__TyBindAssignment_1_1_2_1 : ( ruleTyBind ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9431:1: rule__Ty__TyBindAssignment_1_1_2_1 : ( ruleTyBind ) ;
     public final void rule__Ty__TyBindAssignment_1_1_2_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9339:1: ( ( ruleTyBind ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9340:1: ( ruleTyBind )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9435:1: ( ( ruleTyBind ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9436:1: ( ruleTyBind )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9340:1: ( ruleTyBind )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9341:1: ruleTyBind
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9436:1: ( ruleTyBind )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9437:1: ruleTyBind
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getTyBindTyBindParserRuleCall_1_1_2_1_0()); 
             }
-            pushFollow(FOLLOW_ruleTyBind_in_rule__Ty__TyBindAssignment_1_1_2_118943);
+            pushFollow(FOLLOW_ruleTyBind_in_rule__Ty__TyBindAssignment_1_1_2_119130);
             ruleTyBind();
 
             state._fsp--;
@@ -27697,22 +28013,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__ElementsAssignment_2_2_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9350:1: rule__Ty__ElementsAssignment_2_2_0 : ( ruleTyElement ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9446:1: rule__Ty__ElementsAssignment_2_2_0 : ( ruleTyElement ) ;
     public final void rule__Ty__ElementsAssignment_2_2_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9354:1: ( ( ruleTyElement ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9355:1: ( ruleTyElement )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9450:1: ( ( ruleTyElement ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9451:1: ( ruleTyElement )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9355:1: ( ruleTyElement )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9356:1: ruleTyElement
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9451:1: ( ruleTyElement )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9452:1: ruleTyElement
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getElementsTyElementParserRuleCall_2_2_0_0()); 
             }
-            pushFollow(FOLLOW_ruleTyElement_in_rule__Ty__ElementsAssignment_2_2_018974);
+            pushFollow(FOLLOW_ruleTyElement_in_rule__Ty__ElementsAssignment_2_2_019161);
             ruleTyElement();
 
             state._fsp--;
@@ -27742,22 +28058,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__ElementsAssignment_2_2_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9365:1: rule__Ty__ElementsAssignment_2_2_1_1 : ( ruleTyElement ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9461:1: rule__Ty__ElementsAssignment_2_2_1_1 : ( ruleTyElement ) ;
     public final void rule__Ty__ElementsAssignment_2_2_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9369:1: ( ( ruleTyElement ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9370:1: ( ruleTyElement )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9465:1: ( ( ruleTyElement ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9466:1: ( ruleTyElement )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9370:1: ( ruleTyElement )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9371:1: ruleTyElement
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9466:1: ( ruleTyElement )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9467:1: ruleTyElement
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getElementsTyElementParserRuleCall_2_2_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleTyElement_in_rule__Ty__ElementsAssignment_2_2_1_119005);
+            pushFollow(FOLLOW_ruleTyElement_in_rule__Ty__ElementsAssignment_2_2_1_119192);
             ruleTyElement();
 
             state._fsp--;
@@ -27787,22 +28103,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__ParamAssignment_3_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9380:1: rule__Ty__ParamAssignment_3_1 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9476:1: rule__Ty__ParamAssignment_3_1 : ( ruleTy ) ;
     public final void rule__Ty__ParamAssignment_3_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9384:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9385:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9480:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9481:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9385:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9386:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9481:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9482:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getParamTyParserRuleCall_3_1_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__Ty__ParamAssignment_3_119036);
+            pushFollow(FOLLOW_ruleTy_in_rule__Ty__ParamAssignment_3_119223);
             ruleTy();
 
             state._fsp--;
@@ -27832,22 +28148,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__ParamAssignment_3_2_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9395:1: rule__Ty__ParamAssignment_3_2_1 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9491:1: rule__Ty__ParamAssignment_3_2_1 : ( ruleTy ) ;
     public final void rule__Ty__ParamAssignment_3_2_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9399:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9400:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9495:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9496:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9400:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9401:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9496:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9497:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getParamTyParserRuleCall_3_2_1_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__Ty__ParamAssignment_3_2_119067);
+            pushFollow(FOLLOW_ruleTy_in_rule__Ty__ParamAssignment_3_2_119254);
             ruleTy();
 
             state._fsp--;
@@ -27877,22 +28193,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__ResTypeAssignment_3_5"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9410:1: rule__Ty__ResTypeAssignment_3_5 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9506:1: rule__Ty__ResTypeAssignment_3_5 : ( ruleTy ) ;
     public final void rule__Ty__ResTypeAssignment_3_5() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9414:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9415:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9510:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9511:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9415:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9416:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9511:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9512:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getResTypeTyParserRuleCall_3_5_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__Ty__ResTypeAssignment_3_519098);
+            pushFollow(FOLLOW_ruleTy_in_rule__Ty__ResTypeAssignment_3_519285);
             ruleTy();
 
             state._fsp--;
@@ -27922,22 +28238,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__RAssignment_5_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9425:1: rule__Ty__RAssignment_5_1 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9521:1: rule__Ty__RAssignment_5_1 : ( ruleTy ) ;
     public final void rule__Ty__RAssignment_5_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9429:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9430:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9525:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9526:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9430:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9431:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9526:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9527:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getRTyParserRuleCall_5_1_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__Ty__RAssignment_5_119129);
+            pushFollow(FOLLOW_ruleTy_in_rule__Ty__RAssignment_5_119316);
             ruleTy();
 
             state._fsp--;
@@ -27967,22 +28283,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__InAssignment_5_3"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9440:1: rule__Ty__InAssignment_5_3 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9536:1: rule__Ty__InAssignment_5_3 : ( ruleTy ) ;
     public final void rule__Ty__InAssignment_5_3() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9444:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9445:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9540:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9541:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9445:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9446:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9541:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9542:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getInTyParserRuleCall_5_3_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__Ty__InAssignment_5_319160);
+            pushFollow(FOLLOW_ruleTy_in_rule__Ty__InAssignment_5_319347);
             ruleTy();
 
             state._fsp--;
@@ -28012,22 +28328,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Ty__OutAssignment_5_5"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9455:1: rule__Ty__OutAssignment_5_5 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9551:1: rule__Ty__OutAssignment_5_5 : ( ruleTy ) ;
     public final void rule__Ty__OutAssignment_5_5() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9459:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9460:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9555:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9556:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9460:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9461:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9556:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9557:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyAccess().getOutTyParserRuleCall_5_5_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__Ty__OutAssignment_5_519191);
+            pushFollow(FOLLOW_ruleTy_in_rule__Ty__OutAssignment_5_519378);
             ruleTy();
 
             state._fsp--;
@@ -28057,22 +28373,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__TyBind__NameAssignment_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9470:1: rule__TyBind__NameAssignment_0 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9566:1: rule__TyBind__NameAssignment_0 : ( ruleID ) ;
     public final void rule__TyBind__NameAssignment_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9474:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9475:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9570:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9571:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9475:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9476:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9571:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9572:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyBindAccess().getNameIDParserRuleCall_0_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__TyBind__NameAssignment_019222);
+            pushFollow(FOLLOW_ruleID_in_rule__TyBind__NameAssignment_019409);
             ruleID();
 
             state._fsp--;
@@ -28102,22 +28418,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__TyBind__ValueAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9485:1: rule__TyBind__ValueAssignment_1_1 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9581:1: rule__TyBind__ValueAssignment_1_1 : ( ruleTy ) ;
     public final void rule__TyBind__ValueAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9489:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9490:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9585:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9586:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9490:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9491:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9586:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9587:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyBindAccess().getValueTyParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__TyBind__ValueAssignment_1_119253);
+            pushFollow(FOLLOW_ruleTy_in_rule__TyBind__ValueAssignment_1_119440);
             ruleTy();
 
             state._fsp--;
@@ -28147,22 +28463,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__TyElement__NameAssignment_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9500:1: rule__TyElement__NameAssignment_0 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9596:1: rule__TyElement__NameAssignment_0 : ( ruleID ) ;
     public final void rule__TyElement__NameAssignment_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9504:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9505:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9600:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9601:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9505:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9506:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9601:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9602:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyElementAccess().getNameIDParserRuleCall_0_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__TyElement__NameAssignment_019284);
+            pushFollow(FOLLOW_ruleID_in_rule__TyElement__NameAssignment_019471);
             ruleID();
 
             state._fsp--;
@@ -28192,22 +28508,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__TyElement__ValueAssignment_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9515:1: rule__TyElement__ValueAssignment_2 : ( ruleTy ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9611:1: rule__TyElement__ValueAssignment_2 : ( ruleTy ) ;
     public final void rule__TyElement__ValueAssignment_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9519:1: ( ( ruleTy ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9520:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9615:1: ( ( ruleTy ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9616:1: ( ruleTy )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9520:1: ( ruleTy )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9521:1: ruleTy
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9616:1: ( ruleTy )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9617:1: ruleTy
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getTyElementAccess().getValueTyParserRuleCall_2_0()); 
             }
-            pushFollow(FOLLOW_ruleTy_in_rule__TyElement__ValueAssignment_219315);
+            pushFollow(FOLLOW_ruleTy_in_rule__TyElement__ValueAssignment_219502);
             ruleTy();
 
             state._fsp--;
@@ -28237,22 +28553,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Exp__NameAssignment_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9530:1: rule__Exp__NameAssignment_0 : ( ruleCaseExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9626:1: rule__Exp__NameAssignment_0 : ( ruleCaseExp ) ;
     public final void rule__Exp__NameAssignment_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9534:1: ( ( ruleCaseExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9535:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9630:1: ( ( ruleCaseExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9631:1: ( ruleCaseExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9535:1: ( ruleCaseExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9536:1: ruleCaseExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9631:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9632:1: ruleCaseExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getExpAccess().getNameCaseExpParserRuleCall_0_0()); 
             }
-            pushFollow(FOLLOW_ruleCaseExp_in_rule__Exp__NameAssignment_019346);
+            pushFollow(FOLLOW_ruleCaseExp_in_rule__Exp__NameAssignment_019533);
             ruleCaseExp();
 
             state._fsp--;
@@ -28282,22 +28598,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Exp__MidAssignment_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9545:1: rule__Exp__MidAssignment_1_0 : ( ruleMID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9641:1: rule__Exp__MidAssignment_1_0 : ( ruleMID ) ;
     public final void rule__Exp__MidAssignment_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9549:1: ( ( ruleMID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9550:1: ( ruleMID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9645:1: ( ( ruleMID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9646:1: ( ruleMID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9550:1: ( ruleMID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9551:1: ruleMID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9646:1: ( ruleMID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9647:1: ruleMID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getExpAccess().getMidMIDParserRuleCall_1_0_0()); 
             }
-            pushFollow(FOLLOW_ruleMID_in_rule__Exp__MidAssignment_1_019377);
+            pushFollow(FOLLOW_ruleMID_in_rule__Exp__MidAssignment_1_019564);
             ruleMID();
 
             state._fsp--;
@@ -28327,22 +28643,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Exp__CaseExpsAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9560:1: rule__Exp__CaseExpsAssignment_1_1 : ( ruleCaseExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9656:1: rule__Exp__CaseExpsAssignment_1_1 : ( ruleCaseExp ) ;
     public final void rule__Exp__CaseExpsAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9564:1: ( ( ruleCaseExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9565:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9660:1: ( ( ruleCaseExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9661:1: ( ruleCaseExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9565:1: ( ruleCaseExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9566:1: ruleCaseExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9661:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9662:1: ruleCaseExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getExpAccess().getCaseExpsCaseExpParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleCaseExp_in_rule__Exp__CaseExpsAssignment_1_119408);
+            pushFollow(FOLLOW_ruleCaseExp_in_rule__Exp__CaseExpsAssignment_1_119595);
             ruleCaseExp();
 
             state._fsp--;
@@ -28372,28 +28688,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__CaseExp__NameAssignment_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9575:1: rule__CaseExp__NameAssignment_1_0 : ( ( 'case' ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9671:1: rule__CaseExp__NameAssignment_1_0 : ( ( 'case' ) ) ;
     public final void rule__CaseExp__NameAssignment_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9579:1: ( ( ( 'case' ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9580:1: ( ( 'case' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9675:1: ( ( ( 'case' ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9676:1: ( ( 'case' ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9580:1: ( ( 'case' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9581:1: ( 'case' )
-            {
-            if ( state.backtracking==0 ) {
-               before(grammarAccess.getCaseExpAccess().getNameCaseKeyword_1_0_0()); 
-            }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9582:1: ( 'case' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9583:1: 'case'
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9676:1: ( ( 'case' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9677:1: ( 'case' )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getNameCaseKeyword_1_0_0()); 
             }
-            match(input,60,FOLLOW_60_in_rule__CaseExp__NameAssignment_1_019444); if (state.failed) return ;
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9678:1: ( 'case' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9679:1: 'case'
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getCaseExpAccess().getNameCaseKeyword_1_0_0()); 
+            }
+            match(input,60,FOLLOW_60_in_rule__CaseExp__NameAssignment_1_019631); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getCaseExpAccess().getNameCaseKeyword_1_0_0()); 
             }
@@ -28425,22 +28741,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__CaseExp__ClosedExpAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9598:1: rule__CaseExp__ClosedExpAssignment_1_1 : ( ruleClosedExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9694:1: rule__CaseExp__ClosedExpAssignment_1_1 : ( ruleClosedExp ) ;
     public final void rule__CaseExp__ClosedExpAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9602:1: ( ( ruleClosedExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9603:1: ( ruleClosedExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9698:1: ( ( ruleClosedExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9699:1: ( ruleClosedExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9603:1: ( ruleClosedExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9604:1: ruleClosedExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9699:1: ( ruleClosedExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9700:1: ruleClosedExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getClosedExpClosedExpParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleClosedExp_in_rule__CaseExp__ClosedExpAssignment_1_119483);
+            pushFollow(FOLLOW_ruleClosedExp_in_rule__CaseExp__ClosedExpAssignment_1_119670);
             ruleClosedExp();
 
             state._fsp--;
@@ -28470,22 +28786,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__CaseExp__PatAssignment_1_3_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9613:1: rule__CaseExp__PatAssignment_1_3_0 : ( rulePAT ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9709:1: rule__CaseExp__PatAssignment_1_3_0 : ( rulePAT ) ;
     public final void rule__CaseExp__PatAssignment_1_3_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9617:1: ( ( rulePAT ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9618:1: ( rulePAT )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9713:1: ( ( rulePAT ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9714:1: ( rulePAT )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9618:1: ( rulePAT )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9619:1: rulePAT
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9714:1: ( rulePAT )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9715:1: rulePAT
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getPatPATParserRuleCall_1_3_0_0()); 
             }
-            pushFollow(FOLLOW_rulePAT_in_rule__CaseExp__PatAssignment_1_3_019514);
+            pushFollow(FOLLOW_rulePAT_in_rule__CaseExp__PatAssignment_1_3_019701);
             rulePAT();
 
             state._fsp--;
@@ -28515,22 +28831,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__CaseExp__ExpAssignment_1_3_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9628:1: rule__CaseExp__ExpAssignment_1_3_2 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9724:1: rule__CaseExp__ExpAssignment_1_3_2 : ( ruleExp ) ;
     public final void rule__CaseExp__ExpAssignment_1_3_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9632:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9633:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9728:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9729:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9633:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9634:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9729:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9730:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getExpExpParserRuleCall_1_3_2_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__CaseExp__ExpAssignment_1_3_219545);
+            pushFollow(FOLLOW_ruleExp_in_rule__CaseExp__ExpAssignment_1_3_219732);
             ruleExp();
 
             state._fsp--;
@@ -28560,22 +28876,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__CaseExp__PatAssignment_1_3_3_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9643:1: rule__CaseExp__PatAssignment_1_3_3_1 : ( rulePAT ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9739:1: rule__CaseExp__PatAssignment_1_3_3_1 : ( rulePAT ) ;
     public final void rule__CaseExp__PatAssignment_1_3_3_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9647:1: ( ( rulePAT ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9648:1: ( rulePAT )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9743:1: ( ( rulePAT ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9744:1: ( rulePAT )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9648:1: ( rulePAT )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9649:1: rulePAT
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9744:1: ( rulePAT )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9745:1: rulePAT
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getPatPATParserRuleCall_1_3_3_1_0()); 
             }
-            pushFollow(FOLLOW_rulePAT_in_rule__CaseExp__PatAssignment_1_3_3_119576);
+            pushFollow(FOLLOW_rulePAT_in_rule__CaseExp__PatAssignment_1_3_3_119763);
             rulePAT();
 
             state._fsp--;
@@ -28605,22 +28921,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__CaseExp__ExpAssignment_1_3_3_3"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9658:1: rule__CaseExp__ExpAssignment_1_3_3_3 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9754:1: rule__CaseExp__ExpAssignment_1_3_3_3 : ( ruleExp ) ;
     public final void rule__CaseExp__ExpAssignment_1_3_3_3() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9662:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9663:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9758:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9759:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9663:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9664:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9759:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9760:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getCaseExpAccess().getExpExpParserRuleCall_1_3_3_3_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__CaseExp__ExpAssignment_1_3_3_319607);
+            pushFollow(FOLLOW_ruleExp_in_rule__CaseExp__ExpAssignment_1_3_3_319794);
             ruleExp();
 
             state._fsp--;
@@ -28650,28 +28966,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ClosedExp__NameAssignment_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9673:1: rule__ClosedExp__NameAssignment_1_0 : ( ( 'if' ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9769:1: rule__ClosedExp__NameAssignment_1_0 : ( ( 'if' ) ) ;
     public final void rule__ClosedExp__NameAssignment_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9677:1: ( ( ( 'if' ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9678:1: ( ( 'if' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9773:1: ( ( ( 'if' ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9774:1: ( ( 'if' ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9678:1: ( ( 'if' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9679:1: ( 'if' )
-            {
-            if ( state.backtracking==0 ) {
-               before(grammarAccess.getClosedExpAccess().getNameIfKeyword_1_0_0()); 
-            }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9680:1: ( 'if' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9681:1: 'if'
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9774:1: ( ( 'if' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9775:1: ( 'if' )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getNameIfKeyword_1_0_0()); 
             }
-            match(input,61,FOLLOW_61_in_rule__ClosedExp__NameAssignment_1_019643); if (state.failed) return ;
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9776:1: ( 'if' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9777:1: 'if'
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getClosedExpAccess().getNameIfKeyword_1_0_0()); 
+            }
+            match(input,61,FOLLOW_61_in_rule__ClosedExp__NameAssignment_1_019830); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getClosedExpAccess().getNameIfKeyword_1_0_0()); 
             }
@@ -28703,22 +29019,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ClosedExp__IfCaseExpAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9696:1: rule__ClosedExp__IfCaseExpAssignment_1_1 : ( ruleCaseExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9792:1: rule__ClosedExp__IfCaseExpAssignment_1_1 : ( ruleCaseExp ) ;
     public final void rule__ClosedExp__IfCaseExpAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9700:1: ( ( ruleCaseExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9701:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9796:1: ( ( ruleCaseExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9797:1: ( ruleCaseExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9701:1: ( ruleCaseExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9702:1: ruleCaseExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9797:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9798:1: ruleCaseExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getIfCaseExpCaseExpParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleCaseExp_in_rule__ClosedExp__IfCaseExpAssignment_1_119682);
+            pushFollow(FOLLOW_ruleCaseExp_in_rule__ClosedExp__IfCaseExpAssignment_1_119869);
             ruleCaseExp();
 
             state._fsp--;
@@ -28748,22 +29064,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ClosedExp__ThenCaseExpAssignment_1_3"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9711:1: rule__ClosedExp__ThenCaseExpAssignment_1_3 : ( ruleCaseExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9807:1: rule__ClosedExp__ThenCaseExpAssignment_1_3 : ( ruleCaseExp ) ;
     public final void rule__ClosedExp__ThenCaseExpAssignment_1_3() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9715:1: ( ( ruleCaseExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9716:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9811:1: ( ( ruleCaseExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9812:1: ( ruleCaseExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9716:1: ( ruleCaseExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9717:1: ruleCaseExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9812:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9813:1: ruleCaseExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getThenCaseExpCaseExpParserRuleCall_1_3_0()); 
             }
-            pushFollow(FOLLOW_ruleCaseExp_in_rule__ClosedExp__ThenCaseExpAssignment_1_319713);
+            pushFollow(FOLLOW_ruleCaseExp_in_rule__ClosedExp__ThenCaseExpAssignment_1_319900);
             ruleCaseExp();
 
             state._fsp--;
@@ -28793,22 +29109,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ClosedExp__ElseCaseExpAssignment_1_5"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9726:1: rule__ClosedExp__ElseCaseExpAssignment_1_5 : ( ruleCaseExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9822:1: rule__ClosedExp__ElseCaseExpAssignment_1_5 : ( ruleCaseExp ) ;
     public final void rule__ClosedExp__ElseCaseExpAssignment_1_5() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9730:1: ( ( ruleCaseExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9731:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9826:1: ( ( ruleCaseExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9827:1: ( ruleCaseExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9731:1: ( ruleCaseExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9732:1: ruleCaseExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9827:1: ( ruleCaseExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9828:1: ruleCaseExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getElseCaseExpCaseExpParserRuleCall_1_5_0()); 
             }
-            pushFollow(FOLLOW_ruleCaseExp_in_rule__ClosedExp__ElseCaseExpAssignment_1_519744);
+            pushFollow(FOLLOW_ruleCaseExp_in_rule__ClosedExp__ElseCaseExpAssignment_1_519931);
             ruleCaseExp();
 
             state._fsp--;
@@ -28838,28 +29154,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ClosedExp__NameAssignment_2_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9741:1: rule__ClosedExp__NameAssignment_2_0 : ( ( 'do' ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9837:1: rule__ClosedExp__NameAssignment_2_0 : ( ( 'do' ) ) ;
     public final void rule__ClosedExp__NameAssignment_2_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9745:1: ( ( ( 'do' ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9746:1: ( ( 'do' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9841:1: ( ( ( 'do' ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9842:1: ( ( 'do' ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9746:1: ( ( 'do' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9747:1: ( 'do' )
-            {
-            if ( state.backtracking==0 ) {
-               before(grammarAccess.getClosedExpAccess().getNameDoKeyword_2_0_0()); 
-            }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9748:1: ( 'do' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9749:1: 'do'
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9842:1: ( ( 'do' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9843:1: ( 'do' )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getNameDoKeyword_2_0_0()); 
             }
-            match(input,62,FOLLOW_62_in_rule__ClosedExp__NameAssignment_2_019780); if (state.failed) return ;
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9844:1: ( 'do' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9845:1: 'do'
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getClosedExpAccess().getNameDoKeyword_2_0_0()); 
+            }
+            match(input,62,FOLLOW_62_in_rule__ClosedExp__NameAssignment_2_019967); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getClosedExpAccess().getNameDoKeyword_2_0_0()); 
             }
@@ -28891,22 +29207,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ClosedExp__DoExpAssignment_2_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9764:1: rule__ClosedExp__DoExpAssignment_2_1 : ( ruleMonadicExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9860:1: rule__ClosedExp__DoExpAssignment_2_1 : ( ruleMonadicExp ) ;
     public final void rule__ClosedExp__DoExpAssignment_2_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9768:1: ( ( ruleMonadicExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9769:1: ( ruleMonadicExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9864:1: ( ( ruleMonadicExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9865:1: ( ruleMonadicExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9769:1: ( ruleMonadicExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9770:1: ruleMonadicExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9865:1: ( ruleMonadicExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9866:1: ruleMonadicExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getDoExpMonadicExpParserRuleCall_2_1_0()); 
             }
-            pushFollow(FOLLOW_ruleMonadicExp_in_rule__ClosedExp__DoExpAssignment_2_119819);
+            pushFollow(FOLLOW_ruleMonadicExp_in_rule__ClosedExp__DoExpAssignment_2_120006);
             ruleMonadicExp();
 
             state._fsp--;
@@ -28936,22 +29252,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ClosedExp__DoExpAssignment_2_2_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9779:1: rule__ClosedExp__DoExpAssignment_2_2_1 : ( ruleMonadicExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9875:1: rule__ClosedExp__DoExpAssignment_2_2_1 : ( ruleMonadicExp ) ;
     public final void rule__ClosedExp__DoExpAssignment_2_2_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9783:1: ( ( ruleMonadicExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9784:1: ( ruleMonadicExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9879:1: ( ( ruleMonadicExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9880:1: ( ruleMonadicExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9784:1: ( ruleMonadicExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9785:1: ruleMonadicExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9880:1: ( ruleMonadicExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9881:1: ruleMonadicExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getClosedExpAccess().getDoExpMonadicExpParserRuleCall_2_2_1_0()); 
             }
-            pushFollow(FOLLOW_ruleMonadicExp_in_rule__ClosedExp__DoExpAssignment_2_2_119850);
+            pushFollow(FOLLOW_ruleMonadicExp_in_rule__ClosedExp__DoExpAssignment_2_2_120037);
             ruleMonadicExp();
 
             state._fsp--;
@@ -28981,22 +29297,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__MonadicExp__ExpAssignment_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9794:1: rule__MonadicExp__ExpAssignment_0 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9890:1: rule__MonadicExp__ExpAssignment_0 : ( ruleExp ) ;
     public final void rule__MonadicExp__ExpAssignment_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9798:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9799:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9894:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9895:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9799:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9800:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9895:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9896:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getMonadicExpAccess().getExpExpParserRuleCall_0_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__MonadicExp__ExpAssignment_019881);
+            pushFollow(FOLLOW_ruleExp_in_rule__MonadicExp__ExpAssignment_020068);
             ruleExp();
 
             state._fsp--;
@@ -29026,22 +29342,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__MonadicExp__NameAssignment_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9809:1: rule__MonadicExp__NameAssignment_1_0 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9905:1: rule__MonadicExp__NameAssignment_1_0 : ( ruleID ) ;
     public final void rule__MonadicExp__NameAssignment_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9813:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9814:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9909:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9910:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9814:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9815:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9910:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9911:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getMonadicExpAccess().getNameIDParserRuleCall_1_0_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__MonadicExp__NameAssignment_1_019912);
+            pushFollow(FOLLOW_ruleID_in_rule__MonadicExp__NameAssignment_1_020099);
             ruleID();
 
             state._fsp--;
@@ -29071,22 +29387,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__MonadicExp__ExpAssignment_1_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9824:1: rule__MonadicExp__ExpAssignment_1_2 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9920:1: rule__MonadicExp__ExpAssignment_1_2 : ( ruleExp ) ;
     public final void rule__MonadicExp__ExpAssignment_1_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9828:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9829:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9924:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9925:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9829:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9830:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9925:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9926:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getMonadicExpAccess().getExpExpParserRuleCall_1_2_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__MonadicExp__ExpAssignment_1_219943);
+            pushFollow(FOLLOW_ruleExp_in_rule__MonadicExp__ExpAssignment_1_220130);
             ruleExp();
 
             state._fsp--;
@@ -29116,28 +29432,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__OrElseExp__NameAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9839:1: rule__OrElseExp__NameAssignment_1_1 : ( ( 'or' ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9935:1: rule__OrElseExp__NameAssignment_1_1 : ( ( 'or' ) ) ;
     public final void rule__OrElseExp__NameAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9843:1: ( ( ( 'or' ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9844:1: ( ( 'or' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9939:1: ( ( ( 'or' ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9940:1: ( ( 'or' ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9844:1: ( ( 'or' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9845:1: ( 'or' )
-            {
-            if ( state.backtracking==0 ) {
-               before(grammarAccess.getOrElseExpAccess().getNameOrKeyword_1_1_0()); 
-            }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9846:1: ( 'or' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9847:1: 'or'
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9940:1: ( ( 'or' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9941:1: ( 'or' )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getOrElseExpAccess().getNameOrKeyword_1_1_0()); 
             }
-            match(input,63,FOLLOW_63_in_rule__OrElseExp__NameAssignment_1_119979); if (state.failed) return ;
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9942:1: ( 'or' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9943:1: 'or'
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getOrElseExpAccess().getNameOrKeyword_1_1_0()); 
+            }
+            match(input,63,FOLLOW_63_in_rule__OrElseExp__NameAssignment_1_120166); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getOrElseExpAccess().getNameOrKeyword_1_1_0()); 
             }
@@ -29169,22 +29485,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__OrElseExp__RightAssignment_1_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9862:1: rule__OrElseExp__RightAssignment_1_2 : ( ruleAndAlsoExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9958:1: rule__OrElseExp__RightAssignment_1_2 : ( ruleAndAlsoExp ) ;
     public final void rule__OrElseExp__RightAssignment_1_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9866:1: ( ( ruleAndAlsoExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9867:1: ( ruleAndAlsoExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9962:1: ( ( ruleAndAlsoExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9963:1: ( ruleAndAlsoExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9867:1: ( ruleAndAlsoExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9868:1: ruleAndAlsoExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9963:1: ( ruleAndAlsoExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9964:1: ruleAndAlsoExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getOrElseExpAccess().getRightAndAlsoExpParserRuleCall_1_2_0()); 
             }
-            pushFollow(FOLLOW_ruleAndAlsoExp_in_rule__OrElseExp__RightAssignment_1_220018);
+            pushFollow(FOLLOW_ruleAndAlsoExp_in_rule__OrElseExp__RightAssignment_1_220205);
             ruleAndAlsoExp();
 
             state._fsp--;
@@ -29214,28 +29530,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AndAlsoExp__NameAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9877:1: rule__AndAlsoExp__NameAssignment_1_1 : ( ( 'and' ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9973:1: rule__AndAlsoExp__NameAssignment_1_1 : ( ( 'and' ) ) ;
     public final void rule__AndAlsoExp__NameAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9881:1: ( ( ( 'and' ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9882:1: ( ( 'and' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9977:1: ( ( ( 'and' ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9978:1: ( ( 'and' ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9882:1: ( ( 'and' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9883:1: ( 'and' )
-            {
-            if ( state.backtracking==0 ) {
-               before(grammarAccess.getAndAlsoExpAccess().getNameAndKeyword_1_1_0()); 
-            }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9884:1: ( 'and' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9885:1: 'and'
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9978:1: ( ( 'and' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9979:1: ( 'and' )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAndAlsoExpAccess().getNameAndKeyword_1_1_0()); 
             }
-            match(input,64,FOLLOW_64_in_rule__AndAlsoExp__NameAssignment_1_120054); if (state.failed) return ;
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9980:1: ( 'and' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9981:1: 'and'
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getAndAlsoExpAccess().getNameAndKeyword_1_1_0()); 
+            }
+            match(input,64,FOLLOW_64_in_rule__AndAlsoExp__NameAssignment_1_120241); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAndAlsoExpAccess().getNameAndKeyword_1_1_0()); 
             }
@@ -29267,22 +29583,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AndAlsoExp__RightAssignment_1_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9900:1: rule__AndAlsoExp__RightAssignment_1_2 : ( ruleRExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9996:1: rule__AndAlsoExp__RightAssignment_1_2 : ( ruleRExp ) ;
     public final void rule__AndAlsoExp__RightAssignment_1_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9904:1: ( ( ruleRExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9905:1: ( ruleRExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10000:1: ( ( ruleRExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10001:1: ( ruleRExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9905:1: ( ruleRExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9906:1: ruleRExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10001:1: ( ruleRExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10002:1: ruleRExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAndAlsoExpAccess().getRightRExpParserRuleCall_1_2_0()); 
             }
-            pushFollow(FOLLOW_ruleRExp_in_rule__AndAlsoExp__RightAssignment_1_220093);
+            pushFollow(FOLLOW_ruleRExp_in_rule__AndAlsoExp__RightAssignment_1_220280);
             ruleRExp();
 
             state._fsp--;
@@ -29312,22 +29628,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__RExp__SymAssignment_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9915:1: rule__RExp__SymAssignment_1_0 : ( ruleSYM ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10011:1: rule__RExp__SymAssignment_1_0 : ( ruleSYM ) ;
     public final void rule__RExp__SymAssignment_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9919:1: ( ( ruleSYM ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9920:1: ( ruleSYM )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10015:1: ( ( ruleSYM ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10016:1: ( ruleSYM )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9920:1: ( ruleSYM )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9921:1: ruleSYM
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10016:1: ( ruleSYM )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10017:1: ruleSYM
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getRExpAccess().getSymSYMParserRuleCall_1_0_0()); 
             }
-            pushFollow(FOLLOW_ruleSYM_in_rule__RExp__SymAssignment_1_020124);
+            pushFollow(FOLLOW_ruleSYM_in_rule__RExp__SymAssignment_1_020311);
             ruleSYM();
 
             state._fsp--;
@@ -29357,22 +29673,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__RExp__AexpsAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9930:1: rule__RExp__AexpsAssignment_1_1 : ( ruleAExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10026:1: rule__RExp__AexpsAssignment_1_1 : ( ruleAExp ) ;
     public final void rule__RExp__AexpsAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9934:1: ( ( ruleAExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9935:1: ( ruleAExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10030:1: ( ( ruleAExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10031:1: ( ruleAExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9935:1: ( ruleAExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9936:1: ruleAExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10031:1: ( ruleAExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10032:1: ruleAExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getRExpAccess().getAexpsAExpParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleAExp_in_rule__RExp__AexpsAssignment_1_120155);
+            pushFollow(FOLLOW_ruleAExp_in_rule__RExp__AexpsAssignment_1_120342);
             ruleAExp();
 
             state._fsp--;
@@ -29402,25 +29718,25 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AExp__SignAssignment_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9945:1: rule__AExp__SignAssignment_1_0 : ( ( rule__AExp__SignAlternatives_1_0_0 ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10041:1: rule__AExp__SignAssignment_1_0 : ( ( rule__AExp__SignAlternatives_1_0_0 ) ) ;
     public final void rule__AExp__SignAssignment_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9949:1: ( ( ( rule__AExp__SignAlternatives_1_0_0 ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9950:1: ( ( rule__AExp__SignAlternatives_1_0_0 ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10045:1: ( ( ( rule__AExp__SignAlternatives_1_0_0 ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10046:1: ( ( rule__AExp__SignAlternatives_1_0_0 ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9950:1: ( ( rule__AExp__SignAlternatives_1_0_0 ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9951:1: ( rule__AExp__SignAlternatives_1_0_0 )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10046:1: ( ( rule__AExp__SignAlternatives_1_0_0 ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10047:1: ( rule__AExp__SignAlternatives_1_0_0 )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAExpAccess().getSignAlternatives_1_0_0()); 
             }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9952:1: ( rule__AExp__SignAlternatives_1_0_0 )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9952:2: rule__AExp__SignAlternatives_1_0_0
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10048:1: ( rule__AExp__SignAlternatives_1_0_0 )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10048:2: rule__AExp__SignAlternatives_1_0_0
             {
-            pushFollow(FOLLOW_rule__AExp__SignAlternatives_1_0_0_in_rule__AExp__SignAssignment_1_020186);
+            pushFollow(FOLLOW_rule__AExp__SignAlternatives_1_0_0_in_rule__AExp__SignAssignment_1_020373);
             rule__AExp__SignAlternatives_1_0_0();
 
             state._fsp--;
@@ -29453,22 +29769,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AExp__MexpsAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9961:1: rule__AExp__MexpsAssignment_1_1 : ( ruleMExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10057:1: rule__AExp__MexpsAssignment_1_1 : ( ruleMExp ) ;
     public final void rule__AExp__MexpsAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9965:1: ( ( ruleMExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9966:1: ( ruleMExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10061:1: ( ( ruleMExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10062:1: ( ruleMExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9966:1: ( ruleMExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9967:1: ruleMExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10062:1: ( ruleMExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10063:1: ruleMExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAExpAccess().getMexpsMExpParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleMExp_in_rule__AExp__MexpsAssignment_1_120219);
+            pushFollow(FOLLOW_ruleMExp_in_rule__AExp__MexpsAssignment_1_120406);
             ruleMExp();
 
             state._fsp--;
@@ -29498,25 +29814,25 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__MExp__SymbolAssignment_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9976:1: rule__MExp__SymbolAssignment_1_0 : ( ( rule__MExp__SymbolAlternatives_1_0_0 ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10072:1: rule__MExp__SymbolAssignment_1_0 : ( ( rule__MExp__SymbolAlternatives_1_0_0 ) ) ;
     public final void rule__MExp__SymbolAssignment_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9980:1: ( ( ( rule__MExp__SymbolAlternatives_1_0_0 ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9981:1: ( ( rule__MExp__SymbolAlternatives_1_0_0 ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10076:1: ( ( ( rule__MExp__SymbolAlternatives_1_0_0 ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10077:1: ( ( rule__MExp__SymbolAlternatives_1_0_0 ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9981:1: ( ( rule__MExp__SymbolAlternatives_1_0_0 ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9982:1: ( rule__MExp__SymbolAlternatives_1_0_0 )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10077:1: ( ( rule__MExp__SymbolAlternatives_1_0_0 ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10078:1: ( rule__MExp__SymbolAlternatives_1_0_0 )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getMExpAccess().getSymbolAlternatives_1_0_0()); 
             }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9983:1: ( rule__MExp__SymbolAlternatives_1_0_0 )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9983:2: rule__MExp__SymbolAlternatives_1_0_0
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10079:1: ( rule__MExp__SymbolAlternatives_1_0_0 )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10079:2: rule__MExp__SymbolAlternatives_1_0_0
             {
-            pushFollow(FOLLOW_rule__MExp__SymbolAlternatives_1_0_0_in_rule__MExp__SymbolAssignment_1_020250);
+            pushFollow(FOLLOW_rule__MExp__SymbolAlternatives_1_0_0_in_rule__MExp__SymbolAssignment_1_020437);
             rule__MExp__SymbolAlternatives_1_0_0();
 
             state._fsp--;
@@ -29549,22 +29865,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__MExp__ApplyexpsAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9992:1: rule__MExp__ApplyexpsAssignment_1_1 : ( ruleApplyExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10088:1: rule__MExp__ApplyexpsAssignment_1_1 : ( ruleApplyExp ) ;
     public final void rule__MExp__ApplyexpsAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9996:1: ( ( ruleApplyExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9997:1: ( ruleApplyExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10092:1: ( ( ruleApplyExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10093:1: ( ruleApplyExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9997:1: ( ruleApplyExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9998:1: ruleApplyExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10093:1: ( ruleApplyExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10094:1: ruleApplyExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getMExpAccess().getApplyexpsApplyExpParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleApplyExp_in_rule__MExp__ApplyexpsAssignment_1_120283);
+            pushFollow(FOLLOW_ruleApplyExp_in_rule__MExp__ApplyexpsAssignment_1_120470);
             ruleApplyExp();
 
             state._fsp--;
@@ -29594,22 +29910,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__SelectExp__ApplyexpsAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10007:1: rule__SelectExp__ApplyexpsAssignment_1_1 : ( ruleApplyExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10103:1: rule__SelectExp__ApplyexpsAssignment_1_1 : ( ruleApplyExp ) ;
     public final void rule__SelectExp__ApplyexpsAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10011:1: ( ( ruleApplyExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10012:1: ( ruleApplyExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10107:1: ( ( ruleApplyExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10108:1: ( ruleApplyExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10012:1: ( ruleApplyExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10013:1: ruleApplyExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10108:1: ( ruleApplyExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10109:1: ruleApplyExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getSelectExpAccess().getApplyexpsApplyExpParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleApplyExp_in_rule__SelectExp__ApplyexpsAssignment_1_120314);
+            pushFollow(FOLLOW_ruleApplyExp_in_rule__SelectExp__ApplyexpsAssignment_1_120501);
             ruleApplyExp();
 
             state._fsp--;
@@ -29639,22 +29955,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ApplyExp__AtomicExpAssignment_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10022:1: rule__ApplyExp__AtomicExpAssignment_1_0 : ( ruleAtomicExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10118:1: rule__ApplyExp__AtomicExpAssignment_1_0 : ( ruleAtomicExp ) ;
     public final void rule__ApplyExp__AtomicExpAssignment_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10026:1: ( ( ruleAtomicExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10027:1: ( ruleAtomicExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10122:1: ( ( ruleAtomicExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10123:1: ( ruleAtomicExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10027:1: ( ruleAtomicExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10028:1: ruleAtomicExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10123:1: ( ruleAtomicExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10124:1: ruleAtomicExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getApplyExpAccess().getAtomicExpAtomicExpParserRuleCall_1_0_0()); 
             }
-            pushFollow(FOLLOW_ruleAtomicExp_in_rule__ApplyExp__AtomicExpAssignment_1_020345);
+            pushFollow(FOLLOW_ruleAtomicExp_in_rule__ApplyExp__AtomicExpAssignment_1_020532);
             ruleAtomicExp();
 
             state._fsp--;
@@ -29684,22 +30000,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__NameAssignment_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10037:1: rule__AtomicExp__NameAssignment_0 : ( ruleLIT ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10133:1: rule__AtomicExp__NameAssignment_0 : ( ruleLIT ) ;
     public final void rule__AtomicExp__NameAssignment_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10041:1: ( ( ruleLIT ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10042:1: ( ruleLIT )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10137:1: ( ( ruleLIT ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10138:1: ( ruleLIT )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10042:1: ( ruleLIT )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10043:1: ruleLIT
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10138:1: ( ruleLIT )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10139:1: ruleLIT
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getNameLITParserRuleCall_0_0()); 
             }
-            pushFollow(FOLLOW_ruleLIT_in_rule__AtomicExp__NameAssignment_020376);
+            pushFollow(FOLLOW_ruleLIT_in_rule__AtomicExp__NameAssignment_020563);
             ruleLIT();
 
             state._fsp--;
@@ -29729,22 +30045,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__NameAssignment_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10052:1: rule__AtomicExp__NameAssignment_1 : ( RULE_STRING ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10148:1: rule__AtomicExp__NameAssignment_1 : ( RULE_STRING ) ;
     public final void rule__AtomicExp__NameAssignment_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10056:1: ( ( RULE_STRING ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10057:1: ( RULE_STRING )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10152:1: ( ( RULE_STRING ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10153:1: ( RULE_STRING )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10057:1: ( RULE_STRING )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10058:1: RULE_STRING
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10153:1: ( RULE_STRING )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10154:1: RULE_STRING
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getNameSTRINGTerminalRuleCall_1_0()); 
             }
-            match(input,RULE_STRING,FOLLOW_RULE_STRING_in_rule__AtomicExp__NameAssignment_120407); if (state.failed) return ;
+            match(input,RULE_STRING,FOLLOW_RULE_STRING_in_rule__AtomicExp__NameAssignment_120594); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getNameSTRINGTerminalRuleCall_1_0()); 
             }
@@ -29770,22 +30086,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__NameAssignment_2_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10067:1: rule__AtomicExp__NameAssignment_2_0 : ( ruleCONS ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10163:1: rule__AtomicExp__NameAssignment_2_0 : ( ruleCONS ) ;
     public final void rule__AtomicExp__NameAssignment_2_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10071:1: ( ( ruleCONS ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10072:1: ( ruleCONS )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10167:1: ( ( ruleCONS ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10168:1: ( ruleCONS )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10072:1: ( ruleCONS )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10073:1: ruleCONS
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10168:1: ( ruleCONS )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10169:1: ruleCONS
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getNameCONSParserRuleCall_2_0_0()); 
             }
-            pushFollow(FOLLOW_ruleCONS_in_rule__AtomicExp__NameAssignment_2_020438);
+            pushFollow(FOLLOW_ruleCONS_in_rule__AtomicExp__NameAssignment_2_020625);
             ruleCONS();
 
             state._fsp--;
@@ -29815,22 +30131,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__NameAssignment_3_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10082:1: rule__AtomicExp__NameAssignment_3_0 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10178:1: rule__AtomicExp__NameAssignment_3_0 : ( ruleID ) ;
     public final void rule__AtomicExp__NameAssignment_3_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10086:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10087:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10182:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10183:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10087:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10088:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10183:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10184:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getNameIDParserRuleCall_3_0_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__NameAssignment_3_020469);
+            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__NameAssignment_3_020656);
             ruleID();
 
             state._fsp--;
@@ -29860,22 +30176,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__IdAssignment_3_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10097:1: rule__AtomicExp__IdAssignment_3_1_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10193:1: rule__AtomicExp__IdAssignment_3_1_1 : ( ruleID ) ;
     public final void rule__AtomicExp__IdAssignment_3_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10101:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10102:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10197:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10198:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10102:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10103:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10198:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10199:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getIdIDParserRuleCall_3_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_3_1_120500);
+            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_3_1_120687);
             ruleID();
 
             state._fsp--;
@@ -29905,28 +30221,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__NameAssignment_4_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10112:1: rule__AtomicExp__NameAssignment_4_0 : ( ( '@' ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10208:1: rule__AtomicExp__NameAssignment_4_0 : ( ( '@' ) ) ;
     public final void rule__AtomicExp__NameAssignment_4_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10116:1: ( ( ( '@' ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10117:1: ( ( '@' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10212:1: ( ( ( '@' ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10213:1: ( ( '@' ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10117:1: ( ( '@' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10118:1: ( '@' )
-            {
-            if ( state.backtracking==0 ) {
-               before(grammarAccess.getAtomicExpAccess().getNameCommercialAtKeyword_4_0_0()); 
-            }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10119:1: ( '@' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10120:1: '@'
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10213:1: ( ( '@' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10214:1: ( '@' )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getNameCommercialAtKeyword_4_0_0()); 
             }
-            match(input,58,FOLLOW_58_in_rule__AtomicExp__NameAssignment_4_020536); if (state.failed) return ;
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10215:1: ( '@' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10216:1: '@'
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getAtomicExpAccess().getNameCommercialAtKeyword_4_0_0()); 
+            }
+            match(input,58,FOLLOW_58_in_rule__AtomicExp__NameAssignment_4_020723); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getNameCommercialAtKeyword_4_0_0()); 
             }
@@ -29958,22 +30274,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__FieldsAssignment_4_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10135:1: rule__AtomicExp__FieldsAssignment_4_2 : ( ruleField ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10231:1: rule__AtomicExp__FieldsAssignment_4_2 : ( ruleField ) ;
     public final void rule__AtomicExp__FieldsAssignment_4_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10139:1: ( ( ruleField ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10140:1: ( ruleField )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10235:1: ( ( ruleField ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10236:1: ( ruleField )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10140:1: ( ruleField )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10141:1: ruleField
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10236:1: ( ruleField )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10237:1: ruleField
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getFieldsFieldParserRuleCall_4_2_0()); 
             }
-            pushFollow(FOLLOW_ruleField_in_rule__AtomicExp__FieldsAssignment_4_220575);
+            pushFollow(FOLLOW_ruleField_in_rule__AtomicExp__FieldsAssignment_4_220762);
             ruleField();
 
             state._fsp--;
@@ -30003,22 +30319,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__FieldsAssignment_4_3_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10150:1: rule__AtomicExp__FieldsAssignment_4_3_1 : ( ruleField ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10246:1: rule__AtomicExp__FieldsAssignment_4_3_1 : ( ruleField ) ;
     public final void rule__AtomicExp__FieldsAssignment_4_3_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10154:1: ( ( ruleField ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10155:1: ( ruleField )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10250:1: ( ( ruleField ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10251:1: ( ruleField )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10155:1: ( ruleField )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10156:1: ruleField
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10251:1: ( ruleField )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10252:1: ruleField
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getFieldsFieldParserRuleCall_4_3_1_0()); 
             }
-            pushFollow(FOLLOW_ruleField_in_rule__AtomicExp__FieldsAssignment_4_3_120606);
+            pushFollow(FOLLOW_ruleField_in_rule__AtomicExp__FieldsAssignment_4_3_120793);
             ruleField();
 
             state._fsp--;
@@ -30048,22 +30364,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__NameAssignment_5_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10165:1: rule__AtomicExp__NameAssignment_5_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10261:1: rule__AtomicExp__NameAssignment_5_1 : ( ruleID ) ;
     public final void rule__AtomicExp__NameAssignment_5_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10169:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10170:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10265:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10266:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10170:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10171:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10266:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10267:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getNameIDParserRuleCall_5_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__NameAssignment_5_120637);
+            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__NameAssignment_5_120824);
             ruleID();
 
             state._fsp--;
@@ -30093,22 +30409,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__ExprAssignment_6_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10180:1: rule__AtomicExp__ExprAssignment_6_1 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10276:1: rule__AtomicExp__ExprAssignment_6_1 : ( ruleExp ) ;
     public final void rule__AtomicExp__ExprAssignment_6_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10184:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10185:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10280:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10281:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10185:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10186:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10281:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10282:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getExprExpParserRuleCall_6_1_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__AtomicExp__ExprAssignment_6_120668);
+            pushFollow(FOLLOW_ruleExp_in_rule__AtomicExp__ExprAssignment_6_120855);
             ruleExp();
 
             state._fsp--;
@@ -30138,22 +30454,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__IdAssignment_6_3_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10195:1: rule__AtomicExp__IdAssignment_6_3_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10291:1: rule__AtomicExp__IdAssignment_6_3_1 : ( ruleID ) ;
     public final void rule__AtomicExp__IdAssignment_6_3_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10199:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10200:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10295:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10296:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10200:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10201:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10296:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10297:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getIdIDParserRuleCall_6_3_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_6_3_120699);
+            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_6_3_120886);
             ruleID();
 
             state._fsp--;
@@ -30183,22 +30499,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__IdAssignment_7_2_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10210:1: rule__AtomicExp__IdAssignment_7_2_0 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10306:1: rule__AtomicExp__IdAssignment_7_2_0 : ( ruleID ) ;
     public final void rule__AtomicExp__IdAssignment_7_2_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10214:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10215:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10310:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10311:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10215:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10216:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10311:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10312:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getIdIDParserRuleCall_7_2_0_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_7_2_020730);
+            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_7_2_020917);
             ruleID();
 
             state._fsp--;
@@ -30228,22 +30544,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__ExpsAssignment_7_2_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10225:1: rule__AtomicExp__ExpsAssignment_7_2_2 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10321:1: rule__AtomicExp__ExpsAssignment_7_2_2 : ( ruleExp ) ;
     public final void rule__AtomicExp__ExpsAssignment_7_2_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10229:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10230:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10325:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10326:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10230:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10231:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10326:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10327:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getExpsExpParserRuleCall_7_2_2_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__AtomicExp__ExpsAssignment_7_2_220761);
+            pushFollow(FOLLOW_ruleExp_in_rule__AtomicExp__ExpsAssignment_7_2_220948);
             ruleExp();
 
             state._fsp--;
@@ -30273,22 +30589,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__IdAssignment_7_2_3_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10240:1: rule__AtomicExp__IdAssignment_7_2_3_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10336:1: rule__AtomicExp__IdAssignment_7_2_3_1 : ( ruleID ) ;
     public final void rule__AtomicExp__IdAssignment_7_2_3_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10244:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10245:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10340:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10341:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10245:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10246:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10341:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10342:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getIdIDParserRuleCall_7_2_3_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_7_2_3_120792);
+            pushFollow(FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_7_2_3_120979);
             ruleID();
 
             state._fsp--;
@@ -30318,22 +30634,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__ExpsAssignment_7_2_3_3"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10255:1: rule__AtomicExp__ExpsAssignment_7_2_3_3 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10351:1: rule__AtomicExp__ExpsAssignment_7_2_3_3 : ( ruleExp ) ;
     public final void rule__AtomicExp__ExpsAssignment_7_2_3_3() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10259:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10260:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10355:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10356:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10260:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10261:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10356:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10357:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getExpsExpParserRuleCall_7_2_3_3_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__AtomicExp__ExpsAssignment_7_2_3_320823);
+            pushFollow(FOLLOW_ruleExp_in_rule__AtomicExp__ExpsAssignment_7_2_3_321010);
             ruleExp();
 
             state._fsp--;
@@ -30363,28 +30679,28 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__NameAssignment_8_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10270:1: rule__AtomicExp__NameAssignment_8_0 : ( ( 'let' ) ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10366:1: rule__AtomicExp__NameAssignment_8_0 : ( ( 'let' ) ) ;
     public final void rule__AtomicExp__NameAssignment_8_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10274:1: ( ( ( 'let' ) ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10275:1: ( ( 'let' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10370:1: ( ( ( 'let' ) ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10371:1: ( ( 'let' ) )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10275:1: ( ( 'let' ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10276:1: ( 'let' )
-            {
-            if ( state.backtracking==0 ) {
-               before(grammarAccess.getAtomicExpAccess().getNameLetKeyword_8_0_0()); 
-            }
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10277:1: ( 'let' )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10278:1: 'let'
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10371:1: ( ( 'let' ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10372:1: ( 'let' )
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getNameLetKeyword_8_0_0()); 
             }
-            match(input,65,FOLLOW_65_in_rule__AtomicExp__NameAssignment_8_020859); if (state.failed) return ;
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10373:1: ( 'let' )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10374:1: 'let'
+            {
+            if ( state.backtracking==0 ) {
+               before(grammarAccess.getAtomicExpAccess().getNameLetKeyword_8_0_0()); 
+            }
+            match(input,65,FOLLOW_65_in_rule__AtomicExp__NameAssignment_8_021046); if (state.failed) return ;
             if ( state.backtracking==0 ) {
                after(grammarAccess.getAtomicExpAccess().getNameLetKeyword_8_0_0()); 
             }
@@ -30416,22 +30732,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__ValDeclAssignment_8_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10293:1: rule__AtomicExp__ValDeclAssignment_8_1 : ( ruleValueDecl ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10389:1: rule__AtomicExp__ValDeclAssignment_8_1 : ( ruleValueDecl ) ;
     public final void rule__AtomicExp__ValDeclAssignment_8_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10297:1: ( ( ruleValueDecl ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10298:1: ( ruleValueDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10393:1: ( ( ruleValueDecl ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10394:1: ( ruleValueDecl )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10298:1: ( ruleValueDecl )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10299:1: ruleValueDecl
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10394:1: ( ruleValueDecl )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10395:1: ruleValueDecl
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getValDeclValueDeclParserRuleCall_8_1_0()); 
             }
-            pushFollow(FOLLOW_ruleValueDecl_in_rule__AtomicExp__ValDeclAssignment_8_120898);
+            pushFollow(FOLLOW_ruleValueDecl_in_rule__AtomicExp__ValDeclAssignment_8_121085);
             ruleValueDecl();
 
             state._fsp--;
@@ -30461,22 +30777,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__AtomicExp__ExprAssignment_8_3"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10308:1: rule__AtomicExp__ExprAssignment_8_3 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10404:1: rule__AtomicExp__ExprAssignment_8_3 : ( ruleExp ) ;
     public final void rule__AtomicExp__ExprAssignment_8_3() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10312:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10313:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10408:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10409:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10313:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10314:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10409:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10410:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getAtomicExpAccess().getExprExpParserRuleCall_8_3_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__AtomicExp__ExprAssignment_8_320929);
+            pushFollow(FOLLOW_ruleExp_in_rule__AtomicExp__ExprAssignment_8_321116);
             ruleExp();
 
             state._fsp--;
@@ -30506,22 +30822,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Field__NameAssignment_0_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10323:1: rule__Field__NameAssignment_0_0 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10419:1: rule__Field__NameAssignment_0_0 : ( ruleID ) ;
     public final void rule__Field__NameAssignment_0_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10327:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10328:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10423:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10424:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10328:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10329:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10424:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10425:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getFieldAccess().getNameIDParserRuleCall_0_0_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__Field__NameAssignment_0_020960);
+            pushFollow(FOLLOW_ruleID_in_rule__Field__NameAssignment_0_021147);
             ruleID();
 
             state._fsp--;
@@ -30551,22 +30867,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Field__ExpAssignment_0_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10338:1: rule__Field__ExpAssignment_0_2 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10434:1: rule__Field__ExpAssignment_0_2 : ( ruleExp ) ;
     public final void rule__Field__ExpAssignment_0_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10342:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10343:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10438:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10439:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10343:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10344:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10439:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10440:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getFieldAccess().getExpExpParserRuleCall_0_2_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__Field__ExpAssignment_0_220991);
+            pushFollow(FOLLOW_ruleExp_in_rule__Field__ExpAssignment_0_221178);
             ruleExp();
 
             state._fsp--;
@@ -30596,22 +30912,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__Field__NameAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10353:1: rule__Field__NameAssignment_1_1 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10449:1: rule__Field__NameAssignment_1_1 : ( ruleID ) ;
     public final void rule__Field__NameAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10357:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10358:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10453:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10454:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10358:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10359:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10454:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10455:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getFieldAccess().getNameIDParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__Field__NameAssignment_1_121022);
+            pushFollow(FOLLOW_ruleID_in_rule__Field__NameAssignment_1_121209);
             ruleID();
 
             state._fsp--;
@@ -30641,22 +30957,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ValueDecl__NameAssignment_1_0"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10368:1: rule__ValueDecl__NameAssignment_1_0 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10464:1: rule__ValueDecl__NameAssignment_1_0 : ( ruleID ) ;
     public final void rule__ValueDecl__NameAssignment_1_0() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10372:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10373:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10468:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10469:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10373:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10374:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10469:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10470:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getValueDeclAccess().getNameIDParserRuleCall_1_0_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__ValueDecl__NameAssignment_1_021053);
+            pushFollow(FOLLOW_ruleID_in_rule__ValueDecl__NameAssignment_1_021240);
             ruleID();
 
             state._fsp--;
@@ -30686,22 +31002,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ValueDecl__NameAssignment_1_1"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10383:1: rule__ValueDecl__NameAssignment_1_1 : ( ruleSYM ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10479:1: rule__ValueDecl__NameAssignment_1_1 : ( ruleSYM ) ;
     public final void rule__ValueDecl__NameAssignment_1_1() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10387:1: ( ( ruleSYM ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10388:1: ( ruleSYM )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10483:1: ( ( ruleSYM ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10484:1: ( ruleSYM )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10388:1: ( ruleSYM )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10389:1: ruleSYM
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10484:1: ( ruleSYM )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10485:1: ruleSYM
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getValueDeclAccess().getNameSYMParserRuleCall_1_1_0()); 
             }
-            pushFollow(FOLLOW_ruleSYM_in_rule__ValueDecl__NameAssignment_1_121084);
+            pushFollow(FOLLOW_ruleSYM_in_rule__ValueDecl__NameAssignment_1_121271);
             ruleSYM();
 
             state._fsp--;
@@ -30731,22 +31047,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ValueDecl__IdsAssignment_2"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10398:1: rule__ValueDecl__IdsAssignment_2 : ( ruleID ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10494:1: rule__ValueDecl__IdsAssignment_2 : ( ruleID ) ;
     public final void rule__ValueDecl__IdsAssignment_2() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10402:1: ( ( ruleID ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10403:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10498:1: ( ( ruleID ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10499:1: ( ruleID )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10403:1: ( ruleID )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10404:1: ruleID
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10499:1: ( ruleID )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10500:1: ruleID
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getValueDeclAccess().getIdsIDParserRuleCall_2_0()); 
             }
-            pushFollow(FOLLOW_ruleID_in_rule__ValueDecl__IdsAssignment_221115);
+            pushFollow(FOLLOW_ruleID_in_rule__ValueDecl__IdsAssignment_221302);
             ruleID();
 
             state._fsp--;
@@ -30776,22 +31092,22 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
 
 
     // $ANTLR start "rule__ValueDecl__ExpAssignment_4"
-    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10413:1: rule__ValueDecl__ExpAssignment_4 : ( ruleExp ) ;
+    // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10509:1: rule__ValueDecl__ExpAssignment_4 : ( ruleExp ) ;
     public final void rule__ValueDecl__ExpAssignment_4() throws RecognitionException {
 
         		int stackSize = keepStackSize();
             
         try {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10417:1: ( ( ruleExp ) )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10418:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10513:1: ( ( ruleExp ) )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10514:1: ( ruleExp )
             {
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10418:1: ( ruleExp )
-            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10419:1: ruleExp
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10514:1: ( ruleExp )
+            // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:10515:1: ruleExp
             {
             if ( state.backtracking==0 ) {
                before(grammarAccess.getValueDeclAccess().getExpExpParserRuleCall_4_0()); 
             }
-            pushFollow(FOLLOW_ruleExp_in_rule__ValueDecl__ExpAssignment_421146);
+            pushFollow(FOLLOW_ruleExp_in_rule__ValueDecl__ExpAssignment_421333);
             ruleExp();
 
             state._fsp--;
@@ -31044,36 +31360,6 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
     }
     // $ANTLR end synpred35_InternalGDSL
 
-    // $ANTLR start synpred41_InternalGDSL
-    public final void synpred41_InternalGDSL_fragment() throws RecognitionException {   
-        // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1705:6: ( ( ( ruleINTEGER ) ) )
-        // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1705:6: ( ( ruleINTEGER ) )
-        {
-        // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1705:6: ( ( ruleINTEGER ) )
-        // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1706:1: ( ruleINTEGER )
-        {
-        if ( state.backtracking==0 ) {
-           before(grammarAccess.getPATAccess().getINTEGERParserRuleCall_1()); 
-        }
-        // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1707:1: ( ruleINTEGER )
-        // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1707:3: ruleINTEGER
-        {
-        pushFollow(FOLLOW_ruleINTEGER_in_synpred41_InternalGDSL3738);
-        ruleINTEGER();
-
-        state._fsp--;
-        if (state.failed) return ;
-
-        }
-
-
-        }
-
-
-        }
-    }
-    // $ANTLR end synpred41_InternalGDSL
-
     // $ANTLR start synpred42_InternalGDSL
     public final void synpred42_InternalGDSL_fragment() throws RecognitionException {   
         // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:1711:6: ( ( ( rule__PAT__Group_2__0 ) ) )
@@ -31139,7 +31425,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
         // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6370:2: ( rule__RExp__Group_1__0 )
         // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6370:2: rule__RExp__Group_1__0
         {
-        pushFollow(FOLLOW_rule__RExp__Group_1__0_in_synpred81_InternalGDSL13038);
+        pushFollow(FOLLOW_rule__RExp__Group_1__0_in_synpred81_InternalGDSL13039);
         rule__RExp__Group_1__0();
 
         state._fsp--;
@@ -31154,7 +31440,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
         // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6983:2: ( rule__AtomicExp__Group_3_1__0 )
         // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:6983:2: rule__AtomicExp__Group_3_1__0
         {
-        pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__0_in_synpred85_InternalGDSL14249);
+        pushFollow(FOLLOW_rule__AtomicExp__Group_3_1__0_in_synpred85_InternalGDSL14250);
         rule__AtomicExp__Group_3_1__0();
 
         state._fsp--;
@@ -31169,7 +31455,7 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
         // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7451:2: ( rule__AtomicExp__Group_6_3__0 )
         // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:7451:2: rule__AtomicExp__Group_6_3__0
         {
-        pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__0_in_synpred87_InternalGDSL15175);
+        pushFollow(FOLLOW_rule__AtomicExp__Group_6_3__0_in_synpred87_InternalGDSL15176);
         rule__AtomicExp__Group_6_3__0();
 
         state._fsp--;
@@ -31179,37 +31465,8 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
     }
     // $ANTLR end synpred87_InternalGDSL
 
-    // $ANTLR start synpred93_InternalGDSL
-    public final void synpred93_InternalGDSL_fragment() throws RecognitionException {   
-        // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8541:3: ( ruleBITPATORINT )
-        // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:8541:3: ruleBITPATORINT
-        {
-        pushFollow(FOLLOW_ruleBITPATORINT_in_synpred93_InternalGDSL17325);
-        ruleBITPATORINT();
-
-        state._fsp--;
-        if (state.failed) return ;
-
-        }
-    }
-    // $ANTLR end synpred93_InternalGDSL
-
     // Delegated rules
 
-    public final boolean synpred93_InternalGDSL() {
-        state.backtracking++;
-        int start = input.mark();
-        try {
-            synpred93_InternalGDSL_fragment(); // can never throw exception
-        } catch (RecognitionException re) {
-            System.err.println("impossible: "+re);
-        }
-        boolean success = !state.failed;
-        input.rewind(start);
-        state.backtracking--;
-        state.failed=false;
-        return success;
-    }
     public final boolean synpred42_InternalGDSL() {
         state.backtracking++;
         int start = input.mark();
@@ -31392,28 +31649,12 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
         state.failed=false;
         return success;
     }
-    public final boolean synpred41_InternalGDSL() {
-        state.backtracking++;
-        int start = input.mark();
-        try {
-            synpred41_InternalGDSL_fragment(); // can never throw exception
-        } catch (RecognitionException re) {
-            System.err.println("impossible: "+re);
-        }
-        boolean success = !state.failed;
-        input.rewind(start);
-        state.backtracking--;
-        state.failed=false;
-        return success;
-    }
 
 
     protected DFA4 dfa4 = new DFA4(this);
     protected DFA17 dfa17 = new DFA17(this);
     protected DFA19 dfa19 = new DFA19(this);
-    protected DFA26 dfa26 = new DFA26(this);
     protected DFA55 dfa55 = new DFA55(this);
-    protected DFA67 dfa67 = new DFA67(this);
     static final String DFA4_eotS =
         "\16\uffff";
     static final String DFA4_eofS =
@@ -31785,155 +32026,6 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             throw nvae;
         }
     }
-    static final String DFA26_eotS =
-        "\13\uffff";
-    static final String DFA26_eofS =
-        "\13\uffff";
-    static final String DFA26_minS =
-        "\1\4\2\uffff\5\0\3\uffff";
-    static final String DFA26_maxS =
-        "\1\23\2\uffff\5\0\3\uffff";
-    static final String DFA26_acceptS =
-        "\1\uffff\1\1\1\2\5\uffff\1\5\1\3\1\4";
-    static final String DFA26_specialS =
-        "\3\uffff\1\1\1\4\1\3\1\2\1\0\3\uffff}>";
-    static final String[] DFA26_transitionS = {
-            "\1\2\1\1\1\6\1\7\1\uffff\2\10\3\uffff\2\2\1\3\1\10\1\4\1\5",
-            "",
-            "",
-            "\1\uffff",
-            "\1\uffff",
-            "\1\uffff",
-            "\1\uffff",
-            "\1\uffff",
-            "",
-            "",
-            ""
-    };
-
-    static final short[] DFA26_eot = DFA.unpackEncodedString(DFA26_eotS);
-    static final short[] DFA26_eof = DFA.unpackEncodedString(DFA26_eofS);
-    static final char[] DFA26_min = DFA.unpackEncodedStringToUnsignedChars(DFA26_minS);
-    static final char[] DFA26_max = DFA.unpackEncodedStringToUnsignedChars(DFA26_maxS);
-    static final short[] DFA26_accept = DFA.unpackEncodedString(DFA26_acceptS);
-    static final short[] DFA26_special = DFA.unpackEncodedString(DFA26_specialS);
-    static final short[][] DFA26_transition;
-
-    static {
-        int numStates = DFA26_transitionS.length;
-        DFA26_transition = new short[numStates][];
-        for (int i=0; i<numStates; i++) {
-            DFA26_transition[i] = DFA.unpackEncodedString(DFA26_transitionS[i]);
-        }
-    }
-
-    class DFA26 extends DFA {
-
-        public DFA26(BaseRecognizer recognizer) {
-            this.recognizer = recognizer;
-            this.decisionNumber = 26;
-            this.eot = DFA26_eot;
-            this.eof = DFA26_eof;
-            this.min = DFA26_min;
-            this.max = DFA26_max;
-            this.accept = DFA26_accept;
-            this.special = DFA26_special;
-            this.transition = DFA26_transition;
-        }
-        public String getDescription() {
-            return "1694:1: rule__PAT__Alternatives : ( ( RULE_USCORE ) | ( ( ruleINTEGER ) ) | ( ( rule__PAT__Group_2__0 ) ) | ( ( ruleID ) ) | ( ruleBITPAT ) );";
-        }
-        public int specialStateTransition(int s, IntStream _input) throws NoViableAltException {
-            TokenStream input = (TokenStream)_input;
-        	int _s = s;
-            switch ( s ) {
-                    case 0 : 
-                        int LA26_7 = input.LA(1);
-
-                         
-                        int index26_7 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (synpred43_InternalGDSL()) ) {s = 10;}
-
-                        else if ( (true) ) {s = 8;}
-
-                         
-                        input.seek(index26_7);
-                        if ( s>=0 ) return s;
-                        break;
-                    case 1 : 
-                        int LA26_3 = input.LA(1);
-
-                         
-                        int index26_3 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (synpred41_InternalGDSL()) ) {s = 2;}
-
-                        else if ( (true) ) {s = 8;}
-
-                         
-                        input.seek(index26_3);
-                        if ( s>=0 ) return s;
-                        break;
-                    case 2 : 
-                        int LA26_6 = input.LA(1);
-
-                         
-                        int index26_6 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (synpred43_InternalGDSL()) ) {s = 10;}
-
-                        else if ( (true) ) {s = 8;}
-
-                         
-                        input.seek(index26_6);
-                        if ( s>=0 ) return s;
-                        break;
-                    case 3 : 
-                        int LA26_5 = input.LA(1);
-
-                         
-                        int index26_5 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (synpred42_InternalGDSL()) ) {s = 9;}
-
-                        else if ( (synpred43_InternalGDSL()) ) {s = 10;}
-
-                        else if ( (true) ) {s = 8;}
-
-                         
-                        input.seek(index26_5);
-                        if ( s>=0 ) return s;
-                        break;
-                    case 4 : 
-                        int LA26_4 = input.LA(1);
-
-                         
-                        int index26_4 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (synpred42_InternalGDSL()) ) {s = 9;}
-
-                        else if ( (synpred43_InternalGDSL()) ) {s = 10;}
-
-                        else if ( (true) ) {s = 8;}
-
-                         
-                        input.seek(index26_4);
-                        if ( s>=0 ) return s;
-                        break;
-            }
-            if (state.backtracking>0) {state.failed=true; return -1;}
-            NoViableAltException nvae =
-                new NoViableAltException(getDescription(), 26, _s, input);
-            error(nvae);
-            throw nvae;
-        }
-    }
     static final String DFA55_eotS =
         "\32\uffff";
     static final String DFA55_eofS =
@@ -32032,93 +32124,6 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             if (state.backtracking>0) {state.failed=true; return -1;}
             NoViableAltException nvae =
                 new NoViableAltException(getDescription(), 55, _s, input);
-            error(nvae);
-            throw nvae;
-        }
-    }
-    static final String DFA67_eotS =
-        "\15\uffff";
-    static final String DFA67_eofS =
-        "\1\3\14\uffff";
-    static final String DFA67_minS =
-        "\1\6\1\0\13\uffff";
-    static final String DFA67_maxS =
-        "\1\72\1\0\13\uffff";
-    static final String DFA67_acceptS =
-        "\2\uffff\1\1\1\2\11\uffff";
-    static final String DFA67_specialS =
-        "\1\uffff\1\0\13\uffff}>";
-    static final String[] DFA67_transitionS = {
-            "\2\3\1\uffff\2\3\5\uffff\4\3\15\uffff\1\1\27\uffff\1\3\1\2",
-            "\1\uffff",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-    };
-
-    static final short[] DFA67_eot = DFA.unpackEncodedString(DFA67_eotS);
-    static final short[] DFA67_eof = DFA.unpackEncodedString(DFA67_eofS);
-    static final char[] DFA67_min = DFA.unpackEncodedStringToUnsignedChars(DFA67_minS);
-    static final char[] DFA67_max = DFA.unpackEncodedStringToUnsignedChars(DFA67_maxS);
-    static final short[] DFA67_accept = DFA.unpackEncodedString(DFA67_acceptS);
-    static final short[] DFA67_special = DFA.unpackEncodedString(DFA67_specialS);
-    static final short[][] DFA67_transition;
-
-    static {
-        int numStates = DFA67_transitionS.length;
-        DFA67_transition = new short[numStates][];
-        for (int i=0; i<numStates; i++) {
-            DFA67_transition[i] = DFA.unpackEncodedString(DFA67_transitionS[i]);
-        }
-    }
-
-    class DFA67 extends DFA {
-
-        public DFA67(BaseRecognizer recognizer) {
-            this.recognizer = recognizer;
-            this.decisionNumber = 67;
-            this.eot = DFA67_eot;
-            this.eof = DFA67_eof;
-            this.min = DFA67_min;
-            this.max = DFA67_max;
-            this.accept = DFA67_accept;
-            this.special = DFA67_special;
-            this.transition = DFA67_transition;
-        }
-        public String getDescription() {
-            return "8541:1: ( ruleBITPATORINT )?";
-        }
-        public int specialStateTransition(int s, IntStream _input) throws NoViableAltException {
-            TokenStream input = (TokenStream)_input;
-        	int _s = s;
-            switch ( s ) {
-                    case 0 : 
-                        int LA67_1 = input.LA(1);
-
-                         
-                        int index67_1 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (synpred93_InternalGDSL()) ) {s = 2;}
-
-                        else if ( (true) ) {s = 3;}
-
-                         
-                        input.seek(index67_1);
-                        if ( s>=0 ) return s;
-                        break;
-            }
-            if (state.backtracking>0) {state.failed=true; return -1;}
-            NoViableAltException nvae =
-                new NoViableAltException(getDescription(), 67, _s, input);
             error(nvae);
             throw nvae;
         }
@@ -32301,708 +32306,716 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
     public static final BitSet FOLLOW_ruleINTEGER_in_rule__PAT__Alternatives3738 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_rule__PAT__Group_2__0_in_rule__PAT__Alternatives3756 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ruleID_in_rule__PAT__Alternatives3775 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBITPAT_in_rule__PAT__Alternatives3793 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleINTEGER_in_rule__LIT__Alternatives3825 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__LIT__Group_1__0_in_rule__LIT__Alternatives3842 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCONS_in_rule__ID__Alternatives3875 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_ID_WO_CONS_in_rule__ID__Alternatives3892 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_SLASH_in_rule__ID__Alternatives3909 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_MIXID_in_rule__MID__Alternatives3941 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_USCORE_in_rule__MID__Alternatives3958 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_USCORE_in_rule__SYM__Alternatives3990 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_SLASH_in_rule__SYM__Alternatives4007 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_BS_in_rule__SYM__Alternatives4024 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DOT_in_rule__SYM__Alternatives4041 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_LESS_in_rule__SYM__Alternatives4058 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_GREATER_in_rule__SYM__Alternatives4075 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_rule__SYM__Alternatives4092 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rulePOSINT_in_rule__INTEGER__Alternatives4124 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_HEXINT_in_rule__INTEGER__Alternatives4141 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_NEGINT_in_rule__INTEGER__Alternatives4158 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_POSINT_WO_DUALS_in_rule__POSINT__Alternatives4190 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DUALS_in_rule__POSINT__Alternatives4207 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DUALS_in_rule__BINARY__Alternatives4239 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_BINS_in_rule__BINARY__Alternatives4256 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_BS_in_rule__BINARY__Alternatives4273 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DOT_in_rule__BINARY__Alternatives4290 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_S_in_rule__CONS__Alternatives4322 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_CONS_WO_S_in_rule__CONS__Alternatives4339 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Model__Group__0__Impl_in_rule__Model__Group__04369 = new BitSet(new long[]{0x0000002580000000L});
-    public static final BitSet FOLLOW_rule__Model__Group__1_in_rule__Model__Group__04372 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Model__DeclAssignment_0_in_rule__Model__Group__0__Impl4399 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Model__Group__1__Impl_in_rule__Model__Group__14429 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Model__Group_1__0_in_rule__Model__Group__1__Impl4456 = new BitSet(new long[]{0x0000002580000002L});
-    public static final BitSet FOLLOW_rule__Model__Group_1__0__Impl_in_rule__Model__Group_1__04491 = new BitSet(new long[]{0x0000002580000000L});
-    public static final BitSet FOLLOW_rule__Model__Group_1__1_in_rule__Model__Group_1__04494 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_31_in_rule__Model__Group_1__0__Impl4523 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Model__Group_1__1__Impl_in_rule__Model__Group_1__14556 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Model__DeclAssignment_1_1_in_rule__Model__Group_1__1__Impl4583 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclExport__Group__0__Impl_in_rule__DeclExport__Group__04617 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__DeclExport__Group__1_in_rule__DeclExport__Group__04620 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_32_in_rule__DeclExport__Group__0__Impl4648 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclExport__Group__1__Impl_in_rule__DeclExport__Group__14679 = new BitSet(new long[]{0x0000004200000000L});
-    public static final BitSet FOLLOW_rule__DeclExport__Group__2_in_rule__DeclExport__Group__14682 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclExport__NameAssignment_1_in_rule__DeclExport__Group__1__Impl4709 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclExport__Group__2__Impl_in_rule__DeclExport__Group__24739 = new BitSet(new long[]{0x0000004200000000L});
-    public static final BitSet FOLLOW_rule__DeclExport__Group__3_in_rule__DeclExport__Group__24742 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclExport__TyVarsAssignment_2_in_rule__DeclExport__Group__2__Impl4769 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclExport__Group__3__Impl_in_rule__DeclExport__Group__34800 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__DeclExport__Group__4_in_rule__DeclExport__Group__34803 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_33_in_rule__DeclExport__Group__3__Impl4831 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclExport__Group__4__Impl_in_rule__DeclExport__Group__44862 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclExport__TypeAssignment_4_in_rule__DeclExport__Group__4__Impl4889 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group__0__Impl_in_rule__DeclType__Group__04929 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__DeclType__Group__1_in_rule__DeclType__Group__04932 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_34_in_rule__DeclType__Group__0__Impl4960 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group__1__Impl_in_rule__DeclType__Group__14991 = new BitSet(new long[]{0x0000004800000000L});
-    public static final BitSet FOLLOW_rule__DeclType__Group__2_in_rule__DeclType__Group__14994 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__NameAssignment_1_in_rule__DeclType__Group__1__Impl5021 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group__2__Impl_in_rule__DeclType__Group__25051 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Alternatives_2_in_rule__DeclType__Group__2__Impl5078 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0__0__Impl_in_rule__DeclType__Group_2_0__05114 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0__1_in_rule__DeclType__Group_2_0__05117 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__DeclType__Group_2_0__0__Impl5145 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0__1__Impl_in_rule__DeclType__Group_2_0__15176 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Alternatives_2_0_1_in_rule__DeclType__Group_2_0__1__Impl5203 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0__0__Impl_in_rule__DeclType__Group_2_0_1_0__05237 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0__0_in_rule__DeclType__Group_2_0_1_0__0__Impl5264 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0__0__Impl_in_rule__DeclType__Group_2_0_1_0_0__05296 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0__1_in_rule__DeclType__Group_2_0_1_0_0__05299 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__ConDeclAssignment_2_0_1_0_0_0_in_rule__DeclType__Group_2_0_1_0_0__0__Impl5326 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0__1__Impl_in_rule__DeclType__Group_2_0_1_0_0__15356 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__0_in_rule__DeclType__Group_2_0_1_0_0__1__Impl5383 = new BitSet(new long[]{0x0000001000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__0__Impl_in_rule__DeclType__Group_2_0_1_0_0_1__05418 = new BitSet(new long[]{0x00000000000C0000L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__1_in_rule__DeclType__Group_2_0_1_0_0_1__05421 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_36_in_rule__DeclType__Group_2_0_1_0_0_1__0__Impl5449 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__1__Impl_in_rule__DeclType__Group_2_0_1_0_0_1__15480 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1_in_rule__DeclType__Group_2_0_1_0_0_1__1__Impl5507 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__0__Impl_in_rule__DeclType__Group_2_1__05541 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__1_in_rule__DeclType__Group_2_1__05544 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__TyVarsAssignment_2_1_0_in_rule__DeclType__Group_2_1__0__Impl5571 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__1__Impl_in_rule__DeclType__Group_2_1__15601 = new BitSet(new long[]{0x00000000000C0000L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__2_in_rule__DeclType__Group_2_1__15604 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__DeclType__Group_2_1__1__Impl5632 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__2__Impl_in_rule__DeclType__Group_2_1__25663 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2__0_in_rule__DeclType__Group_2_1__2__Impl5690 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2__0__Impl_in_rule__DeclType__Group_2_1_2__05726 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2__1_in_rule__DeclType__Group_2_1_2__05729 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__ConDeclAssignment_2_1_2_0_in_rule__DeclType__Group_2_1_2__0__Impl5756 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2__1__Impl_in_rule__DeclType__Group_2_1_2__15786 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2_1__0_in_rule__DeclType__Group_2_1_2__1__Impl5813 = new BitSet(new long[]{0x0000001000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2_1__0__Impl_in_rule__DeclType__Group_2_1_2_1__05848 = new BitSet(new long[]{0x00000000000C0000L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2_1__1_in_rule__DeclType__Group_2_1_2_1__05851 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_36_in_rule__DeclType__Group_2_1_2_1__0__Impl5879 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2_1__1__Impl_in_rule__DeclType__Group_2_1_2_1__15910 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclType__ConDeclAssignment_2_1_2_1_1_in_rule__DeclType__Group_2_1_2_1__1__Impl5937 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group__0__Impl_in_rule__DeclVal__Group__05971 = new BitSet(new long[]{0x00000008000C3FE0L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group__1_in_rule__DeclVal__Group__05974 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_37_in_rule__DeclVal__Group__0__Impl6002 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group__1__Impl_in_rule__DeclVal__Group__16033 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Alternatives_1_in_rule__DeclVal__Group__1__Impl6060 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0__0__Impl_in_rule__DeclVal__Group_1_0__06094 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__0_in_rule__DeclVal__Group_1_0__0__Impl6121 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__0__Impl_in_rule__DeclVal__Group_1_0_0__06153 = new BitSet(new long[]{0x00000008000C00C0L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__1_in_rule__DeclVal__Group_1_0_0__06156 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Alternatives_1_0_0_0_in_rule__DeclVal__Group_1_0_0__0__Impl6183 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__1__Impl_in_rule__DeclVal__Group_1_0_0__16213 = new BitSet(new long[]{0x00000008000C00C0L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__2_in_rule__DeclVal__Group_1_0_0__16216 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__AttrAssignment_1_0_0_1_in_rule__DeclVal__Group_1_0_0__1__Impl6243 = new BitSet(new long[]{0x00000000000C00C2L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__2__Impl_in_rule__DeclVal__Group_1_0_0__26274 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__3_in_rule__DeclVal__Group_1_0_0__26277 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__DeclVal__Group_1_0_0__2__Impl6305 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__3__Impl_in_rule__DeclVal__Group_1_0_0__36336 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__ExpAssignment_1_0_0_3_in_rule__DeclVal__Group_1_0_0__3__Impl6363 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__0__Impl_in_rule__DeclVal__Group_1_1__06401 = new BitSet(new long[]{0x0000000800000120L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__1_in_rule__DeclVal__Group_1_1__06404 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1_0__0_in_rule__DeclVal__Group_1_1__0__Impl6431 = new BitSet(new long[]{0x0000000000000122L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__1__Impl_in_rule__DeclVal__Group_1_1__16462 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__2_in_rule__DeclVal__Group_1_1__16465 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__DeclVal__Group_1_1__1__Impl6493 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__2__Impl_in_rule__DeclVal__Group_1_1__26524 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__ExpAssignment_1_1_2_in_rule__DeclVal__Group_1_1__2__Impl6551 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1_0__0__Impl_in_rule__DeclVal__Group_1_1_0__06587 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1_0__1_in_rule__DeclVal__Group_1_1_0__06590 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__MidAssignment_1_1_0_0_in_rule__DeclVal__Group_1_1_0__0__Impl6617 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1_0__1__Impl_in_rule__DeclVal__Group_1_1_0__16647 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__AttrAssignment_1_1_0_1_in_rule__DeclVal__Group_1_1_0__1__Impl6674 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__0__Impl_in_rule__DeclVal__Group_1_2__06708 = new BitSet(new long[]{0x0000004000000000L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__1_in_rule__DeclVal__Group_1_2__06711 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__NameAssignment_1_2_0_in_rule__DeclVal__Group_1_2__0__Impl6738 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__1__Impl_in_rule__DeclVal__Group_1_2__16768 = new BitSet(new long[]{0x02000080000C00D0L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__2_in_rule__DeclVal__Group_1_2__16771 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_38_in_rule__DeclVal__Group_1_2__1__Impl6799 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__2__Impl_in_rule__DeclVal__Group_1_2__26830 = new BitSet(new long[]{0x02000080000C00D0L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__3_in_rule__DeclVal__Group_1_2__26833 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__DecPatAssignment_1_2_2_in_rule__DeclVal__Group_1_2__2__Impl6860 = new BitSet(new long[]{0x02000000000C00D2L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__3__Impl_in_rule__DeclVal__Group_1_2__36891 = new BitSet(new long[]{0x0000001800000000L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__4_in_rule__DeclVal__Group_1_2__36894 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_39_in_rule__DeclVal__Group_1_2__3__Impl6922 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__4__Impl_in_rule__DeclVal__Group_1_2__46953 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Alternatives_1_2_4_in_rule__DeclVal__Group_1_2__4__Impl6980 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_0__0__Impl_in_rule__DeclVal__Group_1_2_4_0__07020 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_0__1_in_rule__DeclVal__Group_1_2_4_0__07023 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__DeclVal__Group_1_2_4_0__0__Impl7051 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_0__1__Impl_in_rule__DeclVal__Group_1_2_4_0__17082 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__ExpAssignment_1_2_4_0_1_in_rule__DeclVal__Group_1_2_4_0__1__Impl7109 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__0__Impl_in_rule__DeclVal__Group_1_2_4_1__07143 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__1_in_rule__DeclVal__Group_1_2_4_1__07146 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_36_in_rule__DeclVal__Group_1_2_4_1__0__Impl7174 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__1__Impl_in_rule__DeclVal__Group_1_2_4_1__17205 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__2_in_rule__DeclVal__Group_1_2_4_1__17208 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__ExpsAssignment_1_2_4_1_1_in_rule__DeclVal__Group_1_2_4_1__1__Impl7235 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__2__Impl_in_rule__DeclVal__Group_1_2_4_1__27265 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__3_in_rule__DeclVal__Group_1_2_4_1__27268 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__DeclVal__Group_1_2_4_1__2__Impl7296 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__3__Impl_in_rule__DeclVal__Group_1_2_4_1__37327 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DeclVal__ExpsAssignment_1_2_4_1_3_in_rule__DeclVal__Group_1_2_4_1__3__Impl7354 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyVars__Group__0__Impl_in_rule__TyVars__Group__07392 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__TyVars__Group__1_in_rule__TyVars__Group__07395 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_38_in_rule__TyVars__Group__0__Impl7423 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyVars__Group__1__Impl_in_rule__TyVars__Group__17454 = new BitSet(new long[]{0x0000018000000000L});
-    public static final BitSet FOLLOW_rule__TyVars__Group__2_in_rule__TyVars__Group__17457 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyVars__AttrAssignment_1_in_rule__TyVars__Group__1__Impl7484 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyVars__Group__2__Impl_in_rule__TyVars__Group__27514 = new BitSet(new long[]{0x0000018000000000L});
-    public static final BitSet FOLLOW_rule__TyVars__Group__3_in_rule__TyVars__Group__27517 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyVars__Group_2__0_in_rule__TyVars__Group__2__Impl7544 = new BitSet(new long[]{0x0000010000000002L});
-    public static final BitSet FOLLOW_rule__TyVars__Group__3__Impl_in_rule__TyVars__Group__37575 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_39_in_rule__TyVars__Group__3__Impl7603 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyVars__Group_2__0__Impl_in_rule__TyVars__Group_2__07642 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__TyVars__Group_2__1_in_rule__TyVars__Group_2__07645 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_40_in_rule__TyVars__Group_2__0__Impl7673 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyVars__Group_2__1__Impl_in_rule__TyVars__Group_2__17704 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyVars__AttrAssignment_2_1_in_rule__TyVars__Group_2__1__Impl7731 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ConDecl__Group__0__Impl_in_rule__ConDecl__Group__07765 = new BitSet(new long[]{0x0000020000000000L});
-    public static final BitSet FOLLOW_rule__ConDecl__Group__1_in_rule__ConDecl__Group__07768 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ConDecl__NameAssignment_0_in_rule__ConDecl__Group__0__Impl7795 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ConDecl__Group__1__Impl_in_rule__ConDecl__Group__17825 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ConDecl__Group_1__0_in_rule__ConDecl__Group__1__Impl7852 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ConDecl__Group_1__0__Impl_in_rule__ConDecl__Group_1__07887 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__ConDecl__Group_1__1_in_rule__ConDecl__Group_1__07890 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_41_in_rule__ConDecl__Group_1__0__Impl7918 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ConDecl__Group_1__1__Impl_in_rule__ConDecl__Group_1__17949 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ConDecl__TyAssignment_1_1_in_rule__ConDecl__Group_1__1__Impl7976 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1__0__Impl_in_rule__Ty__Group_1__08010 = new BitSet(new long[]{0x0000004000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1__1_in_rule__Ty__Group_1__08013 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Alternatives_1_0_in_rule__Ty__Group_1__0__Impl8040 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1__1__Impl_in_rule__Ty__Group_1__18070 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1__0_in_rule__Ty__Group_1__1__Impl8097 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1__0__Impl_in_rule__Ty__Group_1_1__08132 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1__1_in_rule__Ty__Group_1_1__08135 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_38_in_rule__Ty__Group_1_1__0__Impl8163 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1__1__Impl_in_rule__Ty__Group_1_1__18194 = new BitSet(new long[]{0x0000018000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1__2_in_rule__Ty__Group_1_1__18197 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__TyBindAssignment_1_1_1_in_rule__Ty__Group_1_1__1__Impl8224 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1__2__Impl_in_rule__Ty__Group_1_1__28254 = new BitSet(new long[]{0x0000018000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1__3_in_rule__Ty__Group_1_1__28257 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1_2__0_in_rule__Ty__Group_1_1__2__Impl8284 = new BitSet(new long[]{0x0000010000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1__3__Impl_in_rule__Ty__Group_1_1__38315 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_39_in_rule__Ty__Group_1_1__3__Impl8343 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1_2__0__Impl_in_rule__Ty__Group_1_1_2__08382 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1_2__1_in_rule__Ty__Group_1_1_2__08385 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_40_in_rule__Ty__Group_1_1_2__0__Impl8413 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_1_1_2__1__Impl_in_rule__Ty__Group_1_1_2__18444 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__TyBindAssignment_1_1_2_1_in_rule__Ty__Group_1_1_2__1__Impl8471 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2__0__Impl_in_rule__Ty__Group_2__08505 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2__1_in_rule__Ty__Group_2__08508 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2__1__Impl_in_rule__Ty__Group_2__18566 = new BitSet(new long[]{0x00000800000C00C0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2__2_in_rule__Ty__Group_2__18569 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_42_in_rule__Ty__Group_2__1__Impl8597 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2__2__Impl_in_rule__Ty__Group_2__28628 = new BitSet(new long[]{0x00000800000C00C0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2__3_in_rule__Ty__Group_2__28631 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2_2__0_in_rule__Ty__Group_2__2__Impl8658 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2__3__Impl_in_rule__Ty__Group_2__38689 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_43_in_rule__Ty__Group_2__3__Impl8717 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2_2__0__Impl_in_rule__Ty__Group_2_2__08756 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2_2__1_in_rule__Ty__Group_2_2__08759 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__ElementsAssignment_2_2_0_in_rule__Ty__Group_2_2__0__Impl8786 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2_2__1__Impl_in_rule__Ty__Group_2_2__18816 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2_2_1__0_in_rule__Ty__Group_2_2__1__Impl8843 = new BitSet(new long[]{0x0000010000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2_2_1__0__Impl_in_rule__Ty__Group_2_2_1__08878 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2_2_1__1_in_rule__Ty__Group_2_2_1__08881 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_40_in_rule__Ty__Group_2_2_1__0__Impl8909 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_2_2_1__1__Impl_in_rule__Ty__Group_2_2_1__18940 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__ElementsAssignment_2_2_1_1_in_rule__Ty__Group_2_2_1__1__Impl8967 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__0__Impl_in_rule__Ty__Group_3__09001 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__1_in_rule__Ty__Group_3__09004 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_44_in_rule__Ty__Group_3__0__Impl9032 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__1__Impl_in_rule__Ty__Group_3__19063 = new BitSet(new long[]{0x0000210000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__2_in_rule__Ty__Group_3__19066 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__ParamAssignment_3_1_in_rule__Ty__Group_3__1__Impl9093 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__2__Impl_in_rule__Ty__Group_3__29123 = new BitSet(new long[]{0x0000210000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__3_in_rule__Ty__Group_3__29126 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3_2__0_in_rule__Ty__Group_3__2__Impl9153 = new BitSet(new long[]{0x0000010000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__3__Impl_in_rule__Ty__Group_3__39184 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__4_in_rule__Ty__Group_3__39187 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_45_in_rule__Ty__Group_3__3__Impl9215 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__4__Impl_in_rule__Ty__Group_3__49246 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__5_in_rule__Ty__Group_3__49249 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_46_in_rule__Ty__Group_3__4__Impl9277 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3__5__Impl_in_rule__Ty__Group_3__59308 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__ResTypeAssignment_3_5_in_rule__Ty__Group_3__5__Impl9335 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3_2__0__Impl_in_rule__Ty__Group_3_2__09377 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3_2__1_in_rule__Ty__Group_3_2__09380 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_40_in_rule__Ty__Group_3_2__0__Impl9408 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_3_2__1__Impl_in_rule__Ty__Group_3_2__19439 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__ParamAssignment_3_2_1_in_rule__Ty__Group_3_2__1__Impl9466 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_4__0__Impl_in_rule__Ty__Group_4__09500 = new BitSet(new long[]{0x0000800000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_4__1_in_rule__Ty__Group_4__09503 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_4__1__Impl_in_rule__Ty__Group_4__19561 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_47_in_rule__Ty__Group_4__1__Impl9589 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__0__Impl_in_rule__Ty__Group_5__09624 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__1_in_rule__Ty__Group_5__09627 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_S_in_rule__Ty__Group_5__0__Impl9654 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__1__Impl_in_rule__Ty__Group_5__19683 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__2_in_rule__Ty__Group_5__19686 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__RAssignment_5_1_in_rule__Ty__Group_5__1__Impl9713 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__2__Impl_in_rule__Ty__Group_5__29743 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__3_in_rule__Ty__Group_5__29746 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_LESS_in_rule__Ty__Group_5__2__Impl9773 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__3__Impl_in_rule__Ty__Group_5__39802 = new BitSet(new long[]{0x0001000000000000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__4_in_rule__Ty__Group_5__39805 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__InAssignment_5_3_in_rule__Ty__Group_5__3__Impl9832 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__4__Impl_in_rule__Ty__Group_5__49862 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__5_in_rule__Ty__Group_5__49865 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_48_in_rule__Ty__Group_5__4__Impl9893 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__5__Impl_in_rule__Ty__Group_5__59924 = new BitSet(new long[]{0x0000000000001000L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__6_in_rule__Ty__Group_5__59927 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__OutAssignment_5_5_in_rule__Ty__Group_5__5__Impl9954 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Ty__Group_5__6__Impl_in_rule__Ty__Group_5__69984 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_GREATER_in_rule__Ty__Group_5__6__Impl10011 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyBind__Group__0__Impl_in_rule__TyBind__Group__010054 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_rule__TyBind__Group__1_in_rule__TyBind__Group__010057 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyBind__NameAssignment_0_in_rule__TyBind__Group__0__Impl10084 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyBind__Group__1__Impl_in_rule__TyBind__Group__110114 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyBind__Group_1__0_in_rule__TyBind__Group__1__Impl10141 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyBind__Group_1__0__Impl_in_rule__TyBind__Group_1__010176 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__TyBind__Group_1__1_in_rule__TyBind__Group_1__010179 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__TyBind__Group_1__0__Impl10207 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyBind__Group_1__1__Impl_in_rule__TyBind__Group_1__110238 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyBind__ValueAssignment_1_1_in_rule__TyBind__Group_1__1__Impl10265 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyElement__Group__0__Impl_in_rule__TyElement__Group__010299 = new BitSet(new long[]{0x0000000200000000L});
-    public static final BitSet FOLLOW_rule__TyElement__Group__1_in_rule__TyElement__Group__010302 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyElement__NameAssignment_0_in_rule__TyElement__Group__0__Impl10329 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyElement__Group__1__Impl_in_rule__TyElement__Group__110359 = new BitSet(new long[]{0x08009400000DC0D0L});
-    public static final BitSet FOLLOW_rule__TyElement__Group__2_in_rule__TyElement__Group__110362 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_33_in_rule__TyElement__Group__1__Impl10390 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyElement__Group__2__Impl_in_rule__TyElement__Group__210421 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__TyElement__ValueAssignment_2_in_rule__TyElement__Group__2__Impl10448 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Exp__Group_1__0__Impl_in_rule__Exp__Group_1__010484 = new BitSet(new long[]{0x76C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Exp__Group_1__1_in_rule__Exp__Group_1__010487 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Exp__MidAssignment_1_0_in_rule__Exp__Group_1__0__Impl10514 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Exp__Group_1__1__Impl_in_rule__Exp__Group_1__110544 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Exp__CaseExpsAssignment_1_1_in_rule__Exp__Group_1__1__Impl10571 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1__0__Impl_in_rule__CaseExp__Group_1__010605 = new BitSet(new long[]{0x66C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1__1_in_rule__CaseExp__Group_1__010608 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__NameAssignment_1_0_in_rule__CaseExp__Group_1__0__Impl10635 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1__1__Impl_in_rule__CaseExp__Group_1__110665 = new BitSet(new long[]{0x0000020000000000L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1__2_in_rule__CaseExp__Group_1__110668 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__ClosedExpAssignment_1_1_in_rule__CaseExp__Group_1__1__Impl10695 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1__2__Impl_in_rule__CaseExp__Group_1__210725 = new BitSet(new long[]{0x00000000000FC6F0L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1__3_in_rule__CaseExp__Group_1__210728 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_41_in_rule__CaseExp__Group_1__2__Impl10756 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1__3__Impl_in_rule__CaseExp__Group_1__310787 = new BitSet(new long[]{0x0002000000000000L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1__4_in_rule__CaseExp__Group_1__310790 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__0_in_rule__CaseExp__Group_1__3__Impl10817 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1__4__Impl_in_rule__CaseExp__Group_1__410847 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_49_in_rule__CaseExp__Group_1__4__Impl10875 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__0__Impl_in_rule__CaseExp__Group_1_3__010916 = new BitSet(new long[]{0x0000000200000000L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__1_in_rule__CaseExp__Group_1_3__010919 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__PatAssignment_1_3_0_in_rule__CaseExp__Group_1_3__0__Impl10946 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__1__Impl_in_rule__CaseExp__Group_1_3__110976 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__2_in_rule__CaseExp__Group_1_3__110979 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_33_in_rule__CaseExp__Group_1_3__1__Impl11007 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__2__Impl_in_rule__CaseExp__Group_1_3__211038 = new BitSet(new long[]{0x0000001000000000L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__3_in_rule__CaseExp__Group_1_3__211041 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__ExpAssignment_1_3_2_in_rule__CaseExp__Group_1_3__2__Impl11068 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__3__Impl_in_rule__CaseExp__Group_1_3__311098 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__0_in_rule__CaseExp__Group_1_3__3__Impl11125 = new BitSet(new long[]{0x0000001000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__0__Impl_in_rule__CaseExp__Group_1_3_3__011164 = new BitSet(new long[]{0x00000000000FC6F0L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__1_in_rule__CaseExp__Group_1_3_3__011167 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_36_in_rule__CaseExp__Group_1_3_3__0__Impl11195 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__1__Impl_in_rule__CaseExp__Group_1_3_3__111226 = new BitSet(new long[]{0x0000000200000000L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__2_in_rule__CaseExp__Group_1_3_3__111229 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__PatAssignment_1_3_3_1_in_rule__CaseExp__Group_1_3_3__1__Impl11256 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__2__Impl_in_rule__CaseExp__Group_1_3_3__211286 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__3_in_rule__CaseExp__Group_1_3_3__211289 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_33_in_rule__CaseExp__Group_1_3_3__2__Impl11317 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__3__Impl_in_rule__CaseExp__Group_1_3_3__311348 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__CaseExp__ExpAssignment_1_3_3_3_in_rule__CaseExp__Group_1_3_3__3__Impl11375 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__0__Impl_in_rule__ClosedExp__Group_1__011413 = new BitSet(new long[]{0x76C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__1_in_rule__ClosedExp__Group_1__011416 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__NameAssignment_1_0_in_rule__ClosedExp__Group_1__0__Impl11443 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__1__Impl_in_rule__ClosedExp__Group_1__111473 = new BitSet(new long[]{0x0004000000000000L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__2_in_rule__ClosedExp__Group_1__111476 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__IfCaseExpAssignment_1_1_in_rule__ClosedExp__Group_1__1__Impl11503 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__2__Impl_in_rule__ClosedExp__Group_1__211533 = new BitSet(new long[]{0x76C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__3_in_rule__ClosedExp__Group_1__211536 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_50_in_rule__ClosedExp__Group_1__2__Impl11564 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__3__Impl_in_rule__ClosedExp__Group_1__311595 = new BitSet(new long[]{0x0008000000000000L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__4_in_rule__ClosedExp__Group_1__311598 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__ThenCaseExpAssignment_1_3_in_rule__ClosedExp__Group_1__3__Impl11625 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__4__Impl_in_rule__ClosedExp__Group_1__411655 = new BitSet(new long[]{0x76C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__5_in_rule__ClosedExp__Group_1__411658 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_51_in_rule__ClosedExp__Group_1__4__Impl11686 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__5__Impl_in_rule__ClosedExp__Group_1__511717 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__ElseCaseExpAssignment_1_5_in_rule__ClosedExp__Group_1__5__Impl11744 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__0__Impl_in_rule__ClosedExp__Group_2__011786 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__1_in_rule__ClosedExp__Group_2__011789 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__NameAssignment_2_0_in_rule__ClosedExp__Group_2__0__Impl11816 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__1__Impl_in_rule__ClosedExp__Group_2__111846 = new BitSet(new long[]{0x0002000080000000L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__2_in_rule__ClosedExp__Group_2__111849 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__DoExpAssignment_2_1_in_rule__ClosedExp__Group_2__1__Impl11876 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__2__Impl_in_rule__ClosedExp__Group_2__211906 = new BitSet(new long[]{0x0002000080000000L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__3_in_rule__ClosedExp__Group_2__211909 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2_2__0_in_rule__ClosedExp__Group_2__2__Impl11936 = new BitSet(new long[]{0x0000000080000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__3__Impl_in_rule__ClosedExp__Group_2__311967 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_49_in_rule__ClosedExp__Group_2__3__Impl11995 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2_2__0__Impl_in_rule__ClosedExp__Group_2_2__012034 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2_2__1_in_rule__ClosedExp__Group_2_2__012037 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_31_in_rule__ClosedExp__Group_2_2__0__Impl12065 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__Group_2_2__1__Impl_in_rule__ClosedExp__Group_2_2__112096 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ClosedExp__DoExpAssignment_2_2_1_in_rule__ClosedExp__Group_2_2__1__Impl12123 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__0__Impl_in_rule__MonadicExp__Group_1__012157 = new BitSet(new long[]{0x0010000000000000L});
-    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__1_in_rule__MonadicExp__Group_1__012160 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MonadicExp__NameAssignment_1_0_in_rule__MonadicExp__Group_1__0__Impl12187 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__1__Impl_in_rule__MonadicExp__Group_1__112217 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__2_in_rule__MonadicExp__Group_1__112220 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_52_in_rule__MonadicExp__Group_1__1__Impl12248 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__2__Impl_in_rule__MonadicExp__Group_1__212279 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MonadicExp__ExpAssignment_1_2_in_rule__MonadicExp__Group_1__2__Impl12306 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__OrElseExp__Group__0__Impl_in_rule__OrElseExp__Group__012342 = new BitSet(new long[]{0x8000000000000000L});
-    public static final BitSet FOLLOW_rule__OrElseExp__Group__1_in_rule__OrElseExp__Group__012345 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleAndAlsoExp_in_rule__OrElseExp__Group__0__Impl12372 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__OrElseExp__Group__1__Impl_in_rule__OrElseExp__Group__112401 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__0_in_rule__OrElseExp__Group__1__Impl12428 = new BitSet(new long[]{0x8000000000000002L});
-    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__0__Impl_in_rule__OrElseExp__Group_1__012463 = new BitSet(new long[]{0x8000000000000000L});
-    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__1_in_rule__OrElseExp__Group_1__012466 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__1__Impl_in_rule__OrElseExp__Group_1__112524 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__2_in_rule__OrElseExp__Group_1__112527 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__OrElseExp__NameAssignment_1_1_in_rule__OrElseExp__Group_1__1__Impl12554 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__2__Impl_in_rule__OrElseExp__Group_1__212584 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__OrElseExp__RightAssignment_1_2_in_rule__OrElseExp__Group_1__2__Impl12611 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__Group__0__Impl_in_rule__AndAlsoExp__Group__012647 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__Group__1_in_rule__AndAlsoExp__Group__012650 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleRExp_in_rule__AndAlsoExp__Group__0__Impl12677 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__Group__1__Impl_in_rule__AndAlsoExp__Group__112706 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__0_in_rule__AndAlsoExp__Group__1__Impl12733 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000001L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__0__Impl_in_rule__AndAlsoExp__Group_1__012768 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__1_in_rule__AndAlsoExp__Group_1__012771 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__1__Impl_in_rule__AndAlsoExp__Group_1__112829 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__2_in_rule__AndAlsoExp__Group_1__112832 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__NameAssignment_1_1_in_rule__AndAlsoExp__Group_1__1__Impl12859 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__2__Impl_in_rule__AndAlsoExp__Group_1__212889 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AndAlsoExp__RightAssignment_1_2_in_rule__AndAlsoExp__Group_1__2__Impl12916 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__RExp__Group__0__Impl_in_rule__RExp__Group__012952 = new BitSet(new long[]{0x00000000000C3EE0L});
-    public static final BitSet FOLLOW_rule__RExp__Group__1_in_rule__RExp__Group__012955 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleAExp_in_rule__RExp__Group__0__Impl12982 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__RExp__Group__1__Impl_in_rule__RExp__Group__113011 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__RExp__Group_1__0_in_rule__RExp__Group__1__Impl13038 = new BitSet(new long[]{0x00000000000C3EE2L});
-    public static final BitSet FOLLOW_rule__RExp__Group_1__0__Impl_in_rule__RExp__Group_1__013073 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__RExp__Group_1__1_in_rule__RExp__Group_1__013076 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__RExp__SymAssignment_1_0_in_rule__RExp__Group_1__0__Impl13103 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__RExp__Group_1__1__Impl_in_rule__RExp__Group_1__113133 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__RExp__AexpsAssignment_1_1_in_rule__RExp__Group_1__1__Impl13160 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AExp__Group__0__Impl_in_rule__AExp__Group__013194 = new BitSet(new long[]{0x0000000018000000L});
-    public static final BitSet FOLLOW_rule__AExp__Group__1_in_rule__AExp__Group__013197 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleMExp_in_rule__AExp__Group__0__Impl13224 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AExp__Group__1__Impl_in_rule__AExp__Group__113253 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AExp__Group_1__0_in_rule__AExp__Group__1__Impl13280 = new BitSet(new long[]{0x0000000018000002L});
-    public static final BitSet FOLLOW_rule__AExp__Group_1__0__Impl_in_rule__AExp__Group_1__013315 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AExp__Group_1__1_in_rule__AExp__Group_1__013318 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AExp__SignAssignment_1_0_in_rule__AExp__Group_1__0__Impl13345 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AExp__Group_1__1__Impl_in_rule__AExp__Group_1__113375 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AExp__MexpsAssignment_1_1_in_rule__AExp__Group_1__1__Impl13402 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MExp__Group__0__Impl_in_rule__MExp__Group__013436 = new BitSet(new long[]{0x0000000060000000L});
-    public static final BitSet FOLLOW_rule__MExp__Group__1_in_rule__MExp__Group__013439 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleSelectExp_in_rule__MExp__Group__0__Impl13466 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MExp__Group__1__Impl_in_rule__MExp__Group__113495 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MExp__Group_1__0_in_rule__MExp__Group__1__Impl13522 = new BitSet(new long[]{0x0000000060000002L});
-    public static final BitSet FOLLOW_rule__MExp__Group_1__0__Impl_in_rule__MExp__Group_1__013557 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MExp__Group_1__1_in_rule__MExp__Group_1__013560 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MExp__SymbolAssignment_1_0_in_rule__MExp__Group_1__0__Impl13587 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MExp__Group_1__1__Impl_in_rule__MExp__Group_1__113617 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MExp__ApplyexpsAssignment_1_1_in_rule__MExp__Group_1__1__Impl13644 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__SelectExp__Group__0__Impl_in_rule__SelectExp__Group__013678 = new BitSet(new long[]{0x0020000000000000L});
-    public static final BitSet FOLLOW_rule__SelectExp__Group__1_in_rule__SelectExp__Group__013681 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleApplyExp_in_rule__SelectExp__Group__0__Impl13708 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__SelectExp__Group__1__Impl_in_rule__SelectExp__Group__113737 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__SelectExp__Group_1__0_in_rule__SelectExp__Group__1__Impl13764 = new BitSet(new long[]{0x0020000000000002L});
-    public static final BitSet FOLLOW_rule__SelectExp__Group_1__0__Impl_in_rule__SelectExp__Group_1__013799 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__SelectExp__Group_1__1_in_rule__SelectExp__Group_1__013802 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_53_in_rule__SelectExp__Group_1__0__Impl13830 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__SelectExp__Group_1__1__Impl_in_rule__SelectExp__Group_1__113861 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__SelectExp__ApplyexpsAssignment_1_1_in_rule__SelectExp__Group_1__1__Impl13888 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ApplyExp__Group_0__0__Impl_in_rule__ApplyExp__Group_0__013922 = new BitSet(new long[]{0x06801400001DC0D0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ApplyExp__Group_0__1_in_rule__ApplyExp__Group_0__013925 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_54_in_rule__ApplyExp__Group_0__0__Impl13953 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ApplyExp__Group_0__1__Impl_in_rule__ApplyExp__Group_0__113984 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleAtomicExp_in_rule__ApplyExp__Group_0__1__Impl14011 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ApplyExp__Group_1__0__Impl_in_rule__ApplyExp__Group_1__014044 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ApplyExp__AtomicExpAssignment_1_0_in_rule__ApplyExp__Group_1__0__Impl14071 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_2__0__Impl_in_rule__AtomicExp__Group_2__014103 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_2_0_in_rule__AtomicExp__Group_2__0__Impl14130 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_3__0__Impl_in_rule__AtomicExp__Group_3__014162 = new BitSet(new long[]{0x0000000000000400L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_3__1_in_rule__AtomicExp__Group_3__014165 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_3_0_in_rule__AtomicExp__Group_3__0__Impl14192 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_3__1__Impl_in_rule__AtomicExp__Group_3__114222 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__0_in_rule__AtomicExp__Group_3__1__Impl14249 = new BitSet(new long[]{0x0000000000000402L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__0__Impl_in_rule__AtomicExp__Group_3_1__014284 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__1_in_rule__AtomicExp__Group_3_1__014287 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DOT_in_rule__AtomicExp__Group_3_1__0__Impl14315 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__1__Impl_in_rule__AtomicExp__Group_3_1__114345 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__IdAssignment_3_1_1_in_rule__AtomicExp__Group_3_1__1__Impl14372 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__0__Impl_in_rule__AtomicExp__Group_4__014406 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__1_in_rule__AtomicExp__Group_4__014409 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_4_0_in_rule__AtomicExp__Group_4__0__Impl14436 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__1__Impl_in_rule__AtomicExp__Group_4__114466 = new BitSet(new long[]{0x00400000000C00C0L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__2_in_rule__AtomicExp__Group_4__114469 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_42_in_rule__AtomicExp__Group_4__1__Impl14497 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__2__Impl_in_rule__AtomicExp__Group_4__214528 = new BitSet(new long[]{0x0000090000000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__3_in_rule__AtomicExp__Group_4__214531 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__FieldsAssignment_4_2_in_rule__AtomicExp__Group_4__2__Impl14558 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__3__Impl_in_rule__AtomicExp__Group_4__314588 = new BitSet(new long[]{0x0000090000000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__4_in_rule__AtomicExp__Group_4__314591 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4_3__0_in_rule__AtomicExp__Group_4__3__Impl14618 = new BitSet(new long[]{0x0000010000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__4__Impl_in_rule__AtomicExp__Group_4__414649 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_43_in_rule__AtomicExp__Group_4__4__Impl14677 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4_3__0__Impl_in_rule__AtomicExp__Group_4_3__014718 = new BitSet(new long[]{0x00400000000C00C0L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4_3__1_in_rule__AtomicExp__Group_4_3__014721 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_40_in_rule__AtomicExp__Group_4_3__0__Impl14749 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_4_3__1__Impl_in_rule__AtomicExp__Group_4_3__114780 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__FieldsAssignment_4_3_1_in_rule__AtomicExp__Group_4_3__1__Impl14807 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_5__0__Impl_in_rule__AtomicExp__Group_5__014841 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_5__1_in_rule__AtomicExp__Group_5__014844 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_55_in_rule__AtomicExp__Group_5__0__Impl14872 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_5__1__Impl_in_rule__AtomicExp__Group_5__114903 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_5_1_in_rule__AtomicExp__Group_5__1__Impl14930 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__0__Impl_in_rule__AtomicExp__Group_6__014964 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__1_in_rule__AtomicExp__Group_6__014967 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_44_in_rule__AtomicExp__Group_6__0__Impl14995 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__1__Impl_in_rule__AtomicExp__Group_6__115026 = new BitSet(new long[]{0x0000200000000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__2_in_rule__AtomicExp__Group_6__115029 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__ExprAssignment_6_1_in_rule__AtomicExp__Group_6__1__Impl15056 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__2__Impl_in_rule__AtomicExp__Group_6__215086 = new BitSet(new long[]{0x0000000000000400L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__3_in_rule__AtomicExp__Group_6__215089 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_45_in_rule__AtomicExp__Group_6__2__Impl15117 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__3__Impl_in_rule__AtomicExp__Group_6__315148 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__0_in_rule__AtomicExp__Group_6__3__Impl15175 = new BitSet(new long[]{0x0000000000000402L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__0__Impl_in_rule__AtomicExp__Group_6_3__015214 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__1_in_rule__AtomicExp__Group_6_3__015217 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DOT_in_rule__AtomicExp__Group_6_3__0__Impl15245 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__1__Impl_in_rule__AtomicExp__Group_6_3__115275 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__IdAssignment_6_3_1_in_rule__AtomicExp__Group_6_3__1__Impl15302 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__0__Impl_in_rule__AtomicExp__Group_7__015336 = new BitSet(new long[]{0x0000040000000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__1_in_rule__AtomicExp__Group_7__015339 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__1__Impl_in_rule__AtomicExp__Group_7__115397 = new BitSet(new long[]{0x00000800000C00C0L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__2_in_rule__AtomicExp__Group_7__115400 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_42_in_rule__AtomicExp__Group_7__1__Impl15428 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__2__Impl_in_rule__AtomicExp__Group_7__215459 = new BitSet(new long[]{0x00000800000C00C0L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__3_in_rule__AtomicExp__Group_7__215462 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__0_in_rule__AtomicExp__Group_7__2__Impl15489 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__3__Impl_in_rule__AtomicExp__Group_7__315520 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_43_in_rule__AtomicExp__Group_7__3__Impl15548 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__0__Impl_in_rule__AtomicExp__Group_7_2__015587 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__1_in_rule__AtomicExp__Group_7_2__015590 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__IdAssignment_7_2_0_in_rule__AtomicExp__Group_7_2__0__Impl15617 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__1__Impl_in_rule__AtomicExp__Group_7_2__115647 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__2_in_rule__AtomicExp__Group_7_2__115650 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__AtomicExp__Group_7_2__1__Impl15678 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__2__Impl_in_rule__AtomicExp__Group_7_2__215709 = new BitSet(new long[]{0x0000010000000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__3_in_rule__AtomicExp__Group_7_2__215712 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__ExpsAssignment_7_2_2_in_rule__AtomicExp__Group_7_2__2__Impl15739 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__3__Impl_in_rule__AtomicExp__Group_7_2__315769 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__0_in_rule__AtomicExp__Group_7_2__3__Impl15796 = new BitSet(new long[]{0x0000010000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__0__Impl_in_rule__AtomicExp__Group_7_2_3__015835 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__1_in_rule__AtomicExp__Group_7_2_3__015838 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_40_in_rule__AtomicExp__Group_7_2_3__0__Impl15866 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__1__Impl_in_rule__AtomicExp__Group_7_2_3__115897 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__2_in_rule__AtomicExp__Group_7_2_3__115900 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__IdAssignment_7_2_3_1_in_rule__AtomicExp__Group_7_2_3__1__Impl15927 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__2__Impl_in_rule__AtomicExp__Group_7_2_3__215957 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__3_in_rule__AtomicExp__Group_7_2_3__215960 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__AtomicExp__Group_7_2_3__2__Impl15988 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__3__Impl_in_rule__AtomicExp__Group_7_2_3__316019 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__ExpsAssignment_7_2_3_3_in_rule__AtomicExp__Group_7_2_3__3__Impl16046 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__0__Impl_in_rule__AtomicExp__Group_8__016084 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__1_in_rule__AtomicExp__Group_8__016087 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_8_0_in_rule__AtomicExp__Group_8__0__Impl16114 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__1__Impl_in_rule__AtomicExp__Group_8__116144 = new BitSet(new long[]{0x0100000000000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__2_in_rule__AtomicExp__Group_8__116147 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__ValDeclAssignment_8_1_in_rule__AtomicExp__Group_8__1__Impl16176 = new BitSet(new long[]{0x0000002000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__ValDeclAssignment_8_1_in_rule__AtomicExp__Group_8__1__Impl16188 = new BitSet(new long[]{0x0000002000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__2__Impl_in_rule__AtomicExp__Group_8__216221 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__3_in_rule__AtomicExp__Group_8__216224 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_56_in_rule__AtomicExp__Group_8__2__Impl16252 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__3__Impl_in_rule__AtomicExp__Group_8__316283 = new BitSet(new long[]{0x0002000000000000L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__4_in_rule__AtomicExp__Group_8__316286 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__ExprAssignment_8_3_in_rule__AtomicExp__Group_8__3__Impl16313 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__4__Impl_in_rule__AtomicExp__Group_8__416343 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_49_in_rule__AtomicExp__Group_8__4__Impl16371 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Field__Group_0__0__Impl_in_rule__Field__Group_0__016412 = new BitSet(new long[]{0x0000000800000000L});
-    public static final BitSet FOLLOW_rule__Field__Group_0__1_in_rule__Field__Group_0__016415 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Field__NameAssignment_0_0_in_rule__Field__Group_0__0__Impl16442 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Field__Group_0__1__Impl_in_rule__Field__Group_0__116472 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Field__Group_0__2_in_rule__Field__Group_0__116475 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__Field__Group_0__1__Impl16503 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Field__Group_0__2__Impl_in_rule__Field__Group_0__216534 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Field__ExpAssignment_0_2_in_rule__Field__Group_0__2__Impl16561 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Field__Group_1__0__Impl_in_rule__Field__Group_1__016597 = new BitSet(new long[]{0x00000000000C00C0L});
-    public static final BitSet FOLLOW_rule__Field__Group_1__1_in_rule__Field__Group_1__016600 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_54_in_rule__Field__Group_1__0__Impl16628 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Field__Group_1__1__Impl_in_rule__Field__Group_1__116659 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__Field__NameAssignment_1_1_in_rule__Field__Group_1__1__Impl16686 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Group__0__Impl_in_rule__ValueDecl__Group__016720 = new BitSet(new long[]{0x00000000000C3EE0L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Group__1_in_rule__ValueDecl__Group__016723 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_37_in_rule__ValueDecl__Group__0__Impl16751 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Group__1__Impl_in_rule__ValueDecl__Group__116782 = new BitSet(new long[]{0x00000008000C00C0L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Group__2_in_rule__ValueDecl__Group__116785 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Alternatives_1_in_rule__ValueDecl__Group__1__Impl16812 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Group__2__Impl_in_rule__ValueDecl__Group__216842 = new BitSet(new long[]{0x00000008000C00C0L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Group__3_in_rule__ValueDecl__Group__216845 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ValueDecl__IdsAssignment_2_in_rule__ValueDecl__Group__2__Impl16872 = new BitSet(new long[]{0x00000000000C00C2L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Group__3__Impl_in_rule__ValueDecl__Group__316903 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Group__4_in_rule__ValueDecl__Group__316906 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_35_in_rule__ValueDecl__Group__3__Impl16934 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ValueDecl__Group__4__Impl_in_rule__ValueDecl__Group__416965 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__ValueDecl__ExpAssignment_4_in_rule__ValueDecl__Group__4__Impl16992 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__0__Impl_in_rule__DECODEPAT__Group_0__017032 = new BitSet(new long[]{0x00000000000FC6F0L});
-    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__1_in_rule__DECODEPAT__Group_0__017035 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_57_in_rule__DECODEPAT__Group_0__0__Impl17063 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__1__Impl_in_rule__DECODEPAT__Group_0__117094 = new BitSet(new long[]{0x0200000000000000L});
-    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__2_in_rule__DECODEPAT__Group_0__117097 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBITPAT_in_rule__DECODEPAT__Group_0__1__Impl17127 = new BitSet(new long[]{0x00000000000FC6F2L});
-    public static final BitSet FOLLOW_ruleBITPAT_in_rule__DECODEPAT__Group_0__1__Impl17140 = new BitSet(new long[]{0x00000000000FC6F2L});
-    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__2__Impl_in_rule__DECODEPAT__Group_0__217173 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_57_in_rule__DECODEPAT__Group_0__2__Impl17201 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__BITPAT__Group_1__0__Impl_in_rule__BITPAT__Group_1__017238 = new BitSet(new long[]{0x0400000200000000L});
-    public static final BitSet FOLLOW_rule__BITPAT__Group_1__1_in_rule__BITPAT__Group_1__017241 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__BITPAT__Group_1__0__Impl17268 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__BITPAT__Group_1__1__Impl_in_rule__BITPAT__Group_1__117297 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBITPATORINT_in_rule__BITPAT__Group_1__1__Impl17325 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__BITPATORINT__Group_0__0__Impl_in_rule__BITPATORINT__Group_0__017360 = new BitSet(new long[]{0x0000000000018000L});
-    public static final BitSet FOLLOW_rule__BITPATORINT__Group_0__1_in_rule__BITPATORINT__Group_0__017363 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_33_in_rule__BITPATORINT__Group_0__0__Impl17391 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__BITPATORINT__Group_0__1__Impl_in_rule__BITPATORINT__Group_0__117422 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rulePOSINT_in_rule__BITPATORINT__Group_0__1__Impl17449 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__BITPATORINT__Group_1__0__Impl_in_rule__BITPATORINT__Group_1__017482 = new BitSet(new long[]{0x0000000000030600L});
-    public static final BitSet FOLLOW_rule__BITPATORINT__Group_1__1_in_rule__BITPATORINT__Group_1__017485 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_58_in_rule__BITPATORINT__Group_1__0__Impl17513 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__BITPATORINT__Group_1__1__Impl_in_rule__BITPATORINT__Group_1__117544 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBINARY_in_rule__BITPATORINT__Group_1__1__Impl17571 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__PAT__Group_2__0__Impl_in_rule__PAT__Group_2__017604 = new BitSet(new long[]{0x00000000000FC6F0L});
-    public static final BitSet FOLLOW_rule__PAT__Group_2__1_in_rule__PAT__Group_2__017607 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCONS_in_rule__PAT__Group_2__0__Impl17635 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__PAT__Group_2__1__Impl_in_rule__PAT__Group_2__117665 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rulePAT_in_rule__PAT__Group_2__1__Impl17693 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__LIT__Group_1__0__Impl_in_rule__LIT__Group_1__017728 = new BitSet(new long[]{0x0200000000030600L});
-    public static final BitSet FOLLOW_rule__LIT__Group_1__1_in_rule__LIT__Group_1__017731 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_57_in_rule__LIT__Group_1__0__Impl17759 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__LIT__Group_1__1__Impl_in_rule__LIT__Group_1__117790 = new BitSet(new long[]{0x0200000000030600L});
-    public static final BitSet FOLLOW_rule__LIT__Group_1__2_in_rule__LIT__Group_1__117793 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBINARY_in_rule__LIT__Group_1__1__Impl17821 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__LIT__Group_1__2__Impl_in_rule__LIT__Group_1__217852 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_57_in_rule__LIT__Group_1__2__Impl17880 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleDecl_in_rule__Model__DeclAssignment_017922 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleDecl_in_rule__Model__DeclAssignment_1_117953 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__DeclExport__NameAssignment_117988 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTyVars_in_rule__DeclExport__TyVarsAssignment_218023 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__DeclExport__TypeAssignment_418054 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__DeclType__NameAssignment_118085 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_0_1_0_0_018116 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_118147 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__DeclType__ValueAssignment_2_0_1_118178 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTyVars_in_rule__DeclType__TyVarsAssignment_2_1_018209 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_1_2_018240 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_1_2_1_118271 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__DeclVal__NameAssignment_1_0_0_0_018302 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleSYM_in_rule__DeclVal__NameAssignment_1_0_0_0_118333 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__DeclVal__AttrAssignment_1_0_0_118364 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_0_0_318395 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleMID_in_rule__DeclVal__MidAssignment_1_1_0_018426 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__DeclVal__AttrAssignment_1_1_0_118457 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_1_218488 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__DeclVal__NameAssignment_1_2_018519 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleDECODEPAT_in_rule__DeclVal__DecPatAssignment_1_2_218550 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_2_4_0_118581 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpsAssignment_1_2_4_1_118612 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpsAssignment_1_2_4_1_318643 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__TyVars__AttrAssignment_118674 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__TyVars__AttrAssignment_2_118705 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCONS_in_rule__ConDecl__NameAssignment_018736 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__ConDecl__TyAssignment_1_118767 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleINTEGER_in_rule__Ty__ValueAssignment_018798 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__Ty__DeclAssignment_1_0_018833 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_59_in_rule__Ty__TypeAssignment_1_0_118873 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTyBind_in_rule__Ty__TyBindAssignment_1_1_118912 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTyBind_in_rule__Ty__TyBindAssignment_1_1_2_118943 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTyElement_in_rule__Ty__ElementsAssignment_2_2_018974 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTyElement_in_rule__Ty__ElementsAssignment_2_2_1_119005 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__ParamAssignment_3_119036 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__ParamAssignment_3_2_119067 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__ResTypeAssignment_3_519098 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__RAssignment_5_119129 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__InAssignment_5_319160 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__OutAssignment_5_519191 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__TyBind__NameAssignment_019222 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__TyBind__ValueAssignment_1_119253 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__TyElement__NameAssignment_019284 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTy_in_rule__TyElement__ValueAssignment_219315 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCaseExp_in_rule__Exp__NameAssignment_019346 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleMID_in_rule__Exp__MidAssignment_1_019377 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCaseExp_in_rule__Exp__CaseExpsAssignment_1_119408 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_60_in_rule__CaseExp__NameAssignment_1_019444 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleClosedExp_in_rule__CaseExp__ClosedExpAssignment_1_119483 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rulePAT_in_rule__CaseExp__PatAssignment_1_3_019514 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__CaseExp__ExpAssignment_1_3_219545 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rulePAT_in_rule__CaseExp__PatAssignment_1_3_3_119576 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__CaseExp__ExpAssignment_1_3_3_319607 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_61_in_rule__ClosedExp__NameAssignment_1_019643 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCaseExp_in_rule__ClosedExp__IfCaseExpAssignment_1_119682 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCaseExp_in_rule__ClosedExp__ThenCaseExpAssignment_1_319713 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCaseExp_in_rule__ClosedExp__ElseCaseExpAssignment_1_519744 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_62_in_rule__ClosedExp__NameAssignment_2_019780 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleMonadicExp_in_rule__ClosedExp__DoExpAssignment_2_119819 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleMonadicExp_in_rule__ClosedExp__DoExpAssignment_2_2_119850 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__MonadicExp__ExpAssignment_019881 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__MonadicExp__NameAssignment_1_019912 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__MonadicExp__ExpAssignment_1_219943 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_63_in_rule__OrElseExp__NameAssignment_1_119979 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleAndAlsoExp_in_rule__OrElseExp__RightAssignment_1_220018 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_64_in_rule__AndAlsoExp__NameAssignment_1_120054 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleRExp_in_rule__AndAlsoExp__RightAssignment_1_220093 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleSYM_in_rule__RExp__SymAssignment_1_020124 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleAExp_in_rule__RExp__AexpsAssignment_1_120155 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AExp__SignAlternatives_1_0_0_in_rule__AExp__SignAssignment_1_020186 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleMExp_in_rule__AExp__MexpsAssignment_1_120219 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__MExp__SymbolAlternatives_1_0_0_in_rule__MExp__SymbolAssignment_1_020250 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleApplyExp_in_rule__MExp__ApplyexpsAssignment_1_120283 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleApplyExp_in_rule__SelectExp__ApplyexpsAssignment_1_120314 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleAtomicExp_in_rule__ApplyExp__AtomicExpAssignment_1_020345 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleLIT_in_rule__AtomicExp__NameAssignment_020376 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_STRING_in_rule__AtomicExp__NameAssignment_120407 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCONS_in_rule__AtomicExp__NameAssignment_2_020438 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__NameAssignment_3_020469 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_3_1_120500 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_58_in_rule__AtomicExp__NameAssignment_4_020536 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleField_in_rule__AtomicExp__FieldsAssignment_4_220575 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleField_in_rule__AtomicExp__FieldsAssignment_4_3_120606 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__NameAssignment_5_120637 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__AtomicExp__ExprAssignment_6_120668 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_6_3_120699 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_7_2_020730 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__AtomicExp__ExpsAssignment_7_2_220761 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_7_2_3_120792 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__AtomicExp__ExpsAssignment_7_2_3_320823 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_65_in_rule__AtomicExp__NameAssignment_8_020859 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleValueDecl_in_rule__AtomicExp__ValDeclAssignment_8_120898 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__AtomicExp__ExprAssignment_8_320929 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__Field__NameAssignment_0_020960 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__Field__ExpAssignment_0_220991 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__Field__NameAssignment_1_121022 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__ValueDecl__NameAssignment_1_021053 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleSYM_in_rule__ValueDecl__NameAssignment_1_121084 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleID_in_rule__ValueDecl__IdsAssignment_221115 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleExp_in_rule__ValueDecl__ExpAssignment_421146 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__PAT__Group_4__0_in_rule__PAT__Alternatives3793 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleINTEGER_in_rule__LIT__Alternatives3826 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__LIT__Group_1__0_in_rule__LIT__Alternatives3843 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCONS_in_rule__ID__Alternatives3876 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_ID_WO_CONS_in_rule__ID__Alternatives3893 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_SLASH_in_rule__ID__Alternatives3910 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_MIXID_in_rule__MID__Alternatives3942 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_USCORE_in_rule__MID__Alternatives3959 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_USCORE_in_rule__SYM__Alternatives3991 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_SLASH_in_rule__SYM__Alternatives4008 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_BS_in_rule__SYM__Alternatives4025 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DOT_in_rule__SYM__Alternatives4042 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_LESS_in_rule__SYM__Alternatives4059 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_GREATER_in_rule__SYM__Alternatives4076 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_rule__SYM__Alternatives4093 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rulePOSINT_in_rule__INTEGER__Alternatives4125 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_HEXINT_in_rule__INTEGER__Alternatives4142 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_NEGINT_in_rule__INTEGER__Alternatives4159 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_POSINT_WO_DUALS_in_rule__POSINT__Alternatives4191 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DUALS_in_rule__POSINT__Alternatives4208 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DUALS_in_rule__BINARY__Alternatives4240 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_BINS_in_rule__BINARY__Alternatives4257 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_BS_in_rule__BINARY__Alternatives4274 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DOT_in_rule__BINARY__Alternatives4291 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_S_in_rule__CONS__Alternatives4323 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_CONS_WO_S_in_rule__CONS__Alternatives4340 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Model__Group__0__Impl_in_rule__Model__Group__04370 = new BitSet(new long[]{0x0000002580000000L});
+    public static final BitSet FOLLOW_rule__Model__Group__1_in_rule__Model__Group__04373 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Model__DeclAssignment_0_in_rule__Model__Group__0__Impl4400 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Model__Group__1__Impl_in_rule__Model__Group__14430 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Model__Group_1__0_in_rule__Model__Group__1__Impl4457 = new BitSet(new long[]{0x0000002580000002L});
+    public static final BitSet FOLLOW_rule__Model__Group_1__0__Impl_in_rule__Model__Group_1__04492 = new BitSet(new long[]{0x0000002580000000L});
+    public static final BitSet FOLLOW_rule__Model__Group_1__1_in_rule__Model__Group_1__04495 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_31_in_rule__Model__Group_1__0__Impl4524 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Model__Group_1__1__Impl_in_rule__Model__Group_1__14557 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Model__DeclAssignment_1_1_in_rule__Model__Group_1__1__Impl4584 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclExport__Group__0__Impl_in_rule__DeclExport__Group__04618 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__DeclExport__Group__1_in_rule__DeclExport__Group__04621 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_32_in_rule__DeclExport__Group__0__Impl4649 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclExport__Group__1__Impl_in_rule__DeclExport__Group__14680 = new BitSet(new long[]{0x0000004200000000L});
+    public static final BitSet FOLLOW_rule__DeclExport__Group__2_in_rule__DeclExport__Group__14683 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclExport__NameAssignment_1_in_rule__DeclExport__Group__1__Impl4710 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclExport__Group__2__Impl_in_rule__DeclExport__Group__24740 = new BitSet(new long[]{0x0000004200000000L});
+    public static final BitSet FOLLOW_rule__DeclExport__Group__3_in_rule__DeclExport__Group__24743 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclExport__TyVarsAssignment_2_in_rule__DeclExport__Group__2__Impl4770 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclExport__Group__3__Impl_in_rule__DeclExport__Group__34801 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__DeclExport__Group__4_in_rule__DeclExport__Group__34804 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_33_in_rule__DeclExport__Group__3__Impl4832 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclExport__Group__4__Impl_in_rule__DeclExport__Group__44863 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclExport__TypeAssignment_4_in_rule__DeclExport__Group__4__Impl4890 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group__0__Impl_in_rule__DeclType__Group__04930 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__DeclType__Group__1_in_rule__DeclType__Group__04933 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_34_in_rule__DeclType__Group__0__Impl4961 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group__1__Impl_in_rule__DeclType__Group__14992 = new BitSet(new long[]{0x0000004800000000L});
+    public static final BitSet FOLLOW_rule__DeclType__Group__2_in_rule__DeclType__Group__14995 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__NameAssignment_1_in_rule__DeclType__Group__1__Impl5022 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group__2__Impl_in_rule__DeclType__Group__25052 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Alternatives_2_in_rule__DeclType__Group__2__Impl5079 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0__0__Impl_in_rule__DeclType__Group_2_0__05115 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0__1_in_rule__DeclType__Group_2_0__05118 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__DeclType__Group_2_0__0__Impl5146 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0__1__Impl_in_rule__DeclType__Group_2_0__15177 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Alternatives_2_0_1_in_rule__DeclType__Group_2_0__1__Impl5204 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0__0__Impl_in_rule__DeclType__Group_2_0_1_0__05238 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0__0_in_rule__DeclType__Group_2_0_1_0__0__Impl5265 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0__0__Impl_in_rule__DeclType__Group_2_0_1_0_0__05297 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0__1_in_rule__DeclType__Group_2_0_1_0_0__05300 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__ConDeclAssignment_2_0_1_0_0_0_in_rule__DeclType__Group_2_0_1_0_0__0__Impl5327 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0__1__Impl_in_rule__DeclType__Group_2_0_1_0_0__15357 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__0_in_rule__DeclType__Group_2_0_1_0_0__1__Impl5384 = new BitSet(new long[]{0x0000001000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__0__Impl_in_rule__DeclType__Group_2_0_1_0_0_1__05419 = new BitSet(new long[]{0x00000000000C0000L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__1_in_rule__DeclType__Group_2_0_1_0_0_1__05422 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_36_in_rule__DeclType__Group_2_0_1_0_0_1__0__Impl5450 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0_0_1__1__Impl_in_rule__DeclType__Group_2_0_1_0_0_1__15481 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_1_in_rule__DeclType__Group_2_0_1_0_0_1__1__Impl5508 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__0__Impl_in_rule__DeclType__Group_2_1__05542 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__1_in_rule__DeclType__Group_2_1__05545 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__TyVarsAssignment_2_1_0_in_rule__DeclType__Group_2_1__0__Impl5572 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__1__Impl_in_rule__DeclType__Group_2_1__15602 = new BitSet(new long[]{0x00000000000C0000L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__2_in_rule__DeclType__Group_2_1__15605 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__DeclType__Group_2_1__1__Impl5633 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1__2__Impl_in_rule__DeclType__Group_2_1__25664 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2__0_in_rule__DeclType__Group_2_1__2__Impl5691 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2__0__Impl_in_rule__DeclType__Group_2_1_2__05727 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2__1_in_rule__DeclType__Group_2_1_2__05730 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__ConDeclAssignment_2_1_2_0_in_rule__DeclType__Group_2_1_2__0__Impl5757 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2__1__Impl_in_rule__DeclType__Group_2_1_2__15787 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2_1__0_in_rule__DeclType__Group_2_1_2__1__Impl5814 = new BitSet(new long[]{0x0000001000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2_1__0__Impl_in_rule__DeclType__Group_2_1_2_1__05849 = new BitSet(new long[]{0x00000000000C0000L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2_1__1_in_rule__DeclType__Group_2_1_2_1__05852 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_36_in_rule__DeclType__Group_2_1_2_1__0__Impl5880 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__Group_2_1_2_1__1__Impl_in_rule__DeclType__Group_2_1_2_1__15911 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclType__ConDeclAssignment_2_1_2_1_1_in_rule__DeclType__Group_2_1_2_1__1__Impl5938 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group__0__Impl_in_rule__DeclVal__Group__05972 = new BitSet(new long[]{0x00000008000C3FE0L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group__1_in_rule__DeclVal__Group__05975 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_37_in_rule__DeclVal__Group__0__Impl6003 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group__1__Impl_in_rule__DeclVal__Group__16034 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Alternatives_1_in_rule__DeclVal__Group__1__Impl6061 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0__0__Impl_in_rule__DeclVal__Group_1_0__06095 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__0_in_rule__DeclVal__Group_1_0__0__Impl6122 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__0__Impl_in_rule__DeclVal__Group_1_0_0__06154 = new BitSet(new long[]{0x00000008000C00C0L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__1_in_rule__DeclVal__Group_1_0_0__06157 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Alternatives_1_0_0_0_in_rule__DeclVal__Group_1_0_0__0__Impl6184 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__1__Impl_in_rule__DeclVal__Group_1_0_0__16214 = new BitSet(new long[]{0x00000008000C00C0L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__2_in_rule__DeclVal__Group_1_0_0__16217 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__AttrAssignment_1_0_0_1_in_rule__DeclVal__Group_1_0_0__1__Impl6244 = new BitSet(new long[]{0x00000000000C00C2L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__2__Impl_in_rule__DeclVal__Group_1_0_0__26275 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__3_in_rule__DeclVal__Group_1_0_0__26278 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__DeclVal__Group_1_0_0__2__Impl6306 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_0_0__3__Impl_in_rule__DeclVal__Group_1_0_0__36337 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__ExpAssignment_1_0_0_3_in_rule__DeclVal__Group_1_0_0__3__Impl6364 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__0__Impl_in_rule__DeclVal__Group_1_1__06402 = new BitSet(new long[]{0x0000000800000120L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__1_in_rule__DeclVal__Group_1_1__06405 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1_0__0_in_rule__DeclVal__Group_1_1__0__Impl6432 = new BitSet(new long[]{0x0000000000000122L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__1__Impl_in_rule__DeclVal__Group_1_1__16463 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__2_in_rule__DeclVal__Group_1_1__16466 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__DeclVal__Group_1_1__1__Impl6494 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__2__Impl_in_rule__DeclVal__Group_1_1__26525 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__ExpAssignment_1_1_2_in_rule__DeclVal__Group_1_1__2__Impl6552 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1_0__0__Impl_in_rule__DeclVal__Group_1_1_0__06588 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1_0__1_in_rule__DeclVal__Group_1_1_0__06591 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__MidAssignment_1_1_0_0_in_rule__DeclVal__Group_1_1_0__0__Impl6618 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_1_0__1__Impl_in_rule__DeclVal__Group_1_1_0__16648 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__AttrAssignment_1_1_0_1_in_rule__DeclVal__Group_1_1_0__1__Impl6675 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__0__Impl_in_rule__DeclVal__Group_1_2__06709 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__1_in_rule__DeclVal__Group_1_2__06712 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__NameAssignment_1_2_0_in_rule__DeclVal__Group_1_2__0__Impl6739 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__1__Impl_in_rule__DeclVal__Group_1_2__16769 = new BitSet(new long[]{0x02000080000C00D0L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__2_in_rule__DeclVal__Group_1_2__16772 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_38_in_rule__DeclVal__Group_1_2__1__Impl6800 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__2__Impl_in_rule__DeclVal__Group_1_2__26831 = new BitSet(new long[]{0x02000080000C00D0L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__3_in_rule__DeclVal__Group_1_2__26834 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__DecPatAssignment_1_2_2_in_rule__DeclVal__Group_1_2__2__Impl6861 = new BitSet(new long[]{0x02000000000C00D2L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__3__Impl_in_rule__DeclVal__Group_1_2__36892 = new BitSet(new long[]{0x0000001800000000L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__4_in_rule__DeclVal__Group_1_2__36895 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_39_in_rule__DeclVal__Group_1_2__3__Impl6923 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2__4__Impl_in_rule__DeclVal__Group_1_2__46954 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Alternatives_1_2_4_in_rule__DeclVal__Group_1_2__4__Impl6981 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_0__0__Impl_in_rule__DeclVal__Group_1_2_4_0__07021 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_0__1_in_rule__DeclVal__Group_1_2_4_0__07024 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__DeclVal__Group_1_2_4_0__0__Impl7052 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_0__1__Impl_in_rule__DeclVal__Group_1_2_4_0__17083 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__ExpAssignment_1_2_4_0_1_in_rule__DeclVal__Group_1_2_4_0__1__Impl7110 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__0__Impl_in_rule__DeclVal__Group_1_2_4_1__07144 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__1_in_rule__DeclVal__Group_1_2_4_1__07147 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_36_in_rule__DeclVal__Group_1_2_4_1__0__Impl7175 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__1__Impl_in_rule__DeclVal__Group_1_2_4_1__17206 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__2_in_rule__DeclVal__Group_1_2_4_1__17209 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__ExpsAssignment_1_2_4_1_1_in_rule__DeclVal__Group_1_2_4_1__1__Impl7236 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__2__Impl_in_rule__DeclVal__Group_1_2_4_1__27266 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__3_in_rule__DeclVal__Group_1_2_4_1__27269 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__DeclVal__Group_1_2_4_1__2__Impl7297 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__Group_1_2_4_1__3__Impl_in_rule__DeclVal__Group_1_2_4_1__37328 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DeclVal__ExpsAssignment_1_2_4_1_3_in_rule__DeclVal__Group_1_2_4_1__3__Impl7355 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyVars__Group__0__Impl_in_rule__TyVars__Group__07393 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__TyVars__Group__1_in_rule__TyVars__Group__07396 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_38_in_rule__TyVars__Group__0__Impl7424 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyVars__Group__1__Impl_in_rule__TyVars__Group__17455 = new BitSet(new long[]{0x0000018000000000L});
+    public static final BitSet FOLLOW_rule__TyVars__Group__2_in_rule__TyVars__Group__17458 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyVars__AttrAssignment_1_in_rule__TyVars__Group__1__Impl7485 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyVars__Group__2__Impl_in_rule__TyVars__Group__27515 = new BitSet(new long[]{0x0000018000000000L});
+    public static final BitSet FOLLOW_rule__TyVars__Group__3_in_rule__TyVars__Group__27518 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyVars__Group_2__0_in_rule__TyVars__Group__2__Impl7545 = new BitSet(new long[]{0x0000010000000002L});
+    public static final BitSet FOLLOW_rule__TyVars__Group__3__Impl_in_rule__TyVars__Group__37576 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_39_in_rule__TyVars__Group__3__Impl7604 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyVars__Group_2__0__Impl_in_rule__TyVars__Group_2__07643 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__TyVars__Group_2__1_in_rule__TyVars__Group_2__07646 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_40_in_rule__TyVars__Group_2__0__Impl7674 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyVars__Group_2__1__Impl_in_rule__TyVars__Group_2__17705 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyVars__AttrAssignment_2_1_in_rule__TyVars__Group_2__1__Impl7732 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ConDecl__Group__0__Impl_in_rule__ConDecl__Group__07766 = new BitSet(new long[]{0x0000020000000000L});
+    public static final BitSet FOLLOW_rule__ConDecl__Group__1_in_rule__ConDecl__Group__07769 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ConDecl__NameAssignment_0_in_rule__ConDecl__Group__0__Impl7796 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ConDecl__Group__1__Impl_in_rule__ConDecl__Group__17826 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ConDecl__Group_1__0_in_rule__ConDecl__Group__1__Impl7853 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ConDecl__Group_1__0__Impl_in_rule__ConDecl__Group_1__07888 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__ConDecl__Group_1__1_in_rule__ConDecl__Group_1__07891 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_41_in_rule__ConDecl__Group_1__0__Impl7919 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ConDecl__Group_1__1__Impl_in_rule__ConDecl__Group_1__17950 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ConDecl__TyAssignment_1_1_in_rule__ConDecl__Group_1__1__Impl7977 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1__0__Impl_in_rule__Ty__Group_1__08011 = new BitSet(new long[]{0x0000004000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1__1_in_rule__Ty__Group_1__08014 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Alternatives_1_0_in_rule__Ty__Group_1__0__Impl8041 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1__1__Impl_in_rule__Ty__Group_1__18071 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1__0_in_rule__Ty__Group_1__1__Impl8098 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1__0__Impl_in_rule__Ty__Group_1_1__08133 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1__1_in_rule__Ty__Group_1_1__08136 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_38_in_rule__Ty__Group_1_1__0__Impl8164 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1__1__Impl_in_rule__Ty__Group_1_1__18195 = new BitSet(new long[]{0x0000018000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1__2_in_rule__Ty__Group_1_1__18198 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__TyBindAssignment_1_1_1_in_rule__Ty__Group_1_1__1__Impl8225 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1__2__Impl_in_rule__Ty__Group_1_1__28255 = new BitSet(new long[]{0x0000018000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1__3_in_rule__Ty__Group_1_1__28258 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1_2__0_in_rule__Ty__Group_1_1__2__Impl8285 = new BitSet(new long[]{0x0000010000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1__3__Impl_in_rule__Ty__Group_1_1__38316 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_39_in_rule__Ty__Group_1_1__3__Impl8344 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1_2__0__Impl_in_rule__Ty__Group_1_1_2__08383 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1_2__1_in_rule__Ty__Group_1_1_2__08386 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_40_in_rule__Ty__Group_1_1_2__0__Impl8414 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_1_1_2__1__Impl_in_rule__Ty__Group_1_1_2__18445 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__TyBindAssignment_1_1_2_1_in_rule__Ty__Group_1_1_2__1__Impl8472 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2__0__Impl_in_rule__Ty__Group_2__08506 = new BitSet(new long[]{0x0000040000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2__1_in_rule__Ty__Group_2__08509 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2__1__Impl_in_rule__Ty__Group_2__18567 = new BitSet(new long[]{0x00000800000C00C0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2__2_in_rule__Ty__Group_2__18570 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_42_in_rule__Ty__Group_2__1__Impl8598 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2__2__Impl_in_rule__Ty__Group_2__28629 = new BitSet(new long[]{0x00000800000C00C0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2__3_in_rule__Ty__Group_2__28632 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2_2__0_in_rule__Ty__Group_2__2__Impl8659 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2__3__Impl_in_rule__Ty__Group_2__38690 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_43_in_rule__Ty__Group_2__3__Impl8718 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2_2__0__Impl_in_rule__Ty__Group_2_2__08757 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2_2__1_in_rule__Ty__Group_2_2__08760 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__ElementsAssignment_2_2_0_in_rule__Ty__Group_2_2__0__Impl8787 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2_2__1__Impl_in_rule__Ty__Group_2_2__18817 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2_2_1__0_in_rule__Ty__Group_2_2__1__Impl8844 = new BitSet(new long[]{0x0000010000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2_2_1__0__Impl_in_rule__Ty__Group_2_2_1__08879 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2_2_1__1_in_rule__Ty__Group_2_2_1__08882 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_40_in_rule__Ty__Group_2_2_1__0__Impl8910 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_2_2_1__1__Impl_in_rule__Ty__Group_2_2_1__18941 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__ElementsAssignment_2_2_1_1_in_rule__Ty__Group_2_2_1__1__Impl8968 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__0__Impl_in_rule__Ty__Group_3__09002 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__1_in_rule__Ty__Group_3__09005 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_44_in_rule__Ty__Group_3__0__Impl9033 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__1__Impl_in_rule__Ty__Group_3__19064 = new BitSet(new long[]{0x0000210000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__2_in_rule__Ty__Group_3__19067 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__ParamAssignment_3_1_in_rule__Ty__Group_3__1__Impl9094 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__2__Impl_in_rule__Ty__Group_3__29124 = new BitSet(new long[]{0x0000210000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__3_in_rule__Ty__Group_3__29127 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3_2__0_in_rule__Ty__Group_3__2__Impl9154 = new BitSet(new long[]{0x0000010000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__3__Impl_in_rule__Ty__Group_3__39185 = new BitSet(new long[]{0x0000400000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__4_in_rule__Ty__Group_3__39188 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_45_in_rule__Ty__Group_3__3__Impl9216 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__4__Impl_in_rule__Ty__Group_3__49247 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__5_in_rule__Ty__Group_3__49250 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_46_in_rule__Ty__Group_3__4__Impl9278 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3__5__Impl_in_rule__Ty__Group_3__59309 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__ResTypeAssignment_3_5_in_rule__Ty__Group_3__5__Impl9336 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3_2__0__Impl_in_rule__Ty__Group_3_2__09378 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3_2__1_in_rule__Ty__Group_3_2__09381 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_40_in_rule__Ty__Group_3_2__0__Impl9409 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_3_2__1__Impl_in_rule__Ty__Group_3_2__19440 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__ParamAssignment_3_2_1_in_rule__Ty__Group_3_2__1__Impl9467 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_4__0__Impl_in_rule__Ty__Group_4__09501 = new BitSet(new long[]{0x0000800000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_4__1_in_rule__Ty__Group_4__09504 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_4__1__Impl_in_rule__Ty__Group_4__19562 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_47_in_rule__Ty__Group_4__1__Impl9590 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__0__Impl_in_rule__Ty__Group_5__09625 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__1_in_rule__Ty__Group_5__09628 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_S_in_rule__Ty__Group_5__0__Impl9655 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__1__Impl_in_rule__Ty__Group_5__19684 = new BitSet(new long[]{0x0000000000000800L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__2_in_rule__Ty__Group_5__19687 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__RAssignment_5_1_in_rule__Ty__Group_5__1__Impl9714 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__2__Impl_in_rule__Ty__Group_5__29744 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__3_in_rule__Ty__Group_5__29747 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_LESS_in_rule__Ty__Group_5__2__Impl9774 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__3__Impl_in_rule__Ty__Group_5__39803 = new BitSet(new long[]{0x0001000000000000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__4_in_rule__Ty__Group_5__39806 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__InAssignment_5_3_in_rule__Ty__Group_5__3__Impl9833 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__4__Impl_in_rule__Ty__Group_5__49863 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__5_in_rule__Ty__Group_5__49866 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_48_in_rule__Ty__Group_5__4__Impl9894 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__5__Impl_in_rule__Ty__Group_5__59925 = new BitSet(new long[]{0x0000000000001000L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__6_in_rule__Ty__Group_5__59928 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__OutAssignment_5_5_in_rule__Ty__Group_5__5__Impl9955 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Ty__Group_5__6__Impl_in_rule__Ty__Group_5__69985 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_GREATER_in_rule__Ty__Group_5__6__Impl10012 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyBind__Group__0__Impl_in_rule__TyBind__Group__010055 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_rule__TyBind__Group__1_in_rule__TyBind__Group__010058 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyBind__NameAssignment_0_in_rule__TyBind__Group__0__Impl10085 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyBind__Group__1__Impl_in_rule__TyBind__Group__110115 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyBind__Group_1__0_in_rule__TyBind__Group__1__Impl10142 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyBind__Group_1__0__Impl_in_rule__TyBind__Group_1__010177 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__TyBind__Group_1__1_in_rule__TyBind__Group_1__010180 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__TyBind__Group_1__0__Impl10208 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyBind__Group_1__1__Impl_in_rule__TyBind__Group_1__110239 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyBind__ValueAssignment_1_1_in_rule__TyBind__Group_1__1__Impl10266 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyElement__Group__0__Impl_in_rule__TyElement__Group__010300 = new BitSet(new long[]{0x0000000200000000L});
+    public static final BitSet FOLLOW_rule__TyElement__Group__1_in_rule__TyElement__Group__010303 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyElement__NameAssignment_0_in_rule__TyElement__Group__0__Impl10330 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyElement__Group__1__Impl_in_rule__TyElement__Group__110360 = new BitSet(new long[]{0x08009400000DC0D0L});
+    public static final BitSet FOLLOW_rule__TyElement__Group__2_in_rule__TyElement__Group__110363 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_33_in_rule__TyElement__Group__1__Impl10391 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyElement__Group__2__Impl_in_rule__TyElement__Group__210422 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__TyElement__ValueAssignment_2_in_rule__TyElement__Group__2__Impl10449 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Exp__Group_1__0__Impl_in_rule__Exp__Group_1__010485 = new BitSet(new long[]{0x76C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Exp__Group_1__1_in_rule__Exp__Group_1__010488 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Exp__MidAssignment_1_0_in_rule__Exp__Group_1__0__Impl10515 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Exp__Group_1__1__Impl_in_rule__Exp__Group_1__110545 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Exp__CaseExpsAssignment_1_1_in_rule__Exp__Group_1__1__Impl10572 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1__0__Impl_in_rule__CaseExp__Group_1__010606 = new BitSet(new long[]{0x66C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1__1_in_rule__CaseExp__Group_1__010609 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__NameAssignment_1_0_in_rule__CaseExp__Group_1__0__Impl10636 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1__1__Impl_in_rule__CaseExp__Group_1__110666 = new BitSet(new long[]{0x0000020000000000L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1__2_in_rule__CaseExp__Group_1__110669 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__ClosedExpAssignment_1_1_in_rule__CaseExp__Group_1__1__Impl10696 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1__2__Impl_in_rule__CaseExp__Group_1__210726 = new BitSet(new long[]{0x02000000000DC0F0L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1__3_in_rule__CaseExp__Group_1__210729 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_41_in_rule__CaseExp__Group_1__2__Impl10757 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1__3__Impl_in_rule__CaseExp__Group_1__310788 = new BitSet(new long[]{0x0002000000000000L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1__4_in_rule__CaseExp__Group_1__310791 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__0_in_rule__CaseExp__Group_1__3__Impl10818 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1__4__Impl_in_rule__CaseExp__Group_1__410848 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_49_in_rule__CaseExp__Group_1__4__Impl10876 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__0__Impl_in_rule__CaseExp__Group_1_3__010917 = new BitSet(new long[]{0x0000000200000000L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__1_in_rule__CaseExp__Group_1_3__010920 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__PatAssignment_1_3_0_in_rule__CaseExp__Group_1_3__0__Impl10947 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__1__Impl_in_rule__CaseExp__Group_1_3__110977 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__2_in_rule__CaseExp__Group_1_3__110980 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_33_in_rule__CaseExp__Group_1_3__1__Impl11008 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__2__Impl_in_rule__CaseExp__Group_1_3__211039 = new BitSet(new long[]{0x0000001000000000L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__3_in_rule__CaseExp__Group_1_3__211042 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__ExpAssignment_1_3_2_in_rule__CaseExp__Group_1_3__2__Impl11069 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3__3__Impl_in_rule__CaseExp__Group_1_3__311099 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__0_in_rule__CaseExp__Group_1_3__3__Impl11126 = new BitSet(new long[]{0x0000001000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__0__Impl_in_rule__CaseExp__Group_1_3_3__011165 = new BitSet(new long[]{0x02000000000DC0F0L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__1_in_rule__CaseExp__Group_1_3_3__011168 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_36_in_rule__CaseExp__Group_1_3_3__0__Impl11196 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__1__Impl_in_rule__CaseExp__Group_1_3_3__111227 = new BitSet(new long[]{0x0000000200000000L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__2_in_rule__CaseExp__Group_1_3_3__111230 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__PatAssignment_1_3_3_1_in_rule__CaseExp__Group_1_3_3__1__Impl11257 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__2__Impl_in_rule__CaseExp__Group_1_3_3__211287 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__3_in_rule__CaseExp__Group_1_3_3__211290 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_33_in_rule__CaseExp__Group_1_3_3__2__Impl11318 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__Group_1_3_3__3__Impl_in_rule__CaseExp__Group_1_3_3__311349 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__CaseExp__ExpAssignment_1_3_3_3_in_rule__CaseExp__Group_1_3_3__3__Impl11376 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__0__Impl_in_rule__ClosedExp__Group_1__011414 = new BitSet(new long[]{0x76C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__1_in_rule__ClosedExp__Group_1__011417 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__NameAssignment_1_0_in_rule__ClosedExp__Group_1__0__Impl11444 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__1__Impl_in_rule__ClosedExp__Group_1__111474 = new BitSet(new long[]{0x0004000000000000L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__2_in_rule__ClosedExp__Group_1__111477 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__IfCaseExpAssignment_1_1_in_rule__ClosedExp__Group_1__1__Impl11504 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__2__Impl_in_rule__ClosedExp__Group_1__211534 = new BitSet(new long[]{0x76C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__3_in_rule__ClosedExp__Group_1__211537 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_50_in_rule__ClosedExp__Group_1__2__Impl11565 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__3__Impl_in_rule__ClosedExp__Group_1__311596 = new BitSet(new long[]{0x0008000000000000L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__4_in_rule__ClosedExp__Group_1__311599 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__ThenCaseExpAssignment_1_3_in_rule__ClosedExp__Group_1__3__Impl11626 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__4__Impl_in_rule__ClosedExp__Group_1__411656 = new BitSet(new long[]{0x76C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__5_in_rule__ClosedExp__Group_1__411659 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_51_in_rule__ClosedExp__Group_1__4__Impl11687 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_1__5__Impl_in_rule__ClosedExp__Group_1__511718 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__ElseCaseExpAssignment_1_5_in_rule__ClosedExp__Group_1__5__Impl11745 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__0__Impl_in_rule__ClosedExp__Group_2__011787 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__1_in_rule__ClosedExp__Group_2__011790 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__NameAssignment_2_0_in_rule__ClosedExp__Group_2__0__Impl11817 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__1__Impl_in_rule__ClosedExp__Group_2__111847 = new BitSet(new long[]{0x0002000080000000L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__2_in_rule__ClosedExp__Group_2__111850 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__DoExpAssignment_2_1_in_rule__ClosedExp__Group_2__1__Impl11877 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__2__Impl_in_rule__ClosedExp__Group_2__211907 = new BitSet(new long[]{0x0002000080000000L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__3_in_rule__ClosedExp__Group_2__211910 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2_2__0_in_rule__ClosedExp__Group_2__2__Impl11937 = new BitSet(new long[]{0x0000000080000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2__3__Impl_in_rule__ClosedExp__Group_2__311968 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_49_in_rule__ClosedExp__Group_2__3__Impl11996 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2_2__0__Impl_in_rule__ClosedExp__Group_2_2__012035 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2_2__1_in_rule__ClosedExp__Group_2_2__012038 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_31_in_rule__ClosedExp__Group_2_2__0__Impl12066 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__Group_2_2__1__Impl_in_rule__ClosedExp__Group_2_2__112097 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ClosedExp__DoExpAssignment_2_2_1_in_rule__ClosedExp__Group_2_2__1__Impl12124 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__0__Impl_in_rule__MonadicExp__Group_1__012158 = new BitSet(new long[]{0x0010000000000000L});
+    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__1_in_rule__MonadicExp__Group_1__012161 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MonadicExp__NameAssignment_1_0_in_rule__MonadicExp__Group_1__0__Impl12188 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__1__Impl_in_rule__MonadicExp__Group_1__112218 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__2_in_rule__MonadicExp__Group_1__112221 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_52_in_rule__MonadicExp__Group_1__1__Impl12249 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MonadicExp__Group_1__2__Impl_in_rule__MonadicExp__Group_1__212280 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MonadicExp__ExpAssignment_1_2_in_rule__MonadicExp__Group_1__2__Impl12307 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__OrElseExp__Group__0__Impl_in_rule__OrElseExp__Group__012343 = new BitSet(new long[]{0x8000000000000000L});
+    public static final BitSet FOLLOW_rule__OrElseExp__Group__1_in_rule__OrElseExp__Group__012346 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleAndAlsoExp_in_rule__OrElseExp__Group__0__Impl12373 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__OrElseExp__Group__1__Impl_in_rule__OrElseExp__Group__112402 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__0_in_rule__OrElseExp__Group__1__Impl12429 = new BitSet(new long[]{0x8000000000000002L});
+    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__0__Impl_in_rule__OrElseExp__Group_1__012464 = new BitSet(new long[]{0x8000000000000000L});
+    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__1_in_rule__OrElseExp__Group_1__012467 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__1__Impl_in_rule__OrElseExp__Group_1__112525 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__2_in_rule__OrElseExp__Group_1__112528 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__OrElseExp__NameAssignment_1_1_in_rule__OrElseExp__Group_1__1__Impl12555 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__OrElseExp__Group_1__2__Impl_in_rule__OrElseExp__Group_1__212585 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__OrElseExp__RightAssignment_1_2_in_rule__OrElseExp__Group_1__2__Impl12612 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__Group__0__Impl_in_rule__AndAlsoExp__Group__012648 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__Group__1_in_rule__AndAlsoExp__Group__012651 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleRExp_in_rule__AndAlsoExp__Group__0__Impl12678 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__Group__1__Impl_in_rule__AndAlsoExp__Group__112707 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__0_in_rule__AndAlsoExp__Group__1__Impl12734 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000001L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__0__Impl_in_rule__AndAlsoExp__Group_1__012769 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000001L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__1_in_rule__AndAlsoExp__Group_1__012772 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__1__Impl_in_rule__AndAlsoExp__Group_1__112830 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__2_in_rule__AndAlsoExp__Group_1__112833 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__NameAssignment_1_1_in_rule__AndAlsoExp__Group_1__1__Impl12860 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__Group_1__2__Impl_in_rule__AndAlsoExp__Group_1__212890 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AndAlsoExp__RightAssignment_1_2_in_rule__AndAlsoExp__Group_1__2__Impl12917 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__RExp__Group__0__Impl_in_rule__RExp__Group__012953 = new BitSet(new long[]{0x00000000000C3EE0L});
+    public static final BitSet FOLLOW_rule__RExp__Group__1_in_rule__RExp__Group__012956 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleAExp_in_rule__RExp__Group__0__Impl12983 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__RExp__Group__1__Impl_in_rule__RExp__Group__113012 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__RExp__Group_1__0_in_rule__RExp__Group__1__Impl13039 = new BitSet(new long[]{0x00000000000C3EE2L});
+    public static final BitSet FOLLOW_rule__RExp__Group_1__0__Impl_in_rule__RExp__Group_1__013074 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__RExp__Group_1__1_in_rule__RExp__Group_1__013077 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__RExp__SymAssignment_1_0_in_rule__RExp__Group_1__0__Impl13104 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__RExp__Group_1__1__Impl_in_rule__RExp__Group_1__113134 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__RExp__AexpsAssignment_1_1_in_rule__RExp__Group_1__1__Impl13161 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AExp__Group__0__Impl_in_rule__AExp__Group__013195 = new BitSet(new long[]{0x0000000018000000L});
+    public static final BitSet FOLLOW_rule__AExp__Group__1_in_rule__AExp__Group__013198 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleMExp_in_rule__AExp__Group__0__Impl13225 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AExp__Group__1__Impl_in_rule__AExp__Group__113254 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AExp__Group_1__0_in_rule__AExp__Group__1__Impl13281 = new BitSet(new long[]{0x0000000018000002L});
+    public static final BitSet FOLLOW_rule__AExp__Group_1__0__Impl_in_rule__AExp__Group_1__013316 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AExp__Group_1__1_in_rule__AExp__Group_1__013319 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AExp__SignAssignment_1_0_in_rule__AExp__Group_1__0__Impl13346 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AExp__Group_1__1__Impl_in_rule__AExp__Group_1__113376 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AExp__MexpsAssignment_1_1_in_rule__AExp__Group_1__1__Impl13403 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MExp__Group__0__Impl_in_rule__MExp__Group__013437 = new BitSet(new long[]{0x0000000060000000L});
+    public static final BitSet FOLLOW_rule__MExp__Group__1_in_rule__MExp__Group__013440 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleSelectExp_in_rule__MExp__Group__0__Impl13467 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MExp__Group__1__Impl_in_rule__MExp__Group__113496 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MExp__Group_1__0_in_rule__MExp__Group__1__Impl13523 = new BitSet(new long[]{0x0000000060000002L});
+    public static final BitSet FOLLOW_rule__MExp__Group_1__0__Impl_in_rule__MExp__Group_1__013558 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MExp__Group_1__1_in_rule__MExp__Group_1__013561 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MExp__SymbolAssignment_1_0_in_rule__MExp__Group_1__0__Impl13588 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MExp__Group_1__1__Impl_in_rule__MExp__Group_1__113618 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MExp__ApplyexpsAssignment_1_1_in_rule__MExp__Group_1__1__Impl13645 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__SelectExp__Group__0__Impl_in_rule__SelectExp__Group__013679 = new BitSet(new long[]{0x0020000000000000L});
+    public static final BitSet FOLLOW_rule__SelectExp__Group__1_in_rule__SelectExp__Group__013682 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleApplyExp_in_rule__SelectExp__Group__0__Impl13709 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__SelectExp__Group__1__Impl_in_rule__SelectExp__Group__113738 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__SelectExp__Group_1__0_in_rule__SelectExp__Group__1__Impl13765 = new BitSet(new long[]{0x0020000000000002L});
+    public static final BitSet FOLLOW_rule__SelectExp__Group_1__0__Impl_in_rule__SelectExp__Group_1__013800 = new BitSet(new long[]{0x06C01400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__SelectExp__Group_1__1_in_rule__SelectExp__Group_1__013803 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_53_in_rule__SelectExp__Group_1__0__Impl13831 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__SelectExp__Group_1__1__Impl_in_rule__SelectExp__Group_1__113862 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__SelectExp__ApplyexpsAssignment_1_1_in_rule__SelectExp__Group_1__1__Impl13889 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ApplyExp__Group_0__0__Impl_in_rule__ApplyExp__Group_0__013923 = new BitSet(new long[]{0x06801400001DC0D0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ApplyExp__Group_0__1_in_rule__ApplyExp__Group_0__013926 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_54_in_rule__ApplyExp__Group_0__0__Impl13954 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ApplyExp__Group_0__1__Impl_in_rule__ApplyExp__Group_0__113985 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleAtomicExp_in_rule__ApplyExp__Group_0__1__Impl14012 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ApplyExp__Group_1__0__Impl_in_rule__ApplyExp__Group_1__014045 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ApplyExp__AtomicExpAssignment_1_0_in_rule__ApplyExp__Group_1__0__Impl14072 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_2__0__Impl_in_rule__AtomicExp__Group_2__014104 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_2_0_in_rule__AtomicExp__Group_2__0__Impl14131 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_3__0__Impl_in_rule__AtomicExp__Group_3__014163 = new BitSet(new long[]{0x0000000000000400L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_3__1_in_rule__AtomicExp__Group_3__014166 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_3_0_in_rule__AtomicExp__Group_3__0__Impl14193 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_3__1__Impl_in_rule__AtomicExp__Group_3__114223 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__0_in_rule__AtomicExp__Group_3__1__Impl14250 = new BitSet(new long[]{0x0000000000000402L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__0__Impl_in_rule__AtomicExp__Group_3_1__014285 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__1_in_rule__AtomicExp__Group_3_1__014288 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DOT_in_rule__AtomicExp__Group_3_1__0__Impl14316 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__1__Impl_in_rule__AtomicExp__Group_3_1__114346 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__IdAssignment_3_1_1_in_rule__AtomicExp__Group_3_1__1__Impl14373 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__0__Impl_in_rule__AtomicExp__Group_4__014407 = new BitSet(new long[]{0x0000040000000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__1_in_rule__AtomicExp__Group_4__014410 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_4_0_in_rule__AtomicExp__Group_4__0__Impl14437 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__1__Impl_in_rule__AtomicExp__Group_4__114467 = new BitSet(new long[]{0x00400000000C00C0L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__2_in_rule__AtomicExp__Group_4__114470 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_42_in_rule__AtomicExp__Group_4__1__Impl14498 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__2__Impl_in_rule__AtomicExp__Group_4__214529 = new BitSet(new long[]{0x0000090000000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__3_in_rule__AtomicExp__Group_4__214532 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__FieldsAssignment_4_2_in_rule__AtomicExp__Group_4__2__Impl14559 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__3__Impl_in_rule__AtomicExp__Group_4__314589 = new BitSet(new long[]{0x0000090000000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__4_in_rule__AtomicExp__Group_4__314592 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4_3__0_in_rule__AtomicExp__Group_4__3__Impl14619 = new BitSet(new long[]{0x0000010000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4__4__Impl_in_rule__AtomicExp__Group_4__414650 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_43_in_rule__AtomicExp__Group_4__4__Impl14678 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4_3__0__Impl_in_rule__AtomicExp__Group_4_3__014719 = new BitSet(new long[]{0x00400000000C00C0L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4_3__1_in_rule__AtomicExp__Group_4_3__014722 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_40_in_rule__AtomicExp__Group_4_3__0__Impl14750 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_4_3__1__Impl_in_rule__AtomicExp__Group_4_3__114781 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__FieldsAssignment_4_3_1_in_rule__AtomicExp__Group_4_3__1__Impl14808 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_5__0__Impl_in_rule__AtomicExp__Group_5__014842 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_5__1_in_rule__AtomicExp__Group_5__014845 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_55_in_rule__AtomicExp__Group_5__0__Impl14873 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_5__1__Impl_in_rule__AtomicExp__Group_5__114904 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_5_1_in_rule__AtomicExp__Group_5__1__Impl14931 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__0__Impl_in_rule__AtomicExp__Group_6__014965 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__1_in_rule__AtomicExp__Group_6__014968 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_44_in_rule__AtomicExp__Group_6__0__Impl14996 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__1__Impl_in_rule__AtomicExp__Group_6__115027 = new BitSet(new long[]{0x0000200000000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__2_in_rule__AtomicExp__Group_6__115030 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__ExprAssignment_6_1_in_rule__AtomicExp__Group_6__1__Impl15057 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__2__Impl_in_rule__AtomicExp__Group_6__215087 = new BitSet(new long[]{0x0000000000000400L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__3_in_rule__AtomicExp__Group_6__215090 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_45_in_rule__AtomicExp__Group_6__2__Impl15118 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6__3__Impl_in_rule__AtomicExp__Group_6__315149 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__0_in_rule__AtomicExp__Group_6__3__Impl15176 = new BitSet(new long[]{0x0000000000000402L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__0__Impl_in_rule__AtomicExp__Group_6_3__015215 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__1_in_rule__AtomicExp__Group_6_3__015218 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DOT_in_rule__AtomicExp__Group_6_3__0__Impl15246 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__1__Impl_in_rule__AtomicExp__Group_6_3__115276 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__IdAssignment_6_3_1_in_rule__AtomicExp__Group_6_3__1__Impl15303 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__0__Impl_in_rule__AtomicExp__Group_7__015337 = new BitSet(new long[]{0x0000040000000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__1_in_rule__AtomicExp__Group_7__015340 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__1__Impl_in_rule__AtomicExp__Group_7__115398 = new BitSet(new long[]{0x00000800000C00C0L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__2_in_rule__AtomicExp__Group_7__115401 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_42_in_rule__AtomicExp__Group_7__1__Impl15429 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__2__Impl_in_rule__AtomicExp__Group_7__215460 = new BitSet(new long[]{0x00000800000C00C0L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__3_in_rule__AtomicExp__Group_7__215463 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__0_in_rule__AtomicExp__Group_7__2__Impl15490 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7__3__Impl_in_rule__AtomicExp__Group_7__315521 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_43_in_rule__AtomicExp__Group_7__3__Impl15549 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__0__Impl_in_rule__AtomicExp__Group_7_2__015588 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__1_in_rule__AtomicExp__Group_7_2__015591 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__IdAssignment_7_2_0_in_rule__AtomicExp__Group_7_2__0__Impl15618 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__1__Impl_in_rule__AtomicExp__Group_7_2__115648 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__2_in_rule__AtomicExp__Group_7_2__115651 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__AtomicExp__Group_7_2__1__Impl15679 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__2__Impl_in_rule__AtomicExp__Group_7_2__215710 = new BitSet(new long[]{0x0000010000000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__3_in_rule__AtomicExp__Group_7_2__215713 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__ExpsAssignment_7_2_2_in_rule__AtomicExp__Group_7_2__2__Impl15740 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2__3__Impl_in_rule__AtomicExp__Group_7_2__315770 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__0_in_rule__AtomicExp__Group_7_2__3__Impl15797 = new BitSet(new long[]{0x0000010000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__0__Impl_in_rule__AtomicExp__Group_7_2_3__015836 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__1_in_rule__AtomicExp__Group_7_2_3__015839 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_40_in_rule__AtomicExp__Group_7_2_3__0__Impl15867 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__1__Impl_in_rule__AtomicExp__Group_7_2_3__115898 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__2_in_rule__AtomicExp__Group_7_2_3__115901 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__IdAssignment_7_2_3_1_in_rule__AtomicExp__Group_7_2_3__1__Impl15928 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__2__Impl_in_rule__AtomicExp__Group_7_2_3__215958 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__3_in_rule__AtomicExp__Group_7_2_3__215961 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__AtomicExp__Group_7_2_3__2__Impl15989 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_7_2_3__3__Impl_in_rule__AtomicExp__Group_7_2_3__316020 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__ExpsAssignment_7_2_3_3_in_rule__AtomicExp__Group_7_2_3__3__Impl16047 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__0__Impl_in_rule__AtomicExp__Group_8__016085 = new BitSet(new long[]{0x0000002000000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__1_in_rule__AtomicExp__Group_8__016088 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__NameAssignment_8_0_in_rule__AtomicExp__Group_8__0__Impl16115 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__1__Impl_in_rule__AtomicExp__Group_8__116145 = new BitSet(new long[]{0x0100000000000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__2_in_rule__AtomicExp__Group_8__116148 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__ValDeclAssignment_8_1_in_rule__AtomicExp__Group_8__1__Impl16177 = new BitSet(new long[]{0x0000002000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__ValDeclAssignment_8_1_in_rule__AtomicExp__Group_8__1__Impl16189 = new BitSet(new long[]{0x0000002000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__2__Impl_in_rule__AtomicExp__Group_8__216222 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__3_in_rule__AtomicExp__Group_8__216225 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_56_in_rule__AtomicExp__Group_8__2__Impl16253 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__3__Impl_in_rule__AtomicExp__Group_8__316284 = new BitSet(new long[]{0x0002000000000000L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__4_in_rule__AtomicExp__Group_8__316287 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__ExprAssignment_8_3_in_rule__AtomicExp__Group_8__3__Impl16314 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_8__4__Impl_in_rule__AtomicExp__Group_8__416344 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_49_in_rule__AtomicExp__Group_8__4__Impl16372 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Field__Group_0__0__Impl_in_rule__Field__Group_0__016413 = new BitSet(new long[]{0x0000000800000000L});
+    public static final BitSet FOLLOW_rule__Field__Group_0__1_in_rule__Field__Group_0__016416 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Field__NameAssignment_0_0_in_rule__Field__Group_0__0__Impl16443 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Field__Group_0__1__Impl_in_rule__Field__Group_0__116473 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Field__Group_0__2_in_rule__Field__Group_0__116476 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__Field__Group_0__1__Impl16504 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Field__Group_0__2__Impl_in_rule__Field__Group_0__216535 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Field__ExpAssignment_0_2_in_rule__Field__Group_0__2__Impl16562 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Field__Group_1__0__Impl_in_rule__Field__Group_1__016598 = new BitSet(new long[]{0x00000000000C00C0L});
+    public static final BitSet FOLLOW_rule__Field__Group_1__1_in_rule__Field__Group_1__016601 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_54_in_rule__Field__Group_1__0__Impl16629 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Field__Group_1__1__Impl_in_rule__Field__Group_1__116660 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__Field__NameAssignment_1_1_in_rule__Field__Group_1__1__Impl16687 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Group__0__Impl_in_rule__ValueDecl__Group__016721 = new BitSet(new long[]{0x00000000000C3EE0L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Group__1_in_rule__ValueDecl__Group__016724 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_37_in_rule__ValueDecl__Group__0__Impl16752 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Group__1__Impl_in_rule__ValueDecl__Group__116783 = new BitSet(new long[]{0x00000008000C00C0L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Group__2_in_rule__ValueDecl__Group__116786 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Alternatives_1_in_rule__ValueDecl__Group__1__Impl16813 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Group__2__Impl_in_rule__ValueDecl__Group__216843 = new BitSet(new long[]{0x00000008000C00C0L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Group__3_in_rule__ValueDecl__Group__216846 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ValueDecl__IdsAssignment_2_in_rule__ValueDecl__Group__2__Impl16873 = new BitSet(new long[]{0x00000000000C00C2L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Group__3__Impl_in_rule__ValueDecl__Group__316904 = new BitSet(new long[]{0x76C01400001DC1F0L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Group__4_in_rule__ValueDecl__Group__316907 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_35_in_rule__ValueDecl__Group__3__Impl16935 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ValueDecl__Group__4__Impl_in_rule__ValueDecl__Group__416966 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__ValueDecl__ExpAssignment_4_in_rule__ValueDecl__Group__4__Impl16993 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__0__Impl_in_rule__DECODEPAT__Group_0__017033 = new BitSet(new long[]{0x00000000000F06C0L});
+    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__1_in_rule__DECODEPAT__Group_0__017036 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_57_in_rule__DECODEPAT__Group_0__0__Impl17064 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__1__Impl_in_rule__DECODEPAT__Group_0__117095 = new BitSet(new long[]{0x0200000000000000L});
+    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__2_in_rule__DECODEPAT__Group_0__117098 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBITPAT_in_rule__DECODEPAT__Group_0__1__Impl17128 = new BitSet(new long[]{0x00000000000F06C2L});
+    public static final BitSet FOLLOW_ruleBITPAT_in_rule__DECODEPAT__Group_0__1__Impl17141 = new BitSet(new long[]{0x00000000000F06C2L});
+    public static final BitSet FOLLOW_rule__DECODEPAT__Group_0__2__Impl_in_rule__DECODEPAT__Group_0__217174 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_57_in_rule__DECODEPAT__Group_0__2__Impl17202 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__BITPAT__Group_1__0__Impl_in_rule__BITPAT__Group_1__017239 = new BitSet(new long[]{0x0400000200000000L});
+    public static final BitSet FOLLOW_rule__BITPAT__Group_1__1_in_rule__BITPAT__Group_1__017242 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__BITPAT__Group_1__0__Impl17269 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__BITPAT__Group_1__1__Impl_in_rule__BITPAT__Group_1__117298 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBITPATORINT_in_rule__BITPAT__Group_1__1__Impl17326 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__BITPATORINT__Group_0__0__Impl_in_rule__BITPATORINT__Group_0__017361 = new BitSet(new long[]{0x0000000000018000L});
+    public static final BitSet FOLLOW_rule__BITPATORINT__Group_0__1_in_rule__BITPATORINT__Group_0__017364 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_33_in_rule__BITPATORINT__Group_0__0__Impl17392 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__BITPATORINT__Group_0__1__Impl_in_rule__BITPATORINT__Group_0__117423 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rulePOSINT_in_rule__BITPATORINT__Group_0__1__Impl17450 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__BITPATORINT__Group_1__0__Impl_in_rule__BITPATORINT__Group_1__017483 = new BitSet(new long[]{0x0000000000030600L});
+    public static final BitSet FOLLOW_rule__BITPATORINT__Group_1__1_in_rule__BITPATORINT__Group_1__017486 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_58_in_rule__BITPATORINT__Group_1__0__Impl17514 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__BITPATORINT__Group_1__1__Impl_in_rule__BITPATORINT__Group_1__117545 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBINARY_in_rule__BITPATORINT__Group_1__1__Impl17572 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__PAT__Group_2__0__Impl_in_rule__PAT__Group_2__017605 = new BitSet(new long[]{0x02000000000DC0F0L});
+    public static final BitSet FOLLOW_rule__PAT__Group_2__1_in_rule__PAT__Group_2__017608 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCONS_in_rule__PAT__Group_2__0__Impl17636 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__PAT__Group_2__1__Impl_in_rule__PAT__Group_2__117666 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rulePAT_in_rule__PAT__Group_2__1__Impl17694 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__PAT__Group_4__0__Impl_in_rule__PAT__Group_4__017729 = new BitSet(new long[]{0x00000000000F06C0L});
+    public static final BitSet FOLLOW_rule__PAT__Group_4__1_in_rule__PAT__Group_4__017732 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_57_in_rule__PAT__Group_4__0__Impl17760 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__PAT__Group_4__1__Impl_in_rule__PAT__Group_4__117791 = new BitSet(new long[]{0x0200000000000000L});
+    public static final BitSet FOLLOW_rule__PAT__Group_4__2_in_rule__PAT__Group_4__117794 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBITPAT_in_rule__PAT__Group_4__1__Impl17821 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__PAT__Group_4__2__Impl_in_rule__PAT__Group_4__217850 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_57_in_rule__PAT__Group_4__2__Impl17878 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__LIT__Group_1__0__Impl_in_rule__LIT__Group_1__017915 = new BitSet(new long[]{0x0200000000030600L});
+    public static final BitSet FOLLOW_rule__LIT__Group_1__1_in_rule__LIT__Group_1__017918 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_57_in_rule__LIT__Group_1__0__Impl17946 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__LIT__Group_1__1__Impl_in_rule__LIT__Group_1__117977 = new BitSet(new long[]{0x0200000000030600L});
+    public static final BitSet FOLLOW_rule__LIT__Group_1__2_in_rule__LIT__Group_1__117980 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBINARY_in_rule__LIT__Group_1__1__Impl18008 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__LIT__Group_1__2__Impl_in_rule__LIT__Group_1__218039 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_57_in_rule__LIT__Group_1__2__Impl18067 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleDecl_in_rule__Model__DeclAssignment_018109 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleDecl_in_rule__Model__DeclAssignment_1_118140 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__DeclExport__NameAssignment_118175 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTyVars_in_rule__DeclExport__TyVarsAssignment_218210 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__DeclExport__TypeAssignment_418241 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__DeclType__NameAssignment_118272 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_0_1_0_0_018303 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_0_1_0_0_1_118334 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__DeclType__ValueAssignment_2_0_1_118365 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTyVars_in_rule__DeclType__TyVarsAssignment_2_1_018396 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_1_2_018427 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleConDecl_in_rule__DeclType__ConDeclAssignment_2_1_2_1_118458 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__DeclVal__NameAssignment_1_0_0_0_018489 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleSYM_in_rule__DeclVal__NameAssignment_1_0_0_0_118520 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__DeclVal__AttrAssignment_1_0_0_118551 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_0_0_318582 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleMID_in_rule__DeclVal__MidAssignment_1_1_0_018613 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__DeclVal__AttrAssignment_1_1_0_118644 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_1_218675 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__DeclVal__NameAssignment_1_2_018706 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleDECODEPAT_in_rule__DeclVal__DecPatAssignment_1_2_218737 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpAssignment_1_2_4_0_118768 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpsAssignment_1_2_4_1_118799 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__DeclVal__ExpsAssignment_1_2_4_1_318830 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__TyVars__AttrAssignment_118861 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__TyVars__AttrAssignment_2_118892 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCONS_in_rule__ConDecl__NameAssignment_018923 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__ConDecl__TyAssignment_1_118954 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleINTEGER_in_rule__Ty__ValueAssignment_018985 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__Ty__DeclAssignment_1_0_019020 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_59_in_rule__Ty__TypeAssignment_1_0_119060 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTyBind_in_rule__Ty__TyBindAssignment_1_1_119099 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTyBind_in_rule__Ty__TyBindAssignment_1_1_2_119130 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTyElement_in_rule__Ty__ElementsAssignment_2_2_019161 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTyElement_in_rule__Ty__ElementsAssignment_2_2_1_119192 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__ParamAssignment_3_119223 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__ParamAssignment_3_2_119254 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__ResTypeAssignment_3_519285 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__RAssignment_5_119316 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__InAssignment_5_319347 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__Ty__OutAssignment_5_519378 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__TyBind__NameAssignment_019409 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__TyBind__ValueAssignment_1_119440 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__TyElement__NameAssignment_019471 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTy_in_rule__TyElement__ValueAssignment_219502 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCaseExp_in_rule__Exp__NameAssignment_019533 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleMID_in_rule__Exp__MidAssignment_1_019564 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCaseExp_in_rule__Exp__CaseExpsAssignment_1_119595 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_60_in_rule__CaseExp__NameAssignment_1_019631 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleClosedExp_in_rule__CaseExp__ClosedExpAssignment_1_119670 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rulePAT_in_rule__CaseExp__PatAssignment_1_3_019701 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__CaseExp__ExpAssignment_1_3_219732 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rulePAT_in_rule__CaseExp__PatAssignment_1_3_3_119763 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__CaseExp__ExpAssignment_1_3_3_319794 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_61_in_rule__ClosedExp__NameAssignment_1_019830 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCaseExp_in_rule__ClosedExp__IfCaseExpAssignment_1_119869 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCaseExp_in_rule__ClosedExp__ThenCaseExpAssignment_1_319900 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCaseExp_in_rule__ClosedExp__ElseCaseExpAssignment_1_519931 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_62_in_rule__ClosedExp__NameAssignment_2_019967 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleMonadicExp_in_rule__ClosedExp__DoExpAssignment_2_120006 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleMonadicExp_in_rule__ClosedExp__DoExpAssignment_2_2_120037 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__MonadicExp__ExpAssignment_020068 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__MonadicExp__NameAssignment_1_020099 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__MonadicExp__ExpAssignment_1_220130 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_63_in_rule__OrElseExp__NameAssignment_1_120166 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleAndAlsoExp_in_rule__OrElseExp__RightAssignment_1_220205 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_64_in_rule__AndAlsoExp__NameAssignment_1_120241 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleRExp_in_rule__AndAlsoExp__RightAssignment_1_220280 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleSYM_in_rule__RExp__SymAssignment_1_020311 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleAExp_in_rule__RExp__AexpsAssignment_1_120342 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AExp__SignAlternatives_1_0_0_in_rule__AExp__SignAssignment_1_020373 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleMExp_in_rule__AExp__MexpsAssignment_1_120406 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__MExp__SymbolAlternatives_1_0_0_in_rule__MExp__SymbolAssignment_1_020437 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleApplyExp_in_rule__MExp__ApplyexpsAssignment_1_120470 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleApplyExp_in_rule__SelectExp__ApplyexpsAssignment_1_120501 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleAtomicExp_in_rule__ApplyExp__AtomicExpAssignment_1_020532 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleLIT_in_rule__AtomicExp__NameAssignment_020563 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_STRING_in_rule__AtomicExp__NameAssignment_120594 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCONS_in_rule__AtomicExp__NameAssignment_2_020625 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__NameAssignment_3_020656 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_3_1_120687 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_58_in_rule__AtomicExp__NameAssignment_4_020723 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleField_in_rule__AtomicExp__FieldsAssignment_4_220762 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleField_in_rule__AtomicExp__FieldsAssignment_4_3_120793 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__NameAssignment_5_120824 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__AtomicExp__ExprAssignment_6_120855 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_6_3_120886 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_7_2_020917 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__AtomicExp__ExpsAssignment_7_2_220948 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__AtomicExp__IdAssignment_7_2_3_120979 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__AtomicExp__ExpsAssignment_7_2_3_321010 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_65_in_rule__AtomicExp__NameAssignment_8_021046 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleValueDecl_in_rule__AtomicExp__ValDeclAssignment_8_121085 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__AtomicExp__ExprAssignment_8_321116 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__Field__NameAssignment_0_021147 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__Field__ExpAssignment_0_221178 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__Field__NameAssignment_1_121209 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__ValueDecl__NameAssignment_1_021240 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleSYM_in_rule__ValueDecl__NameAssignment_1_121271 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleID_in_rule__ValueDecl__IdsAssignment_221302 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleExp_in_rule__ValueDecl__ExpAssignment_421333 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_rule__DeclType__Group_2_0_1_0__0_in_synpred4_InternalGDSL2413 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_rule__DeclVal__Group_1_0__0_in_synpred5_InternalGDSL2464 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_rule__DeclVal__Group_1_1__0_in_synpred6_InternalGDSL2482 = new BitSet(new long[]{0x0000000000000002L});
@@ -33011,12 +33024,10 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
     public static final BitSet FOLLOW_rule__AtomicExp__Group_2__0_in_synpred28_InternalGDSL3277 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_rule__AtomicExp__Group_3__0_in_synpred29_InternalGDSL3295 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_rule__ValueDecl__NameAssignment_1_0_in_synpred35_InternalGDSL3469 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleINTEGER_in_synpred41_InternalGDSL3738 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_rule__PAT__Group_2__0_in_synpred42_InternalGDSL3756 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ruleID_in_synpred43_InternalGDSL3775 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__RExp__Group_1__0_in_synpred81_InternalGDSL13038 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__0_in_synpred85_InternalGDSL14249 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__0_in_synpred87_InternalGDSL15175 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBITPATORINT_in_synpred93_InternalGDSL17325 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__RExp__Group_1__0_in_synpred81_InternalGDSL13039 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_3_1__0_in_synpred85_InternalGDSL14250 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rule__AtomicExp__Group_6_3__0_in_synpred87_InternalGDSL15176 = new BitSet(new long[]{0x0000000000000002L});
 
 }

@@ -1882,13 +1882,16 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cCONSParserRuleCall_2_0 = (RuleCall)cGroup_2.eContents().get(0);
 		private final RuleCall cPATParserRuleCall_2_1 = (RuleCall)cGroup_2.eContents().get(1);
 		private final RuleCall cIDParserRuleCall_3 = (RuleCall)cAlternatives.eContents().get(3);
-		private final RuleCall cBITPATParserRuleCall_4 = (RuleCall)cAlternatives.eContents().get(4);
+		private final Group cGroup_4 = (Group)cAlternatives.eContents().get(4);
+		private final Keyword cApostropheKeyword_4_0 = (Keyword)cGroup_4.eContents().get(0);
+		private final RuleCall cBITPATParserRuleCall_4_1 = (RuleCall)cGroup_4.eContents().get(1);
+		private final Keyword cApostropheKeyword_4_2 = (Keyword)cGroup_4.eContents().get(2);
 		
 		//PAT:
-		//	USCORE | => INTEGER | CONS PAT? | => ID | BITPAT;
+		//	USCORE | => INTEGER | CONS PAT? | => ID | "\'" BITPAT "\'";
 		public ParserRule getRule() { return rule; }
 
-		//USCORE | => INTEGER | CONS PAT? | => ID | BITPAT
+		//USCORE | => INTEGER | CONS PAT? | => ID | "\'" BITPAT "\'"
 		public Alternatives getAlternatives() { return cAlternatives; }
 
 		//USCORE
@@ -1909,8 +1912,17 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		//=> ID
 		public RuleCall getIDParserRuleCall_3() { return cIDParserRuleCall_3; }
 
+		//"\'" BITPAT "\'"
+		public Group getGroup_4() { return cGroup_4; }
+
+		//"\'"
+		public Keyword getApostropheKeyword_4_0() { return cApostropheKeyword_4_0; }
+
 		//BITPAT
-		public RuleCall getBITPATParserRuleCall_4() { return cBITPATParserRuleCall_4; }
+		public RuleCall getBITPATParserRuleCall_4_1() { return cBITPATParserRuleCall_4_1; }
+
+		//"\'"
+		public Keyword getApostropheKeyword_4_2() { return cApostropheKeyword_4_2; }
 	}
 
 	public class LITElements extends AbstractParserRuleElementFinder {
@@ -2502,7 +2514,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//PAT:
-	//	USCORE | => INTEGER | CONS PAT? | => ID | BITPAT;
+	//	USCORE | => INTEGER | CONS PAT? | => ID | "\'" BITPAT "\'";
 	public PATElements getPATAccess() {
 		return (pPAT != null) ? pPAT : (pPAT = new PATElements());
 	}

@@ -146,6 +146,7 @@ public class GDSLParser extends AbstractContentAssistParser {
 					put(grammarAccess.getBITPATORINTAccess().getGroup_0(), "rule__BITPATORINT__Group_0__0");
 					put(grammarAccess.getBITPATORINTAccess().getGroup_1(), "rule__BITPATORINT__Group_1__0");
 					put(grammarAccess.getPATAccess().getGroup_2(), "rule__PAT__Group_2__0");
+					put(grammarAccess.getPATAccess().getGroup_4(), "rule__PAT__Group_4__0");
 					put(grammarAccess.getLITAccess().getGroup_1(), "rule__LIT__Group_1__0");
 					put(grammarAccess.getModelAccess().getDeclAssignment_0(), "rule__Model__DeclAssignment_0");
 					put(grammarAccess.getModelAccess().getDeclAssignment_1_1(), "rule__Model__DeclAssignment_1_1");

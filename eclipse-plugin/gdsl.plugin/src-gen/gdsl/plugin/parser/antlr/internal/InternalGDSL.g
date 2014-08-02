@@ -3150,18 +3150,30 @@ rulePAT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()]
         afterParserOrEnumRuleCall();
     }
 )
-    |
-    { 
-        newCompositeNode(grammarAccess.getPATAccess().getBITPATParserRuleCall_4()); 
+    |(
+	kw='\'' 
+    {
+        $current.merge(kw);
+        newLeafNode(kw, grammarAccess.getPATAccess().getApostropheKeyword_4_0()); 
     }
-    this_BITPAT_5=ruleBITPAT    {
-		$current.merge(this_BITPAT_5);
+
+    { 
+        newCompositeNode(grammarAccess.getPATAccess().getBITPATParserRuleCall_4_1()); 
+    }
+    this_BITPAT_6=ruleBITPAT    {
+		$current.merge(this_BITPAT_6);
     }
 
     { 
         afterParserOrEnumRuleCall();
     }
-)
+
+	kw='\'' 
+    {
+        $current.merge(kw);
+        newLeafNode(kw, grammarAccess.getPATAccess().getApostropheKeyword_4_2()); 
+    }
+))
     ;
 
 
