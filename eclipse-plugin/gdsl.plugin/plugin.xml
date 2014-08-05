@@ -20,11 +20,30 @@
         point="org.eclipse.ui.preferencePages">
      <page
            category="gdsl.plugin.GDSL.compiler.preferencePage"
-           class="gdsl.plugin.preferences.GdslCompilerPreferencePage"
-           id="gdsl.plugin.preferences.GDSLCompiler"
+           class="gdsl.plugin.preferences.plugin.GdslCompilerPreferencePage"
+           id="gdsl.plugin.preferences.plugin.GDSLCompiler"
            name="GDSL Compiler">
      </page>
   </extension>
+	<extension id="preferences" point="org.eclipse.core.runtime.preferences" name="preferences">
+		<scope name="Project" class="org.eclipse.core.internal.resources.ProjectPreferences"/>
+	</extension>
+ <extension
+       point="org.eclipse.ui.propertyPages">
+    <page
+          category="gdsl.plugin.GDSL.compiler.propertyPage"
+          class="gdsl.plugin.preferences.project.GdslPropertyPage"
+          id="gdsl.plugin.preferences.project.GDSLCompiler"
+          name="GDSL Compiler"
+          nameFilter="*">
+       <enabledWhen>
+          <instanceof
+                value="org.eclipse.core.resources.IProject">
+          </instanceof>
+       </enabledWhen>
+    </page>
+ </extension>
+
 
 
 

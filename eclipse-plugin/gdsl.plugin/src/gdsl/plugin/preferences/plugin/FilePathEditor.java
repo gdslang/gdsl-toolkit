@@ -1,4 +1,4 @@
-package gdsl.plugin.preferences;
+package gdsl.plugin.preferences.plugin;
 
 import java.io.File;
 import java.util.ArrayList;

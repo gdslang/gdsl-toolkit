@@ -1,13 +1,11 @@
-package gdsl.plugin.preferences;
+package gdsl.plugin.preferences.plugin;
 
-import gdsl.plugin.preferences.GDSLPluginPreferences;
-
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.preference.DirectoryFieldEditor;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.StringButtonFieldEditor;
+import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -31,11 +29,13 @@ public class GdslCompilerPreferencePage
 	extends FieldEditorPreferencePage
 	implements IWorkbenchPreferencePage {
 	
-	private final String[] FILE_EXTENSIONS = {"*.ml", "*"};
-
+	private StringFieldEditor compilerInvocation;
+	private BooleanFieldEditor enableTypechecker;
+	private IntegerFieldEditor typeCheckerIterations;
+	
 	public GdslCompilerPreferencePage() {
 		super(org.eclipse.jface.preference.FieldEditorPreferencePage.FLAT);
-		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, "gdsl.plugin");
+		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, GDSLPluginPreferences.PLUGIN_SCOPE);
 		setPreferenceStore(store);
 		setDescription("Settings for the external GDSL Compiler");
 	}
@@ -47,18 +47,23 @@ public class GdslCompilerPreferencePage
 	 * restore itself.
 	 */
 	public void createFieldEditors() {
-		final FileFieldEditor compilerCall = new FileFieldEditor(GDSLPluginPreferences.P_COMPILER_CALL, "Compiler call", true, StringButtonFieldEditor.VALIDATE_ON_KEY_STROKE, getFieldEditorParent());
-		final FileFieldEditor compilerPath = new FileFieldEditor(GDSLPluginPreferences.P_COMPILER_PATH, "SML Load", true, StringButtonFieldEditor.VALIDATE_ON_KEY_STROKE, getFieldEditorParent());
-		final StringFieldEditor compileArguments = new StringFieldEditor(GDSLPluginPreferences.P_COMPILE_ARGUMENTS, "Arguments", getFieldEditorParent());
-		final DirectoryFieldEditor runtimeEnvironment = new DirectoryFieldEditor(GDSLPluginPreferences.P_RUNTIME_FOLDER, "Codegen Folder", getFieldEditorParent());
-		final FilePathEditor compileFiles = new FilePathEditor(GDSLPluginPreferences.P_COMPILE_FILES, "Files to compile", FILE_EXTENSIONS, getFieldEditorParent());
+		compilerInvocation = new StringFieldEditor(GDSLPluginPreferences.P_COMPILER_INVOCATION, "Compiler Invocation", getFieldEditorParent());
+		enableTypechecker = new BooleanFieldEditor(GDSLPluginPreferences.P_USE_TYPECHECKER, "Enable typechecker", getFieldEditorParent());
+		typeCheckerIterations = new IntegerFieldEditor(GDSLPluginPreferences.P_ITERATION_TYPECHECKER, "Iterations in type checker", getFieldEditorParent());
 		
-		addField(compilerCall);
-		addField(compilerPath);
-		addField(compileArguments);
-		addField(runtimeEnvironment);
-		addField(compileFiles);
+		addField(compilerInvocation);
+		addField(enableTypechecker);
+		addField(typeCheckerIterations);
 	}
+	
+	@Override
+	protected void performDefaults(){
+		IEclipsePreferences store = GDSLPluginPreferences.getPreferenceStore();
+		store.put(GDSLPluginPreferences.P_COMPILER_INVOCATION, GDSLPluginPreferences.D_COMPILER_INVOCATION);
+		store.putBoolean(GDSLPluginPreferences.P_USE_TYPECHECKER, GDSLPluginPreferences.D_USE_TYPECHECKER);
+		store.putInt(GDSLPluginPreferences.P_ITERATION_TYPECHECKER, GDSLPluginPreferences.D_ITERATION_TYPECHEKCER);
+	}
+
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)

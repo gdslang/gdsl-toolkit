@@ -3,7 +3,7 @@
  */
 package gdsl.plugin.generator
 
-import gdsl.plugin.preferences.GDSLPluginPreferences
+import gdsl.plugin.preferences.plugin.GDSLPluginPreferences
 import java.io.File
 import java.util.regex.Pattern
 import org.eclipse.emf.ecore.resource.Resource
@@ -26,7 +26,7 @@ class GDSLGenerator implements IGenerator {
 
 		var commandBuilder = new StringBuilder()
 		
-		commandBuilder.append("echo Hello World");
+		commandBuilder.append("echo ");
 		
 //		commandBuilder.append(GDSLPluginPreferences.compilerCall)
 //		
@@ -52,8 +52,11 @@ class GDSLGenerator implements IGenerator {
 //		files = files.replaceAll(Pattern.quote(File.pathSeparator), " ")
 //		commandBuilder.append(" ")
 //		commandBuilder.append(files)
+
+		commandBuilder.append(GDSLPluginPreferences.getOutputName(resource));
 		
 		RunCompiler.compile(commandBuilder.toString)
+		
 	}
 	
 }

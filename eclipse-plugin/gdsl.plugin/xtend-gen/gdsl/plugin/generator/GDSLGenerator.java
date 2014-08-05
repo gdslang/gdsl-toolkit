@@ -4,6 +4,7 @@
 package gdsl.plugin.generator;
 
 import gdsl.plugin.generator.RunCompiler;
+import gdsl.plugin.preferences.plugin.GDSLPluginPreferences;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.generator.IFileSystemAccess;
 import org.eclipse.xtext.generator.IGenerator;
@@ -17,7 +18,9 @@ import org.eclipse.xtext.generator.IGenerator;
 public class GDSLGenerator implements IGenerator {
   public void doGenerate(final Resource resource, final IFileSystemAccess fsa) {
     StringBuilder commandBuilder = new StringBuilder();
-    commandBuilder.append("echo Hello World");
+    commandBuilder.append("echo ");
+    String _outputName = GDSLPluginPreferences.getOutputName(resource);
+    commandBuilder.append(_outputName);
     String _string = commandBuilder.toString();
     RunCompiler.compile(_string);
   }
