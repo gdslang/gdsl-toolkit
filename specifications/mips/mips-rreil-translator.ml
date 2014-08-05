@@ -4,20 +4,6 @@ type signedness =
    Signed
  | Unsigned
 
-
-val sem-foo = return void
-
-val sem-testy x = do
-	s1 <- rval Unsigned x.source1;
-	s2 <- rval Unsigned x.source2;
-	size <- return (sizeof-lval x.destination);
-
-	res <- mktemp;
-	add size res s1 s2;
-	
-	write x.destination (var res)
-end
-
 val write to from =
    case to of
       GPR r: mov (sizeof-lval to) (semantic-gpr-of r) from
@@ -97,74 +83,257 @@ val sizeof-rval x =
          end
    end
 
-# -> sftl
+###########
+### semantics of instructions
+###########
+
+val sem-foo = return void
+val sem-fp = return void
+val sem-fp2 = return void
+
+val sem-add-addi x = do
+	s1 <- rval Signed x.source1;
+	s2 <- rval Signed x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	add size res s1 s2;
+	
+	write x.destination (var res)
+end
+
+val sem-addu-addiu x = do
+	s1 <- rval Signed x.source1;
+	s2 <- rval Signed x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	add size res s1 s2;
+	
+	write x.destination (var res)
+end
+
+val sem-and-andi x = do
+	s1 <- rval Unsigned x.source1;
+	s2 <- rval Unsigned x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	andb size res s1 s2;
+	
+	write x.destination (var res)
+end
+
+val cbranch-rel cond offset = do
+	pc <- ip-get;
+	
+	new_pc <- mktemp;
+	add pc.size new_pc (var pc) offset;
+
+	cbranch cond (address pc.size (var new_pc)) (address pc.size (var pc))
+end
+
+val sem-b cmp x = do
+	s1 <- rval Signed x.source1;
+	s2 <- rval Signed x.source2;
+	s3 <- rval Signed x.source3;
+	size_o <- return (sizeof-rval x.source3);
+	size_r <- return (sizeof-rval x.source1);
+
+	offset <- mktemp;
+	shl (size_o+2) offset s3 (imm 2);
+
+	cond <- cmp size_r s1 s2;
+	cbranch-rel cond (var offset)
+end
+
+val sem-bz cmp x = do
+	s1 <- rval Signed x.source1;
+	s2 <- rval Signed x.source2;
+	
+	size_o <- return (sizeof-rval x.source2);
+	size_r <- return (sizeof-rval x.source1);
+
+	offset <- mktemp;
+	shl (size_o+2) offset s2 (imm 2);
+
+	cond <- cmp size_r s1 (imm 0);
+	cbranch-rel cond (var offset)
+end
+
+val sem-bz-link cmp x = do
+	pc <- ip-get;
+	ra <- return (semantic-gpr-of RA);
+
+	sem-bz cmp x
+end
+
+val sem-break x = return void	# TODO: EXCEPTION
+val sem-cache x = return void	# TODO: SEMANTICS
+val sem-cachee x = return void	# TODO: SEMANTICS
+
+val sem-cl bit x = do
+	s1 <- rval Unsigned x.source1;
+	s2 <- rval Unsigned x.source2;
+	size <- return (sizeof-lval x.destination);
+	
+	temp <- mktemp;
+	mov size temp (imm 32);
+	
+	i <- mktemp;
+	mov size i (imm 31);
+
+	cond <- mktemp;
+	shifted <- mktemp;
+	_while (/neq size (var i) (imm 0)) __ do
+		shr size shifted s2 (var i);
+
+		_if (/neq 1 (var shifted) (imm bit)) _then do
+			sub size temp (imm 31) (var i);
+			mov size i (imm 0)
+		end _else
+			sub size i (var i) (imm 1)
+		
+	end
+	;
+	write x.destination (var temp)
+end
+
+val sem-deret = return void	#TODO: SEMANTICS
+val sem-di x = return void	#TODO: SEMANTICS
+
+val sem-div div_op mod_op x = do
+	s1 <- rval Signed x.source1;
+	s2 <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	hi <- hi-get;
+	lo <- lo-get;
+
+	div_op size lo s1 s2;
+	mod_op size hi s1 s2
+end
+
+val sem-ei x = return void	#TODO: SEMANTICS
+val sem-eret = return void	#TODO: SEMANTICS
+
+val sem-ext x = do
+	s1 <- rval Unsigned x.source1;
+	msbd <- rval Unsigned x.source2;
+	lsb <- rval Unsigned x.source3;
+	size <- return (sizeof-rval x.source1);
+
+	right <- mktemp;
+	left <- mktemp;
+	sub size right (imm 31) msbd;
+	sub size left (var right) lsb;
+
+	temp <- mktemp;
+	shl size temp s1 (var left);
+	shr size temp (var temp) (var right);
+
+	write x.destination (var temp)
+end
+
+val sem-ins x = do
+	s1 <- rval Unsigned x.source1;
+	msb <- rval Unsigned x.source2;
+	lsb <- rval Unsigned x.source3;
+	s2 <- lval Unsigned x.destination;
+	size <- return (sizeof-rval x.source1);
+
+	right<- mktemp;
+	left <- mktemp;
+	sub size right (imm 31) msb;
+	sub size left (var right) lsb;
+
+	temp <- mktemp;
+	shl size temp s1 (var left);
+	shr size temp (var temp) (var right);
+
+	sub size right (imm 32) lsb;
+	add size left msb (imm 1);
+
+	orig_left <- mktemp;
+	shr size orig_left s2 (var left);
+	shl size orig_left (var orig_left) (var left);
+
+	orig_right <- mktemp;
+	shl size orig_right s2 (var right);
+	shr size orig_right (var orig_right) (var right);
+
+	orb size temp (var temp) (var orig_left);
+	orb size temp (var temp) (var orig_right);
+
+	write x.destination (var temp)	
+end
 
 val semantics i =
    case i of
-      ABS-fmt x: sem-foo
-    | ADD x: sem-testy x
-    | ADD-fmt x: sem-foo
-    | ADDI x: sem-foo
-    | ADDIU x: sem-foo
-    | ADDU x: sem-foo
-    | ALNV-PS x: sem-foo
-    | AND x: sem-foo
-    | ANDI x: sem-foo
-    | BC1F x: sem-foo
-    | BC1FL x: sem-foo
-    | BC1T x: sem-foo
-    | BC1TL x: sem-foo
-    | BC2F x: sem-foo
-    | BC2FL x: sem-foo
-    | BC2T x: sem-foo
-    | BC2TL x: sem-foo
-    | BEQ x: sem-foo
-    | BEQL x: sem-foo
-    | BGEZ x: sem-foo
-    | BGEZAL x: sem-foo
-    | BGEZALL x: sem-foo
-    | BGEZL x: sem-foo
-    | BGTZ x: sem-foo
-    | BGTZL x: sem-foo
-    | BLEZ x: sem-foo
-    | BLEZL x: sem-foo
-    | BLTZ x: sem-foo
-    | BLTZAL x: sem-foo
-    | BLTZALL x: sem-foo
-    | BLTZL x: sem-foo
-    | BNE x: sem-foo
-    | BNEL x: sem-foo
-    | BREAK x: sem-foo
-    | C-cond-fmt x: sem-foo
-    | CACHE x: sem-foo
-    | CACHEE x: sem-foo
-    | CEIL-L-fmt x: sem-foo
-    | CEIL-W-fmt x: sem-foo
-    | CFC1 x: sem-foo
-    | CFC2 x: sem-foo
-    | CLO x: sem-foo
-    | CLZ x: sem-foo
-    | COP2 x: sem-foo
-    | CTC1 x: sem-foo
-    | CTC2 x: sem-foo
-    | CVT-D-fmt x: sem-foo
-    | CVT-L-fmt x: sem-foo
-    | CVT-PS-S x: sem-foo
-    | CVT-S-fmt x: sem-foo
-    | CVT-S-PL x: sem-foo
-    | CVT-S-PU x: sem-foo
-    | CVT-W-fmt x: sem-foo
-    | DERET: sem-foo
-    | DI x: sem-foo
-    | DIV x: sem-foo
-    | DIV-fmt x: sem-foo
-    | DIVU x: sem-foo
-    | EI x: sem-foo
-    | ERET: sem-foo
-    | EXT x: sem-foo
-    | FLOOR-L-fmt x: sem-foo
-    | FLOOR-W-fmt x: sem-foo
-    | INS x: sem-foo
+      ABS-fmt x: sem-fp
+    | ADD x: sem-add-addi x
+    | ADD-fmt x: sem-fp
+    | ADDI x: sem-add-addi x
+    | ADDIU x: sem-addu-addiu x
+    | ADDU x: sem-addu-addiu x
+    | ALNV-PS x: sem-fp
+    | AND x: sem-and-andi x
+    | ANDI x: sem-and-andi x
+    | BC1F x: sem-fp
+    | BC1FL x: sem-fp
+    | BC1T x: sem-fp
+    | BC1TL x: sem-fp
+    | BC2F x: sem-fp2
+    | BC2FL x: sem-fp2
+    | BC2T x: sem-fp2
+    | BC2TL x: sem-fp2
+    | BEQ x: sem-b /eq x
+    | BEQL x: sem-b /eq x
+    | BGEZ x: sem-bz /ges x
+    | BGEZAL x: sem-bz-link /ges x
+    | BGEZALL x: sem-bz-link /ges x
+    | BGEZL x: sem-bz /ges x
+    | BGTZ x: sem-bz /gts x
+    | BGTZL x: sem-bz /gts x
+    | BLEZ x: sem-bz /les x
+    | BLEZL x: sem-bz /les x
+    | BLTZ x: sem-bz /lts x
+    | BLTZAL x: sem-bz-link /lts x
+    | BLTZALL x: sem-bz-link /lts x
+    | BLTZL x: sem-bz /lts x
+    | BNE x: sem-b /neq x
+    | BNEL x: sem-b /neq x
+    | BREAK x: sem-break x
+    | C-cond-fmt x: sem-fp
+    | CACHE x: sem-cache x
+    | CACHEE x: sem-cachee x
+    | CEIL-L-fmt x: sem-fp
+    | CEIL-W-fmt x: sem-fp
+    | CFC1 x: sem-fp
+    | CFC2 x: sem-fp2
+    | CLO x: sem-cl 1 x
+    | CLZ x: sem-cl 0 x
+    | COP2 x: sem-fp2
+    | CTC1 x: sem-fp
+    | CTC2 x: sem-fp2
+    | CVT-D-fmt x: sem-fp
+    | CVT-L-fmt x: sem-fp
+    | CVT-PS-S x: sem-fp
+    | CVT-S-fmt x: sem-fp
+    | CVT-S-PL x: sem-fp
+    | CVT-S-PU x: sem-fp
+    | CVT-W-fmt x: sem-fp
+    | DERET: sem-deret
+    | DI x: sem-di x
+    | DIV x: sem-div divs mods x
+    | DIV-fmt x: sem-fp
+    | DIVU x: sem-div div mod x 
+    | EI x: sem-ei x
+    | ERET: sem-eret
+    | EXT x: sem-ext x
+    | FLOOR-L-fmt x: sem-fp
+    | FLOOR-W-fmt x: sem-fp
+    | INS x: sem-ins x
     | J x: sem-foo
     | JAL x: sem-foo
     | JALR x: sem-foo
@@ -315,6 +484,8 @@ val semantics i =
     | XOR x: sem-foo
     | XORI x: sem-foo
    end
+
+# -> sftl
 
 # <- sutl
 

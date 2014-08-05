@@ -34,6 +34,13 @@ type sem_id =
  | Sem_SP
  | Sem_S8
  | Sem_RA
+ | Sem_HI
+ | Sem_LO
+
+
+val ip-get = return {id=Sem_PC,offset=0,size=32}
+val hi-get = return {id=Sem_HI,offset=0,size=32}
+val lo-get = return {id=Sem_LO,offset=0,size=32}
 
 val semantic-gpr-of r =
    case r of
