@@ -22,7 +22,7 @@ public class GDSLPluginPreferences {
 	
 	public static final String D_COMPILER_INVOCATION = "/usr/bin/sml @SMLload=./gdslc-image";
 	public static final boolean D_USE_TYPECHECKER = true;
-	public static final int D_ITERATION_TYPECHEKCER = 2;
+	public static final int D_ITERATION_TYPECHEKCER = 10;
 	
 	public static final String P_OUTPUT_NAME = "outputName";
 	public static final String P_HAS_PREFIX = "hasPrefix";

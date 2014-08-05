@@ -65,13 +65,12 @@ public class GdslPropertyPage extends PropertyPage implements
 		btnCheckPrefix.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(final SelectionEvent e){
-				txtPrefix.setEnabled(btnCheckPrefix.getSelection());
+				setEnablements();
 			}
 		});
 		
 		txtPrefix = new Text(parent, SWT.BORDER);
 		txtPrefix.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		txtPrefix.setEnabled(btnCheckPrefix.getSelection());
 		
 		Label lblRuntimePath = new Label(parent, SWT.NONE);
 		lblRuntimePath.setText("Path to runtime templates:");
@@ -90,6 +89,11 @@ public class GdslPropertyPage extends PropertyPage implements
 			}
 		});
 
+		initializeElements();
+	
+	}
+
+	private void initializeElements() {
 		IEclipsePreferences projectNode = getProjectNode();
 		if(null != projectNode){
 			txtOutputName.setText(projectNode.get(GDSLPluginPreferences.P_OUTPUT_NAME, GDSLPluginPreferences.D_OUTPUT_NAME));
@@ -97,7 +101,7 @@ public class GdslPropertyPage extends PropertyPage implements
 			txtPrefix.setText(projectNode.get(GDSLPluginPreferences.P_PREFIX, GDSLPluginPreferences.D_PREFIX));
 			txtRuntimePath.setText(projectNode.get(GDSLPluginPreferences.P_RUNTIME_TEMPLATES, GDSLPluginPreferences.D_RUNTIME_TEMPLATES));
 		}
-	
+		setEnablements();
 	}
 
 	private void queryRuntimePath(){
@@ -127,8 +131,6 @@ public class GdslPropertyPage extends PropertyPage implements
 		try {
 			projectNode.flush();
 		} catch (BackingStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
@@ -141,5 +143,9 @@ public class GdslPropertyPage extends PropertyPage implements
 			return projectNode;
 		}
 		return null;
+	}
+
+	private void setEnablements() {
+		txtPrefix.setEnabled(btnCheckPrefix.getSelection());
 	}
 }
