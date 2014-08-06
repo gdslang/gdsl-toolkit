@@ -113,13 +113,13 @@ val sem-addu-addiu x = do
 	write x.destination (var res)
 end
 
-val sem-and-andi x = do
+val sem-bitwise op x = do
 	s1 <- rval Unsigned x.source1;
 	s2 <- rval Unsigned x.source2;
 	size <- return (sizeof-lval x.destination);
 
 	res <- mktemp;
-	andb size res s1 s2;
+	op size res s1 s2;
 	
 	write x.destination (var res)
 end
@@ -203,15 +203,15 @@ val sem-deret = return void	#TODO: SEMANTICS
 val sem-di x = return void	#TODO: SEMANTICS
 
 val sem-div div_op mod_op x = do
-	s1 <- rval Signed x.source1;
-	s2 <- rval Signed x.source2;
+	num <- rval Signed x.source1;
+	denom <- rval Signed x.source2;
 	size <- return (sizeof-rval x.source1);
 
 	hi <- hi-get;
 	lo <- lo-get;
 
-	div_op size lo s1 s2;
-	mod_op size hi s1 s2
+	div_op size lo num denom;
+	mod_op size hi num denom
 end
 
 val sem-ei x = return void	#TODO: SEMANTICS
@@ -268,6 +268,136 @@ val sem-ins x = do
 	write x.destination (var temp)	
 end
 
+val sem-j x = do
+	index <- rval Unsigned x.source;
+	size <- return (sizeof-rval x.source);
+
+	a <- mktemp;
+	shl (size+2) a index (imm 2);
+	
+	pc <- ip-get;
+	addr-sz <- return pc.size;
+
+	addr <- mktemp;
+	mov 32 addr (var pc);
+	mov (size+2) addr (var a);
+
+	jump (address addr-sz (var addr))
+end
+
+val sem-jal x = do
+	pc <- ip-get;
+	ra <- return (semantic-gpr-of RA);
+
+	add ra.size ra (var pc) (imm 8);
+
+	sem-j x
+end
+
+val sem-jalr x = return void	# TODO: SEMANTICS
+val sem-jalr-hb x = return void	# TODO: SEMANTICS
+val sem-jalx x = return void	# TODO: SEMANTICS
+val sem-jr x = return void	# TODO: SEMANTICS
+val sem-jr-hb x = return void	# TODO: SEMANTICS
+
+val sem-lb x = return void	# TODO: SEMANTICS
+
+val sem-mul x = do
+	s1 <- rval Signed x.source1;
+	s2 <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	res <- mktemp;
+	mul (size*2) res s1 s2;
+
+	hi <- hi-get;
+	lo <- lo-get;
+	
+	mov size lo (var res);
+	mov size hi (var (at-offset res size))
+end
+
+val sem-nor x = do
+	s1 <- rval Unsigned x.source1;
+	s2 <- rval Unsigned x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	orb size res s1 s2;
+	xorb size res (var res) (imm (0-1));
+	
+	write x.destination (var res)
+end
+
+val sem-slt-slti x = do
+	s1 <- rval Signed x.source1;
+	s2 <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	res <- mktemp;
+	cmplts size res s1 s2;
+
+	write x.destination (var res)
+end
+
+val sem-sltu-sltiu x = do
+	s1 <- rval Unsigned x.source1;
+	s2 <- rval Unsigned x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	res <- mktemp;
+	cmpltu size res s1 s2;
+
+	write x.destination (var res)
+end
+
+val sem-sub x = do
+	s1 <- rval Signed x.source1;
+	s2 <- rval Signed x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	sub size res s1 s2;
+	
+	write x.destination (var res)
+end
+
+val sem-subu x = do
+	s1 <- rval Signed x.source1;
+	s2 <- rval Signed x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	sub size res s1 s2;
+	
+	write x.destination (var res)
+end
+
+val sem-bitshift op x = do
+	rt <- rval Signed x.source1;
+	amount <- rval Signed x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	temp <- mktemp;
+	op size temp rt amount;
+	
+	write x.destination (var temp)
+end
+
+val sem-bitshift-variable op x = do
+	rt <- rval Signed x.source1;
+	rs <- rval Signed x.source2;
+	size <- return (sizeof-lval x.destination);
+	
+	amount <- mktemp;
+	mov 5 amount rs;
+
+	temp <- mktemp;
+	op size temp rt (var amount);
+
+	write x.destination (var temp)	
+end
+
 val semantics i =
    case i of
       ABS-fmt x: sem-fp
@@ -277,8 +407,8 @@ val semantics i =
     | ADDIU x: sem-addu-addiu x
     | ADDU x: sem-addu-addiu x
     | ALNV-PS x: sem-fp
-    | AND x: sem-and-andi x
-    | ANDI x: sem-and-andi x
+    | AND x: sem-bitwise andb x
+    | ANDI x: sem-bitwise andb x
     | BC1F x: sem-fp
     | BC1FL x: sem-fp
     | BC1T x: sem-fp
@@ -334,14 +464,14 @@ val semantics i =
     | FLOOR-L-fmt x: sem-fp
     | FLOOR-W-fmt x: sem-fp
     | INS x: sem-ins x
-    | J x: sem-foo
-    | JAL x: sem-foo
-    | JALR x: sem-foo
-    | JALR-HB x: sem-foo
-    | JALX x: sem-foo
-    | JR x: sem-foo
-    | JR-HB x: sem-foo
-    | LB x: sem-foo
+    | J x: sem-j x
+    | JAL x: sem-jal x
+    | JALR x: sem-jalr x
+    | JALR-HB x: sem-jalr-hb x
+    | JALX x: sem-jalx x
+    | JR x: sem-jr x
+    | JR-HB x: sem-jr-hb x
+    | LB x: sem-lb x
     | LBE x: sem-foo
     | LBU x: sem-foo
     | LBUE x: sem-foo
@@ -396,14 +526,14 @@ val semantics i =
     | MTLO x: sem-foo
     | MUL x: sem-foo
     | MUL-fmt x: sem-foo
-    | MULT x: sem-foo
-    | MULTU x: sem-foo
+    | MULT x: sem-mul x
+    | MULTU x: sem-mul x
     | NEG-fmt x: sem-foo
     | NMADD-fmt x: sem-foo
     | NMSUB-fmt x: sem-foo
-    | NOR x: sem-foo
-    | OR x: sem-foo
-    | ORI x: sem-foo
+    | NOR x: sem-nor x
+    | OR x: sem-bitwise orb x
+    | ORI x: sem-bitwise orb x
     | PLL-PS x: sem-foo
     | PLU-PS x: sem-foo
     | PREF x: sem-foo
@@ -431,20 +561,20 @@ val semantics i =
     | SEH x: sem-foo
     | SH x: sem-foo
     | SHE x: sem-foo
-    | SLL x: sem-foo
-    | SLLV x: sem-foo
-    | SLT x: sem-foo
-    | SLTI x: sem-foo
-    | SLTIU x: sem-foo
-    | SLTU x: sem-foo
+    | SLL x: sem-bitshift shl x
+    | SLLV x: sem-bitshift-variable shl x
+    | SLT x: sem-slt-slti x
+    | SLTI x: sem-slt-slti x
+    | SLTIU x: sem-sltu-sltiu x
+    | SLTU x: sem-sltu-sltiu x
     | SQRT-fmt x: sem-foo
-    | SRA x: sem-foo
-    | SRAV x: sem-foo
-    | SRL x: sem-foo
-    | SRLV x: sem-foo
-    | SUB x: sem-foo
+    | SRA x: sem-bitshift shrs x
+    | SRAV x: sem-bitshift-variable shrs x
+    | SRL x: sem-bitshift shr x
+    | SRLV x: sem-bitshift-variable shr x
+    | SUB x: sem-sub x
     | SUB-fmt x: sem-foo
-    | SUBU x: sem-foo
+    | SUBU x: sem-subu x
     | SUXC1 x: sem-foo
     | SW x: sem-foo
     | SWC1 x: sem-foo
@@ -481,8 +611,8 @@ val semantics i =
     | WAIT x: sem-foo
     | WRPGPR x: sem-foo
     | WSBH x: sem-foo
-    | XOR x: sem-foo
-    | XORI x: sem-foo
+    | XOR x: sem-bitwise xorb x
+    | XORI x: sem-bitwise xorb x
    end
 
 # -> sftl
