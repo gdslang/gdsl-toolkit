@@ -228,6 +228,11 @@ GDSL_RREIL = \
   $(srcdir)/specifications/rreil/rreil-opt.ml \
   $(srcdir)/specifications/rreil/rreil-translator.ml
 
+GDSL_ARM7 = \
+	$(srcdir)/specifications/arm7/arm7.ml \
+	$(srcdir)/specifications/arm7/arm7-pretty.ml
+#	$(srcdir)/specifications/arm7/arm7-asm.ml
+
 #if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 nodist_include_HEADERS += gdsl-x86-rreil.h
@@ -362,6 +367,28 @@ gdsl_mips_demo_CFLAGS = -std=c99 -DWITHMAIN
 GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS)
 gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
+
+
+#if ARM7 
+lib_LTLIBRARIES += libgdsl-arm7.la
+nodist_include_HEADERS += gdsl-arm7.h
+CLEANFILES += gdsl-arm7.c gdsl-arm7.h
+#endif
+libgdsl_arm7_la_SOURCES =
+nodist_libgdsl_arm7_la_SOURCES = gdsl-arm7.c
+libgdsl_arm7_la_DEPENDENCIES = $(GDSLC_DEP)
+if INSTALL_AUXBINS
+bin_PROGRAMS += gdsl_arm7_demo
+endif
+if BUILD_AUXBINS
+noinst_PROGRAMS += gdsl_arm7_demo
+endif
+gdsl_arm7_demo_SOURCES = gdsl-arm7.c
+gdsl_arm7_demo_CFLAGS = -std=c99 -DWITHMAIN
+
+GS_ARM7 = $(GDSL_BASIS) $(GDSL_ARM7)
+gdsl-arm7.c: $(GDSLC_DEP) $(GS_ARM7)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_ARM7)
 
 #if HAVE_RREIL
 JSOURCES = src/Program.java \
