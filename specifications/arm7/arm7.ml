@@ -101,6 +101,7 @@ type condition =
       | AL
 
 val decode config = do
+        reset;
         insn <- /;
         return {instruction=insn}
 end
@@ -214,12 +215,12 @@ val op2register = do
 end        
 
 val reset = do
-        update @{shiftoperation=''};
-        update @{rm='', shifttype=''};
-        update @{shift_amount=''};
-        update @{shift_register=''};
-        update @{imm=''};
-        update @{rotate=''}
+        update @{shiftoperation=0};
+        update @{rm='0000', shifttype='00'};
+        update @{shift_amount='00000'};
+        update @{shift_register='0000'};
+        update @{imm='00000000'};
+        update @{rotate='0000'}
 end
 
 val op2imm = do
