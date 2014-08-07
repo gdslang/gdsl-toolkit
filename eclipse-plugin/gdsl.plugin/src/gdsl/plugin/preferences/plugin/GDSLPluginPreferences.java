@@ -63,10 +63,15 @@ public class GDSLPluginPreferences {
 	}
 	
 	public static IEclipsePreferences getProjectProperties(Resource resource){
-		IPath resourcePath = new Path(resource.getURI().toPlatformString(true));
-		IProject project = ResourcesPlugin.getWorkspace().getRoot().getFile(resourcePath).getProject();
+		IProject project = obtainProject(resource);
 		IScopeContext projectScope = new ProjectScope(project);
 		return projectScope.getNode(PLUGIN_SCOPE);
+	}
+
+	public static IProject obtainProject(Resource resource) {
+		IPath resourcePath = new Path(resource.getURI().toPlatformString(true));
+		IProject project = ResourcesPlugin.getWorkspace().getRoot().getFile(resourcePath).getProject();
+		return project;
 	}
 	
 	public static IEclipsePreferences getPreferenceStore() {

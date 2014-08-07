@@ -4,11 +4,10 @@
 package gdsl.plugin.generator
 
 import gdsl.plugin.preferences.plugin.GDSLPluginPreferences
-import java.io.File
-import java.util.regex.Pattern
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
+import org.eclipse.core.resources.ResourcesPlugin
 
 /**
  * Generates code from your model files on save.
@@ -24,39 +23,47 @@ class GDSLGenerator implements IGenerator {
 //				.map[name]
 //				.join(', '))\
 
+		val projectPath = GDSLPluginPreferences.obtainProject(resource).fullPath;
+		val workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString()
+		val fullProjectPath = workspacePath + projectPath + "/"
+		
 		var commandBuilder = new StringBuilder()
 		
-		commandBuilder.append("echo ");
+		//Compiler invocation
+		commandBuilder.append(GDSLPluginPreferences.compilerInvocation);
 		
-//		commandBuilder.append(GDSLPluginPreferences.compilerCall)
-//		
-//		val smlLoad = GDSLPluginPreferences.compilerPath
-//		if(null != smlLoad && !"".equals(smlLoad.trim)) {
-//			commandBuilder.append(" @SMLload=")
-//			commandBuilder.append(smlLoad)
-//		}
-//		
-//		val arguments = GDSLPluginPreferences.compileArguments
-//		if(null != arguments && !"".equals(arguments.trim)){
-//			commandBuilder.append(" ")
-//			commandBuilder.append(arguments)			
-//		}
-//		
-//		val runtimeEnvironment = GDSLPluginPreferences.runtimeFolder
-//		if(null != runtimeEnvironment && !"".equals(runtimeEnvironment.trim)){
-//			commandBuilder.append(" --runtime=")
-//			commandBuilder.append(runtimeEnvironment)
-//		}
-//		
-//		var files = GDSLPluginPreferences.compileFiles
-//		files = files.replaceAll(Pattern.quote(File.pathSeparator), " ")
-//		commandBuilder.append(" ")
-//		commandBuilder.append(files)
+		//Output name
+		commandBuilder.append(" -o");
+		commandBuilder.append(" " + GDSLPluginPreferences.getOutputName(resource));
+		
+		//Runtime templates
+		commandBuilder.append(" --runtime=");
+		commandBuilder.append(makeAbsolute(fullProjectPath, GDSLPluginPreferences.getRuntimeTemplates(resource)));
+		
+		//Prefix
+		val prefix = GDSLPluginPreferences.getPrefix(resource); 
+		if(null != prefix){
+			commandBuilder.append(" --prefix=" + prefix);		
+		}
+		
+		//Typechecker
+		if(GDSLPluginPreferences.typeCheckerEnabled){
+			commandBuilder.append(" --maxIter=" + GDSLPluginPreferences.typeCheckerIteration);		
+		}
+		else{
+			commandBuilder.append(" -t");
+		}
+		
+		// TODO append files
 
-		commandBuilder.append(GDSLPluginPreferences.getOutputName(resource));
-		
-		RunCompiler.compile(commandBuilder.toString)
+		RunCompiler.compile("echo " + commandBuilder.toString)
 		
 	}
 	
+	private def String makeAbsolute(String projectPath, String relativePath){
+		if(relativePath.startsWith("/")){
+			return relativePath;
+		}
+		return projectPath + relativePath;
+	}
 }

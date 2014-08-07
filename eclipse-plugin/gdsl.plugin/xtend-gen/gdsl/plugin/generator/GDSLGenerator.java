@@ -3,8 +3,14 @@
  */
 package gdsl.plugin.generator;
 
+import com.google.common.base.Objects;
 import gdsl.plugin.generator.RunCompiler;
 import gdsl.plugin.preferences.plugin.GDSLPluginPreferences;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.generator.IFileSystemAccess;
 import org.eclipse.xtext.generator.IGenerator;
@@ -17,11 +23,47 @@ import org.eclipse.xtext.generator.IGenerator;
 @SuppressWarnings("all")
 public class GDSLGenerator implements IGenerator {
   public void doGenerate(final Resource resource, final IFileSystemAccess fsa) {
+    IProject _obtainProject = GDSLPluginPreferences.obtainProject(resource);
+    final IPath projectPath = _obtainProject.getFullPath();
+    IWorkspace _workspace = ResourcesPlugin.getWorkspace();
+    IWorkspaceRoot _root = _workspace.getRoot();
+    IPath _location = _root.getLocation();
+    final String workspacePath = _location.toString();
+    final String fullProjectPath = ((workspacePath + projectPath) + "/");
     StringBuilder commandBuilder = new StringBuilder();
-    commandBuilder.append("echo ");
+    String _compilerInvocation = GDSLPluginPreferences.getCompilerInvocation();
+    commandBuilder.append(_compilerInvocation);
+    commandBuilder.append(" -o");
     String _outputName = GDSLPluginPreferences.getOutputName(resource);
-    commandBuilder.append(_outputName);
+    String _plus = (" " + _outputName);
+    commandBuilder.append(_plus);
+    commandBuilder.append(" --runtime=");
+    String _runtimeTemplates = GDSLPluginPreferences.getRuntimeTemplates(resource);
+    String _makeAbsolute = this.makeAbsolute(fullProjectPath, _runtimeTemplates);
+    commandBuilder.append(_makeAbsolute);
+    final String prefix = GDSLPluginPreferences.getPrefix(resource);
+    boolean _notEquals = (!Objects.equal(null, prefix));
+    if (_notEquals) {
+      commandBuilder.append((" --prefix=" + prefix));
+    }
+    boolean _isTypeCheckerEnabled = GDSLPluginPreferences.isTypeCheckerEnabled();
+    if (_isTypeCheckerEnabled) {
+      int _typeCheckerIteration = GDSLPluginPreferences.getTypeCheckerIteration();
+      String _plus_1 = (" --maxIter=" + Integer.valueOf(_typeCheckerIteration));
+      commandBuilder.append(_plus_1);
+    } else {
+      commandBuilder.append(" -t");
+    }
     String _string = commandBuilder.toString();
-    RunCompiler.compile(_string);
+    String _plus_2 = ("echo " + _string);
+    RunCompiler.compile(_plus_2);
+  }
+  
+  private String makeAbsolute(final String projectPath, final String relativePath) {
+    boolean _startsWith = relativePath.startsWith("/");
+    if (_startsWith) {
+      return relativePath;
+    }
+    return (projectPath + relativePath);
   }
 }

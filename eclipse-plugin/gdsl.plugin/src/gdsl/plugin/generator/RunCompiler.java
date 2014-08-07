@@ -7,7 +7,6 @@ public class RunCompiler {
 
 	public static String compile(String command){
 		System.out.println("$ " + command);
-		if(true) return "";
 		StringBuffer output = new StringBuffer();
 		Process p;
 		try{
