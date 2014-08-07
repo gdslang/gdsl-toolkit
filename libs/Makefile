@@ -9,10 +9,6 @@ ifeq ($(GDSL_ARCH),x86)
 LIBS+=x86 x86-tester x86-generator
 endif
 
-#$(info $(call eq,x86,99))
-
-$(info $(LIBS))
-
 .PHONY all: $(LIBS)
 
 $(LIBS):

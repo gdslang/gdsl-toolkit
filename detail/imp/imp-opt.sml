@@ -951,7 +951,7 @@ structure TypeRefinement = struct
             val idx = DynamicArray.bound tt + 1
             (*val _ = if SymbolTable.toInt sym=4936 then debugOn := true else ()*)
             (*val _ = msg ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n")*)
-            (*val _ = if idx=57714 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
+            (*val _ = if idx=115 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
 
             (*val _ = if idx=57656 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = if idx=57654 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
@@ -987,36 +987,43 @@ structure TypeRefinement = struct
    
    fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
-         (*val _ = if t1=VARstype 57711 orelse t2=VARstype 57711 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
-         (*val _ = if t1=VARstype 47817 orelse t2=VARstype 47817 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
+         (*val _ = if t1=VARstype 97 orelse t2=VARstype 97 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
+         (*val _ = if t1=VARstype 100 orelse t2=VARstype 100 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
          (*val _ = msg ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n")*)
          val iter = ref 0
          fun lub (VARstype x, VARstype y) =
-            if x=y then VARstype x else
+            let
+               val xRoot = find (tt,x)
+               val yRoot = find (tt,y)
+            in
+            if xRoot=yRoot then VARstype x else
             let
                (*val _ = if x=77091 orelse y=77091 then TextIO.print ("lub of " ^ Int.toString x ^ " and " ^ Int.toString y ^ ", where:\n" ^ showSTypes s [x,y] ^ "\n") else ()*)
                (*val _ = if x=28597 orelse y=28597 then TextIO.print ("lub of " ^ Int.toString x ^ " and " ^ Int.toString y ^ ", where:\n" ^ showSTypes s [x,y] ^ "\n") else ()*)
                (*val _ = debugOn := (x=38859 orelse y=38859)*)
-               val xRoot = find (tt,x)
-               val yRoot = find (tt,y)
                val _ = iter := (!iter) + 1
                val xTy = DynamicArray.sub (tt,xRoot)
                val yTy = DynamicArray.sub (tt,yRoot)
-               (*val _ = if (xRoot=18419 orelse yRoot=18419) andalso (xRoot<>yRoot) then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
+               (*val _ = if (xRoot=97 orelse yRoot=97) andalso (xRoot<>yRoot) then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
                val ecr = VARstype (Int.min (xRoot, yRoot))
 
-               val ty = case (xTy,yTy) of
-                  (VARstype xRoot, VARstype yRoot) => ecr
-                | (VARstype xRoot, t) => t
-                | (t, VARstype yRoot) => t
-                | (t1,t2) => if !iter>60 then OBJstype else lub (t1,t2)
+               val (recurse,ty) = case (xTy,yTy) of
+                  (VARstype xRoot, VARstype yRoot) => (NONE,ecr)
+                | (VARstype xRoot, t) => (NONE,t)
+                | (t, VARstype yRoot) => (NONE,t)
+                | (t1,t2) => (SOME (t1,t2), VOIDstype)
 
-               val _ = if !debugOn then TextIO.print ("lub: unify " ^ Int.toString x ^ " and " ^ Int.toString y ^ ", ty = " ^ showSType ty ^ "\n" ^ showSTypes s [x,y]) else ()
+               (*val _ = if !debugOn then TextIO.print ("lub: unify " ^ Int.toString x ^ " and " ^ Int.toString y ^ ", ty = " ^ showSType ty ^ "\n" ^ showSTypes s [x,y]) else ()*)
 
                val _ = DynamicArray.update (tt,Int.max (xRoot,yRoot),ecr)
                val _ = DynamicArray.update (tt,Int.min (xRoot,yRoot),ty)
+               val _ = if !iter>60 then (TextIO.print ("Recursion!!!! via " ^ showSType t1 ^ " and " ^ showSType t2 ^ "\n")) else
+                  case recurse of
+                     NONE => ()
+                   | SOME (t1,t2) => ignore (lub (ecr,lub (t1,t2)))
             in
                ecr
+            end
             end
            | lub (VARstype x, t) =
             let
@@ -1264,9 +1271,10 @@ structure TypeRefinement = struct
          val _ = visitBlock s block
          fun argTypes args = map (fn (_,sym) => symType s sym) args
          val ty = FUNstype (symType s res, VOIDstype, argTypes clArgs @ argTypes args)
-         (*val _ = msg ("visitDecl end   " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " : " ^ showSType ty ^ "\n")*)
+         val fType = lub (s, symType s name, ty)
+         (*val _ = msg ("visitDecl end   " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " : " ^ showSType ty ^ ", that is, " ^ showSType (inlineSType s ty) ^ "\n")*)
       in
-         lub (s, symType s name, ty)
+         fType
       end
      | visitDecl s (CONdecl {
          conName = name,
@@ -1396,7 +1404,7 @@ structure TypeRefinement = struct
         funcRes = res
       }) =
       let
-         (*val _ = TextIO.print ("patchDecl of function " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ "\n")*)
+         (*val _ = msg ("patchDecl of function " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ "\n")*)
          val clArgs' = map (fn (t,sym) => (adjustType s (t,symType s sym),sym)) clArgs
          val args' = map (fn (t,sym) => (adjustType s (t,symType s sym),sym)) args
          val vtype' = adjustType s (vtype, symType s name)
@@ -1505,7 +1513,7 @@ structure TypeRefinement = struct
             IDexp sym => origType s sym
           | _ => FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) es)
          val newTy = visitExp s e
-         val _ = msg ("patchExp CALL " ^ Layout.tostring (Imp.PP.exp e) ^ " from " ^ Layout.tostring (Imp.PP.vtype origTy) ^ " to " ^ showSType (inlineSType s newTy) ^ "\n")
+         (*val _ = msg ("patchExp CALL " ^ Layout.tostring (Imp.PP.exp e) ^ " from " ^ Layout.tostring (Imp.PP.vtype origTy) ^ " to " ^ showSType (inlineSType s newTy) ^ "\n")*)
          val (wrap, tyNew, esNew) = patchCall s (origTy, newTy, map (patchExp s) es)
       in
          wrap (CALLexp (eNew, esNew))
@@ -1638,11 +1646,11 @@ structure TypeRefinement = struct
      | trType s (AST.BITty sz) = BOXstype (BITstype (CONSTstype (IntInf.toInt sz)))
      | trType (ta,dt,quantVars,conDef,boxedRec,s) (AST.NAMEDty (sym,args)) =
      let
-        (*val _ = TextIO.print ("looking up type " ^
+        (*val _ = msg ("looking up type " ^
            SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " with "
-           ^ Int.toString (List.length args) ^ " arguments:\n")
-        val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ Layout.tostring (AST.PP.ty ty) ^ "\n")) args
-        val _ = TextIO.print ("type alias contains:\n")
+           ^ Int.toString (List.length args) ^ " arguments:\n")*)
+        (*val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ Layout.tostring (AST.PP.ty ty) ^ "\n")) args*)
+        (*val _ = TextIO.print ("type alias contains:\n")
         val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ Layout.tostring (AST.PP.ty ty) ^ "\n")) (SymMap.listItemsi ta)
         val _ = TextIO.print ("quantVars contains:\n")
         val _ = List.app (fn (sym,ty) => TextIO.print (SymbolTable.getString(!SymbolTables.typeTable, sym) ^ " : " ^ showSType ty ^ "\n")) (SymMap.listItemsi quantVars)
@@ -1650,7 +1658,14 @@ structure TypeRefinement = struct
         val _ = List.app (fn (sym,(_,_,ty)) => TextIO.print (SymbolTable.getString(!SymbolTables.conTable, sym) ^ " : " ^ showSType ty ^ "\n")) (SymMap.listItemsi (!conDef))*)
      in
      (case SymMap.find (ta,sym) of
-          SOME ty => trType (List.foldl SymMap.insert' ta args,dt,quantVars,conDef,boxedRec,s) ty
+          SOME ty =>
+          let
+             (*val _ = TextIO.print ("found synonym " ^ Layout.tostring (AST.PP.ty ty) ^ "\n");*)
+             val ty = trType (List.foldl SymMap.insert' ta args,dt,quantVars,conDef,boxedRec,s) ty
+             (*val _ = TextIO.print ("converted to type " ^ showSType (inlineSType s ty) ^ "\n")*)
+          in
+             ty
+          end
         | NONE => (case SymMap.find (dt,sym) of
              SOME cons =>
                let
@@ -1681,7 +1696,7 @@ structure TypeRefinement = struct
      end
      | trType (ta,dt,quantVars,conDef,boxedRec,s) (AST.RECORDty fs) =
       RECORDstype (boxedRec,map (fn (f,ty) =>
-            (true,f,trType (ta,dt,quantVars,conDef,boxedRec,s) ty))
+            (false,f,trType (ta,dt,quantVars,conDef,boxedRec,s) ty))
             (sortFields fs), false)
      | trType s (AST.FUNCTIONty (args,res)) = FUNstype (trType s res,VOIDstype,map (trType s) args)
      | trType s (AST.MONADty (res,inp,out)) = trType s res
@@ -1712,7 +1727,7 @@ structure TypeRefinement = struct
      | compareTypes (STRINGstype,STRINGstype) = true
      | compareTypes (INTstype,INTstype) = true
      | compareTypes (OBJstype,OBJstype) = true
-     | compareTypes (t1,t2) = false (*(TextIO.print ("comparing " ^ showSType t1 ^ " with " ^ showSType t2 ^ "\n"); false)*)
+     | compareTypes (t1,t2) = ((*TextIO.print ("comparing " ^ showSType t1 ^ " with " ^ showSType t2 ^ "\n");*) false)
 
    fun setArgsToType (errs,ta,dt,conDef,es,s) (FUNCdecl {
         funcName = f,
@@ -1720,7 +1735,7 @@ structure TypeRefinement = struct
         ...
       }) = (case SymMap.find (es,f) of NONE => () | SOME (quant,ty) =>
       let
-         (*val _ = TextIO.print ("setArgsToType for export " ^
+         (*val _ = msg ("setArgsToType for export " ^
             SymbolTable.getString(!SymbolTables.varTable, f) ^ "\n")*)
          val srcloc = case ty of
               (AST.MARKty {span=s, tree}) => s
@@ -1728,14 +1743,20 @@ structure TypeRefinement = struct
          fun addTypeVars (sym,ta) = SymMap.insert (ta,sym,freshTVar s)
          val quantVars = foldl addTypeVars SymMap.empty quant
          val targetType = trType (ta,dt,quantVars,conDef,OBJstype,s) ty
+         
+         (*val _ = msg ("exported type is " ^ showSType targetType ^ "\n")
+         val _ = msg ("symbol type is   " ^ showSType (symType s f) ^ "\n")
+         val _ = if !debugOn then showTable (#typeTable s) else ()*)
+
          val targetType = case targetType  of
             FUNstype a => FUNstype a
           | t => FUNstype (t,VOIDstype,[]) (* top-level constants are still functions *)
 
+         val originalType = inlineSType s (symType s f)
+
          val obtainedType = inlineSType s (lub (s, symType s f, targetType))
 
          val targetType = inlineSType s targetType
-         val originalType = inlineSType s (symType s f)
       in
          if compareTypes (targetType,obtainedType) then () else
          Error.warningAt (errs, srcloc,  ["export declaration of " ^
@@ -1752,9 +1773,9 @@ structure TypeRefinement = struct
          val recordTypes = ref AtomMap.empty : stype AtomMap.map ref
          fun checkForRecord (ty as RECORDstype (_,fs,_),recordTypes) =
             let
-                val key = Atom.atom (foldl (fn (f,str) =>
-                     Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,#2 f)) ^ str)
-                     "" fs)
+               val key = case adjustType s (OBJvtype,ty) of
+                  RECORDvtype (_, fs) => genRecSignature fs
+                | _ => Atom.atom ""
             in
                AtomMap.insert (recordTypes, key,
                   lub (s,Option.getOpt(AtomMap.find (recordTypes,key),VOIDstype),ty))
@@ -1763,24 +1784,6 @@ structure TypeRefinement = struct
       in
          DynamicArray.foldl checkForRecord AtomMap.empty (#typeTable s)
       end
-
-      (*fun checkRecords s =
-         let
-            fun checkForRecord (idx,ty as RECORDstype (_,fs,_)) =
-               let
-                   fun checkFields (_,f,fty) =
-                      if !debugOn andalso SymbolTable.toInt f=142 andalso isOBJstype (inlineSType s fty) then
-                      TextIO.print ("addr-sz field is OBJ:\n" ^ showSTypes s [idx] ^ "in: " ^ showSType ty ^ "\n")
-                      else ()
-               in
-                  List.app checkFields fs
-               end
-              | checkForRecord (_, _) = ()
-         in
-            if DynamicArray.bound (#typeTable s)>2 then
-               DynamicArray.appi checkForRecord (#typeTable s)
-            else ()
-         end*)
 
    fun run { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } =
       let
@@ -1798,20 +1801,25 @@ structure TypeRefinement = struct
             origFields = fs,
             stateSym = stateSym
          }
-         fun visitDeclPrint state d = ((*TextIO.print ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); checkRecords state; debugOn:=(SymbolTable.toInt(getDeclName d)= 132);*) visitDecl state d)
+         fun visitDeclPrint state d = ((*TextIO.print ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) (*debugOn:=(SymbolTable.toInt(getDeclName d)=84);*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
-         (* unify the types of all records that have the same set of fields *)
+         (* unify the types of all records that have the same set of fields and
+         types, ensures that boxing is the same for records that are mapped to
+         the same C struct *)
          val _ = mergeRecords state
          (* set all arguments in functions and constructors to the type declared in the export list *)
+
          val conDef = List.foldl (fn (d,sm) => case d of
             CONdecl { conTag = tag, conArg = (_, argName), ... } =>
                SymMap.insert (sm,tag, symType state argName)
           | _ => sm) SymMap.empty ds
-         val _ = app (setArgsToType (errs,ta,dt,conDef,es,state)) ds
-
+         val _ = app (fn d => 
+            (debugOn:= SymbolTable.toInt(getDeclName d)=83;
+            setArgsToType (errs,ta,dt,conDef,es,state) d)) ds
+         
          (*val _ = showState es state*)
          (*val _ = debugOn := false
-         fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)*)
+         fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= 83); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)*)
          val ds = map (patchDecl state) ds
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, fieldType state sym)) fs
          val mt = adjustType state (mt, symType state stateSym)
@@ -2465,7 +2473,6 @@ structure DeadVariables = struct
 
    and hasSidePrim SETSTATEprim = true
      | hasSidePrim SEEKprim = true
-     (*| hasSidePrim RSEEKprim = true*)
      | hasSidePrim CONSUME8prim = true
      | hasSidePrim CONSUME16prim = true
      | hasSidePrim CONSUME32prim = true
