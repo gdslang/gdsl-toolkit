@@ -329,26 +329,26 @@ val / ['/cond 0001111 /s rn:4 rd:4 /op2imm'] = dp MVN cond s (register-from-bits
 ##### MUL,MLA
 
 # MUL
-val / ['/cond 0000000 /s mrd:4 mrn:4 mrs:4 1001 mrm:4'] =
+val / ['/cond 0000000 /s rd:4 rn:4 rs:4 1001 rm:4'] =
         mul
                 MUL
                 cond
                 s
-                (register-from-bits' mrd)
-                (register-from-bits' mrn)
-                (register-from-bits' mrs)
-                (register-from-bits' mrm) 
+                (register-from-bits' rd)
+                (register-from-bits' rn)
+                (register-from-bits' rs)
+                (register-from-bits' rm) 
 
 # MLA
-val / ['/cond 0000001 /s mrd:4 mrn:4 mrs:4 1001 mrm:4'] = 
+val / ['/cond 0000001 /s rd:4 rn:4 rs:4 1001 rm:4'] = 
         mul
                 MUL
                 cond
                 s
-                (register-from-bits' mrd)
-                (register-from-bits' mrn)
-                (register-from-bits' mrs)
-                (register-from-bits' mrm) 
+                (register-from-bits' rd)
+                (register-from-bits' rn)
+                (register-from-bits' rs)
+                (register-from-bits' rm) 
 
 ### MULL
 
