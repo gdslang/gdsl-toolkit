@@ -435,6 +435,17 @@ val sem-lw x = do
 	write x.destination (var memword)
 end
 
+val sem-lui x = do
+	immediate <- rval Unsigned x.source;
+	size <- return (sizeof-lval x.destination);
+	size_imm <- return (sizeof-rval x.source);
+	
+	res <- mktemp;
+	shl size res immediate (imm (32-size_imm));
+
+	write x.destination (var res)
+end
+
 val sem-madd-maddu-msub-msubu ext_op add_sub_op x = do
 	rs <- rval Signed x.source1;
 	rt <- rval Signed x.source2;
@@ -493,6 +504,18 @@ val sem-mtlo x = do
 	mov lo.size lo rs
 end
 
+val sem-movn-movz cmp_op x = do
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	_if (cmp_op size rt (imm 0)) _then
+		write x.destination rs
+end
+
+val sem-movn x = sem-movn-movz /neq x
+val sem-movz x = sem-movn-movz /eq x
+
 val sem-mult-multu ext_op x = do
 	rs <- rval Signed x.source1;
 	rt <- rval Signed x.source2;
@@ -545,6 +568,52 @@ val sem-nor x = do
 	
 	write x.destination (var res)
 end
+
+val sem-rotr x = do
+	rt <- rval Signed x.source1;
+	sa <- rval Unsigned x.source2;
+	size <- return (sizeof-rval x.source1);
+	amount <- return (lin-to-int sa);
+
+	res <- mktemp;
+	shr size res rt sa;
+	mov amount (at-offset res (32-amount)) rt;
+
+	write x.destination (var res)
+end
+
+val sem-rotrv x = do
+	rt <- rval Signed x.source1;
+	rs <- rval Unsigned x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	left <- mktemp;
+	shr size left rt rs;
+
+	amount <- mktemp;
+	sub size amount (imm 32) rs;
+
+	right <- mktemp;
+	shl size right rt (var amount);
+
+	res <- mktemp;
+	orb size res (var left) (var right);
+
+	write x.destination (var res)
+end
+
+val sem-se sz x = do
+	rt <- rval Signed x.source;
+	size <- return (sizeof-rval x.source);
+
+	res <- mktemp;
+	movsx size res sz rt;
+
+	write x.destination (var res)
+end
+
+val sem-seb x = sem-se 8 x
+val sem-seh x = sem-se 16 x
 
 val sem-slt-sltu cmp_op x = do
 	s1 <- rval Signed x.source1;
@@ -602,6 +671,69 @@ val sem-subu x = do
 	sub size res s1 s2;
 	
 	write x.destination (var res)
+end
+
+val sem-sb x = do
+	rt <- rval Signed x.source2;
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source3;
+	size <- return (sizeof-rval x.source1);
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	bigendian_cpu <- mktemp;
+	re <- return (fRE);
+	movsx 2 bigendian_cpu 1 (var re);
+
+	byte <- mktemp;
+	mov 30 (at-offset byte 2) (imm 0);
+	xorb 2 byte (var vaddr) (var bigendian_cpu);
+	shl 32 byte (var byte) (imm 3);
+
+	memword <- mktemp;
+	shl 32 memword rt (var byte);
+
+	store 32 (address size (var vaddr)) (var memword)
+end
+
+val sem-sh x = do
+	rt <- rval Signed x.source2;
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source3;
+	size <- return (sizeof-rval x.source1);
+
+	# THROW EXCEPTION
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	bigendian_cpu <- mktemp;
+	shl 2 bigendian_cpu (var fRE) (imm 1);
+
+	byte <- mktemp;
+	mov 30 (at-offset byte 2) (imm 0);
+	xorb 2 byte (var vaddr) (var bigendian_cpu);
+	shl 32 byte (var byte) (imm 3);
+
+	memword <- mktemp;
+	shl 32 memword rt (var byte);
+
+	store 32 (address size (var vaddr)) (var memword)
+end
+
+val sem-sw x = do
+	rt <- rval Signed x.source2;
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source3;
+	size <- return (sizeof-rval x.source1);
+
+	# THROW EXCEPTION
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	store 32 (address size (var vaddr)) rt
 end
 
 val sem-sll-sra-srl shift_op x = do
@@ -723,7 +855,7 @@ val semantics i =
     | LHUE x: sem-lhu x
     | LL x: sem-foo
     | LLE x: sem-foo
-    | LUI x: sem-foo
+    | LUI x: sem-lui x
     | LUXC1 x: sem-foo
     | LW x: sem-lw x
     | LWC1 x: sem-foo
@@ -747,11 +879,11 @@ val semantics i =
     | MOV-fmt x: sem-foo
     | MOVF x: sem-foo
     | MOVF-fmt x: sem-foo
-    | MOVN x: sem-foo
+    | MOVN x: sem-movn x
     | MOVN-fmt x: sem-foo
     | MOVT x: sem-foo
     | MOVT-fmt x: sem-foo
-    | MOVZ x: sem-foo
+    | MOVZ x: sem-movz x
     | MOVZ-fmt x: sem-foo
     | MSUB x: sem-msub x
     | MSUB-fmt x: sem-foo
@@ -783,23 +915,23 @@ val semantics i =
     | RDHWR x: sem-foo
     | RDPGPR x: sem-foo
     | RECIP-fmt x: sem-foo
-    | ROTR x: sem-foo
-    | ROTRV x: sem-foo
+    | ROTR x: sem-rotr x
+    | ROTRV x: sem-rotrv x
     | ROUND-L-fmt x: sem-foo
     | ROUND-W-fmt x: sem-foo
     | RSQRT-fmt x: sem-foo
-    | SB x: sem-foo
-    | SBE x: sem-foo
+    | SB x: sem-sb x
+    | SBE x: sem-sb x
     | SC x: sem-foo
     | SCE x: sem-foo
     | SDBBP x: sem-foo
     | SDC1 x: sem-foo
     | SDC2 x: sem-foo
     | SDXC1 x: sem-foo
-    | SEB x: sem-foo
-    | SEH x: sem-foo
-    | SH x: sem-foo
-    | SHE x: sem-foo
+    | SEB x: sem-seb x
+    | SEH x: sem-seh x
+    | SH x: sem-sh x
+    | SHE x: sem-sh x
     | SLL x: sem-sll x
     | SLLV x: sem-sllv x
     | SLT x: sem-slt x
@@ -815,10 +947,10 @@ val semantics i =
     | SUB-fmt x: sem-foo
     | SUBU x: sem-subu x
     | SUXC1 x: sem-foo
-    | SW x: sem-foo
+    | SW x: sem-sw x
     | SWC1 x: sem-foo
     | SWC2 x: sem-foo
-    | SWE x: sem-foo
+    | SWE x: sem-sw x
     | SWL x: sem-foo
     | SWLE x: sem-foo
     | SWR x: sem-foo
