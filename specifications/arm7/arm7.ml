@@ -45,6 +45,8 @@ type instruction =
   | SMULL of mull
   | UMLAL of mull
   | SMLAL of mull
+  | LDR
+  | STR
 
 type dp = {condition:condition, s:1, rn:register, rd:register, op2:operand}
 type mul = {condition:condition, s:1, rd:register, rn:register, rs:register, rm:register}
@@ -251,7 +253,7 @@ val op2imm = do
   imm <- query $imm;
   rotate <- query $rotate;
   reset;
-  return (IMMEDIATE 42)
+  return (IMMEDIATE zx(imm) )
 end
 
 val /s ['s:1'] = update@{s=s}
@@ -364,3 +366,10 @@ val / ['/cond 0000101 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull UMLAL cond s (reg
 # SMLAL
 val / ['/cond 0000111 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull SMLAL cond s (register-from-bits' rdhi) (register-from-bits' rdlo) (register-from-bits' rs) (register-from-bits' rm) 
 
+# LDR,STR
+
+#LDR
+val / ['/cond 010 p:1 u:1 b:1 w:1 1 rn:4 rd:4 offset:12'] = LDR
+
+#SDR 
+val / ['/cond 010 p:1 u:1 b:1 w:1 0 rn:4 rd:4 offset:12'] = STR
