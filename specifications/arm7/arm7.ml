@@ -41,9 +41,14 @@ type instruction =
   | MVN  of dp
   | MUL of mul
   | MLA of mul
+  | UMULL of mull
+  | SMULL of mull
+  | UMLAL of mull
+  | SMLAL of mull
 
 type dp = {condition:condition, s:1, rn:register, rd:register, op2:operand}
 type mul = {condition:condition, s:1, rd:register, rn:register, rs:register, rm:register}
+type mull = {condition:condition, s:1, rdhi:register, rdlo:register, rs:register, rm:register}
 
 type operand
   = REGSHIFTAMOUNT of shiftamount 
@@ -122,6 +127,16 @@ val mul cons condition s rd rn rs rm = do
         rs <- rs;
         rm <- rs;
         return (cons{condition=condition, s=s, rd=rd, rn=rn, rs=rs, rm=rm})
+end
+
+val mull cons condition s rdhi rdlo rs rm = do
+        condition <- condition;
+        s <- s;
+        rdhi <- rdhi;
+        rdlo <- rdlo;
+        rs <- rs;
+        rm <- rs;
+        return (cons{condition=condition, s=s, rdhi=rdhi, rdlo=rdlo, rs=rs, rm=rm})
 end
 
 val shiftregister cons rm register shift_type = do
@@ -334,3 +349,18 @@ val / ['/cond 0000001 /s mrd:4 mrn:4 mrs:4 1001 mrm:4'] =
                 (register-from-bits' mrn)
                 (register-from-bits' mrs)
                 (register-from-bits' mrm) 
+
+### MULL
+
+# UMULL
+val / ['/cond 0000100 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull UMULL cond s (register-from-bits' rdhi) (register-from-bits' rdlo) (register-from-bits' rs) (register-from-bits' rm) 
+
+# SMULL
+val / ['/cond 0000110 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull SMULL cond s (register-from-bits' rdhi) (register-from-bits' rdlo) (register-from-bits' rs) (register-from-bits' rm) 
+
+# UMLAL
+val / ['/cond 0000101 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull UMLAL cond s (register-from-bits' rdhi) (register-from-bits' rdlo) (register-from-bits' rs) (register-from-bits' rm) 
+
+# SMLAL
+val / ['/cond 0000111 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull SMLAL cond s (register-from-bits' rdhi) (register-from-bits' rdlo) (register-from-bits' rs) (register-from-bits' rm) 
+
