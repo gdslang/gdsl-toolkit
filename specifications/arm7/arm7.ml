@@ -127,7 +127,7 @@ val mul cons condition s rd rn rs rm = do
         rd <- rd;
         rn <- rn;
         rs <- rs;
-        rm <- rs;
+        rm <- rm;
         return (cons{condition=condition, s=s, rd=rd, rn=rn, rs=rs, rm=rm})
 end
 
@@ -137,7 +137,7 @@ val mull cons condition s rdhi rdlo rs rm = do
         rdhi <- rdhi;
         rdlo <- rdlo;
         rs <- rs;
-        rm <- rs;
+        rm <- rm;
         return (cons{condition=condition, s=s, rdhi=rdhi, rdlo=rdlo, rs=rs, rm=rm})
 end
 
@@ -215,7 +215,7 @@ val /cond ['cond:4'] = update@{cond=cond}
 
 val cond = do
        cond  <- query $cond;
-       update @{cond=''};
+       update @{cond='0000'};
        return (cond-from-bits cond)
 end       
 
@@ -253,13 +253,13 @@ val op2imm = do
   imm <- query $imm;
   rotate <- query $rotate;
   reset;
-  return (IMMEDIATE zx(imm) )
+  return (IMMEDIATE (zx imm) )
 end
 
 val /s ['s:1'] = update@{s=s}
 val s = do
         s <- query $s;
-        update @{s=''};
+        update @{s='0'};
         return (s)
 end
 
@@ -369,7 +369,7 @@ val / ['/cond 0000111 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull SMLAL cond s (reg
 # LDR,STR
 
 #LDR
-val / ['/cond 010 p:1 u:1 b:1 w:1 1 rn:4 rd:4 offset:12'] = LDR
+val / ['/cond 010 p:1 u:1 b:1 w:1 1 rn:4 rd:4 offset:12'] = return LDR
 
 #SDR 
-val / ['/cond 010 p:1 u:1 b:1 w:1 0 rn:4 rd:4 offset:12'] = STR
+val / ['/cond 010 p:1 u:1 b:1 w:1 0 rn:4 rd:4 offset:12'] = return STR
