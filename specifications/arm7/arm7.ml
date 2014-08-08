@@ -42,7 +42,8 @@ type instruction =
   | MUL of mul
   | MLA of mul
 
-type dp = {condition:condition,s:1, rn:register,rd:register,op2:operand}
+type dp = {condition:condition, s:1, rn:register, rd:register, op2:operand}
+type mul = {condition:condition, s:1, rd:register, rn:register, rs:register, rm:register}
 
 type operand
   = REGSHIFTAMOUNT of shiftamount 
@@ -110,8 +111,17 @@ val dp cons condition s rn rd op2 = do
         rn <- rn;
         rd <- rd;
         op2 <- op2;
-        return (cons{condition=condition,s=s, rn=rn,rd=rd,op2=op2})
+        return (cons{condition=condition, s=s, rn=rn, rd=rd, op2=op2})
 end
+
+val mul cons condition s rd rn rs rm = do
+        condition <- condition;
+        s <- s;
+        rd <- rd;
+        rn <- rn;
+        rs <- rs;
+        rm <- rs;
+        return (cons{condition=condition, s=s, rd=rd, rn=rn, rs=rs, rm=rm})
 end
 
 val shiftregister cons rm register shift_type = do
@@ -301,3 +311,26 @@ val / ['/cond 0011111 /s rn:4 rd:4 /op2register'] = dp MVN cond s (register-from
 val / ['/cond 0001111 /s rn:4 rd:4 /op2imm'] = dp MVN cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
 
 
+##### MUL,MLA
+
+# MUL
+val / ['/cond 0000000 /s mrd:4 mrn:4 mrs:4 1001 mrm:4'] =
+        mul
+                MUL
+                cond
+                s
+                (register-from-bits' mrd)
+                (register-from-bits' mrn)
+                (register-from-bits' mrs)
+                (register-from-bits' mrm) 
+
+# MLA
+val / ['/cond 0000001 /s mrd:4 mrn:4 mrs:4 1001 mrm:4'] = 
+        mul
+                MUL
+                cond
+                s
+                (register-from-bits' mrd)
+                (register-from-bits' mrn)
+                (register-from-bits' mrs)
+                (register-from-bits' mrm) 
