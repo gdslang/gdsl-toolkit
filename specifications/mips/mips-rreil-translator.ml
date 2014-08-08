@@ -50,6 +50,13 @@ in
    end
 end
 
+val scale i x = SEM_LIN_SCALE{const=i, opnd=x}
+
+val lin-to-int x =
+   case x of
+      SEM_LIN_IMM li: li.const	
+   end
+
 val sizeof-lval x =
    case x of
       GPR r: 32
@@ -91,41 +98,87 @@ val sem-foo = return void
 val sem-fp = return void
 val sem-fp2 = return void
 
-val sem-add-addi x = do
-	s1 <- rval Signed x.source1;
-	s2 <- rval Signed x.source2;
+val sem-add x = do
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
 	size <- return (sizeof-lval x.destination);
 
 	res <- mktemp;
-	add size res s1 s2;
+	add size res rs rt;
+
+	# THROW EXCEPTION	
+
+	write x.destination (var res)	
+end
+
+val sem-addu x = do
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	add size res rs rt;
+
+	write x.destination (var res)	
+end
+
+val sem-addi x = do
+	rs <- rval Signed x.source1;
+	imm <- rval Signed x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	add size res rs imm;
+
+	# THROW EXCEPTION
+
+	write x.destination (var res)	
+end
+
+val sem-addiu x = do
+	rs <- rval Signed x.source1;
+	imm <- rval Signed x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	add size res rs imm;
+
+	write x.destination (var res)	
+end
+
+val sem-bitwise bit_op x = do
+	rs <- rval Unsigned x.source1;
+	rt <- rval Unsigned x.source2;
+	size <- return (sizeof-lval x.destination);
+
+	res <- mktemp;
+	bit_op size res rs rt;
 	
 	write x.destination (var res)
 end
 
-val sem-addu-addiu x = do
-	s1 <- rval Signed x.source1;
-	s2 <- rval Signed x.source2;
+val sem-bitwise-imm bit_op x = do
+	rs <- rval Unsigned x.source1;
+	imm <- rval Unsigned x.source2;
 	size <- return (sizeof-lval x.destination);
 
 	res <- mktemp;
-	add size res s1 s2;
+	bit_op size res rs imm;
 	
 	write x.destination (var res)
 end
 
-val sem-bitwise op x = do
-	s1 <- rval Unsigned x.source1;
-	s2 <- rval Unsigned x.source2;
-	size <- return (sizeof-lval x.destination);
+val sem-and x = sem-bitwise andb x
+val sem-andi x = sem-bitwise-imm andb x
 
-	res <- mktemp;
-	op size res s1 s2;
-	
-	write x.destination (var res)
-end
+val sem-or x = sem-bitwise orb x
+val sem-ori x = sem-bitwise-imm orb x
+
+val sem-xor x = sem-bitwise xorb x
+val sem-xori x = sem-bitwise-imm xorb x
 
 val cbranch-rel cond offset = do
-	pc <- ip-get;
+	pc <- return (ip-get);
 	
 	new_pc <- mktemp;
 	add pc.size new_pc (var pc) offset;
@@ -133,163 +186,165 @@ val cbranch-rel cond offset = do
 	cbranch cond (address pc.size (var new_pc)) (address pc.size (var pc))
 end
 
-val sem-b cmp x = do
-	s1 <- rval Signed x.source1;
-	s2 <- rval Signed x.source2;
-	s3 <- rval Signed x.source3;
-	size_o <- return (sizeof-rval x.source3);
-	size_r <- return (sizeof-rval x.source1);
-
-	offset <- mktemp;
-	shl (size_o+2) offset s3 (imm 2);
-
-	cond <- cmp size_r s1 s2;
-	cbranch-rel cond (var offset)
-end
-
-val sem-bz cmp x = do
-	s1 <- rval Signed x.source1;
-	s2 <- rval Signed x.source2;
+val sem-b cmp_op x = do
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
 	
-	size_o <- return (sizeof-rval x.source2);
-	size_r <- return (sizeof-rval x.source1);
+	off <- rval Signed x.source3;
+	off_ext <- return (scale 4 off);
 
-	offset <- mktemp;
-	shl (size_o+2) offset s2 (imm 2);
-
-	cond <- cmp size_r s1 (imm 0);
-	cbranch-rel cond (var offset)
+	cond <- cmp_op size rs rt;
+	cbranch-rel cond off_ext
 end
 
-val sem-bz-link cmp x = do
-	pc <- ip-get;
+val sem-bz cmp_op x = do
+	rs <- rval Signed x.source1;
+	size <- return (sizeof-rval x.source1);
+
+	off <- rval Signed x.source2;
+	off_ext <- return (scale 4 off);
+
+	cond <- cmp_op size rs (imm 0);
+	cbranch-rel cond off_ext
+end
+
+val sem-bz-link cmp_op x = do
+	pc <- return (ip-get);
 	ra <- return (semantic-gpr-of RA);
 
-	sem-bz cmp x
+	# 4 instead of 8 since pc got incremented already
+	add ra.size ra (var pc) (imm 4);
+
+	sem-bz cmp_op x
 end
+
+val sem-beq x = sem-b /eq x
+val sem-beql x = sem-b /eq x
+val sem-bgez x = sem-bz /ges x
+val sem-bgezal x = sem-bz-link /ges x
+val sem-bgezall x = sem-bz-link /ges x
+val sem-bgezl x = sem-bz /ges x
+val sem-bgtz x = sem-bz /gts x
+val sem-bgtzl x = sem-bz /gts x
+val sem-blez x = sem-bz /les x
+val sem-blezl x = sem-bz /les x
+val sem-bltz x = sem-bz /lts x
+val sem-bltzal x = sem-bz-link /lts x
+val sem-bltzall x = sem-bz-link /lts x
+val sem-bltzl x = sem-bz /lts x
+val sem-bne x = sem-b /neq x
+val sem-bnel x = sem-b /neq x
 
 val sem-break x = return void	# TODO: EXCEPTION
 val sem-cache x = return void	# TODO: SEMANTICS
 val sem-cachee x = return void	# TODO: SEMANTICS
 
 val sem-cl bit x = do
-	s1 <- rval Unsigned x.source1;
-	s2 <- rval Unsigned x.source2;
-	size <- return (sizeof-lval x.destination);
+	rs <- rval Unsigned x.source1;
+	size <- return (sizeof-rval x.source1);
 	
-	temp <- mktemp;
-	mov size temp (imm 32);
+	amount <- mktemp;
+	mov size amount (imm 32);
 	
 	i <- mktemp;
 	mov size i (imm 31);
 
-	cond <- mktemp;
 	shifted <- mktemp;
 	_while (/neq size (var i) (imm 0)) __ do
-		shr size shifted s2 (var i);
+		shr size shifted rs (var i);
 
 		_if (/neq 1 (var shifted) (imm bit)) _then do
-			sub size temp (imm 31) (var i);
+			sub size amount (imm 31) (var i);
 			mov size i (imm 0)
 		end _else
 			sub size i (var i) (imm 1)
 		
 	end
 	;
-	write x.destination (var temp)
+	write x.destination (var amount)
 end
 
 val sem-deret = return void	#TODO: SEMANTICS
 val sem-di x = return void	#TODO: SEMANTICS
 
-val sem-div div_op mod_op x = do
+val sem-div-divu div_op mod_op x = do
 	num <- rval Signed x.source1;
 	denom <- rval Signed x.source2;
 	size <- return (sizeof-rval x.source1);
 
-	hi <- hi-get;
-	lo <- lo-get;
+	hi <- return (hi-get);
+	lo <- return (lo-get);
 
 	div_op size lo num denom;
 	mod_op size hi num denom
 end
 
+val sem-div x = sem-div-divu div mod x
+val sem-divu x = sem-div-divu divs mods x
+
 val sem-ei x = return void	#TODO: SEMANTICS
 val sem-eret = return void	#TODO: SEMANTICS
 
 val sem-ext x = do
-	s1 <- rval Unsigned x.source1;
+	rs <- rval Unsigned x.source1;
 	msbd <- rval Unsigned x.source2;
 	lsb <- rval Unsigned x.source3;
 	size <- return (sizeof-rval x.source1);
 
-	right <- mktemp;
-	left <- mktemp;
-	sub size right (imm 31) msbd;
-	sub size left (var right) lsb;
+	ps <- return (lin-to-int lsb);
+	sz <- return (1 + lin-to-int msbd);
 
 	temp <- mktemp;
-	shl size temp s1 (var left);
-	shr size temp (var temp) (var right);
+	mov size temp rs;
 
-	write x.destination (var temp)
+	res <- mktemp;
+	mov size res (imm 0);
+	mov sz res (var (at-offset temp ps));
+
+	write x.destination (var res)
 end
 
 val sem-ins x = do
-	s1 <- rval Unsigned x.source1;
+	rs <- rval Unsigned x.source1;
 	msb <- rval Unsigned x.source2;
 	lsb <- rval Unsigned x.source3;
-	s2 <- lval Unsigned x.destination;
+	rt <- lval Unsigned x.destination;
 	size <- return (sizeof-rval x.source1);
 
-	right<- mktemp;
-	left <- mktemp;
-	sub size right (imm 31) msb;
-	sub size left (var right) lsb;
+	ps <- return (lin-to-int lsb);
+	sz <- return (1 - ps + lin-to-int msb);
 
 	temp <- mktemp;
-	shl size temp s1 (var left);
-	shr size temp (var temp) (var right);
+	mov size temp rs;
 
-	sub size right (imm 32) lsb;
-	add size left msb (imm 1);
+	res <- mktemp;
+	mov size res rt;
+	mov sz res (var (at-offset temp ps));
 
-	orig_left <- mktemp;
-	shr size orig_left s2 (var left);
-	shl size orig_left (var orig_left) (var left);
-
-	orig_right <- mktemp;
-	shl size orig_right s2 (var right);
-	shr size orig_right (var orig_right) (var right);
-
-	orb size temp (var temp) (var orig_left);
-	orb size temp (var temp) (var orig_right);
-
-	write x.destination (var temp)	
+	write x.destination (var res)
 end
 
 val sem-j x = do
 	index <- rval Unsigned x.source;
 	size <- return (sizeof-rval x.source);
+	index_ext <- return (scale 4 index);
 
-	a <- mktemp;
-	shl (size+2) a index (imm 2);
-	
-	pc <- ip-get;
-	addr-sz <- return pc.size;
+	pc <- return (ip-get);
 
 	addr <- mktemp;
 	mov 32 addr (var pc);
-	mov (size+2) addr (var a);
+	mov (size+2) addr index_ext;
 
-	jump (address addr-sz (var addr))
+	jump (address pc.size (var addr))
 end
 
 val sem-jal x = do
-	pc <- ip-get;
+	pc <- return (ip-get);
 	ra <- return (semantic-gpr-of RA);
 
-	add ra.size ra (var pc) (imm 8);
+	# 4 instead of 8 since pc got incremented already
+	add ra.size ra (var pc) (imm 4);
 
 	sem-j x
 end
@@ -300,21 +355,183 @@ val sem-jalx x = return void	# TODO: SEMANTICS
 val sem-jr x = return void	# TODO: SEMANTICS
 val sem-jr-hb x = return void	# TODO: SEMANTICS
 
-val sem-lb x = return void	# TODO: SEMANTICS
-
-val sem-mul x = do
-	s1 <- rval Signed x.source1;
-	s2 <- rval Signed x.source2;
+val sem-lb-lbu ext_op x = do
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source2;
 	size <- return (sizeof-rval x.source1);
 
-	res <- mktemp;
-	mul (size*2) res s1 s2;
+	vaddr <- mktemp;
+	add size vaddr base off;
 
-	hi <- hi-get;
-	lo <- lo-get;
+	memword <- mktemp;
+	load 32 memword size (var vaddr);
+
+	bigendian_cpu <- mktemp;
+	re <- return (fRE);
+	movsx 2 bigendian_cpu 1 (var re);
+
+	# get depending on the endianess the correct byte out of the word
+	byte <- mktemp;
+	mov 30 (at-offset byte 2) (imm 0);
+	xorb 2 byte (var vaddr) (var bigendian_cpu);
+	shl 32 byte (var byte) (imm 3);
+	shr 32 memword (var memword) (var byte);
+
+	res <- mktemp;
+	ext_op size res 8 (var memword);
+
+	write x.destination (var res)
+end
+
+val sem-lb x = sem-lb-lbu movsx x
+val sem-lbu x = sem-lb-lbu movzx x
+
+val sem-lh-lhu ext_op x = do
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	# THROW EXCEPTION
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	memword <- mktemp;
+	load 32 memword size (var vaddr);
+
+	bigendian_cpu <- mktemp;
+	mov 1 bigendian_cpu (var fRE);
+	shl 2 bigendian_cpu (var bigendian_cpu) (imm 1);
+
+	# get depending on the endianess the correct halfword out of the word
+	byte <- mktemp;
+	mov 30 (at-offset byte 2) (imm 0);
+	xorb 2 byte (var vaddr) (var bigendian_cpu);
+	shl 32 byte (var byte) (imm 3);
+	shr 32 memword (var memword) (var byte);
+
+	res <- mktemp;
+	ext_op size res 16 (var memword);
+
+	write x.destination (var res)
+end
+
+val sem-lh x = sem-lh-lhu movsx x
+val sem-lhu x = sem-lh-lhu movzx x
+
+val sem-lw x = do
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	# THROW EXCEPTION
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	memword <- mktemp;
+	load 32 memword size (var vaddr);
+
+	write x.destination (var memword)
+end
+
+val sem-madd-maddu-msub-msubu ext_op add_sub_op x = do
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	rs_ext <- mktemp;
+	ext_op (size*2) rs_ext size rs;
+
+	rt_ext <- mktemp;
+	ext_op (size*2) rt_ext size rt;
+
+	res <- mktemp;
+	mul (size*2) res (var rs_ext) (var rt_ext);
+
+	hi <- return (hi-get);
+	lo <- return (lo-get);
+
+	hilo <- mktemp;
+	movzx (size*2) hilo size (var lo);
+	mov size (at-offset hilo size) (var hi);
+
+	add_sub_op (size*2) res (var res) (var hilo);
+
+	mov size lo (var res);
+	mov size hi (var (at-offset res size))
+end
+
+val sem-madd x = sem-madd-maddu-msub-msubu movsx add x
+val sem-maddu x = sem-madd-maddu-msub-msubu movzx add x
+val sem-msub x = sem-madd-maddu-msub-msubu movzx sub x
+val sem-msubu x = sem-madd-maddu-msub-msubu movzx sub x 
+
+val sem-mfhi x = do
+	hi <- return (hi-get);
+	
+	write x.destination (var hi)
+end
+
+val sem-mflo x = do
+	lo <- return (lo-get);
+	
+	write x.destination (var lo)
+end
+
+val sem-mthi x = do
+	rs <- rval Signed x.source;
+	hi <- return (hi-get);
+
+	mov hi.size hi rs
+end
+
+val sem-mtlo x = do
+	rs <- rval Signed x.source;
+	lo <- return (lo-get);
+
+	mov lo.size lo rs
+end
+
+val sem-mult-multu ext_op x = do
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	rs_ext <- mktemp;
+	ext_op (size*2) rs_ext size rs;
+
+	rt_ext <- mktemp;
+	ext_op (size*2) rt_ext size rt;
+
+	res <- mktemp;
+	mul (size*2) res (var rs_ext) (var rt_ext);
+
+	hi <- return (hi-get);
+	lo <- return (lo-get);
 	
 	mov size lo (var res);
 	mov size hi (var (at-offset res size))
+end
+
+val sem-mult x = sem-mult-multu movsx x
+val sem-multu x = sem-mult-multu movzx x
+
+val sem-mul x = do
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	rs_ext <- mktemp;
+	movsx (size*2) rs_ext size rs;
+
+	rt_ext <- mktemp;
+	movsx (size*2) rt_ext size rt;
+
+	res <- mktemp;
+	mul (size*2) res (var rs_ext) (var rt_ext);
+
+	write x.destination (var res)
 end
 
 val sem-nor x = do
@@ -329,27 +546,39 @@ val sem-nor x = do
 	write x.destination (var res)
 end
 
-val sem-slt-slti x = do
+val sem-slt-sltu cmp_op x = do
 	s1 <- rval Signed x.source1;
 	s2 <- rval Signed x.source2;
 	size <- return (sizeof-rval x.source1);
 
 	res <- mktemp;
-	cmplts size res s1 s2;
+	cmp_op size res s1 s2;
+	movzx size res 1 (var res);
 
 	write x.destination (var res)
 end
 
-val sem-sltu-sltiu x = do
-	s1 <- rval Unsigned x.source1;
-	s2 <- rval Unsigned x.source2;
+val sem-slt x = sem-slt-sltu cmplts x
+val sem-sltu x = sem-slt-sltu cmpltu x
+
+val sem-slti-sltiu mov_op cmp_op x = do
+	rt <- rval Signed x.source1;
+	imm <- rval Signed x.source2;
 	size <- return (sizeof-rval x.source1);
+	size_imm <- return (sizeof-rval x.source2);
 
+	imm_ext <- mktemp;
+	mov_op size imm_ext size_imm imm;
+ 
 	res <- mktemp;
-	cmpltu size res s1 s2;
+	cmp_op size res rt (var imm_ext);
+	movzx size res 1 (var res);
 
 	write x.destination (var res)
 end
+
+val sem-slti x = sem-slti-sltiu movsx cmplts x
+val sem-sltiu x = sem-slti-sltiu movzx cmpltu x
 
 val sem-sub x = do
 	s1 <- rval Signed x.source1;
@@ -359,6 +588,8 @@ val sem-sub x = do
 	res <- mktemp;
 	sub size res s1 s2;
 	
+	# EXCEPTION THROWN
+
 	write x.destination (var res)
 end
 
@@ -373,18 +604,22 @@ val sem-subu x = do
 	write x.destination (var res)
 end
 
-val sem-bitshift op x = do
+val sem-sll-sra-srl shift_op x = do
 	rt <- rval Signed x.source1;
 	amount <- rval Signed x.source2;
 	size <- return (sizeof-lval x.destination);
 
 	temp <- mktemp;
-	op size temp rt amount;
+	shift_op size temp rt amount;
 	
 	write x.destination (var temp)
 end
 
-val sem-bitshift-variable op x = do
+val sem-sll x = sem-sll-sra-srl shl x
+val sem-sra x = sem-sll-sra-srl shrs x
+val sem-srl x = sem-sll-sra-srl shr x
+
+val sem-sllv-srav-srlv shift_op x = do
 	rt <- rval Signed x.source1;
 	rs <- rval Signed x.source2;
 	size <- return (sizeof-lval x.destination);
@@ -393,22 +628,26 @@ val sem-bitshift-variable op x = do
 	mov 5 amount rs;
 
 	temp <- mktemp;
-	op size temp rt (var amount);
+	shift_op size temp rt (var amount);
 
-	write x.destination (var temp)	
+	write x.destination (var temp)
 end
+
+val sem-sllv x = sem-sllv-srav-srlv shl x
+val sem-srav x = sem-sllv-srav-srlv shrs x
+val sem-srlv x = sem-sllv-srav-srlv shr x
 
 val semantics i =
    case i of
       ABS-fmt x: sem-fp
-    | ADD x: sem-add-addi x
+    | ADD x: sem-add x
     | ADD-fmt x: sem-fp
-    | ADDI x: sem-add-addi x
-    | ADDIU x: sem-addu-addiu x
-    | ADDU x: sem-addu-addiu x
+    | ADDI x: sem-addi x
+    | ADDIU x: sem-addiu x
+    | ADDU x: sem-addu x
     | ALNV-PS x: sem-fp
-    | AND x: sem-bitwise andb x
-    | ANDI x: sem-bitwise andb x
+    | AND x: sem-and x
+    | ANDI x: sem-andi x
     | BC1F x: sem-fp
     | BC1FL x: sem-fp
     | BC1T x: sem-fp
@@ -417,22 +656,22 @@ val semantics i =
     | BC2FL x: sem-fp2
     | BC2T x: sem-fp2
     | BC2TL x: sem-fp2
-    | BEQ x: sem-b /eq x
-    | BEQL x: sem-b /eq x
-    | BGEZ x: sem-bz /ges x
-    | BGEZAL x: sem-bz-link /ges x
-    | BGEZALL x: sem-bz-link /ges x
-    | BGEZL x: sem-bz /ges x
-    | BGTZ x: sem-bz /gts x
-    | BGTZL x: sem-bz /gts x
-    | BLEZ x: sem-bz /les x
-    | BLEZL x: sem-bz /les x
-    | BLTZ x: sem-bz /lts x
-    | BLTZAL x: sem-bz-link /lts x
-    | BLTZALL x: sem-bz-link /lts x
-    | BLTZL x: sem-bz /lts x
-    | BNE x: sem-b /neq x
-    | BNEL x: sem-b /neq x
+    | BEQ x: sem-beq x
+    | BEQL x: sem-beql x
+    | BGEZ x: sem-bgez x
+    | BGEZAL x: sem-bgezal x
+    | BGEZALL x: sem-bgezall x
+    | BGEZL x: sem-bgezl x
+    | BGTZ x: sem-bgtz x
+    | BGTZL x: sem-bgtzl x
+    | BLEZ x: sem-blez x
+    | BLEZL x: sem-blezl x
+    | BLTZ x: sem-bltz x
+    | BLTZAL x: sem-bltzal x
+    | BLTZALL x: sem-bltzall x
+    | BLTZL x: sem-bltzl x
+    | BNE x: sem-bne x
+    | BNEL x: sem-bnel x
     | BREAK x: sem-break x
     | C-cond-fmt x: sem-fp
     | CACHE x: sem-cache x
@@ -455,9 +694,9 @@ val semantics i =
     | CVT-W-fmt x: sem-fp
     | DERET: sem-deret
     | DI x: sem-di x
-    | DIV x: sem-div divs mods x
+    | DIV x: sem-div x
     | DIV-fmt x: sem-fp
-    | DIVU x: sem-div div mod x 
+    | DIVU x: sem-divu x 
     | EI x: sem-ei x
     | ERET: sem-eret
     | EXT x: sem-ext x
@@ -472,39 +711,39 @@ val semantics i =
     | JR x: sem-jr x
     | JR-HB x: sem-jr-hb x
     | LB x: sem-lb x
-    | LBE x: sem-foo
-    | LBU x: sem-foo
-    | LBUE x: sem-foo
+    | LBE x: sem-lb x
+    | LBU x: sem-lbu x
+    | LBUE x: sem-lbu x
     | LDC1 x: sem-foo
     | LDC2 x: sem-foo
     | LDXC1 x: sem-foo
-    | LH x: sem-foo
-    | LHE x: sem-foo
-    | LHU x: sem-foo
-    | LHUE x: sem-foo
+    | LH x: sem-lh x
+    | LHE x: sem-lh x
+    | LHU x: sem-lhu x
+    | LHUE x: sem-lhu x
     | LL x: sem-foo
     | LLE x: sem-foo
     | LUI x: sem-foo
     | LUXC1 x: sem-foo
-    | LW x: sem-foo
+    | LW x: sem-lw x
     | LWC1 x: sem-foo
     | LWC2 x: sem-foo
-    | LWE x: sem-foo
+    | LWE x: sem-lw x
     | LWL x: sem-foo
     | LWLE x: sem-foo
     | LWR x: sem-foo
     | LWRE x: sem-foo
     | LWXC1 x: sem-foo
-    | MADD x: sem-foo
+    | MADD x: sem-madd x
     | MADD-fmt x: sem-foo
-    | MADDU x: sem-foo
+    | MADDU x: sem-maddu x
     | MFC0 x: sem-foo
     | MFC1 x: sem-foo
     | MFC2 x: sem-foo
     | MFHC1 x: sem-foo
     | MFHC2 x: sem-foo
-    | MFHI x: sem-foo
-    | MFLO x: sem-foo
+    | MFHI x: sem-mfhi x
+    | MFLO x: sem-mflo x
     | MOV-fmt x: sem-foo
     | MOVF x: sem-foo
     | MOVF-fmt x: sem-foo
@@ -514,26 +753,26 @@ val semantics i =
     | MOVT-fmt x: sem-foo
     | MOVZ x: sem-foo
     | MOVZ-fmt x: sem-foo
-    | MSUB x: sem-foo
+    | MSUB x: sem-msub x
     | MSUB-fmt x: sem-foo
-    | MSUBU x: sem-foo
+    | MSUBU x: sem-msubu x
     | MTC0 x: sem-foo
     | MTC1 x: sem-foo
     | MTC2 x: sem-foo
     | MTHC1 x: sem-foo
     | MTHC2 x: sem-foo
-    | MTHI x: sem-foo
-    | MTLO x: sem-foo
-    | MUL x: sem-foo
+    | MTHI x: sem-mthi x
+    | MTLO x: sem-mtlo x
+    | MUL x: sem-mul x
     | MUL-fmt x: sem-foo
-    | MULT x: sem-mul x
-    | MULTU x: sem-mul x
+    | MULT x: sem-mult x
+    | MULTU x: sem-multu x
     | NEG-fmt x: sem-foo
     | NMADD-fmt x: sem-foo
     | NMSUB-fmt x: sem-foo
     | NOR x: sem-nor x
-    | OR x: sem-bitwise orb x
-    | ORI x: sem-bitwise orb x
+    | OR x: sem-or x
+    | ORI x: sem-ori x
     | PLL-PS x: sem-foo
     | PLU-PS x: sem-foo
     | PREF x: sem-foo
@@ -561,17 +800,17 @@ val semantics i =
     | SEH x: sem-foo
     | SH x: sem-foo
     | SHE x: sem-foo
-    | SLL x: sem-bitshift shl x
-    | SLLV x: sem-bitshift-variable shl x
-    | SLT x: sem-slt-slti x
-    | SLTI x: sem-slt-slti x
-    | SLTIU x: sem-sltu-sltiu x
-    | SLTU x: sem-sltu-sltiu x
-    | SQRT-fmt x: sem-foo
-    | SRA x: sem-bitshift shrs x
-    | SRAV x: sem-bitshift-variable shrs x
-    | SRL x: sem-bitshift shr x
-    | SRLV x: sem-bitshift-variable shr x
+    | SLL x: sem-sll x
+    | SLLV x: sem-sllv x
+    | SLT x: sem-slt x
+    | SLTI x: sem-slti x
+    | SLTIU x: sem-sltiu x
+    | SLTU x: sem-sltu x
+    | SQRT-fmt x: sem-fp
+    | SRA x: sem-sra x
+    | SRAV x: sem-srav x
+    | SRL x: sem-srl x
+    | SRLV x: sem-srlv x
     | SUB x: sem-sub x
     | SUB-fmt x: sem-foo
     | SUBU x: sem-subu x
@@ -611,8 +850,8 @@ val semantics i =
     | WAIT x: sem-foo
     | WRPGPR x: sem-foo
     | WSBH x: sem-foo
-    | XOR x: sem-bitwise xorb x
-    | XORI x: sem-bitwise xorb x
+    | XOR x: sem-xor x
+    | XORI x: sem-xori x
    end
 
 # -> sftl

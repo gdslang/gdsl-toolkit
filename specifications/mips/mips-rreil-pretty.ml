@@ -38,6 +38,7 @@ val arch-show-id r =
 	 | Sem_RA: "ra"
 	 | Sem_HI: "HI"
 	 | Sem_LO: "LO"
+	 | Sem_SREG: "SREG"
    end
 
 val pretty-arch-id r = arch-show-id r

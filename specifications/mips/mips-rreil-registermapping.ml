@@ -1,5 +1,6 @@
 type sem_id =
    Sem_PC
+ | Sem_SREG
 
 type sem_id =
    Sem_ZERO
@@ -37,10 +38,14 @@ type sem_id =
  | Sem_HI
  | Sem_LO
 
+val fRE = sem-reg-offset (sreg-get) 25
 
-val ip-get = return {id=Sem_PC,offset=0,size=32}
-val hi-get = return {id=Sem_HI,offset=0,size=32}
-val lo-get = return {id=Sem_LO,offset=0,size=32}
+val sem-reg-offset r o = @{offset=r.offset + o}r
+
+val ip-get = {id=Sem_PC,offset=0,size=32}
+val hi-get = {id=Sem_HI,offset=0,size=32}
+val lo-get = {id=Sem_LO,offset=0,size=32}
+val sreg-get = {id=Sem_SREG,offset=0,size=32}
 
 val semantic-gpr-of r =
    case r of
