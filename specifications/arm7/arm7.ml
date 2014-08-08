@@ -24,16 +24,11 @@ type insndata = {instruction:instruction}
 
 type instruction = 
     AND  of dp
-  | ANDS of dp
   | EOR  of dp
-  | EORS of dp
   | SUB  of dp
-  | SUBS of dp
   | RSB  of dp
   | ADD  of dp
-  | ADDS of dp
   | ADC  of dp
-  | ADCS of dp
   | SBC  of dp
   | RSC  of dp
   | TST  of dp
@@ -44,8 +39,18 @@ type instruction =
   | MOV  of dp
   | BIC  of dp
   | MVN  of dp
+  | MUL of mul
+  | MLA of mul
+  | UMULL of mull
+  | SMULL of mull
+  | UMLAL of mull
+  | SMLAL of mull
+  | LDR
+  | STR
 
-type dp = {condition:condition,rn:register,rd:register,op2:operand}
+type dp = {condition:condition, s:1, rn:register, rd:register, op2:operand}
+type mul = {condition:condition, s:1, rd:register, rn:register, rs:register, rm:register}
+type mull = {condition:condition, s:1, rdhi:register, rdlo:register, rs:register, rm:register}
 
 type operand
   = REGSHIFTAMOUNT of shiftamount 
@@ -107,12 +112,33 @@ val decode config = do
 end
 
 
-val dp cons condition rn rd op2 = do
+val dp cons condition s rn rd op2 = do
         condition <- condition;
+        s <- s;
         rn <- rn;
         rd <- rd;
         op2 <- op2;
-        return (cons{condition=condition,rn=rn,rd=rd,op2=op2})
+        return (cons{condition=condition, s=s, rn=rn, rd=rd, op2=op2})
+end
+
+val mul cons condition s rd rn rs rm = do
+        condition <- condition;
+        s <- s;
+        rd <- rd;
+        rn <- rn;
+        rs <- rs;
+        rm <- rs;
+        return (cons{condition=condition, s=s, rd=rd, rn=rn, rs=rs, rm=rm})
+end
+
+val mull cons condition s rdhi rdlo rs rm = do
+        condition <- condition;
+        s <- s;
+        rdhi <- rdhi;
+        rdlo <- rdlo;
+        rs <- rs;
+        rm <- rs;
+        return (cons{condition=condition, s=s, rdhi=rdhi, rdlo=rdlo, rs=rs, rm=rm})
 end
 
 val shiftregister cons rm register shift_type = do
@@ -227,26 +253,123 @@ val op2imm = do
   imm <- query $imm;
   rotate <- query $rotate;
   reset;
-  return (IMMEDIATE 42)
+  return (IMMEDIATE zx(imm) )
 end
 
+val /s ['s:1'] = update@{s=s}
+val s = do
+        s <- query $s;
+        update @{s=''};
+        return (s)
+end
 
 ### AND
-val / ['/cond 00000000 rn:4 rd:4 /op2register'] = dp AND cond (register-from-bits' rn) (register-from-bits' rd) (op2register)
-val / ['/cond 00100000 rn:4 rd:4 /op2imm'] = dp AND cond (register-from-bits' rn) (register-from-bits' rd) (op2imm)
-
-### ANDS
-# val / ['/cond 00000001 rn:4 rd:4 /op2register'] = dp ANDS cond (register-from-bits' rn) (register-from-bits' rd) (op2register)
-# val / ['/cond 00100001 rn:4 rd:4 /op2imm'] = dp ANDS cond (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0000000 /s rn:4 rd:4 /op2register'] = dp AND cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0010000 /s rn:4 rd:4 /op2imm'] = dp AND cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
 
 ### EOR
-#val / ['/cond 00 i:1 00010 rn:4 rd:4 op2:12'] = dp EOR cond (register-from-bits' rn) (register-from-bits' rd) (register)
-
-### EORS
-#val / ['/cond 00 i:1 00011 rn:4 rd:4 op2:12'] = dp EORS cond (register-from-bits' rn) (register-from-bits' rd) (register)
+val / ['/cond 0000001 /s rn:4 rd:4 /op2register'] = dp EOR cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0010001 /s rn:4 rd:4 /op2imm'] = dp EOR cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
 
 ### SUB
-#val / ['/cond 00 i:1 00100 rn:4 rd:4 op2:12'] = dp SUB cond (register-from-bits' rn) (register-from-bits' rd) (register)
+val / ['/cond 0010010 /s rn:4 rd:4 /op2register'] = dp SUB cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0000010 /s rn:4 rd:4 /op2imm'] = dp SUB cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
 
-### SUBS
-#val / ['/cond 00 i:1 00101 rn:4 rd:4 op2:12'] = dp SUBS cond (register-from-bits' rn) (register-from-bits' rd) (register)
+### RSB
+val / ['/cond 0010011 /s rn:4 rd:4 /op2register'] = dp RSB cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0000011 /s rn:4 rd:4 /op2imm'] = dp RSB cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### ADD 
+val / ['/cond 0010100 /s rn:4 rd:4 /op2register'] = dp ADD cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0000100 /s rn:4 rd:4 /op2imm'] = dp ADD cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### ADC 
+val / ['/cond 0010101 /s rn:4 rd:4 /op2register'] = dp ADC cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0000101 /s rn:4 rd:4 /op2imm'] = dp ADC cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### SBC 
+val / ['/cond 0010110 /s rn:4 rd:4 /op2register'] = dp SBC cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0000110 /s rn:4 rd:4 /op2imm'] = dp SBC cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### RSC 
+val / ['/cond 0010111 /s rn:4 rd:4 /op2register'] = dp RSC cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0000111 /s rn:4 rd:4 /op2imm'] = dp RSC cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### TST 
+val / ['/cond 0011000 /s rn:4 rd:4 /op2register'] = dp TST cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0001000 /s rn:4 rd:4 /op2imm'] = dp TST cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### TEQ 
+val / ['/cond 0011001 /s rn:4 rd:4 /op2register'] = dp TEQ cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0001001 /s rn:4 rd:4 /op2imm'] = dp TEQ cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### CMP 
+val / ['/cond 0011010 /s rn:4 rd:4 /op2register'] = dp CMP cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0001010 /s rn:4 rd:4 /op2imm'] = dp CMP cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### CMN 
+val / ['/cond 0011011 /s rn:4 rd:4 /op2register'] = dp CMN cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0001011 /s rn:4 rd:4 /op2imm'] = dp CMN cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### ORR 
+val / ['/cond 0011100 /s rn:4 rd:4 /op2register'] = dp ORR cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0001100 /s rn:4 rd:4 /op2imm'] = dp ORR cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### MOV 
+val / ['/cond 0011101 /s rn:4 rd:4 /op2register'] = dp MOV cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0001101 /s rn:4 rd:4 /op2imm'] = dp MOV cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### BIC 
+val / ['/cond 0011110 /s rn:4 rd:4 /op2register'] = dp BIC cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0001110 /s rn:4 rd:4 /op2imm'] = dp BIC cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+### MVN 
+val / ['/cond 0011111 /s rn:4 rd:4 /op2register'] = dp MVN cond s (register-from-bits' rn) (register-from-bits' rd) (op2register)
+val / ['/cond 0001111 /s rn:4 rd:4 /op2imm'] = dp MVN cond s (register-from-bits' rn) (register-from-bits' rd) (op2imm)
+
+
+##### MUL,MLA
+
+# MUL
+val / ['/cond 0000000 /s rd:4 rn:4 rs:4 1001 rm:4'] =
+        mul
+                MUL
+                cond
+                s
+                (register-from-bits' rd)
+                (register-from-bits' rn)
+                (register-from-bits' rs)
+                (register-from-bits' rm) 
+
+# MLA
+val / ['/cond 0000001 /s rd:4 rn:4 rs:4 1001 rm:4'] = 
+        mul
+                MUL
+                cond
+                s
+                (register-from-bits' rd)
+                (register-from-bits' rn)
+                (register-from-bits' rs)
+                (register-from-bits' rm) 
+
+### MULL
+
+# UMULL
+val / ['/cond 0000100 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull UMULL cond s (register-from-bits' rdhi) (register-from-bits' rdlo) (register-from-bits' rs) (register-from-bits' rm) 
+
+# SMULL
+val / ['/cond 0000110 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull SMULL cond s (register-from-bits' rdhi) (register-from-bits' rdlo) (register-from-bits' rs) (register-from-bits' rm) 
+
+# UMLAL
+val / ['/cond 0000101 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull UMLAL cond s (register-from-bits' rdhi) (register-from-bits' rdlo) (register-from-bits' rs) (register-from-bits' rm) 
+
+# SMLAL
+val / ['/cond 0000111 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull SMLAL cond s (register-from-bits' rdhi) (register-from-bits' rdlo) (register-from-bits' rs) (register-from-bits' rm) 
+
+# LDR,STR
+
+#LDR
+val / ['/cond 010 p:1 u:1 b:1 w:1 1 rn:4 rd:4 offset:12'] = LDR
+
+#SDR 
+val / ['/cond 010 p:1 u:1 b:1 w:1 0 rn:4 rd:4 offset:12'] = STR
