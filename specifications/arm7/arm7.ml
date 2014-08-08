@@ -124,7 +124,6 @@ end
 val mul cons condition s rd rn rs rm = do
         condition <- condition;
         s <- s;
-        rd <- rd;
         rn <- rn;
         rs <- rs;
         rm <- rm;
@@ -336,7 +335,7 @@ val / ['/cond 0000000 /s rd:4 rn:4 rs:4 1001 rm:4'] =
                 MUL
                 cond
                 s
-                (register-from-bits' rd)
+                (register-from-bits rd)
                 (register-from-bits' rn)
                 (register-from-bits' rs)
                 (register-from-bits' rm) 
@@ -347,7 +346,7 @@ val / ['/cond 0000001 /s rd:4 rn:4 rs:4 1001 rm:4'] =
                 MUL
                 cond
                 s
-                (register-from-bits' rd)
+                (register-from-bits rd)
                 (register-from-bits' rn)
                 (register-from-bits' rs)
                 (register-from-bits' rm) 
