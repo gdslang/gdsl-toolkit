@@ -132,22 +132,15 @@ val mull cons condition s rdhi rdlo rs rm = do
 end
 
 val shiftregister cons rm register shift_type = do
-        rm <- rm;
-        register <- register;
         shift_type <- shift_type;
         return (cons{rm=rm, register=register, shift_type=shift_type})
 end
 
 
 val shiftamount cons rm amount shift_type = do
-        rm <- rm;
         amount <- amount;
         shift_type <- shift_type;
         return (cons{rm=rm, amount=amount, shift_type=shift_type})
-end
-
-val register-from-bits' bits = do
-        return (register-from-bits bits)
 end
 
 val register-from-bits bits=
@@ -223,8 +216,8 @@ val op2register = do
         shift_register <- query $shift_register;
         reset;
         ret <-case shiftoperation of
-            1 : (shiftregister REGSHIFTREG(register-from-bits' rm) (register-from-bits' shift_register) (shifttype-from-bits' shifttype))
-            # | 0 : shiftamount SHIFTAMOUNT (register-from-bits' rm) (zx shift_amount) (shifttype-from-bits' shifttype)
+            1 : (shiftregister REGSHIFTREG(register-from-bits rm) (register-from-bits shift_register) (shifttype-from-bits' shifttype))
+            # | 0 : shiftamount SHIFTAMOUNT (register-from-bits rm) (zx shift_amount) (shifttype-from-bits' shifttype)
         end;
         return (ret)
 
