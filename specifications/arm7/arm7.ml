@@ -45,12 +45,25 @@ type instruction =
   | SMULL of mull
   | UMLAL of mull
   | SMLAL of mull
-  | LDR
-  | STR
+  | LDR of loadstore
+  | STR of loadstore
+
+type signed
+  = SIGNED
+  | UNSIGNED
+
+type updown
+  = UP
+  | DOWN
+
+type width
+  = BYTE
+  | WORD
 
 type dp = {condition:condition, s:1, rn:register, rd:register, op2:operand}
 type mul = {condition:condition, s:1, rd:register, rn:register, rs:register, rm:register}
 type mull = {condition:condition, s:1, rdhi:register, rdlo:register, rs:register, rm:register}
+type loadstore = {p:1, u:updown, b:width, w:1, rn: register, rd:register, offset: operand}
 
 type operand
   = REGSHIFTAMOUNT of shiftamount 
@@ -131,6 +144,16 @@ val mull cons condition s rdhi rdlo rs rm = do
         return (cons{condition=condition, s=s, rdhi=rdhi, rdlo=rdlo, rs=rs, rm=rm})
 end
 
+val loadstore cons condition p u b w rn rd offset = do
+        condition <- condition;
+        p <- p;
+        u <- u;
+        b <- b;
+        w <- w;
+        offset <- offset;
+        return (cons{condition=condition, p=p, u=u, b=b, w=w, rn=rn, rd=rd, offset=offset})
+end
+
 val shiftregister cons rm register shift_type = do
         shift_type <- shift_type;
         return (cons{rm=rm, register=register, shift_type=shift_type})
@@ -160,6 +183,18 @@ val register-from-bits bits=
     | '1101' : R12
     | '1110' : R13
 end
+
+val updown-from-bits bits =
+  case bits of
+      '0' : DOWN
+    | '1' : UP
+  end
+
+val width-from-bits bits = 
+  case bits of
+      '0' : WORD
+    | '1' : BYTE
+  end
 
 val shifttype-from-bits' bits = do
   return (shifttype-from-bits bits)
@@ -229,7 +264,8 @@ val reset = do
         update @{shift_amount='00000'};
         update @{shift_register='0000'};
         update @{imm='00000000'};
-        update @{rotate='0000'}
+        update @{rotate='0000'};
+        update @{b='0', p='0', w='0', u='0'}
 end
 
 val op2imm = do
@@ -351,8 +387,38 @@ val / ['/cond 0000111 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull SMLAL cond s (reg
 
 # LDR,STR
 
+val /ldr/p ['p:1'] = update@{p=p}
+val /b ['b:1'] = update@{b=b}
+val /w ['w:1'] = update@{w=w}
+val /u ['u:1'] = update@{u=u}
+
+val p = do
+        p <- query $p;
+        update @{p='0'};
+        return (p)
+end
+
+val b = do
+        b <- query $b;
+        update @{b='0'};
+        return (width-from-bits b)
+end
+
+val w = do
+        w <- query $w;
+        update @{w='0'};
+        return (w)
+end
+
+val u = do
+        u <- query $u;
+        update @{u='0'};
+        return (updown-from-bits u)
+end
 #LDR
-val / ['/cond 010 p:1 u:1 b:1 w:1 1 rn:4 rd:4 offset:12'] = return LDR
+val / ['/cond 010 /ldr/p /u /b /w 1 rn:4 rd:4 offset:12'] = loadstore LDR cond p u b w (register-from-bits rn) (register-from-bits rd) (return (IMMEDIATE (zx offset)))
+val / ['/cond 011 /ldr/p /u /b /w 1 rn:4 rd:4 /op2register'] = loadstore LDR cond p u b w (register-from-bits rn) (register-from-bits rd) (op2register)
 
 #SDR 
-val / ['/cond 010 p:1 u:1 b:1 w:1 0 rn:4 rd:4 offset:12'] = return STR
+val / ['/cond 010 /ldr/p /u /b /w 0 rn:4 rd:4 offset:12'] = loadstore STR cond p u b w (register-from-bits rn) (register-from-bits rd) (return (IMMEDIATE (zx offset)))
+val / ['/cond 011 /ldr/p /u /b /w 0 rn:4 rd:4 /op2register'] = loadstore STR cond p u b w (register-from-bits rn) (register-from-bits rd) (op2register)
