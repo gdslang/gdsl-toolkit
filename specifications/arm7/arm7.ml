@@ -432,7 +432,7 @@ val / ['/cond 011 /ldr/p /u /b /w 0 rn:4 rd:4 /op2register'] = loadstore STR con
 ### Half word and signed data transfer
 
 # LDRH - Load memory halfword [15:0] from register address + 5-bit immediate offset
-val / ['/cond 000 /ldr/p /u 1 /w 1 rn:4 rd:4 00001011 rm:4'] = 
+val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001011 rm:4'] = 
         loadstore 
                 LDRH
                 cond
@@ -444,9 +444,21 @@ val / ['/cond 000 /ldr/p /u 1 /w 1 rn:4 rd:4 00001011 rm:4'] =
                 (register-from-bits rd)
                 (return (REGISTER (register-from-bits rm)))
 
+#val / ['/cond 000 /ldr/p /u 1 /w 1 rn:4 rd:4 00001011 rm:4'] = 
+        #       loadstore 
+        #               LDRH
+        #               cond
+        #               p
+        #               u
+        #               (return HALFWORD)
+        #                w
+        #                (register-from-bits rn)
+        #                (register-from-bits rd)
+        #               (return (IMMEDIATE (zx rd)))
+
 
 # LDRSB - Load signed byte [7:0] from register address + register offset
-val / ['/cond 000 /ldr/p /u 1 /w 1 rn:4 rd:4 00001101 rm:4'] = 
+val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001101 rm:4'] = 
         loadstore 
                 LDRSB
                 cond
@@ -459,7 +471,7 @@ val / ['/cond 000 /ldr/p /u 1 /w 1 rn:4 rd:4 00001101 rm:4'] =
                 (return (REGISTER (register-from-bits rm)))
 
 # LDRSH - Load signed halfword [15:0] from register address + register offset
-val / ['/cond 000 /ldr/p /u 1 /w 1 rn:4 rd:4 00001111 rm:4'] = 
+val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001111 rm:4'] = 
         loadstore 
                 LDRH
                 cond
