@@ -51,8 +51,9 @@ structure Error :> sig
     val location : err_stream * span -> location
     val position : err_stream * pos -> location
 
-    val locToString : location -> string
-
+    (*val locToString : location -> string (*totally broken*)*)
+    val spanToString : span -> string
+    
   (* a term marked with a source-map span *)
     type 'a mark = {span : span, tree : 'a}
 
@@ -166,17 +167,17 @@ structure Error :> sig
     fun location (ES{sm, ...}, {span=(p1, p2),...}: span) =
 	  if (p1 = p2)
 	    then let
-	      val {fileName=SOME f, lineNo, colNo} = SP.sourceLoc sm p1
+	      val {fileName=f, lineNo, colNo} = SP.sourceLoc sm p1
+         val f = case f of SOME f => f | NONE => ""
 	      in
 		LOC{file=f, l1=lineNo, c1=colNo, l2=lineNo, c2=colNo}
 	      end
 	    else let
-	      val {fileName=SOME f1, lineNo=l1, colNo=c1} = SP.sourceLoc sm p1
-	      val {fileName=SOME f2, lineNo=l2, colNo=c2} = SP.sourceLoc sm p2
+	      val {fileName=f1, lineNo=l1, colNo=c1} = SP.sourceLoc sm p1
+	      val {fileName=f2, lineNo=l2, colNo=c2} = SP.sourceLoc sm p2
+         val f = case f1 of SOME f => f | NONE => case f2 of SOME f => f | NONE => ""
 	      in
-		if (f1 <> f2)
-		  then LOC{file=f1, l1=l1, c1=c1, l2=l1, c2=c1}
-		  else LOC{file=f1, l1=l1, c1=c1, l2=l2, c2=c2}
+		      LOC{file=f, l1=l1, c1=c1, l2=l1, c2=c1}
 	      end
 
     (* FIXME *)
@@ -196,44 +197,45 @@ structure Error :> sig
 		F.STR file, F.INT l1, F.INT c1, F.INT l2, F.INT c2
 	      ]
 
-    fun printError (outStrm, _) = let
-	  fun pr {kind, pos, msg} = let
-		val kind = (case kind of ERR => "Error" | Warn => "Warning")
-		val pos = (case pos of
-		     NONE => "[no position] "
-		   | SOME{file=sm,span=(p1, p2)} => if (p1 = p2)
-			    then let
-			      val {fileName=SOME f, lineNo, colNo} = SP.sourceLoc sm p1
-			      in
-				F.format "[%s:%d.%d] " [
-				    F.STR f, F.INT lineNo, F.INT colNo
-				  ]
-			      end
-			    else let
-			      val {fileName=SOME f1, lineNo=l1, colNo=c1} = SP.sourceLoc sm p1
-			      val {fileName=SOME f2, lineNo=l2, colNo=c2} = SP.sourceLoc sm p2
-			      in
-				if (f1 <> f2)
-				  then F.format "[%s:%d.%d-%s:%d.%d] " [
-				      F.STR f1, F.INT l1, F.INT c1,
-				      F.STR f2, F.INT l2, F.INT c2
-				    ]
-				else if (l1 <> l2)
-				  then F.format "[%s:%d.%d-%d.%d] " [
-				      F.STR f1, F.INT l1, F.INT c1,
-				      F.INT l2, F.INT c2
-				    ]
-				  else F.format "[%s:%d.%d-%d] " [
-				      F.STR f1, F.INT l1, F.INT c1, F.INT c2
-				    ]
-			      end
-		      (* end case *))
-		in
-		  TextIO.output (outStrm, String.concat [pos, kind, ": ", msg, "\n"])
-		end
-	  in
-	    pr
-	  end
+
+      fun spanToString {file=sm,span=(p1, p2)} = if (p1 = p2)
+      		    then let
+      		      val {fileName=f, lineNo, colNo} = SP.sourceLoc sm p1
+                   val f = case f of SOME f => f | NONE => ""
+      		      in
+      			F.format "%s:%d.%d" [
+      			    F.STR f, F.INT lineNo, F.INT colNo
+      			  ]
+      		      end
+      		    else let
+      		      val {fileName=f1, lineNo=l1, colNo=c1} = SP.sourceLoc sm p1
+      		      val {fileName=f2, lineNo=l2, colNo=c2} = SP.sourceLoc sm p2
+                   val f1 = case f1 of SOME f => f | NONE => ""
+                   val f2 = case f2 of SOME f => f | NONE => ""
+      		      in
+      			if (f1 <> f2)
+      			  then F.format "%s:%d.%d-%s:%d.%d" [
+      			      F.STR f1, F.INT l1, F.INT c1,
+      			      F.STR f2, F.INT l2, F.INT c2
+      			    ]
+      			else if (l1 <> l2)
+      			  then F.format "%s:%d.%d-%d.%d" [
+      			      F.STR f1, F.INT l1, F.INT c1,
+      			      F.INT l2, F.INT c2
+      			    ]
+      			  else F.format "%s:%d.%d-%d" [
+      			      F.STR f1, F.INT l1, F.INT c1, F.INT c2
+      			    ]
+      		      end
+
+    fun printError (outStrm, es) {kind, pos, msg} =
+     let
+        val kind = (case kind of ERR => "Error" | Warn => "Warning")
+        val pos = case pos of NONE => "[no position] " 
+                            | SOME sp => "[" ^ spanToString sp ^ "] "
+     in
+        TextIO.output (outStrm, String.concat [pos, kind, ": ", msg, "\n"])
+     end
 
     fun report (outStrm, es as ES{errors, numErrors, ...}) =
 	  List.app (printError (outStrm, es)) (sort (!errors))

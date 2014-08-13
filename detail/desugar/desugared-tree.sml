@@ -8,8 +8,8 @@ structure DesugaredTree = struct
 
    structure Pat = struct
       datatype t =
-         VEC of string
-       | BND of sym * string
+         VEC of Error.span * string
+       | BND of Error.span * sym * string
    end
 
    type value = Exp.decl
@@ -23,8 +23,8 @@ structure DesugaredTree = struct
    (** Returns the size in bits of the given pattern `pat` *)
    fun size pat =
       case pat of
-         Pat.VEC str => String.size str
-       | Pat.BND (_, str) =>
+         Pat.VEC (_, str) => String.size str
+       | Pat.BND (_, _, str) =>
          case String.fields (fn c => c = #"|") str of
             p::_ => String.size p
           | _ => raise Fail "DesugaredTree.size.bug"
@@ -35,8 +35,8 @@ structure DesugaredTree = struct
             [] => String.concatWith "|" acc
           | p::ps =>
                case p of
-                  Pat.VEC str => lp (ps, map (fn a => a^str) acc)
-                | Pat.BND (_, str) =>
+                  Pat.VEC (_, str) => lp (ps, map (fn a => a^str) acc)
+                | Pat.BND (_, _, str) =>
                      case String.tokens (fn c => c = #"|") str of
                         bs =>
                            lp (ps,
@@ -128,12 +128,12 @@ structure DesugaredTree = struct
                   val (sp,p) = stripMarkPat sp p
                in
                   case p of
-                     IDpat x => (Pat.CON (s, SOME x), e)
+                     IDpat x => (sp, Pat.CON (s, SOME x), e)
                    | _ => raise DesugarTreeException
                      (sp, "expect variable as argument in constructor pattern")
                end
-          | CONpat (s, NONE) => (Pat.CON (s, NONE), e)
-          | INTpat i => (Pat.INT i, e)
+          | CONpat (s, NONE) => (sp, Pat.CON (s, NONE), e)
+          | INTpat i => (sp, Pat.INT i, e)
           | BITpat bp => 
             let
                val (pats,pos,e) = foldl (bitpat (sp,scrut)) ([""],0,e) bp
@@ -141,10 +141,10 @@ structure DesugaredTree = struct
                  | conc (s :: ss) = s ^ "|" ^ conc ss
                  | conc [] = ""
             in
-               (Pat.BIT (conc pats), e)
+               (sp, Pat.BIT (conc pats), e)
             end
-          | IDpat id => (Pat.ID id,e)
-          | WILDpat => (Pat.WILD,e)
+          | IDpat id => (sp, Pat.ID id,e)
+          | WILDpat => (sp, Pat.WILD,e)
 
       and bitpat (sp,scrut) (MARKbitpat t,info) = bitpat (#span t,scrut) (#tree t,info)
         | bitpat (sp,scrut) (BITSTRbitpat lit,(pats,pos,e)) =
@@ -198,8 +198,8 @@ structure DesugaredTree = struct
       and tokpat pats = listex "'" "'" " " (map pat pats)
       and pat t =
          case t of
-            Pat.VEC bits => str bits
-          | Pat.BND (n, pat) => seq [var n, str ":", str pat]
+            Pat.VEC (_, bits) => str bits
+          | Pat.BND (_, n, pat) => seq [var n, str ":", str pat]
 
       val spec = Spec.PP.spec declarations
    end

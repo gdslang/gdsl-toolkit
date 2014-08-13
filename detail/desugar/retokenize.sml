@@ -11,30 +11,22 @@ end = struct
    fun retokenize ds = List.mapPartial retok ds
 
    and retok (ps, granularity, e) =
-      case retokPats granularity ps of SOME ps => SOME (ps,granularity,e) | _ => NONE
+      if granularity=0 then NONE else SOME
+         (retokPats granularity ps, granularity, e)
 
    and retokPats granularity pats = let
-      fun lp (p, len, tok, pats) =
-         case p of
-            [] =>
-               if len <> 0 orelse List.length tok <> 0
-                  then
-                     (* some sub-byte decoders need to be discarded, but there might be some
-										    that are discarded for the wrong reasons *)
-                     ((*print "Retokenize: skipping decoder that reads less than a token\n";*)
-                     NONE) 
-               else SOME (rev pats) 
-          | p::ps =>
-               (case p of
-                  [p] =>
-                     let
-                        val sz = DT.size p
-                     in
-                        if (sz + len) mod granularity = 0
-                           then lp (ps, 0, [], (rev (p::tok))::pats)
-                        else lp (ps, sz + len, p::tok, pats)
-                     end
-                | _ => raise CM.CompilationError)
+      fun lp ([], len, [], pats) = rev pats
+        | lp ([p]::ps, len, tok, pats) =
+         let
+            val sz = DT.size p
+            val newLen = sz + len
+            val newTok = p::tok 
+         in
+            if newLen=granularity then lp (ps, 0, [], (rev newTok)::pats) else
+            if newLen<granularity then lp (ps, newLen, newTok, pats)
+            else raise CM.CompilationError
+         end
+        | lp (ps, len, tok, pats) = (TextIO.print ("retokPats: cannot handle " ^ Layout.tostring (Layout.list (map DT.PP.tokpat pats)) ^ ", granularity " ^ Int.toString granularity ^ ", #tok " ^ Int.toString (List.length tok) ^ "\n") ; raise CM.CompilationError)
    in
       lp (pats, 0, [], [])
    end

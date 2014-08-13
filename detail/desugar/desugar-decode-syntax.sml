@@ -71,13 +71,19 @@ structure DesugarDecode = struct
    end
 
    fun buildEquivClass decls = let
+      fun getSpan toks = if VS.length toks = 0 then SymbolTable.noSpan else
+         case VS.sub (toks, 0) of
+            (Pat.VEC (sp,_)::_) => sp
+          | (Pat.BND (sp,_,_)::_) => sp
+          | _ => SymbolTable.noSpan
+        
       fun buildEquiv (i, (toks, _, _), map) =
-         insert
+         StringMap.insert
             (map,
              if VS.length toks = 0
                then "" (* as placeholder for the real wildcard pattern "_" *)
              else toWildcardPattern (VS.sub (toks, 0)),
-             i)
+             (getSpan toks, Set.singleton i))
    in
       VS.foldli buildEquiv StringMap.empty decls
    end
@@ -103,9 +109,9 @@ structure DesugarDecode = struct
 
    fun desugar ds = let
       fun isCatchAll [] = true
-        | isCatchAll ([Pat.VEC str] :: _) =
+        | isCatchAll ([Pat.VEC (_, str)] :: _) =
             List.all (fn c => c= #".") (String.explode str)
-        | isCatchAll ([Pat.BND (_,str)] :: _) =
+        | isCatchAll ([Pat.BND (_, _,str)] :: _) =
             List.all (fn c => c= #".") (String.explode str)
         | isCatchAll _ = false
 
@@ -116,7 +122,7 @@ structure DesugarDecode = struct
           | (toks, size, e)::ds => lp (hasDefault orelse isCatchAll toks,
                                  size, ds, (toVec toks, size, e)::acc)
    in
-      desugarCases (toVec (lp (false, 8, ds, [])))
+      desugarCases (toVec (lp (false, 0, ds, [])))
    end
 
    and desugarCases (decls: (Pat.t list VS.slice * toksize * Exp.t) VS.slice) = let
@@ -167,7 +173,7 @@ structure DesugarDecode = struct
                 | pat::ps =>
                      case pat of
                         VEC _ => grab (ps, offs + size pat, acc)
-                      | BND (n, _) =>
+                      | BND (_, n, _) =>
                            let
                               val sz = size pat
                            in
@@ -195,7 +201,7 @@ structure DesugarDecode = struct
       fun backtrack () =
          case StringMap.find (equiv, "") of
             NONE => raise Fail "desugarCases.bug.unboundedBacktrackPattern"
-          | SOME ix =>
+          | SOME (sp,ix) =>
                (case Set.listItems ix of
                   [i] => 
                      let
@@ -209,7 +215,7 @@ structure DesugarDecode = struct
       fun extendBacktrackPath ds =
          case StringMap.find (equiv, "") of
             NONE => ds
-          | SOME ix =>
+          | SOME (sp,ix) =>
                (case Set.listItems ix of
                   [i] => 
                      let
@@ -250,10 +256,10 @@ structure DesugarDecode = struct
          else Exp.SEQ (slices @ [Exp.ACTION (desugarCases decls)])
       end
 
-      fun buildMatch (pat, indices, pats) =
+      fun buildMatch (pat, (sp, indices), pats) =
          if isBacktrackPattern pat
-            then (Core.Pat.BIT pat, backtrack())::pats
-         else (Core.Pat.BIT pat, stepDown indices)::pats
+            then (sp, Core.Pat.BIT pat, backtrack())::pats
+         else (sp, Core.Pat.BIT pat, stepDown indices)::pats
    in
       StringMap.foldli buildMatch [] equiv
    end

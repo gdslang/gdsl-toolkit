@@ -25,7 +25,7 @@ structure Core = struct
          LETVAL of sym * t * t
        | LETREC of decl list * t
        | IF of t * t * t
-       | CASE of t * (Pat.t * t) list
+       | CASE of t * (Error.span * Pat.t * t) list
        | APP of t * t list
        | PRI of sym * sym list
        | FN of sym * t
@@ -102,9 +102,10 @@ structure Core = struct
       end
       and field (s, e) =
          (FieldInfo.getString (!SymbolTables.fieldTable, s), layout e)
-      and casee (p, e) =
+      and casee ({span=(p1,p2),...} : Error.span, p, e) =
          align
-            [seq [pat p, space, str ":"],
+            [seq [pat p, space, 
+             str "[", str (Int.toString p1), str ",", str (Int.toString p2), str "]"],
              indent 3 (layout e)]
       and cases cs =
          case cs of [] => str "<empty>" | cs =>

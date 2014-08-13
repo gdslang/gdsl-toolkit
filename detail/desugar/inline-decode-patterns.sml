@@ -191,11 +191,24 @@ end = struct
    fun bind (map, n, d) =
       Map.unionWith op@ (map, Map.singleton (n, d))
 
+   fun rmSpans pats =
+       let
+          fun decodepat (T.MARKdecodepat t) = decodepat (#tree t)
+            | decodepat (T.TOKENdecodepat p) = T.TOKENdecodepat (tokpat p)
+            | decodepat (T.BITdecodepat bs) = T.BITdecodepat (List.map bitpat bs)
+          and bitpat (T.MARKbitpat t) = bitpat (#tree t)
+            | bitpat bp = bp
+          and tokpat (T.MARKtokpat t) = tokpat (#tree t)
+            | tokpat tp = tp
+       in 
+         List.map decodepat pats
+      end
+
    fun flattenDecodePatterns (err, ds) = let
       open T
       val map = ref ds
       val varmap = !SymbolTables.varTable
-      fun inline (x, exp) =
+      fun inline spOpt (x, exp) =
          case Map.find (!map, x) of
             NONE =>
                (Error.errorAt
@@ -213,8 +226,8 @@ end = struct
                   val ps =
                      List.concat (List.map
                         (fn (pats, exp') =>
-                           flattenDecodePats
-                              (pats,
+                           flattenDecodePats spOpt
+                              (rmSpans pats,
                                SEQexp
                                  [ACTIONseqexp (ASTSubst.rename exp'),
                                   ACTIONseqexp
@@ -227,38 +240,46 @@ end = struct
                  ;ps
                end
 
-      and flattenTokPat (tokpat, exp) =
+      and flattenTokPat spOpt (tokpat, exp) =
          case tokpat of
-            MARKtokpat t' => flattenTokPat (#tree t', exp)
-          | NAMEDtokpat x => inline (x, exp)
-          | _ => [([TOKENdecodepat tokpat], exp)]
+            MARKtokpat t' => flattenTokPat (SOME (#span t')) (#tree t', exp)
+          | NAMEDtokpat x => inline spOpt (x, exp)
+          | _ => 
+            (case spOpt of
+               NONE => [([TOKENdecodepat tokpat], exp)]
+             | SOME sp  => [([MARKdecodepat {span=sp, tree=TOKENdecodepat tokpat}], exp)]
+            )
 
-      and renamePatternBinding (pat, exp) =
+      and renamePatternBinding spOpt (pat, exp) =
          case pat of
             BITVECbitpat (x, lit) =>
                let
                   val y = ASTSubst.copy x
                   val exp = ASTSubst.run (ASTSubst.singleton y x) exp
                in
-                  (BITVECbitpat (y, lit), exp)
+                  case spOpt of
+                     NONE => (BITVECbitpat (y, lit), exp)
+                   | SOME sp  => (MARKbitpat {span=sp, tree=BITVECbitpat (y, lit)}, exp)
                end
           | otherwise => (otherwise, exp)
 
-      and flattenBitPat (bitpat, exp) =
+      and flattenBitPat spOpt (bitpat, exp) =
          case bitpat of
-            MARKbitpat t' => flattenBitPat (#tree t', exp)
-          | NAMEDbitpat x => inline (x, exp)
+            MARKbitpat t' => flattenBitPat (SOME (#span t')) (#tree t', exp)
+          | NAMEDbitpat x => inline spOpt (x, exp)
           | _ =>
             let
-               val (bitpat, exp) = renamePatternBinding (bitpat, exp)
+               val (bitpat, exp) = renamePatternBinding spOpt (bitpat, exp)
             in
-               [([BITdecodepat [bitpat]], exp)]
+               case spOpt of
+                  NONE => [([BITdecodepat [bitpat]], exp)]
+                | SOME sp  => [([MARKdecodepat {span=sp, tree=BITdecodepat [bitpat]}], exp)]
             end
 
-      and flattenDecodePat (decodepat, exp) =
+      and flattenDecodePat spOpt (decodepat, exp) =
          case decodepat of
-            MARKdecodepat t' => flattenDecodePat (#tree t', exp)
-          | TOKENdecodepat tokpat => flattenTokPat (tokpat, exp)
+            MARKdecodepat t' => flattenDecodePat (SOME (#span t')) (#tree t', exp)
+          | TOKENdecodepat tokpat => flattenTokPat spOpt (tokpat, exp)
           | BITdecodepat bitpats =>
                let
                   fun lp (bitpats, exp, acc) =
@@ -266,7 +287,7 @@ end = struct
                         [] => [(List.concat acc, exp)]
                       | b::bs =>
                            let
-                              val ds = flattenBitPat (b, exp)
+                              val ds = flattenBitPat spOpt (b, exp)
                            in
                               List.concat (List.map
                                  (fn (ps, exp) =>
@@ -277,13 +298,13 @@ end = struct
                   lp (rev bitpats, exp, [])
                end
 
-      and flattenDecodePats (pats, exp) = let
+      and flattenDecodePats spOpt (pats, exp) = let
          fun lp (pats, exp, acc) =
             case pats of
                [] => [(List.concat acc, exp)]
              | p::ps =>
                   let
-                     val ds = flattenDecodePat (p, exp)
+                     val ds = flattenDecodePat spOpt (p, exp)
                   in
                      List.concat
                         (List.map
@@ -296,7 +317,7 @@ end = struct
       end
 
       and flattenDecodeDecl (n, ds, map) = let
-         fun flatten (pats, map) = bind (map, n, flattenDecodePats pats)
+         fun flatten (pats, map) = bind (map, n, flattenDecodePats NONE pats)
       in
          foldl flatten map ds
       end
