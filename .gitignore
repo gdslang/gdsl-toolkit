@@ -202,3 +202,7 @@ tools/xed-cmp/build/
 *~
 
 *.swp
+*.swo
+*.o
+*.la
+*.lo
