@@ -32,14 +32,14 @@ end = struct
       sym before SymbolTables.varTable := tab
    end
 
-   fun raisingUnsatisfiableGuardComb () = let
+   fun raisingUnsatisfiableGuardComb sp = let
       open AST
       val raisee = VarInfo.lookup (!SymbolTables.varTable, raisee)
    in
       APPLYexp
          (IDexp raisee,
           [LITexp
-            (STRlit "UnsatisfiableGuardCombination")])
+            (STRlit ("unsatisfiable guards at " ^ Error.spanToString sp))])
    end
 
    fun iff (guard, thenn, elsee) = let
@@ -56,6 +56,11 @@ end = struct
                 elsee))]
    end
 
+   fun getPatPos (AST.MARKdecodepat t :: _) = #span t
+     | getPatPos _ = SymbolTable.noSpan
+   fun getGuardPos (AST.MARKexp t) = #span t
+     | getGuardPos _ = SymbolTable.noSpan
+     
    fun desugarGuards ds = Map.foldli desugars Map.empty ds
    
    and desugars (n, ds, map) = bind (map, n, List.map desugar ds)
@@ -63,15 +68,15 @@ end = struct
    and desugar d =
       case d of
          (pat, Sum.INL e) => (pat, e)
-       | (pat, Sum.INR es) => (pat, flatten es)
+       | (pat, Sum.INR es) => (pat, flatten (getPatPos pat, es))
 
-   and flatten es = let
-      fun lp es =
+   and flatten (sp, es) = let
+      fun lp (sp, es) =
          case es of
-            [] => raisingUnsatisfiableGuardComb ()
-          | (g, thenn)::ges => iff (g, thenn, lp ges)
+            [] => raisingUnsatisfiableGuardComb sp
+          | (g, thenn)::ges => iff (g, thenn, lp (getGuardPos g, ges))
    in
-     lp es 
+     lp (sp, es) 
    end
 
    fun dumpPre (os, spec) = let

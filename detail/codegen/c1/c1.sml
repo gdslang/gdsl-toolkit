@@ -60,7 +60,7 @@ structure C1 = struct
            | calleesStmt ss (CASEstmt (e,ps)) =
                foldl (fn (p,ss) => calleesCase ss p) (calleesExp ss e) ps
 
-         and calleesCase ss (p,stmts) = calleesBlock ss stmts
+         and calleesCase ss (_,p,stmts) = calleesBlock ss stmts
    
          and calleesExp ss (IDexp sym) =
             if SymSet.member (domSet,sym) then SymSet.add (ss,sym) else ss
@@ -738,7 +738,7 @@ structure C1 = struct
          str "};"
       ]
 
-   and emitCase s (p,bb) =
+   and emitCase s (sp,p,bb) =
       align [
          seq [emitPat s p, space, str "{"],
          emitBlock s bb,

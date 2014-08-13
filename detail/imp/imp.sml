@@ -195,7 +195,7 @@ structure Imp = struct
    and stmt =
       ASSIGNstmt of sym option * exp
     | IFstmt of exp * block * block
-    | CASEstmt of exp * (pat * block) list
+    | CASEstmt of exp * (Error.span * pat * block) list
    
    and block = BASICblock of arg list * stmt list
 
@@ -331,7 +331,7 @@ structure Imp = struct
         | pat (CONpat s) = con s
         | pat (INTpat i) = str (IntInf.toString i)
         | pat WILDpat = str "_"
-      and casee (p, ss) =
+      and casee (_, p, ss) =
          align
             [seq [pat p, space, str ":"],
              block ss]

@@ -8,7 +8,7 @@ structure PatchFunctionCalls = struct
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
    
-   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   and visitCase s (sp,p,stmts) = (sp,p, visitBlock s stmts)
    
    and visitBlock s (BASICblock (decls, stmts)) = BASICblock (decls, map (visitStmt s) stmts)
    
@@ -97,7 +97,7 @@ structure ActionClosures = struct
      | freeStmt s (IFstmt (c,t,e)) = freeExp (freeBlock (freeBlock s e) t) c
      | freeStmt s (CASEstmt (e,ps)) = foldl (fn (c,s) => freeCase s c) (freeExp s e) ps
 
-   and freeCase s (p,stmts) = freeBlock s stmts
+   and freeCase s (sp,p,stmts) = freeBlock s stmts
    
    and freeExp s (IDexp sym) = SymSet.add (s, sym)
      | freeExp s (PRIexp (f,t,es)) = foldl (fn (e,s) => freeExp s e) s es
@@ -182,7 +182,7 @@ structure ActionClosures = struct
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
 
-   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   and visitCase s (sp,p,stmts) = (sp,p, visitBlock s stmts)
    
    and visitExp s (IDexp sym) = IDexp sym
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,remMonad t,map (visitExp s) es)
@@ -288,7 +288,7 @@ structure ActionReduce = struct
      | getCloFunStmt cs (CASEstmt (e,ps)) =
          foldl (fn (p,cs) => getCloFunCase cs p) (getCloFunExp cs e) ps
 
-   and getCloFunCase cs (p,stmts) = getCloFunBlock cs stmts
+   and getCloFunCase cs (sp,p,stmts) = getCloFunBlock cs stmts
    
    and getCloFunExp cs (IDexp sym) = cs
      | getCloFunExp cs (PRIexp (f,t,es)) = foldl (fn (e,cs) => getCloFunExp cs e) cs es
@@ -370,7 +370,7 @@ structure ActionReduce = struct
          not (List.all (not o isMonCase s) ps)
      | isMonStmt s _ = false
 
-   and isMonCase s (p,stmts) = isMonBlock s stmts
+   and isMonCase s (sp,p,stmts) = isMonBlock s stmts
    
    fun getPureToMon (FUNCdecl { funcName = name,
                                 funcBody = bb,
@@ -407,7 +407,7 @@ structure ActionReduce = struct
      | getMonStmt (declSyms,execSyms) (CASEstmt (e,ps)) =
          foldl (fn (p,execSyms) => getMonCase (declSyms,execSyms) p) (getMonExp (declSyms,execSyms) e) ps
 
-   and getMonCase ds (p,stmts) = getMonBlock ds stmts
+   and getMonCase ds (sp,p,stmts) = getMonBlock ds stmts
    
    and getMonExp (declSyms,execSyms) (IDexp sym) = execSyms
      | getMonExp (declSyms,execSyms) (PRIexp (f,t,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
@@ -443,7 +443,7 @@ structure ActionReduce = struct
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
 
-   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   and visitCase s (sp,p,stmts) = (sp,p, visitBlock s stmts)
    
    and visitExp s (IDexp sym) =
       if isMonVar ((s : stateVar),sym) then
@@ -555,7 +555,7 @@ structure Simplify = struct
       )
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
       (* inline bogus case statements *)
-     | visitStmt s (CASEstmt (e,ps as [(pat,bb)])) =
+     | visitStmt s (CASEstmt (e,ps as [(sp,pat,bb)])) =
          if case pat of
                WILDpat => true
              | VECpat p => List.all (fn pat => List.all (fn c => c = #".") (String.explode pat)) p
@@ -572,7 +572,7 @@ structure Simplify = struct
             CASEstmt (visitExp s e, map (visitCase s) ps)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
    
-   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   and visitCase s (sp,p,stmts) = (sp,p, visitBlock s stmts)
    
    and visitBlock s (BASICblock (decls, stmts)) =
       let
@@ -1118,7 +1118,7 @@ structure TypeRefinement = struct
                                        visitBlock s t; visitBlock s e)
      | visitStmt s (CASEstmt (e,cs)) = (lub (s, visitExp s e, INTstype);
       (*TextIO.print ("unified scurtinee " ^ showSType (inlineSType s (visitExp s e)) ^ "\n");*)
-                                        app (visitBlock s o #2) cs)
+                                        app (visitBlock s o #3) cs)
 
    and visitExp s (IDexp sym) = symType s sym
      | visitExp s (PRIexp (SLICEprim,t,es as [vec,ofs,LITexp (INTvtype, INTlit sz)])) =
@@ -1486,7 +1486,7 @@ structure TypeRefinement = struct
      | patchStmt s (IFstmt (c,t,e)) = IFstmt (patchExp s c, patchBlock s t, patchBlock s e)
      | patchStmt s (CASEstmt (e,ps)) = CASEstmt (patchExp s e, map (patchCase s) ps)
 
-   and patchCase s (p,stmts) = (p, patchBlock s stmts)
+   and patchCase s (sp,p,stmts) = (sp,p, patchBlock s stmts)
    
    and patchExp s (IDexp sym) = (case inlineSType s (symType s sym) of
          VOIDstype => PRIexp (VOIDprim, VOIDvtype, [])
@@ -1840,16 +1840,24 @@ structure SwitchReduce = struct
    }
 
    fun getDefault (s : state) cases = case rev cases of
-         ((WILDpat,bb) :: cases) => (rev cases, (WILDpat,bb))
-       | ((VECpat [],bb) :: cases) => (rev cases, (VECpat [],bb))
-       | ((VECpat [""],bb) :: cases) => (rev cases, (VECpat [""],bb))
-       | _ => (cases, (WILDpat,BASICblock ([],[
-         ASSIGNstmt (NONE,
-            PRIexp (RAISEprim,
-               FUNvtype (STRINGvtype,false,[STRINGvtype]),[
-                  LITexp (STRINGvtype, STRlit ("pattern match failure in " ^ 
-                           SymbolTable.getString(!SymbolTables.varTable, #name s)))
-         ]))])))
+         ((sp,WILDpat,bb) :: cases) => (rev cases, (sp,WILDpat,bb))
+       | ((sp,VECpat [],bb) :: cases) => (rev cases, (sp,VECpat [],bb))
+       | ((sp,VECpat [""],bb) :: cases) => (rev cases, (sp,VECpat [""],bb))
+       | pats =>
+         let
+            val (sp,spStr) = case pats of
+                 (sp,_,_) :: _ => (sp," at " ^ Error.spanToString sp)
+               | _ => (SymbolTable.noSpan,"")
+         in
+           (cases, (sp,WILDpat,BASICblock ([],[
+            ASSIGNstmt (NONE,
+               PRIexp (RAISEprim,
+                  FUNvtype (STRINGvtype,false,[STRINGvtype]),[
+                     LITexp (STRINGvtype, STRlit ("pattern match failure in " ^ 
+                              SymbolTable.getString(!SymbolTables.varTable, #name s) ^
+                              spStr))
+            ]))])))
+         end
 
    fun showPats pats = #2 (foldl (fn (p,(sep,str)) => (",",str ^ sep ^ p)) ("","") pats)
 
@@ -2028,7 +2036,7 @@ structure SwitchReduce = struct
                   (low, idx-1) :: genRange (~1,idx+1,bits)
            | genRange (low,idx,[]) =
                if low<0 then [] else [(low,idx-1)]
-         val (bits,goodBits,badBits) = genBits (map #1 cases)
+         val (bits,goodBits,badBits) = genBits (map #2 cases)
          fun genPattern (bits,VECpat strs) =
             let
                fun projectPat (true::bits) (c::cs) = c::projectPat bits cs
@@ -2075,19 +2083,19 @@ structure SwitchReduce = struct
             that overlap with the patterns of this case; turn them
             into a group of cases *)
          fun group [] = []
-           | group ((pat,rhs) :: cases) =
+           | group ((sp,pat,rhs) :: cases) =
             let
                fun addRhs ([], rhs, cases) = cases
                  | addRhs (pat, rhs, cases) = (pat,rhs) :: cases
 
                fun fetch (pat, rhs, []) = (pat, rhs, [])
-                 | fetch (pat, rhs, ((patT,rhsT) :: cases)) =
+                 | fetch (pat, rhs, ((spT,patT,rhsT) :: cases)) =
                   (case patsIntersection (pat,patT) of
                      [] => 
                      let
                         val (pat, rhs, cases) = fetch (pat,rhs,cases)
                      in
-                        (pat, rhs, (patT,rhsT) :: cases)
+                        (pat, rhs, (spT,patT,rhsT) :: cases)
                      end
                    | commonPat =>
                      let
@@ -2095,14 +2103,16 @@ structure SwitchReduce = struct
                         val newPat = patsDifference (pat,commonPat)
                         val newPatT = patsDifference (patT,commonPat)
                         val _ = if not (null newPat) then
-                           Error.warning (#errs s, ["group: overlapping pattern with code\n" ^ showCases rhsT ^
-                              "\nfor patterns common patterns " ^ showPats commonPat ^
-                              " and earlier patterns " ^ showPats pat ^ " with code\n" ^ showCases rhs ^ "\n"])
+                           (Error.warningAt (#errs s, sp, ["pattern " ^ showPats commonPat ^
+                              " overlaps with earlier patterns " ^ showPats pat ^ "\n"])
+                           (*Error.warningAt (#errs s, spT, ["earlier pattern defined here\n"])*)
+                           )
                            else ()
                         val _ = if not (null newPatT) then
-                           Error.warning (#errs s, ["group: overlapping pattern with code\n" ^ showCases rhs ^
-                              "\nfor patterns common patterns " ^ showPats commonPat ^
-                              " and later patterns " ^ showPats patT ^ " with code\n" ^ showCases rhsT ^ "\n"])
+                        (Error.warningAt (#errs s, sp, ["pattern " ^ showPats commonPat ^
+                           " overlaps with later patterns " ^ showPats patT ^ "\n"])
+                        (*Error.warningAt (#errs s, spT, ["later pattern defined here\n"])*)
+                        )
                            else ()
                      in
                         fetch (commonPat, commonRhs, cases)
@@ -2111,11 +2121,11 @@ structure SwitchReduce = struct
                (*val _ = TextIO.print ("inspecting pattern " ^ showPats pat ^ ":\n")*)
                val (newPat, newRhs, newCases) = fetch (pat,rhs,cases)
             in
-               (newPat, newRhs) :: group newCases
+               (sp, newPat, newRhs) :: group newCases
             end
 
-         fun splitCase (p,bb) =
-            (genPattern (goodBits,p), [(genPattern (badBits,p),bb)])
+         fun splitCase (sp,p,bb) =
+            (sp, genPattern (goodBits,p), [(genPattern (badBits,p),bb)])
          fun remDup [] = []
            | remDup (p :: pats) =
             let
@@ -2127,14 +2137,14 @@ structure SwitchReduce = struct
                   p :: pats
             end
          fun genCases ((scrutBadSize,scrutBad), splitCases) =
-            map (fn (pat,subCases) => (VECpat (remDup pat),BASICblock ([],[
+            map (fn (sp,pat,subCases) => (sp,VECpat (remDup pat),BASICblock ([],[
                optCase s (scrutBad,
-                  (map (fn (pat,bb) => (VECpat (remDup pat),bb)) subCases,
+                  (map (fn (pat,bb) => (sp,VECpat (remDup pat),bb)) subCases,
                    default))
             ]))) splitCases
          (* add the default case unless the set of cases is trivial *)
-         fun addDefault (cases as [(WILDpat,bb)]) = cases
-           | addDefault (cases as [(VECpat strs,bb)]) =
+         fun addDefault (cases as [(sp,WILDpat,bb)]) = cases
+           | addDefault (cases as [(sp,VECpat strs,bb)]) =
                if List.all (List.all (fn c => c= #".") o String.explode) strs then 
                   cases
                else
@@ -2157,7 +2167,7 @@ structure SwitchReduce = struct
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = optCase s (visitExp s e, getDefault s (map (visitCase s) ps))
 
-   and visitCase s (p,bb) = (p, visitBlock s bb)
+   and visitCase s (sp,p,bb) = (sp,p, visitBlock s bb)
    
    and visitExp s (PRIexp (f,t,es)) = (PRIexp (f,t,map (visitExp s) es))
      | visitExp s (CALLexp (e,es)) = (CALLexp (visitExp s e, map (visitExp s) es))
@@ -2267,10 +2277,10 @@ structure DeadFunctions = struct
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, foldr (visitCase s) [] ps)
 
-   and visitCase s ((CONpat sym,stmts),cs) = 
+   and visitCase s ((sp,CONpat sym,stmts),cs) = 
          if SymSet.member (!(#refdTags s),sym) then
-            (CONpat sym, visitBlock s stmts) :: cs else cs
-     | visitCase s ((p,stmts),cs) = (p, visitBlock s stmts) :: cs
+            (sp,CONpat sym, visitBlock s stmts) :: cs else cs
+     | visitCase s ((sp,p,stmts),cs) = (sp,p, visitBlock s stmts) :: cs
    
    and visitExp s (IDexp sym) = (refSym s sym; IDexp (applyReplace (s,sym)))
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
@@ -2410,11 +2420,11 @@ structure DeadVariables = struct
          (SymSet.union (s,vars), CASEstmt (e,ps))
       end
 
-   and visitCase s (p,b) =
+   and visitCase s (sp,p,b) =
       let
          val (s,b) = visitBlock s b
       in
-         (s, (p, b))
+         (s, (sp, p, b))
       end
    
    and visitExp s (IDexp sym) = (addVar (s,sym), IDexp sym)
@@ -2629,7 +2639,7 @@ structure UnboxConstructorPayload = struct
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
 
-   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   and visitCase s (sp,p,stmts) = (sp, p, visitBlock s stmts)
    
    and visitExp s (IDexp sym) = (IDexp (#rename s sym))
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)

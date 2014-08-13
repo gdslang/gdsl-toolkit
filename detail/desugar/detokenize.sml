@@ -31,7 +31,7 @@ end = struct
 
    and detokPats sizeRef pats =
        let
-          val decodePats = map detokPat pats
+          val decodePats = map (detokPat SymbolTable.noSpan) pats
           val ruleSize = foldl (fn ((size,_),s) => s+size) 0 decodePats
           val _ = if ruleSize>0 then sizeRef := lubSizes (!sizeRef,ruleSize)
                   else ()
@@ -39,21 +39,21 @@ end = struct
           map #2 decodePats
        end
 
-   and detokPat pat =
+   and detokPat sp pat =
       case pat of
-         MARKdecodepat t => detokPat (#tree t)
-       | TOKENdecodepat pat => detokTokPat pat
+         MARKdecodepat t => detokPat (#span t) (#tree t)
+       | TOKENdecodepat pat => detokTokPat sp pat
        | BITdecodepat pats =>
          let
-            val dtPats = map detokBitPat pats
+            val dtPats = map (detokBitPat sp) pats
             val size = foldl (fn (p,s) => s+DT.size p) 0 dtPats
          in
             (size, dtPats)
          end
 
-   and detokTokPat pat =
+   and detokTokPat sp pat =
       case pat of
-         MARKtokpat t => detokTokPat (#tree t)
+         MARKtokpat t => detokTokPat (#span t) (#tree t)
        | TOKtokpat (size,pat) =>
             let
                val bitstr = IntInf.fmt StringCvt.BIN pat
@@ -62,15 +62,15 @@ end = struct
                   addZeros ("0" ^ bitstr)
                val bitstr = addZeros bitstr
             in
-               (size,[Pat.VEC bitstr])
+               (size,[Pat.VEC (sp, bitstr)])
             end
        | _ => raise CM.CompilationError (* Inlining must have failed! *)
 
-   and detokBitPat pat =
+   and detokBitPat sp pat =
       case pat of
-         MARKbitpat t => detokBitPat (#tree t)
-       | BITSTRbitpat pat => Pat.VEC pat
-       | BITVECbitpat (n, str) => Pat.BND (n, str)
+         MARKbitpat t => detokBitPat (#span t) (#tree t)
+       | BITSTRbitpat pat => Pat.VEC (sp, pat)
+       | BITVECbitpat (n, str) => Pat.BND (sp, n, str)
        | _ => raise CM.CompilationError
 
    fun dumpPre (os, ds) = Pretty.prettyTo (os, Layout.str "<..>")
