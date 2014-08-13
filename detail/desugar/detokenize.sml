@@ -11,9 +11,17 @@ end = struct
 
    open AT DT 
 
+   val maxGranularity = 32 : int (* a token can be at most 32 bits *)
+   fun gcd (a,b) =
+      if a<=0 orelse b<=0 then 0 else
+      if a=b then a else
+      if a>b then gcd (a-b,b) else gcd (a,b-a)
+      
+   fun lubSizes (x,y) = gcd (x,y) div 8 * 8
+
    fun detokenize (n, ds) =
        let
-          val sizeRef = ref (8 : int) (* a token has to be at least size 8 *)
+          val sizeRef = ref maxGranularity
           val decls = map (detok sizeRef) ds
        in
           map (fn (pats, e) => (pats, !sizeRef, e)) decls
@@ -24,9 +32,9 @@ end = struct
    and detokPats sizeRef pats =
        let
           val decodePats = map detokPat pats
-          fun lubSize x = if x>16 then 32 else if x>8 then 16 else 8
-          fun lubSizes (x,y) = lubSize (Int.max (x,y))
-          val _ = sizeRef := foldl lubSizes (!sizeRef) (map #1 decodePats)
+          val ruleSize = foldl (fn ((size,_),s) => s+size) 0 decodePats
+          val _ = if ruleSize>0 then sizeRef := lubSizes (!sizeRef,ruleSize)
+                  else ()
        in
           map #2 decodePats
        end
@@ -38,9 +46,7 @@ end = struct
        | BITdecodepat pats =>
          let
             val dtPats = map detokBitPat pats
-            val size = case dtPats of
-                 [] => 0
-               | (pat :: _) => DT.size pat
+            val size = foldl (fn (p,s) => s+DT.size p) 0 dtPats
          in
             (size, dtPats)
          end

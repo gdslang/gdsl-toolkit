@@ -1834,7 +1834,12 @@ structure SwitchReduce = struct
 
    open Imp
 
-   fun getDefault f cases = case rev cases of
+   type state = {
+      name : SymbolTable.symid,
+      errs : Error.err_stream
+   }
+
+   fun getDefault (s : state) cases = case rev cases of
          ((WILDpat,bb) :: cases) => (rev cases, (WILDpat,bb))
        | ((VECpat [],bb) :: cases) => (rev cases, (VECpat [],bb))
        | ((VECpat [""],bb) :: cases) => (rev cases, (VECpat [""],bb))
@@ -1843,7 +1848,7 @@ structure SwitchReduce = struct
             PRIexp (RAISEprim,
                FUNvtype (STRINGvtype,false,[STRINGvtype]),[
                   LITexp (STRINGvtype, STRlit ("pattern match failure in " ^ 
-                           SymbolTable.getString(!SymbolTables.varTable, f)))
+                           SymbolTable.getString(!SymbolTables.varTable, #name s)))
          ]))])))
 
    fun showPats pats = #2 (foldl (fn (p,(sep,str)) => (",",str ^ sep ^ p)) ("","") pats)
@@ -2014,7 +2019,7 @@ structure SwitchReduce = struct
           Array.foldr (fn (x,bs) => (x>0 andalso x<cutOff) :: bs) [] dist)
       end
     
-   fun optCase (scrut,(cases,default)) =
+   fun optCase (s : state) (scrut,(cases,default)) =
       let
          fun genRange (low,idx,(true :: bits)) =
                genRange (if low<0 then idx else low,idx+1,bits)
@@ -2090,14 +2095,14 @@ structure SwitchReduce = struct
                         val newPat = patsDifference (pat,commonPat)
                         val newPatT = patsDifference (patT,commonPat)
                         val _ = if not (null newPat) then
-                           TextIO.print ("group: overlapping pattern with code\n" ^ showCases rhsT ^
+                           Error.warning (#errs s, ["group: overlapping pattern with code\n" ^ showCases rhsT ^
                               "\nfor patterns common patterns " ^ showPats commonPat ^
-                              " and earlier patterns " ^ showPats pat ^ " with code\n" ^ showCases rhs ^ "\n")
+                              " and earlier patterns " ^ showPats pat ^ " with code\n" ^ showCases rhs ^ "\n"])
                            else ()
                         val _ = if not (null newPatT) then
-                           TextIO.print ("group: overlapping pattern with code\n" ^ showCases rhs ^
+                           Error.warning (#errs s, ["group: overlapping pattern with code\n" ^ showCases rhs ^
                               "\nfor patterns common patterns " ^ showPats commonPat ^
-                              " and later patterns " ^ showPats patT ^ " with code\n" ^ showCases rhsT ^ "\n")
+                              " and later patterns " ^ showPats patT ^ " with code\n" ^ showCases rhsT ^ "\n"])
                            else ()
                      in
                         fetch (commonPat, commonRhs, cases)
@@ -2123,7 +2128,7 @@ structure SwitchReduce = struct
             end
          fun genCases ((scrutBadSize,scrutBad), splitCases) =
             map (fn (pat,subCases) => (VECpat (remDup pat),BASICblock ([],[
-               optCase (scrutBad,
+               optCase s (scrutBad,
                   (map (fn (pat,bb) => (VECpat (remDup pat),bb)) subCases,
                    default))
             ]))) splitCases
@@ -2150,7 +2155,7 @@ structure SwitchReduce = struct
    
    and visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
-     | visitStmt s (CASEstmt (e,ps)) = optCase (visitExp s e, getDefault s (map (visitCase s) ps))
+     | visitStmt s (CASEstmt (e,ps)) = optCase s (visitExp s e, getDefault s (map (visitCase s) ps))
 
    and visitCase s (p,bb) = (p, visitBlock s bb)
    
@@ -2183,14 +2188,14 @@ structure SwitchReduce = struct
         funcType = vtype,
         funcName = name,
         funcArgs = args,
-        funcBody = visitBlock name body,
+        funcBody = visitBlock ({ name = name, errs = s} : state) body,
         funcRes = res
       }
      | visitDecl s d = d
 
    fun run { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs } =
       let
-         val ds = map (visitDecl {}) ds
+         val ds = map (visitDecl errs) ds
       in
          { decls = ds, fdecls = fs, exports = es, typealias = ta, datatypes = dt, monad = mt, errs = errs }
       end
