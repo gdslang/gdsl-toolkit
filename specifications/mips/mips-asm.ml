@@ -4,11 +4,11 @@ val generalize insn = let
   val recordify mnemonic ua = {mnemonic=mnemonic, ua=ua}
   val traversed = traverse recordify insn.insn
 in
-  asm-insn-flags insn.length (string-from-rope-lit traversed.mnemonic) (generalize-fmt traversed.ua) (generalize-ua traversed.ua)
+  asm-insn-flags insn.length (string-from-rope traversed.mnemonic) (generalize-fmt traversed.ua) (generalize-ua traversed.ua)
 end
 
 val generalize-lvalue lval = let
-  val generalize-register r = asm-reg (string-from-rope-lit (show/register r))
+  val generalize-register r = asm-reg (string-from-rope (show/register r))
 in case lval of
    GPR r: generalize-register r
  | FPR f: generalize-register f
@@ -20,7 +20,7 @@ val generalize-rvalue rval =
     | IMM i: generalize-immediate i
    end
 
-val generalize-format fmt = asm-ann-string (string-from-rope-lit (show/format fmt))
+val generalize-format fmt = asm-ann-string (string-from-rope (show/format fmt))
 
 val generalize-immediate i = let
    val inner i sz = asm-bounded (asm-boundary-sz sz) (asm-imm (zx i))

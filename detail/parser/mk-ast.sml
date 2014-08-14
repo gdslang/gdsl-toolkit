@@ -169,12 +169,14 @@ functor MkAst (Core: AST_CORE) = struct
       and decodepat t =
          case t of
             MARKdecodepat t' => decodepat (#tree t')
+            (*MARKdecodepat {span=s, tree=t'} => seq [str (Error.spanToString s), decodepat t']*)
           | BITdecodepat bp => listex "'" "'" "" (map bitpat bp)
           | TOKENdecodepat tp => tokpat tp
 
       and bitpat t =
          case t of
             MARKbitpat t' => bitpat (#tree t')
+            (*MARKbitpat {span=s, tree=t'} => seq [str (Error.spanToString s), bitpat t']*)
           | BITSTRbitpat s => str s
           | NAMEDbitpat n => var_use n
           | BITVECbitpat (n, s) => seq [var_bind n, str ":", str s]
@@ -182,6 +184,7 @@ functor MkAst (Core: AST_CORE) = struct
       and tokpat t =
          case t of
             MARKtokpat t' => tokpat (#tree t')
+            (*MARKtokpat {span=s, tree=t'} => seq [str (Error.spanToString s), tokpat t']*)
           | TOKtokpat (size,tok) =>
              seq [str "0x", str (IntInf.fmt StringCvt.HEX tok), str ":", str (Int.toString size)]
           | NAMEDtokpat n => var_use n

@@ -2,37 +2,34 @@
  */
 package gdsl.plugin.gDSL.impl;
 
-import gdsl.plugin.gDSL.Export;
+import gdsl.plugin.gDSL.Exp;
+import gdsl.plugin.gDSL.Field;
 import gdsl.plugin.gDSL.GDSLPackage;
 
-import java.util.Collection;
-
 import org.eclipse.emf.common.notify.Notification;
-
-import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.notify.NotificationChain;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
-import org.eclipse.emf.ecore.util.EDataTypeEList;
-
 /**
  * <!-- begin-user-doc -->
- * An implementation of the model object '<em><b>Export</b></em>'.
+ * An implementation of the model object '<em><b>Field</b></em>'.
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.ExportImpl#getName <em>Name</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.ExportImpl#getAttrName <em>Attr Name</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.FieldImpl#getName <em>Name</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.FieldImpl#getExp <em>Exp</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class ExportImpl extends MinimalEObjectImpl.Container implements Export
+public class FieldImpl extends MinimalEObjectImpl.Container implements Field
 {
   /**
    * The default value of the '{@link #getName() <em>Name</em>}' attribute.
@@ -55,21 +52,21 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
   protected String name = NAME_EDEFAULT;
 
   /**
-   * The cached value of the '{@link #getAttrName() <em>Attr Name</em>}' attribute list.
+   * The cached value of the '{@link #getExp() <em>Exp</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getAttrName()
+   * @see #getExp()
    * @generated
    * @ordered
    */
-  protected EList<String> attrName;
+  protected Exp exp;
 
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    */
-  protected ExportImpl()
+  protected FieldImpl()
   {
     super();
   }
@@ -82,7 +79,7 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
   @Override
   protected EClass eStaticClass()
   {
-    return GDSLPackage.Literals.EXPORT;
+    return GDSLPackage.Literals.FIELD;
   }
 
   /**
@@ -105,7 +102,7 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
     String oldName = name;
     name = newName;
     if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.EXPORT__NAME, oldName, name));
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.FIELD__NAME, oldName, name));
   }
 
   /**
@@ -113,13 +110,63 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<String> getAttrName()
+  public Exp getExp()
   {
-    if (attrName == null)
+    return exp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public NotificationChain basicSetExp(Exp newExp, NotificationChain msgs)
+  {
+    Exp oldExp = exp;
+    exp = newExp;
+    if (eNotificationRequired())
     {
-      attrName = new EDataTypeEList<String>(String.class, this, GDSLPackage.EXPORT__ATTR_NAME);
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.FIELD__EXP, oldExp, newExp);
+      if (msgs == null) msgs = notification; else msgs.add(notification);
     }
-    return attrName;
+    return msgs;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setExp(Exp newExp)
+  {
+    if (newExp != exp)
+    {
+      NotificationChain msgs = null;
+      if (exp != null)
+        msgs = ((InternalEObject)exp).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.FIELD__EXP, null, msgs);
+      if (newExp != null)
+        msgs = ((InternalEObject)newExp).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.FIELD__EXP, null, msgs);
+      msgs = basicSetExp(newExp, msgs);
+      if (msgs != null) msgs.dispatch();
+    }
+    else if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.FIELD__EXP, newExp, newExp));
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  @Override
+  public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs)
+  {
+    switch (featureID)
+    {
+      case GDSLPackage.FIELD__EXP:
+        return basicSetExp(null, msgs);
+    }
+    return super.eInverseRemove(otherEnd, featureID, msgs);
   }
 
   /**
@@ -132,10 +179,10 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
   {
     switch (featureID)
     {
-      case GDSLPackage.EXPORT__NAME:
+      case GDSLPackage.FIELD__NAME:
         return getName();
-      case GDSLPackage.EXPORT__ATTR_NAME:
-        return getAttrName();
+      case GDSLPackage.FIELD__EXP:
+        return getExp();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -145,18 +192,16 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
    * <!-- end-user-doc -->
    * @generated
    */
-  @SuppressWarnings("unchecked")
   @Override
   public void eSet(int featureID, Object newValue)
   {
     switch (featureID)
     {
-      case GDSLPackage.EXPORT__NAME:
+      case GDSLPackage.FIELD__NAME:
         setName((String)newValue);
         return;
-      case GDSLPackage.EXPORT__ATTR_NAME:
-        getAttrName().clear();
-        getAttrName().addAll((Collection<? extends String>)newValue);
+      case GDSLPackage.FIELD__EXP:
+        setExp((Exp)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -172,11 +217,11 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
   {
     switch (featureID)
     {
-      case GDSLPackage.EXPORT__NAME:
+      case GDSLPackage.FIELD__NAME:
         setName(NAME_EDEFAULT);
         return;
-      case GDSLPackage.EXPORT__ATTR_NAME:
-        getAttrName().clear();
+      case GDSLPackage.FIELD__EXP:
+        setExp((Exp)null);
         return;
     }
     super.eUnset(featureID);
@@ -192,10 +237,10 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
   {
     switch (featureID)
     {
-      case GDSLPackage.EXPORT__NAME:
+      case GDSLPackage.FIELD__NAME:
         return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
-      case GDSLPackage.EXPORT__ATTR_NAME:
-        return attrName != null && !attrName.isEmpty();
+      case GDSLPackage.FIELD__EXP:
+        return exp != null;
     }
     return super.eIsSet(featureID);
   }
@@ -213,10 +258,8 @@ public class ExportImpl extends MinimalEObjectImpl.Container implements Export
     StringBuffer result = new StringBuffer(super.toString());
     result.append(" (name: ");
     result.append(name);
-    result.append(", attrName: ");
-    result.append(attrName);
     result.append(')');
     return result.toString();
   }
 
-} //ExportImpl
+} //FieldImpl

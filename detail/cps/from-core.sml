@@ -506,8 +506,8 @@ end = struct
             trans0
                (CASE
                   (iff,
-                   [(Core.Pat.BIT "1", thenn),
-                    (Core.Pat.BIT "0", elsee)]))
+                   [(SymbolTable.noSpan, Core.Pat.BIT "1", thenn),
+                    (SymbolTable.noSpan, Core.Pat.BIT "0", elsee)]))
                kappa
        | CASE (e, ps) =>
             let
@@ -528,7 +528,7 @@ end = struct
                                     ((j, [x], kappa x)::cps,
                                      Exp.CASE (ty, z, ks))
                         end
-                   | (p, e)::ps =>
+                   | (_, p, e)::ps =>
                         let
                            val k = fresh continuation
                            val (x, ks) = transPat p k ks
@@ -687,10 +687,10 @@ end = struct
       let
          open Core.Pat
       in
-         case #1 (hd ps) of
-            CON _ => Exp.CASETYCON
-          | BIT _ => Exp.CASETYVEC
-          | INT _ => Exp.CASETYINT
+         case ps of
+            (_,CON _,_)::_ => Exp.CASETYCON
+          | (_,BIT _,_)::_ => Exp.CASETYVEC
+          | (_,INT _,_)::_ => Exp.CASETYINT
           | _ => Exp.CASETYINT (* FIXME *)
       end
 
@@ -745,15 +745,15 @@ end = struct
             trans1
                (CASE
                   (iff,
-                   [(Core.Pat.BIT "1", thenn),
-                    (Core.Pat.BIT "0", elsee)]))
+                   [(SymbolTable.noSpan, Core.Pat.BIT "1", thenn),
+                    (SymbolTable.noSpan, Core.Pat.BIT "0", elsee)]))
                kont
        | CASE (e, ps) =>
             let
                val ty = guessPatTy e ps
                fun trans z ps cps ks =
                   case ps of
-                     (p, e)::ps =>
+                     (_, p, e)::ps =>
                         let
                            val k = fresh continuation
                            val (x, ks) = transPat p k ks

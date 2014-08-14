@@ -37,13 +37,13 @@ end = struct
       SymSet.union (freeVars c, SymSet.union (freeVars e, freeVars t))
      | freeVars (Exp.CASE (e, cases)) =
       let
-         fun freeInCase (Pat.CON (c, SOME a), e) =
+         fun freeInCase (sp, Pat.CON (c, SOME a), e) =
             SymSet.difference (freeVars e, SymSet.fromList [a,c])
-           | freeInCase (Pat.CON (c, NONE), e) =
+           | freeInCase (sp, Pat.CON (c, NONE), e) =
             SymSet.difference (freeVars e, SymSet.singleton c)
-           | freeInCase (Pat.ID s, e) =
+           | freeInCase (sp, Pat.ID s, e) =
             SymSet.difference (freeVars e, SymSet.singleton s)
-           | freeInCase (_, e) = freeVars e
+           | freeInCase (sp, _, e) = freeVars e
       in
          foldl (fn (c, ss) => SymSet.union (freeInCase c, ss)) (freeVars e) cases
       end
@@ -374,15 +374,15 @@ end = struct
       in
          (cStmts @ [IFstmt (VEC2INTexp (SOME 1,UNBOXexp (VECvtype,cExp)), tBlock, eBlock)], IDexp res)
       end
-     | trExpr s (Exp.CASE (e, [(Core.Pat.BIT "........", e')])) = trExpr s e'
-     | trExpr s (Exp.CASE (e, [(Core.Pat.BIT "................", e')])) = trExpr s e'
-     | trExpr s (Exp.CASE (e, [(Core.Pat.BIT "................................", e')])) = trExpr s e'
-     | trExpr s (Exp.CASE (e, [(Core.Pat.WILD, e')])) = trExpr s e'
+     | trExpr s (Exp.CASE (e, [(sp, Core.Pat.BIT "........", e')])) = trExpr s e'
+     | trExpr s (Exp.CASE (e, [(sp, Core.Pat.BIT "................", e')])) = trExpr s e'
+     | trExpr s (Exp.CASE (e, [(sp, Core.Pat.BIT "................................", e')])) = trExpr s e'
+     | trExpr s (Exp.CASE (e, [(sp, Core.Pat.WILD, e')])) = trExpr s e'
      | trExpr s (Exp.CASE (e, cs)) =
       let
          (* extract the scrutinee as an int which requires different
             primitives, depending on the type that is matched *)
-         fun convertScrut (e, (Core.Pat.BIT bp,_) :: cs) =
+         fun convertScrut (e, (sp, Core.Pat.BIT bp,_) :: cs) =
             let
                val fields = String.fields (fn c => c= #"|") bp
             in
@@ -390,9 +390,9 @@ end = struct
                   [] => convertScrut (e, cs)
                 | (f::_) => VEC2INTexp (SOME (String.size f),UNBOXexp (VECvtype,e))
             end
-           | convertScrut (e, (Core.Pat.INT _,_) :: _) = UNBOXexp (INTvtype,e)
-           | convertScrut (e, (Core.Pat.CON (sym,SOME _),_) :: _) = get_con_idx e
-           | convertScrut (e, (Core.Pat.CON (sym,NONE),_) :: _) = UNBOXexp (INTvtype,e)
+           | convertScrut (e, (sp, Core.Pat.INT _,_) :: _) = UNBOXexp (INTvtype,e)
+           | convertScrut (e, (sp, Core.Pat.CON (sym,SOME _),_) :: _) = get_con_idx e
+           | convertScrut (e, (sp, Core.Pat.CON (sym,NONE),_) :: _) = UNBOXexp (INTvtype,e)
            | convertScrut (e, _ :: cs) = convertScrut (e, cs)
            | convertScrut _ = raise ImpTranslationBug
          val (stmts, scrutRaw) = trExpr s e
@@ -401,57 +401,55 @@ end = struct
          val (res,s) = freshRes ("%case",s)
          val s = addLocalVar s res
 
-         fun trCase (Core.Pat.BIT bp, block) = (
+         fun trCase (sp, Core.Pat.BIT bp, block) = (
                case String.fields (fn c => c= #"|") bp of
-                  [] => (WILDpat, block)
-                | [""] => (WILDpat, block)
-                | fs => (VECpat fs, block)
+                  [] => (sp, WILDpat, block)
+                | [""] => (sp, WILDpat, block)
+                | fs => (sp, VECpat fs, block)
              )
-           | trCase (Core.Pat.INT i, block) = (INTpat i, block)
-           | trCase (Core.Pat.CON (sym,NONE), block) = (CONpat sym, block)
-           | trCase (Core.Pat.CON (sym,SOME arg), BASICblock (decls, stmts)) =
-               (CONpat sym, BASICblock ((OBJvtype, arg) :: decls,
+           | trCase (sp, Core.Pat.INT i, block) = (sp, INTpat i, block)
+           | trCase (sp, Core.Pat.CON (sym,NONE), block) = (sp, CONpat sym, block)
+           | trCase (sp, Core.Pat.CON (sym,SOME arg), BASICblock (decls, stmts)) =
+               (sp, CONpat sym, BASICblock ((OBJvtype, arg) :: decls,
                ASSIGNstmt (SOME arg,get_con_arg (addConFun s sym,scrutRaw)) :: stmts))
-           | trCase (Core.Pat.ID sym, BASICblock (decls, stmts)) =
-               ((addLocalVar s sym; WILDpat),
+           | trCase (sp, Core.Pat.ID sym, BASICblock (decls, stmts)) =
+               (sp, (addLocalVar s sym; WILDpat),
                 BASICblock (decls, ASSIGNstmt (SOME sym,scrutRaw) :: stmts))
-           | trCase (Core.Pat.WILD, block) = (WILDpat, block)
+           | trCase (sp, Core.Pat.WILD, block) = (sp, WILDpat, block)
 
-         val cases = map (fn (pat,e) => trCase (pat,trBlock s e)) cs
+         val cases = map (fn (sp, pat, e) => trCase (sp, pat, trBlock s e)) cs
          
          (* if a switch statement matches against all constructors of a data type,
             then turn the last case into a default one *)
-         fun getDataType (CONpat sym :: _) =
+         fun getDataType ((_, CONpat sym, _) :: _) =
             (case SymMap.find (!constructors, sym) of
                NONE => NONE
              | SOME (dt,_) => SOME dt
             )
            | getDataType _ = NONE
      
-         fun addDefault ps = case getDataType ps of
-            NONE => ps
+         fun addDefault cs = case getDataType cs of
+            NONE => cs
           | SOME dt =>
             let
                fun dtEqual (dt',_) = SymbolTable.eq_symid (dt,dt')
                val cons = foldl
                   (fn ((_,consArgs),ss) => SymSet.addList (ss,map #1 consArgs))
                   SymSet.empty (List.filter dtEqual (!datatypes))
-               fun inspectPat ((p as (CONpat sym)) :: ps) cons =
+               fun inspectPat ((c as (sp, CONpat sym, e)) :: cs) cons =
                   let
                      val cons = SymSet.delete (cons, sym)
-                     val p = if SymSet.isEmpty cons then WILDpat else p
+                     val c = if SymSet.isEmpty cons then (sp, WILDpat, e) else c
                   in
-                     p :: inspectPat ps cons
+                     c :: inspectPat cs cons
                   end
-                 | inspectPat (p :: ps) cons = p :: inspectPat ps cons
+                 | inspectPat (c :: cs) cons = c :: inspectPat cs cons
                  | inspectPat [] cons = []
             in
-               inspectPat ps cons
+               inspectPat cs cons
             end
 
-        val (ps,bbs) = ListPair.unzip cases
-        val ps = addDefault ps
-        val cases = ListPair.zipEq (ps,bbs)
+        val cases = addDefault cases
 
       in
          (stmts @ [CASEstmt (scrut, cases)], IDexp res)

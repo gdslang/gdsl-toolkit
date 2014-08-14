@@ -272,7 +272,7 @@ in
   with-subscope bflop-inner
 end
 
-val prim-generic op lhs rhs = push (/PRIM (string-from-rope-lit op) lhs rhs)
+val prim-generic op lhs rhs = push (/PRIM (string-from-rope op) lhs rhs)
 
 val prim sz op lhs rhs = let
   val unpack lins = case lins of
@@ -288,7 +288,7 @@ val prim sz op lhs rhs = let
     lhs <- unpack lhs;
     rhs <- unpack rhs;
 
-    push (/PRIM (string-from-rope-lit op) lhs rhs)
+    push (/PRIM (string-from-rope op) lhs rhs)
   end
 in
   with-subscope prim-inner

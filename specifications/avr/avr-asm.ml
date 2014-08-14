@@ -4,7 +4,7 @@ val generalize insn = let
   val recordify mnemonic ua = {mnemonic=mnemonic, ua=ua}
   val traversed = traverse recordify insn.insn
 in
-  asm-insn insn.length (string-from-rope-lit traversed.mnemonic) (generalize-ua traversed.ua)
+  asm-insn insn.length (string-from-rope traversed.mnemonic) (generalize-ua traversed.ua)
 end
 
 val generalize-ua ua = case ua of
@@ -15,7 +15,7 @@ val generalize-ua ua = case ua of
 end
 
 val generalize-opnd opnd = let
-  val generalize-register r = asm-reg (string-from-rope-lit (show/register r))
+  val generalize-register r = asm-reg (string-from-rope (show/register r))
 in case opnd of
    REG r: generalize-register r
  | REGHL rhl: asm-composite (asm-opnds-more (generalize-register rhl.regh) (asm-opnds-one (generalize-register rhl.regl)))

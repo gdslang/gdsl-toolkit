@@ -66,16 +66,28 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
     {
       case GDSLPackage.MODEL: return createModel();
       case GDSLPackage.DECL: return createDecl();
-      case GDSLPackage.DECL_GRANULARITY: return createDeclGranularity();
       case GDSLPackage.DECL_EXPORT: return createDeclExport();
       case GDSLPackage.DECL_TYPE: return createDeclType();
       case GDSLPackage.DECL_VAL: return createDeclVal();
-      case GDSLPackage.EXPORT: return createExport();
-      case GDSLPackage.CON_DECLS: return createConDecls();
+      case GDSLPackage.TY_VARS: return createTyVars();
       case GDSLPackage.CON_DECL: return createConDecl();
       case GDSLPackage.TY: return createTy();
-      case GDSLPackage.TY_ELEMENT: return createTyElement();
       case GDSLPackage.TY_BIND: return createTyBind();
+      case GDSLPackage.TY_ELEMENT: return createTyElement();
+      case GDSLPackage.EXP: return createExp();
+      case GDSLPackage.CASE_EXP: return createCaseExp();
+      case GDSLPackage.CLOSED_EXP: return createClosedExp();
+      case GDSLPackage.MONADIC_EXP: return createMonadicExp();
+      case GDSLPackage.OR_ELSE_EXP: return createOrElseExp();
+      case GDSLPackage.AND_ALSO_EXP: return createAndAlsoExp();
+      case GDSLPackage.REXP: return createRExp();
+      case GDSLPackage.AEXP: return createAExp();
+      case GDSLPackage.MEXP: return createMExp();
+      case GDSLPackage.SELECT_EXP: return createSelectExp();
+      case GDSLPackage.APPLY_EXP: return createApplyExp();
+      case GDSLPackage.ATOMIC_EXP: return createAtomicExp();
+      case GDSLPackage.FIELD: return createField();
+      case GDSLPackage.VALUE_DECL: return createValueDecl();
       default:
         throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
     }
@@ -101,17 +113,6 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     DeclImpl decl = new DeclImpl();
     return decl;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public DeclGranularity createDeclGranularity()
-  {
-    DeclGranularityImpl declGranularity = new DeclGranularityImpl();
-    return declGranularity;
   }
 
   /**
@@ -152,21 +153,10 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public Export createExport()
+  public TyVars createTyVars()
   {
-    ExportImpl export = new ExportImpl();
-    return export;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public ConDecls createConDecls()
-  {
-    ConDeclsImpl conDecls = new ConDeclsImpl();
-    return conDecls;
+    TyVarsImpl tyVars = new TyVarsImpl();
+    return tyVars;
   }
 
   /**
@@ -196,6 +186,17 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
+  public TyBind createTyBind()
+  {
+    TyBindImpl tyBind = new TyBindImpl();
+    return tyBind;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public TyElement createTyElement()
   {
     TyElementImpl tyElement = new TyElementImpl();
@@ -207,10 +208,153 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public TyBind createTyBind()
+  public Exp createExp()
   {
-    TyBindImpl tyBind = new TyBindImpl();
-    return tyBind;
+    ExpImpl exp = new ExpImpl();
+    return exp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public CaseExp createCaseExp()
+  {
+    CaseExpImpl caseExp = new CaseExpImpl();
+    return caseExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public ClosedExp createClosedExp()
+  {
+    ClosedExpImpl closedExp = new ClosedExpImpl();
+    return closedExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public MonadicExp createMonadicExp()
+  {
+    MonadicExpImpl monadicExp = new MonadicExpImpl();
+    return monadicExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public OrElseExp createOrElseExp()
+  {
+    OrElseExpImpl orElseExp = new OrElseExpImpl();
+    return orElseExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public AndAlsoExp createAndAlsoExp()
+  {
+    AndAlsoExpImpl andAlsoExp = new AndAlsoExpImpl();
+    return andAlsoExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public RExp createRExp()
+  {
+    RExpImpl rExp = new RExpImpl();
+    return rExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public AExp createAExp()
+  {
+    AExpImpl aExp = new AExpImpl();
+    return aExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public MExp createMExp()
+  {
+    MExpImpl mExp = new MExpImpl();
+    return mExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public SelectExp createSelectExp()
+  {
+    SelectExpImpl selectExp = new SelectExpImpl();
+    return selectExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public ApplyExp createApplyExp()
+  {
+    ApplyExpImpl applyExp = new ApplyExpImpl();
+    return applyExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public AtomicExp createAtomicExp()
+  {
+    AtomicExpImpl atomicExp = new AtomicExpImpl();
+    return atomicExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Field createField()
+  {
+    FieldImpl field = new FieldImpl();
+    return field;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public ValueDecl createValueDecl()
+  {
+    ValueDeclImpl valueDecl = new ValueDeclImpl();
+    return valueDecl;
   }
 
   /**

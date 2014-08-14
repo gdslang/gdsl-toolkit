@@ -92,6 +92,7 @@ structure Primitives = struct
    val content'''' = newFlow content
    val inp = freshVar ()
    val out = freshVar ()
+   val ropeVar = freshVar ()
 
    (*create a type from two vectors to one vector, all of size s*)
    fun func (a,b) = FUN ([a],b)
@@ -242,7 +243,8 @@ structure Primitives = struct
          flow = BD.meetVarImpliesVar (bvar content'''', bvar content') o
                 BD.meetVarImpliesVar (bvar content'''', bvar content''') o
                 BD.meetVarImpliesVar (bvar content'', bvar content')},
-       {name="void", ty=UNIT, flow = noFlow}
+       {name="void", ty=UNIT, flow = noFlow},
+       {name="merge-rope", ty=FUN([ropeVar],STRING), flow = noFlow}
        ]
 
    val primitiveSizeConstraints =
@@ -307,6 +309,7 @@ structure Primitives = struct
          val oio = ftype [OBJvtype, INTvtype] OBJvtype
          val oo = ftype [OBJvtype] OBJvtype
          val oos = ftype [OBJvtype, OBJvtype] STRINGvtype
+         val os = ftype [OBJvtype] STRINGvtype
          val o_ = ftype [] OBJvtype
          val ssis = ftype [STRINGvtype, STRINGvtype, INTvtype] STRINGvtype
          val si =  ftype [STRINGvtype] INTvtype
@@ -367,7 +370,8 @@ structure Primitives = struct
          ("puts", (t ~1, fn args => action (PRIexp (PRINTLNprim,sv,args)))),
          ("return", (t ~1, fn args => (case args of
             [e] => action e
-          | _ => raise ImpPrimTranslationBug)))
+          | _ => raise ImpPrimTranslationBug))),
+         ("merge-rope", (t 0, fn args => pr (MERGE_ROPEprim,os,args)))
          ]
       end
 

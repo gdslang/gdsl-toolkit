@@ -127,12 +127,12 @@ static obj_t asm_composite(state_t state, obj_t opnds) {
 
 // signedness
 
-static obj_t asm_signed(state_t state, obj_t foo) {
+static obj_t asm_signed(state_t state) {
   printf("> signed\n");
   return (state_t)0;
 }
 
-static obj_t asm_unsigned(state_t state, obj_t foo) {
+static obj_t asm_unsigned(state_t state) {
   printf("> unsigned\n");
   return (state_t)0;
 }
