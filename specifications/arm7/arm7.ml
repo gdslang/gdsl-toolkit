@@ -54,6 +54,8 @@ type instruction =
   | LDRSRH of loadstore
   | B of branch
   | BL of branch
+  | MRS of psr_transfer
+  | MSR of psr_transfer
 
 type signed
   = SIGNED
@@ -68,18 +70,24 @@ type width
   | WORD
   | HALFWORD
 
+type psr 
+  = CPSR
+  | SPSR # _<current mode>
+
 type dp = {condition:condition, s:1, rn:register, rd:register, op2:operand}
 type mul = {condition:condition, s:1, rd:register, rn:register, rs:register, rm:register}
 type mull = {condition:condition, s:1, rdhi:register, rdlo:register, rs:register, rm:register}
 type loadstore = {p:1, u:updown, b:width, w:1, rn: register, rd:register, offset: operand}
 type bx = {condition:condition, rn:register}
 type branch = {condition:condition, offset:24}
+type psr_transfer = {condition:condition, source:operand, destination:operand, flagsonly:1}
 
 type operand
   = REGSHIFTAMOUNT of shiftamount 
   | REGSHIFTREG of shiftregister
   | IMMEDIATE of int
   | REGISTER of register
+  | PSR of psr
 
 type shiftedregister
   = SHIFTAMOUNT of shiftamount
@@ -187,6 +195,12 @@ val shiftamount cons rm amount shift_type = do
         return (cons{rm=rm, amount=amount, shift_type=shift_type})
 end
 
+val psr_transfer cons condition source destination flagsonly = do
+        condition <- condition;
+        source <- source;
+        return (cons{condition=condition, source=source, destination=destination, flagsonly=flagsonly})
+end
+
 val register-from-bits bits=
   case bits of
       '0001' : R0
@@ -289,10 +303,13 @@ val reset = do
         update @{b='0', p='0', w='0', u='0'}
 end
 
+(*TODO: this is plain wrong!*)
 val op2imm = do
   imm <- query $imm;
   rotate <- query $rotate;
   reset;
+  # zero extend imm to 32 bits
+  # rotate right imm by 2 times rotate
   return (IMMEDIATE (zx imm) )
 end
 
@@ -521,3 +538,17 @@ val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001011 rm:4'] =
                 (return (REGISTER (register-from-bits rm)))
 
 *)
+
+#MRS
+val / ['/cond 000100001111 rd:4 000000000000'] = psr_transfer MRS cond (return (PSR CPSR)) (REGISTER (register-from-bits rd)) '0'
+val / ['/cond 000101001111 rd:4 000000000000'] = psr_transfer MRS cond (return (PSR SPSR)) (REGISTER (register-from-bits rd)) '0'
+
+#MSR
+val / ['/cond 000100101001111100000000 rm:4'] = psr_transfer MSR cond (return (REGISTER (register-from-bits rm))) (PSR CPSR) '0'
+val / ['/cond 000101101001111100000000 rm:4'] = psr_transfer MSR cond (return (REGISTER (register-from-bits rm))) (PSR SPSR) '0'
+
+#MSR flag bits only
+val / ['/cond 000100101000111100000000 rm:4'] = psr_transfer MSR cond (return (REGISTER (register-from-bits rm))) (PSR CPSR) '1'
+val / ['/cond 000101101000111100000000 rm:4'] = psr_transfer MSR cond (return (REGISTER (register-from-bits rm))) (PSR SPSR) '1'
+
+val / ['/cond 00110 P:1 1010001111 /op2imm'] = psr_transfer MSR cond (op2imm) (PSR CPSR) '1'
