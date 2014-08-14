@@ -12,6 +12,7 @@ val write to from =
 val lval sn x =
    case x of
       GPR r: return (var (semantic-gpr-of r))
+    | FPR f: return (var (semantic-fpr-of f))
    end
 
 val rval sn x = let
@@ -89,6 +90,130 @@ val sizeof-rval x =
           | OP i: 5
          end
    end
+
+val mnemonic-with-format insn x = (mnemonic-of insn) +++ "." +++ show/format x.fmt
+
+val sem-default-unop-src-ro-generic insn x = do
+	src-sz <- return (sizeof-rval x.source);
+
+	src <- rval Signed x.source;
+
+	src-up <- unpack-lin src-sz src;
+
+	prim-generic (mnemonic-of insn) varls-none (varls-one (varl src-sz src-up))
+end
+
+val sem-default-binop-ro-generic insn x = do
+	src-sz <- return (sizeof-rval x.source);
+	dst-sz <- return (sizeof-lval x.destination);
+
+	src <- rval Signed x.source;
+	dst <- lval Signed x.destination;
+
+	src-up <- unpack-lin src-sz src;
+	dst-up <- unpack-lin dst-sz dst;
+
+	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-one (varl src-sz src-up))
+end
+
+val sem-default-binop-fmt-ro-generic insn x = do
+	src-sz <- return (sizeof-rval x.source);
+	dst-sz <- return (sizeof-lval x.destination);
+
+	src <- rval Signed x.source;
+	dst <- lval Signed x.destination;
+
+	src-up <- unpack-lin src-sz src;
+	dst-up <- unpack-lin dst-sz dst;
+
+	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-one (varl src-sz src-up))
+end
+
+val sem-default-binop-src-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.source1);
+	src2-sz <- return (sizeof-rval x.source2);
+
+	src1 <- rval Signed x.source1;
+	src2 <- rval Signed x.source2;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+
+	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))
+end
+
+val sem-default-ternop-fmt-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.source1);
+	src2-sz <- return (sizeof-rval x.source2);
+	dst-sz <- return (sizeof-lval x.destination);
+
+	src1 <- rval Signed x.source1;
+	src2 <- rval Signed x.source2;
+	dst <- lval Signed x.destination;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+	dst-up <- unpack-lin dst-sz dst;
+
+	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))
+end
+
+val sem-default-quadop-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.source1);
+	src2-sz <- return (sizeof-rval x.source2);
+	src3-sz <- return (sizeof-rval x.source3);
+	dst-sz <- return (sizeof-lval x.destination);
+
+	src1 <- rval Signed x.source1;
+	src2 <- rval Signed x.source2;
+	src3 <- rval Signed x.source3;
+	dst <- lval Signed x.destination;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+	src3-up <- unpack-lin src3-sz src3;
+	dst-up <- unpack-lin dst-sz dst;
+
+	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
+end
+
+val sem-default-quadop-fmt-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.source1);
+	src2-sz <- return (sizeof-rval x.source2);
+	src3-sz <- return (sizeof-rval x.source3);
+	dst-sz <- return (sizeof-lval x.destination);
+
+	src1 <- rval Signed x.source1;
+	src2 <- rval Signed x.source2;
+	src3 <- rval Signed x.source3;
+	dst <- lval Signed x.destination;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+	src3-up <- unpack-lin src3-sz src3;
+	dst-up <- unpack-lin dst-sz dst;
+
+	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
+end
+
+val sem-default-quadop-fmt-src-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.source1);
+	src2-sz <- return (sizeof-rval x.source2);
+	src3-sz <- return (sizeof-rval x.source3);
+	src4-sz <- return (sizeof-rval x.source4);
+
+	src1 <- rval Signed x.source1;
+	src2 <- rval Signed x.source2;
+	src3 <- rval Signed x.source3;
+	src4 <- rval Signed x.source4;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+	src3-up <- unpack-lin src3-sz src3;
+	src4-up <- unpack-lin src4-sz src4;
+
+	prim-generic (mnemonic-with-format insn x) varls-none (varls-more (varl src4-sz src4-up) (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))))
+end
 
 ###########
 ### semantics of instructions
@@ -771,23 +896,23 @@ val sem-srlv x = sem-sllv-srav-srlv shr x
 
 val semantics i =
    case i of
-      ABS-fmt x: sem-fp
+      ABS-fmt x: sem-default-binop-fmt-ro-generic i x
     | ADD x: sem-add x
-    | ADD-fmt x: sem-fp
+    | ADD-fmt x: sem-default-ternop-fmt-ro-generic i x
     | ADDI x: sem-addi x
     | ADDIU x: sem-addiu x
     | ADDU x: sem-addu x
-    | ALNV-PS x: sem-fp
+    | ALNV-PS x: sem-default-quadop-ro-generic i x
     | AND x: sem-and x
     | ANDI x: sem-andi x
-    | BC1F x: sem-fp
-    | BC1FL x: sem-fp
-    | BC1T x: sem-fp
-    | BC1TL x: sem-fp
-    | BC2F x: sem-fp2
-    | BC2FL x: sem-fp2
-    | BC2T x: sem-fp2
-    | BC2TL x: sem-fp2
+    | BC1F x: sem-default-binop-src-ro-generic i x
+    | BC1FL x: sem-default-binop-src-ro-generic i x
+    | BC1T x: sem-default-binop-src-ro-generic i x
+    | BC1TL x: sem-default-binop-src-ro-generic i x
+    | BC2F x: sem-default-binop-src-ro-generic i x
+    | BC2FL x: sem-default-binop-src-ro-generic i x
+    | BC2T x: sem-default-binop-src-ro-generic i x
+    | BC2TL x: sem-default-binop-src-ro-generic i x
     | BEQ x: sem-beq x
     | BEQL x: sem-beql x
     | BGEZ x: sem-bgez x
@@ -805,20 +930,20 @@ val semantics i =
     | BNE x: sem-bne x
     | BNEL x: sem-bnel x
     | BREAK x: sem-break x
-    | C-cond-fmt x: sem-fp
+    | C-cond-fmt x: sem-default-quadop-fmt-src-ro-generic i x
     | CACHE x: sem-cache x
     | CACHEE x: sem-cachee x
-    | CEIL-L-fmt x: sem-fp
-    | CEIL-W-fmt x: sem-fp
-    | CFC1 x: sem-fp
-    | CFC2 x: sem-fp2
+    | CEIL-L-fmt x: sem-default-binop-fmt-ro-generic i x
+    | CEIL-W-fmt x: sem-default-binop-fmt-ro-generic i x
+    | CFC1 x: sem-default-binop-ro-generic i x
+    | CFC2 x: sem-default-binop-ro-generic i x
     | CLO x: sem-cl 1 x
     | CLZ x: sem-cl 0 x
-    | COP2 x: sem-fp2
-    | CTC1 x: sem-fp
-    | CTC2 x: sem-fp2
-    | CVT-D-fmt x: sem-fp
-    | CVT-L-fmt x: sem-fp
+    | COP2 x: sem-default-unop-src-ro-generic i x
+    | CTC1 x: sem-default-binop-ro-generic i x
+    | CTC2 x: sem-default-binop-src-ro-generic i x
+    | CVT-D-fmt x: sem-default-binop-fmt-ro-generic i x
+    | CVT-L-fmt x: sem-default-binop-fmt-ro-generic i x
     | CVT-PS-S x: sem-fp
     | CVT-S-fmt x: sem-fp
     | CVT-S-PL x: sem-fp

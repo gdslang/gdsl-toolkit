@@ -4,6 +4,12 @@ in
   traverse f insn
 end
 
+val mnemonic-of insn = let
+  val f a b = a
+in
+  traverse f insn
+end
+
 # -> sftl
 type uarity =
    NULLOP
