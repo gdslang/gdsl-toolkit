@@ -2011,8 +2011,8 @@ structure SwitchReduce = struct
                   calcCutOff (newSlack, newLast, max, idx-1)
             end
          (* including other bits might lead to overlapping patterns later, but it seems ok now *)
-         val cutOff = if bits<=1 then 0 else (*Array.sub (sorted, bits-1)*)
-            calcCutOff (0, Array.sub (sorted, bits-1), Array.sub (sorted, bits-1), bits-2)
+         val cutOff = if bits<=1 then 0 else Array.sub (sorted, bits-1)
+            (*calcCutOff (0, Array.sub (sorted, bits-1), Array.sub (sorted, bits-1), bits-2)*)
          
          (*val bitPats = List.concat (map (fn p => case p of
                VECpat bp => bp
