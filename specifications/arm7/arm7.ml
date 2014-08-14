@@ -457,6 +457,7 @@ val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001011 rm:4'] =
         #               (return (IMMEDIATE (zx rd)))
 
 
+(*
 # LDRSB - Load signed byte [7:0] from register address + register offset
 val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001101 rm:4'] = 
         loadstore 
@@ -495,3 +496,5 @@ val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001011 rm:4'] =
                 (register-from-bits rn)
                 (register-from-bits rd)
                 (return (REGISTER (register-from-bits rm)))
+
+*)
