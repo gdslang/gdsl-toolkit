@@ -142,6 +142,22 @@ val sem-default-binop-src-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))
 end
 
+val sem-default-ternop-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.source1);
+	src2-sz <- return (sizeof-rval x.source2);
+	dst-sz <- return (sizeof-lval x.destination);
+
+	src1 <- rval Signed x.source1;
+	src2 <- rval Signed x.source2;
+	dst <- lval Signed x.destination;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+	dst-up <- unpack-lin dst-sz dst;
+
+	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))
+end
+
 val sem-default-ternop-fmt-ro-generic insn x = do
 	src1-sz <- return (sizeof-rval x.source1);
 	src2-sz <- return (sizeof-rval x.source2);
@@ -157,6 +173,23 @@ val sem-default-ternop-fmt-ro-generic insn x = do
 
 	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))
 end
+
+val sem-default-ternop-src-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.source1);
+	src2-sz <- return (sizeof-rval x.source2);
+	src3-sz <- return (sizeof-rval x.source3);
+
+	src1 <- rval Signed x.source1;
+	src2 <- rval Signed x.source2;
+	src3 <- rval Signed x.source3;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+	src3-up <- unpack-lin src3-sz src3;
+
+	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
+end
+
 
 val sem-default-quadop-ro-generic insn x = do
 	src1-sz <- return (sizeof-rval x.source1);
@@ -944,21 +977,21 @@ val semantics i =
     | CTC2 x: sem-default-binop-src-ro-generic i x
     | CVT-D-fmt x: sem-default-binop-fmt-ro-generic i x
     | CVT-L-fmt x: sem-default-binop-fmt-ro-generic i x
-    | CVT-PS-S x: sem-fp
-    | CVT-S-fmt x: sem-fp
-    | CVT-S-PL x: sem-fp
-    | CVT-S-PU x: sem-fp
-    | CVT-W-fmt x: sem-fp
+    | CVT-PS-S x: sem-default-ternop-ro-generic i x
+    | CVT-S-fmt x: sem-default-binop-fmt-ro-generic i x
+    | CVT-S-PL x: sem-default-binop-ro-generic i x
+    | CVT-S-PU x: sem-default-binop-ro-generic i x
+    | CVT-W-fmt x: sem-default-binop-fmt-ro-generic i x
     | DERET: sem-deret
     | DI x: sem-di x
     | DIV x: sem-div x
-    | DIV-fmt x: sem-fp
+    | DIV-fmt x: sem-default-ternop-fmt-ro-generic i x
     | DIVU x: sem-divu x 
     | EI x: sem-ei x
     | ERET: sem-eret
     | EXT x: sem-ext x
-    | FLOOR-L-fmt x: sem-fp
-    | FLOOR-W-fmt x: sem-fp
+    | FLOOR-L-fmt x: sem-default-binop-fmt-ro-generic i x
+    | FLOOR-W-fmt x: sem-default-binop-fmt-ro-generic i x
     | INS x: sem-ins x
     | J x: sem-j x
     | JAL x: sem-jal x
@@ -971,9 +1004,9 @@ val semantics i =
     | LBE x: sem-lb x
     | LBU x: sem-lbu x
     | LBUE x: sem-lbu x
-    | LDC1 x: sem-foo
-    | LDC2 x: sem-foo
-    | LDXC1 x: sem-foo
+    | LDC1 x: sem-default-ternop-ro-generic i x
+    | LDC2 x: sem-default-ternop-src-ro-generic i x
+    | LDXC1 x: sem-default-ternop-ro-generic i x
     | LH x: sem-lh x
     | LHE x: sem-lh x
     | LHU x: sem-lhu x
@@ -981,78 +1014,78 @@ val semantics i =
     | LL x: sem-foo
     | LLE x: sem-foo
     | LUI x: sem-lui x
-    | LUXC1 x: sem-foo
+    | LUXC1 x: sem-default-ternop-ro-generic i x
     | LW x: sem-lw x
-    | LWC1 x: sem-foo
-    | LWC2 x: sem-foo
+    | LWC1 x: sem-default-ternop-ro-generic i x
+    | LWC2 x: sem-default-ternop-src-ro-generic i x
     | LWE x: sem-lw x
     | LWL x: sem-foo
     | LWLE x: sem-foo
     | LWR x: sem-foo
     | LWRE x: sem-foo
-    | LWXC1 x: sem-foo
+    | LWXC1 x: sem-default-ternop-ro-generic i x
     | MADD x: sem-madd x
-    | MADD-fmt x: sem-foo
+    | MADD-fmt x: sem-default-ternop-fmt-ro-generic i x
     | MADDU x: sem-maddu x
-    | MFC0 x: sem-foo
-    | MFC1 x: sem-foo
-    | MFC2 x: sem-foo
-    | MFHC1 x: sem-foo
-    | MFHC2 x: sem-foo
+    | MFC0 x: sem-default-ternop-ro-generic i x
+    | MFC1 x: sem-default-binop-ro-generic i x
+    | MFC2 x: sem-default-binop-ro-generic i x
+    | MFHC1 x: sem-default-binop-ro-generic i x
+    | MFHC2 x: sem-default-binop-ro-generic i x
     | MFHI x: sem-mfhi x
     | MFLO x: sem-mflo x
-    | MOV-fmt x: sem-foo
+    | MOV-fmt x: sem-default-binop-fmt-ro-generic i x
     | MOVF x: sem-foo
-    | MOVF-fmt x: sem-foo
+    | MOVF-fmt x: sem-default-ternop-fmt-ro-generic i x
     | MOVN x: sem-movn x
-    | MOVN-fmt x: sem-foo
+    | MOVN-fmt x: sem-default-ternop-fmt-ro-generic i x
     | MOVT x: sem-foo
-    | MOVT-fmt x: sem-foo
+    | MOVT-fmt x: sem-default-ternop-fmt-ro-generic i x
     | MOVZ x: sem-movz x
-    | MOVZ-fmt x: sem-foo
+    | MOVZ-fmt x: sem-default-ternop-fmt-ro-generic i x
     | MSUB x: sem-msub x
-    | MSUB-fmt x: sem-foo
+    | MSUB-fmt x: sem-default-quadop-fmt-ro-generic i x
     | MSUBU x: sem-msubu x
-    | MTC0 x: sem-foo
-    | MTC1 x: sem-foo
-    | MTC2 x: sem-foo
-    | MTHC1 x: sem-foo
-    | MTHC2 x: sem-foo
+    | MTC0 x: sem-default-ternop-src-ro-generic i x
+    | MTC1 x: sem-default-binop-ro-generic i x
+    | MTC2 x: sem-default-binop-src-ro-generic i x
+    | MTHC1 x: sem-default-binop-ro-generic i x
+    | MTHC2 x: sem-default-binop-src-ro-generic i x
     | MTHI x: sem-mthi x
     | MTLO x: sem-mtlo x
     | MUL x: sem-mul x
-    | MUL-fmt x: sem-foo
+    | MUL-fmt x: sem-default-ternop-fmt-ro-generic i x
     | MULT x: sem-mult x
     | MULTU x: sem-multu x
     | NEG-fmt x: sem-foo
-    | NMADD-fmt x: sem-foo
-    | NMSUB-fmt x: sem-foo
+    | NMADD-fmt x: sem-default-quadop-fmt-ro-generic i x
+    | NMSUB-fmt x: sem-default-quadop-fmt-ro-generic i x
     | NOR x: sem-nor x
     | OR x: sem-or x
     | ORI x: sem-ori x
-    | PLL-PS x: sem-foo
-    | PLU-PS x: sem-foo
+    | PLL-PS x: sem-default-ternop-ro-generic i x
+    | PLU-PS x: sem-default-ternop-ro-generic i x
     | PREF x: sem-foo
     | PREFE x: sem-foo
     | PREFX x: sem-foo
-    | PUL-PS x: sem-foo
-    | PUU-PS x: sem-foo
+    | PUL-PS x: sem-default-ternop-ro-generic i x
+    | PUU-PS x: sem-default-ternop-ro-generic i x
     | RDHWR x: sem-foo
     | RDPGPR x: sem-foo
-    | RECIP-fmt x: sem-foo
+    | RECIP-fmt x: sem-default-binop-fmt-ro-generic i x
     | ROTR x: sem-rotr x
     | ROTRV x: sem-rotrv x
-    | ROUND-L-fmt x: sem-foo
-    | ROUND-W-fmt x: sem-foo
-    | RSQRT-fmt x: sem-foo
+    | ROUND-L-fmt x: sem-default-binop-fmt-ro-generic i x
+    | ROUND-W-fmt x: sem-default-binop-fmt-ro-generic i x
+    | RSQRT-fmt x: sem-default-binop-fmt-ro-generic i x
     | SB x: sem-sb x
     | SBE x: sem-sb x
     | SC x: sem-foo
     | SCE x: sem-foo
     | SDBBP x: sem-foo
-    | SDC1 x: sem-foo
-    | SDC2 x: sem-foo
-    | SDXC1 x: sem-foo
+    | SDC1 x: sem-default-ternop-src-ro-generic i x
+    | SDC2 x: sem-default-ternop-src-ro-generic i x
+    | SDXC1 x: sem-default-ternop-src-ro-generic i x
     | SEB x: sem-seb x
     | SEH x: sem-seh x
     | SH x: sem-sh x
@@ -1063,24 +1096,24 @@ val semantics i =
     | SLTI x: sem-slti x
     | SLTIU x: sem-sltiu x
     | SLTU x: sem-sltu x
-    | SQRT-fmt x: sem-fp
+    | SQRT-fmt x: sem-default-binop-fmt-ro-generic i x
     | SRA x: sem-sra x
     | SRAV x: sem-srav x
     | SRL x: sem-srl x
     | SRLV x: sem-srlv x
     | SUB x: sem-sub x
-    | SUB-fmt x: sem-foo
+    | SUB-fmt x: sem-default-ternop-fmt-ro-generic i x
     | SUBU x: sem-subu x
-    | SUXC1 x: sem-foo
+    | SUXC1 x: sem-default-ternop-src-ro-generic i x
     | SW x: sem-sw x
-    | SWC1 x: sem-foo
-    | SWC2 x: sem-foo
+    | SWC1 x: sem-default-ternop-src-ro-generic i x
+    | SWC2 x: sem-default-ternop-src-ro-generic i x
     | SWE x: sem-sw x
     | SWL x: sem-foo
     | SWLE x: sem-foo
     | SWR x: sem-foo
     | SWRE x: sem-foo
-    | SWXC1 x: sem-foo
+    | SWXC1 x: sem-default-ternop-src-ro-generic i x
     | SYNC x: sem-foo
     | SYNCI x: sem-foo
     | SYSCALL x: sem-foo
@@ -1102,8 +1135,8 @@ val semantics i =
     | TLTU x: sem-foo
     | TNE x: sem-foo
     | TNEI x: sem-foo
-    | TRUNC-L-fmt x: sem-foo
-    | TRUNC-W-fmt x: sem-foo
+    | TRUNC-L-fmt x: sem-default-binop-fmt-ro-generic i x
+    | TRUNC-W-fmt x: sem-default-binop-fmt-ro-generic i x
     | WAIT x: sem-foo
     | WRPGPR x: sem-foo
     | WSBH x: sem-foo
