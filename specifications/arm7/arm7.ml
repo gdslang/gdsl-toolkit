@@ -344,20 +344,20 @@ val / ['/cond 0000111 /s rn:4 rd:4 /op2register'] = dp RSC cond s (register-from
 val / ['/cond 0010111 /s rn:4 rd:4 /op2imm'] = dp RSC cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
 
 ### TST 
-val / ['/cond 0001000 /s rn:4 rd:4 /op2register'] = dp TST cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0011000 /s rn:4 rd:4 /op2imm'] = dp TST cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 00010001 rn:4 rd:4 /op2register'] = dp TST cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2register)
+val / ['/cond 00110001 rn:4 rd:4 /op2imm'] = dp TST cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2imm)
 
 ### TEQ 
-val / ['/cond 0001001 /s rn:4 rd:4 /op2register'] = dp TEQ cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0011001 /s rn:4 rd:4 /op2imm'] = dp TEQ cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 00010011 rn:4 rd:4 /op2register'] = dp TEQ cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2register)
+val / ['/cond 00110011 rn:4 rd:4 /op2imm'] = dp TEQ cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2imm)
 
 ### CMP 
-val / ['/cond 0001010 /s rn:4 rd:4 /op2register'] = dp CMP cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0011010 /s rn:4 rd:4 /op2imm'] = dp CMP cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 00010101 rn:4 rd:4 /op2register'] = dp CMP cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2register)
+val / ['/cond 00110101 rn:4 rd:4 /op2imm'] = dp CMP cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2imm)
 
 ### CMN 
-val / ['/cond 0001011 /s rn:4 rd:4 /op2register'] = dp CMN cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0011011 /s rn:4 rd:4 /op2imm'] = dp CMN cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 00010111 rn:4 rd:4 /op2register'] = dp CMN cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2register)
+val / ['/cond 00110111 rn:4 rd:4 /op2imm'] = dp CMN cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2imm)
 
 ### ORR 
 val / ['/cond 0001100 /s rn:4 rd:4 /op2register'] = dp ORR cond s (register-from-bits rn) (register-from-bits rd) (op2register)
