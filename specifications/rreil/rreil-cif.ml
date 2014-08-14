@@ -120,7 +120,7 @@ end
 val rreil-convert-sem-id cbs id = case id of
    FLOATING_FLAGS: cbs.sem_id.shared ((id_shared_enum id) + 0)
  | VIRT_T t: cbs.sem_id.virt_t (t + 0)
- | _: cbs.sem_id.arch (string-from-rope-lit (pretty-arch-id id))
+ | _: cbs.sem_id.arch (string-from-rope (pretty-arch-id id))
 end
 
 val rreil-convert-sem-address cbs address = cbs.sem_address.sem_address_ (address.size + 0) (rreil-convert-sem-linear cbs address.address)
@@ -213,7 +213,7 @@ end
 
 val rreil-convert-sem-exception cbs exception = case exception of
    SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared ((exception_enum exception) + 0)
- | _: cbs.sem_exception.arch (string-from-rope-lit (pretty-arch-exception exception))
+ | _: cbs.sem_exception.arch (string-from-rope (pretty-arch-exception exception))
 end
 
 val rreil-convert-sem-stmt cbs stmt = case stmt of

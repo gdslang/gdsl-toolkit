@@ -894,6 +894,7 @@ structure C1 = struct
      | emitPrim s (GET_CON_IDXprim, [e],[t]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->tag"]
      | emitPrim s (GET_CON_ARGprim, [_,e],[FUNvtype (_,_,[t]),_]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->payload"]
      | emitPrim s (VOIDprim, [],_) = str "0 /* void value */"
+     | emitPrim s (MERGE_ROPEprim, [e],_) = seq [str (#prefix s ^ "merge_rope"), fArgs [emitExp s e]] 
      | emitPrim s _ = raise CodeGenBug
    
    and addConsume s n = #consumeSizes s := IntListSet.add (!(#consumeSizes s),n)
