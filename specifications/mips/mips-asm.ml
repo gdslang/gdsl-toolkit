@@ -1,4 +1,4 @@
-export generalize : (insndata) -> asm-insn-flags
+export generalize : (insndata) -> asm-insn
 
 val generalize insn = let
   val recordify mnemonic ua = {mnemonic=mnemonic, ua=ua}
