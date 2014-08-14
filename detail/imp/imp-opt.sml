@@ -2010,16 +2010,16 @@ structure SwitchReduce = struct
                else
                   calcCutOff (newSlack, newLast, max, idx-1)
             end
-         (* including other bits might lead to overlapping patterns later *)
-         val cutOff = if bits<=1 then 0 else Array.sub (sorted, bits-1)
-            (*calcCutOff (0, Array.sub (sorted, bits-1), Array.sub (sorted, bits-1), bits-2)*)
+         (* including other bits might lead to overlapping patterns later, but it seems ok now *)
+         val cutOff = if bits<=1 then 0 else (*Array.sub (sorted, bits-1)*)
+            calcCutOff (0, Array.sub (sorted, bits-1), Array.sub (sorted, bits-1), bits-2)
          
          (*val bitPats = List.concat (map (fn p => case p of
                VECpat bp => bp
              | _ => []) pats)
          val patStr = foldl (fn (v,str) => str ^ "\n" ^ v) "" bitPats
          val arrStr = #2 (Array.foldl (fn (v,(sep,str)) => (",", str ^ sep ^ Int.toString v)) ("[","") dist) ^ "]"
-         val _ = if cutOff = 0 then () else 
+         val _ = if cutOff = 0 then () else
             TextIO.print ("case patterns:" ^ patStr ^ "\n" ^ arrStr ^ ", cutoff=" ^ Int.toString cutOff ^ "\n")*)
       in
          (bits,
@@ -2053,7 +2053,8 @@ structure SwitchReduce = struct
          val maskBadStr = foldl (fn (bit,str) => str ^ (if bit then "1" else "0")) "" badBits
          val rangeGoodStr = #2 (foldl (fn ((low,high),(sep,str)) => (";", str ^ sep ^ "[" ^ Int.toString low ^ "," ^ Int.toString high ^ "]")) ("","") rangeGood)
          val rangeBadStr = #2 (foldl (fn ((low,high),(sep,str)) => (";", str ^ sep ^ "[" ^ Int.toString low ^ "," ^ Int.toString high ^ "]")) ("","") rangeBad)
-         val _ = TextIO.print ("good mask: " ^ maskGoodStr ^ "\nbad mask:  " ^ maskBadStr ^ "\ngood range: " ^ rangeGoodStr ^ "\nbad range: " ^ rangeBadStr ^ "\n")*)
+         val _ = if List.length rangeGood=0 then () else TextIO.print ("good mask: " ^ maskGoodStr ^ "\nbad mask:  " ^ maskBadStr ^ "\ngood range: " ^ rangeGoodStr ^ "\nbad range: " ^ rangeBadStr ^ "\n")*)
+
          fun slice (low,high,e) =
             let
                val noOfBits = high-low+1
@@ -2083,35 +2084,37 @@ structure SwitchReduce = struct
             that overlap with the patterns of this case; turn them
             into a group of cases *)
          fun group [] = []
-           | group ((sp,pat,rhs) :: cases) =
+           | group ((pat,rhs) :: cases) =
             let
-               fun addRhs ([], rhs, cases) = cases
-                 | addRhs (pat, rhs, cases) = (pat,rhs) :: cases
-
                fun fetch (pat, rhs, []) = (pat, rhs, [])
-                 | fetch (pat, rhs, ((spT,patT,rhsT) :: cases)) =
+                 | fetch (pat, rhs, ((patT,rhsT) :: cases)) =
                   (case patsIntersection (pat,patT) of
                      [] => 
                      let
                         val (pat, rhs, cases) = fetch (pat,rhs,cases)
                      in
-                        (pat, rhs, (spT,patT,rhsT) :: cases)
+                        (pat, rhs, (patT,rhsT) :: cases)
                      end
                    | commonPat =>
                      let
                         val commonRhs = rhs @ rhsT
                         val newPat = patsDifference (pat,commonPat)
                         val newPatT = patsDifference (patT,commonPat)
+                        fun getSp rhs = case rhs of
+                             [] => SymbolTable.noSpan
+                           | ((sp,_,_)::_) => sp
                         val _ = if not (null newPat) then
-                           (Error.warningAt (#errs s, sp, ["pattern " ^ showPats commonPat ^
-                              " overlaps with earlier patterns " ^ showPats pat ^ "\n"])
-                           (*Error.warningAt (#errs s, spT, ["earlier pattern defined here\n"])*)
+                           (Error.errorAt (#errs s, getSp rhs, ["pattern '" ^ showPats pat ^
+                              "' contains '" ^ showPats commonPat ^
+                              "' which is also matched by later pattern '" ^ showPats patT ^
+                              "'\n[" ^ Error.spanToString (getSp rhsT) ^ "] Info: later pattern is here\n"])
                            )
                            else ()
                         val _ = if not (null newPatT) then
-                        (Error.warningAt (#errs s, sp, ["pattern " ^ showPats commonPat ^
-                           " overlaps with later patterns " ^ showPats patT ^ "\n"])
-                        (*Error.warningAt (#errs s, spT, ["later pattern defined here\n"])*)
+                        (Error.errorAt (#errs s, getSp rhsT, ["pattern '" ^ showPats patT ^
+                              "' contains '" ^ showPats commonPat ^
+                              "' which is also matched by earlier pattern '" ^ showPats pat ^
+                              "'\n[" ^ Error.spanToString (getSp rhs) ^ "] Info: earlier pattern is here\n"])
                         )
                            else ()
                      in
@@ -2121,11 +2124,11 @@ structure SwitchReduce = struct
                (*val _ = TextIO.print ("inspecting pattern " ^ showPats pat ^ ":\n")*)
                val (newPat, newRhs, newCases) = fetch (pat,rhs,cases)
             in
-               (sp, newPat, newRhs) :: group newCases
+               (newPat, newRhs) :: group newCases
             end
 
          fun splitCase (sp,p,bb) =
-            (sp, genPattern (goodBits,p), [(genPattern (badBits,p),bb)])
+            (genPattern (goodBits,p), [(sp, genPattern (badBits,p),bb)])
          fun remDup [] = []
            | remDup (p :: pats) =
             let
@@ -2137,9 +2140,9 @@ structure SwitchReduce = struct
                   p :: pats
             end
          fun genCases ((scrutBadSize,scrutBad), splitCases) =
-            map (fn (sp,pat,subCases) => (sp,VECpat (remDup pat),BASICblock ([],[
+            map (fn (pat,subCases) => (SymbolTable.noSpan,VECpat (remDup pat),BASICblock ([],[
                optCase s (scrutBad,
-                  (map (fn (pat,bb) => (sp,VECpat (remDup pat),bb)) subCases,
+                  (map (fn (sp,pat,bb) => (sp,VECpat (remDup pat),bb)) subCases,
                    default))
             ]))) splitCases
          (* add the default case unless the set of cases is trivial *)

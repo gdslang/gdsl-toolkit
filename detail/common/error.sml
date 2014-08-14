@@ -234,7 +234,7 @@ structure Error :> sig
         val pos = case pos of NONE => "[no position] " 
                             | SOME sp => "[" ^ spanToString sp ^ "] "
      in
-        TextIO.output (outStrm, String.concat [pos, kind, ": ", msg, "\n"])
+        TextIO.output (outStrm, String.concat [pos, kind, ": ", msg])
      end
 
     fun report (outStrm, es as ES{errors, numErrors, ...}) =
