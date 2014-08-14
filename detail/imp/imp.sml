@@ -331,9 +331,10 @@ structure Imp = struct
         | pat (CONpat s) = con s
         | pat (INTpat i) = str (IntInf.toString i)
         | pat WILDpat = str "_"
-      and casee (_, p, ss) =
+      and casee (s, p, ss) =
          align
             [seq [pat p, space, str ":"],
+             str (Error.spanToString s),
              block ss]
       and cases cs =
          case cs of [] => str "<empty>" | cs =>

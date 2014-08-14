@@ -102,10 +102,10 @@ structure Core = struct
       end
       and field (s, e) =
          (FieldInfo.getString (!SymbolTables.fieldTable, s), layout e)
-      and casee ({span=(p1,p2),...} : Error.span, p, e) =
+      and casee (s, p, e) =
          align
-            [seq [pat p, space, 
-             str "[", str (Int.toString p1), str ",", str (Int.toString p2), str "]"],
+            [seq [pat p, space(*,
+             str (Error.spanToString s)*)],
              indent 3 (layout e)]
       and cases cs =
          case cs of [] => str "<empty>" | cs =>
