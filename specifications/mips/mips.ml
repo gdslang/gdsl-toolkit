@@ -272,7 +272,7 @@ val / ['010001 /fmt5dwl 00000 /fs /fd 100000'] = binop-fmt CVT-S-fmt fmt fd (rig
 
 ### CVT-S-PL
 ###  - Floating Point Convert Pair Lower to Single Floating Point
-val / ['010001 10110 00000 /fs /fd 101000'] = binop CVT-S-PL fd (right fs) 
+val / ['010001 10110 00000 /fs /fd 101000'] = binop CVT-S-PL fd (right fs)
 
 ### CVT-S-PU
 ###  - Floating Point Convert Pair Upper to Single Floating Point

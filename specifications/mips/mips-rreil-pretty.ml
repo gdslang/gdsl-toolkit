@@ -75,4 +75,9 @@ val arch-show-id r =
 
 val pretty-arch-id r = arch-show-id r
 
-val pretty-arch-exception exception = ""
+val pretty-arch-exception exception =
+   case exception of
+      SEM_EXC_OVERFLOW : "{Exception: Overflow}"
+    | SEM_EXC_VADDR_ERROR : "{Exception: Virtual Address Error}"
+    | SEM_EXC_TRAP : "{Exception: Trap}"
+   end

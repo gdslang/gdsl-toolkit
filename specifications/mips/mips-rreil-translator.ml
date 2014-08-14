@@ -1,5 +1,7 @@
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
+val exceptions_on = '1'
+
 type signedness =
    Signed
  | Unsigned
@@ -101,6 +103,10 @@ val sem-default-unop-src-ro-generic insn x = do
 	src-up <- unpack-lin src-sz src;
 
 	prim-generic (mnemonic-of insn) varls-none (varls-one (varl src-sz src-up))
+end
+
+val sem-default-nullop-ro-generic insn = do
+	prim-generic (mnemonic-of insn) varls-none varls-none
 end
 
 val sem-default-binop-ro-generic insn x = do
@@ -248,13 +254,45 @@ val sem-default-quadop-fmt-src-ro-generic insn x = do
 	prim-generic (mnemonic-with-format insn x) varls-none (varls-more (varl src4-sz src4-up) (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))))
 end
 
+val throw-exception exc = if exceptions_on then throw exc else (return void)
+
+type sem_exception =
+   SEM_EXC_OVERFLOW
+ | SEM_EXC_VADDR_ERROR
+ | SEM_EXC_TRAP
+
 ###########
 ### semantics of instructions
 ###########
 
 val sem-foo = return void
-val sem-fp = return void
-val sem-fp2 = return void
+
+val overflow-add-addi size res rs rt = do
+	t1 <- mktemp;
+	t2 <- mktemp;
+	t3 <- mktemp;
+
+	# overflow computation: mind**** alert
+	xorb size t1 (var res) rs;
+	xorb size t2 (var res) rt;
+	andb size t3 (var t1) (var t2);
+
+	_if (/lts size (var t3) (imm 0)) _then
+		throw-exception SEM_EXC_OVERFLOW
+end
+
+val overflow-sub size res rs rt = do
+	t1 <- mktemp;
+	t2 <- mktemp;
+	t3 <- mktemp;
+	
+	# overflow computation: mind**** alert
+	cmplts size t1 (var res) (imm 0);
+	cmplts size t2 rs rt;
+
+	_if (/xor (return (var t2)) (return (var t1))) _then
+		throw-exception SEM_EXC_OVERFLOW
+end
 
 val sem-add x = do
 	rs <- rval Signed x.source1;
@@ -264,7 +302,7 @@ val sem-add x = do
 	res <- mktemp;
 	add size res rs rt;
 
-	# THROW EXCEPTION	
+	overflow-add-addi size res rs rt;
 
 	write x.destination (var res)	
 end
@@ -288,7 +326,7 @@ val sem-addi x = do
 	res <- mktemp;
 	add size res rs imm;
 
-	# THROW EXCEPTION
+	overflow-add-addi size res rs imm;
 
 	write x.destination (var res)	
 end
@@ -549,10 +587,11 @@ val sem-lh-lhu ext_op x = do
 	off <- rval Signed x.source2;
 	size <- return (sizeof-rval x.source1);
 
-	# THROW EXCEPTION
-
 	vaddr <- mktemp;
 	add size vaddr base off;
+
+	_if (/neq 1 (var vaddr) (imm 0)) _then
+		throw-exception SEM_EXC_VADDR_ERROR;
 
 	memword <- mktemp;
 	load 32 memword size (var vaddr);
@@ -582,10 +621,11 @@ val sem-lw x = do
 	off <- rval Signed x.source2;
 	size <- return (sizeof-rval x.source1);
 
-	# THROW EXCEPTION
-
 	vaddr <- mktemp;
 	add size vaddr base off;
+
+	_if (/neq 2 (var vaddr) (imm 0)) _then
+		throw-exception SEM_EXC_VADDR_ERROR;
 
 	memword <- mktemp;
 	load 32 memword size (var vaddr);
@@ -808,25 +848,25 @@ val sem-slti x = sem-slti-sltiu movsx cmplts x
 val sem-sltiu x = sem-slti-sltiu movzx cmpltu x
 
 val sem-sub x = do
-	s1 <- rval Signed x.source1;
-	s2 <- rval Signed x.source2;
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
 	size <- return (sizeof-lval x.destination);
 
 	res <- mktemp;
-	sub size res s1 s2;
+	sub size res rs rt;
 	
-	# EXCEPTION THROWN
+	overflow-sub size res rs rt;
 
 	write x.destination (var res)
 end
 
 val sem-subu x = do
-	s1 <- rval Signed x.source1;
-	s2 <- rval Signed x.source2;
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
 	size <- return (sizeof-lval x.destination);
 
 	res <- mktemp;
-	sub size res s1 s2;
+	sub size res rs rt;
 	
 	write x.destination (var res)
 end
@@ -861,10 +901,11 @@ val sem-sh x = do
 	off <- rval Signed x.source3;
 	size <- return (sizeof-rval x.source1);
 
-	# THROW EXCEPTION
-
 	vaddr <- mktemp;
 	add size vaddr base off;
+
+	_if (/neq 1 (var vaddr) (imm 0)) _then
+		throw-exception SEM_EXC_VADDR_ERROR;
 
 	bigendian_cpu <- mktemp;
 	shl 2 bigendian_cpu (var fRE) (imm 1);
@@ -886,10 +927,11 @@ val sem-sw x = do
 	off <- rval Signed x.source3;
 	size <- return (sizeof-rval x.source1);
 
-	# THROW EXCEPTION
-
 	vaddr <- mktemp;
 	add size vaddr base off;
+
+	_if (/neq 2 (var vaddr) (imm 0)) _then
+		throw-exception SEM_EXC_VADDR_ERROR;
 
 	store 32 (address size (var vaddr)) rt
 end
@@ -926,6 +968,38 @@ end
 val sem-sllv x = sem-sllv-srav-srlv shl x
 val sem-srav x = sem-sllv-srav-srlv shrs x
 val sem-srlv x = sem-sllv-srav-srlv shr x
+
+val sem-t cmp_op x = do
+	rs <- rval Signed x.source1;
+	rt <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	_if (cmp_op size rs rt) _then
+		throw-exception SEM_EXC_TRAP
+end
+
+val sem-teq x = sem-t /eq x
+val sem-tge x = sem-t /ges x
+val sem-tgeu x = sem-t /geu x
+val sem-tlt x = sem-t /lts x
+val sem-tltu x = sem-t /ltu x
+val sem-tne x = sem-t /neq x
+
+val sem-ti cmp_op signedness x = do
+	rs <- rval signedness x.source1;
+	imm <- rval signedness x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	_if (cmp_op size rs imm) _then
+		throw-exception SEM_EXC_TRAP
+end
+
+val sem-teqi x = sem-ti /eq Signed x
+val sem-tgei x = sem-ti /ges Signed x
+val sem-tgeiu x = sem-ti /geu Unsigned x
+val sem-tlti x = sem-ti /lts Signed x
+val sem-tltiu x = sem-ti /ltu Unsigned x
+val sem-tnei x = sem-ti /neq Signed x
 
 val semantics i =
    case i of
@@ -1117,24 +1191,24 @@ val semantics i =
     | SYNC x: sem-foo
     | SYNCI x: sem-foo
     | SYSCALL x: sem-foo
-    | TEQ x: sem-foo
-    | TEQI x: sem-foo
-    | TGE x: sem-foo
-    | TGEI x: sem-foo
-    | TGEIU x: sem-foo
-    | TGEU x: sem-foo
-    | TLBINV: sem-foo
-    | TLBINVF: sem-foo
-    | TLBP: sem-foo
-    | TLBR: sem-foo
-    | TLBWI: sem-foo
-    | TLBWR: sem-foo
-    | TLT x: sem-foo
-    | TLTI x: sem-foo
-    | TLTIU x: sem-foo
-    | TLTU x: sem-foo
-    | TNE x: sem-foo
-    | TNEI x: sem-foo
+    | TEQ x: sem-teq x
+    | TEQI x: sem-teqi x
+    | TGE x: sem-tge x
+    | TGEI x: sem-tgei x
+    | TGEIU x: sem-tgeiu x
+    | TGEU x: sem-tgeu x
+    | TLBINV: sem-default-nullop-ro-generic i
+    | TLBINVF: sem-default-nullop-ro-generic i
+    | TLBP: sem-default-nullop-ro-generic i
+    | TLBR: sem-default-nullop-ro-generic i
+    | TLBWI: sem-default-nullop-ro-generic i
+    | TLBWR: sem-default-nullop-ro-generic i
+    | TLT x: sem-tlt x
+    | TLTI x: sem-tlti x
+    | TLTIU x: sem-tltiu x
+    | TLTU x: sem-tltu x
+    | TNE x: sem-tne x
+    | TNEI x: sem-tnei x
     | TRUNC-L-fmt x: sem-default-binop-fmt-ro-generic i x
     | TRUNC-W-fmt x: sem-default-binop-fmt-ro-generic i x
     | WAIT x: sem-foo
