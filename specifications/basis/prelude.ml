@@ -50,8 +50,9 @@ val from-string-lit s = RopeLeaf { rope-size = strlen s, rope-string = s }
 
 # convert a string literal to a simple string, this function will fail
 # for strings that are concatenated
-val string-from-rope-lit r = case r of
+val string-from-rope r = case r of
    RopeLeaf l: l.rope-string
+ | RopeInner n : merge-rope r
 end
 
 val show-int s = from-string-lit (showint s)
@@ -189,8 +190,8 @@ val &* c cs = case c of
 end
 
 val conf data short long = CONF
-  { confShortName = string-from-rope-lit short,
-    confLongName = string-from-rope-lit long,
+  { confShortName = string-from-rope short,
+    confLongName = string-from-rope long,
     confData = data,
     confNext = END }
 
