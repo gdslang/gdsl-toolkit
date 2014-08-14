@@ -974,11 +974,6 @@ end
 
 val sub-unsigned-saturating size dst src1 src2 = binop-unsigned-saturating sub /gtu 0 size dst src1 src2
 
-val flow_semantics = do
-  hugo <- decode config-default;
-  semantics hugo
-end
-
 val semantics insn = let
   val comb x = @{features=insn.features,opnd-sz=insn.opnd-sz,addr-sz=insn.addr-sz,rep=insn.rep,repne=insn.repne,lock=insn.lock} x
 in
@@ -2309,7 +2304,7 @@ val translate-block-single insn = do
    ic <- query $ins_count;
    update@{tmp=0,ins_count=ic+1};
    
-   translate-x86 insn
+   translate-x86 {features=insn.features,opnd-sz=insn.opnd-sz,addr-sz=insn.addr-sz,rep=insn.rep,repne=insn.repne,lock=insn.lock,insn=insn.insn,config=insn.config,length=insn.length}  
 end
 
 val relative-next stmts = let
