@@ -22,8 +22,9 @@ val insn-length = 32
 
 type insndata = {instruction:instruction} 
 
-type instruction = 
-    AND  of dp
+type instruction =
+    BX of bx
+  | AND  of dp
   | EOR  of dp
   | SUB  of dp
   | RSB  of dp
@@ -51,6 +52,8 @@ type instruction =
   | STRH of loadstore
   | LDRSB of loadstore
   | LDRSRH of loadstore
+  | B of branch
+  | BL of branch
 
 type signed
   = SIGNED
@@ -69,6 +72,8 @@ type dp = {condition:condition, s:1, rn:register, rd:register, op2:operand}
 type mul = {condition:condition, s:1, rd:register, rn:register, rs:register, rm:register}
 type mull = {condition:condition, s:1, rdhi:register, rdlo:register, rs:register, rm:register}
 type loadstore = {p:1, u:updown, b:width, w:1, rn: register, rd:register, offset: operand}
+type bx = {condition:condition, rn:register}
+type branch = {condition:condition, offset:24}
 
 type operand
   = REGSHIFTAMOUNT of shiftamount 
@@ -159,6 +164,16 @@ val loadstore cons condition p u b w rn rd offset = do
         offset <- offset;
         return (cons{condition=condition, p=p, u=u, b=b, w=w, rn=rn, rd=rd, offset=offset})
 end
+
+val bx cons condition rn = do
+        condition <- condition;
+        return (cons{condition=condition, rn=rn})
+end        
+
+val branch cons condition offset = do
+        condition <- condition;
+        return (cons{condition=condition, offset=offset})
+end        
 
 val shiftregister cons rm register shift_type = do
         shift_type <- shift_type;
@@ -287,6 +302,14 @@ val s = do
         update @{s='0'};
         return (s)
 end
+
+
+### BX
+val / ['/cond 000100101111111111110001 rn:4'] = bx BX cond (register-from-bits rn)
+
+### B
+val / ['/cond 1010 offset:24'] = branch B cond offset
+val / ['/cond 1011 offset:24'] = branch BL cond offset
 
 ### AND
 val / ['/cond 0000000 /s rn:4 rd:4 /op2register'] = dp AND cond s (register-from-bits rn) (register-from-bits rd) (op2register)
