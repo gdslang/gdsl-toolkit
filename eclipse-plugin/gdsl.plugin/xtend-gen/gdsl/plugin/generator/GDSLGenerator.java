@@ -5,7 +5,7 @@ package gdsl.plugin.generator;
 
 import com.google.common.base.Objects;
 import gdsl.plugin.generator.RunCompiler;
-import gdsl.plugin.preferences.plugin.GDSLPluginPreferences;
+import gdsl.plugin.preferences.GDSLPluginPreferences;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -60,6 +60,16 @@ public class GDSLGenerator implements IGenerator {
     RunCompiler.compileAndSetMarkers(_string, projectPath);
   }
   
+  /**
+   * Builds a string containing all files found under the specified path with the extension .ml
+   * 
+   * @param path
+   * 			The path to search for files
+   * @param root
+   * 			The workspace root (ResourcesPlugin.getWorkspace().getRoot())
+   * @return
+   * 			A string containing all the files found separated by a space
+   */
   private String recursiveGetMLFiles(final IPath path, final IWorkspaceRoot root) {
     final IContainer container = root.getContainerForLocation(path);
     StringBuilder result = new StringBuilder();

@@ -16,61 +16,104 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
+/**
+ * A class to work with the GDSL compiler
+ * 
+ * @author Daniel Endress
+ * 
+ */
 public class RunCompiler {
 
-	public static void compileAndSetMarkers(String command, IPath projectPath){
-		String[] compilerResult = compile(command);
-		GDSLError[] errors = parseErrors(compilerResult);
+	/**
+	 * Compiles using the given command
+	 * 
+	 * @param command
+	 *            The command running the compiler
+	 * @param projectPath
+	 *            The path to the current project
+	 */
+	public static void compileAndSetMarkers(final String command, final IPath projectPath) {
+		final String[] compilerResult = compile(command);
+		final GDSLError[] errors = parseErrors(compilerResult);
 		Assert.isNotNull(errors);
 		clearMarkers(projectPath);
 		setMarkers(errors);
 	}
 
-	private static String[] compile(String command){
-		List<String> output = new LinkedList<String>();
+	/**
+	 * Compiles using the given command
+	 * 
+	 * @param command
+	 *            The compile command
+	 * @return All error lines the compiler returns
+	 */
+	private static String[] compile(final String command) {
+		final List<String> output = new LinkedList<String>();
 		Process p;
-		try{
+		try {
 			p = Runtime.getRuntime().exec(command);
 			p.waitFor();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 			String line = "";
-			while((line = reader.readLine())!= null){
+			while ((line = reader.readLine()) != null) {
 				output.add(line + "\n");
 			}
-		}catch(Exception e){
+		} catch (final Exception e) {
 			return null;
 		}
-		return output.toArray(new String[]{});
+		return output.toArray(new String[] {});
 	}
-	
-	private static GDSLError[] parseErrors(String[] compilerResult){
-		if(null == compilerResult) return null;
-		List<GDSLError> result = new LinkedList<GDSLError>();
-		for(String s : compilerResult){
-			if(s.matches("\\[.+:\\d+\\.\\d+\\] Error: .*\\n?")){
+
+	/**
+	 * Parses the error lines of the compiler and creates GDSLErrors for each
+	 * error
+	 * 
+	 * @param compilerResult
+	 *            The error lines of the compiler
+	 * @return A GDSLError instance for every error
+	 */
+	private static GDSLError[] parseErrors(final String[] compilerResult) {
+		if (null == compilerResult) {
+			return null;
+		}
+		final List<GDSLError> result = new LinkedList<GDSLError>();
+		for (final String s : compilerResult) {
+			if (s.matches("\\[.+:\\d+\\.\\d+\\] Error: .*\\n?")) {
 				result.add(new GDSLError(s));
 			}
 		}
-		return result.toArray(new GDSLError[]{});
+		return result.toArray(new GDSLError[] {});
 	}
-	
-	private static void clearMarkers(IPath path){
-		IContainer container = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(path);
-		try{
-			for(IResource r : container.members()){
-				if("ml".equals(r.getFileExtension())){
+
+	/**
+	 * Deletes all markers from every .ml file under the specified path
+	 * 
+	 * @param path
+	 *            The path to delete markers from
+	 */
+	private static void clearMarkers(final IPath path) {
+		final IContainer container = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(path);
+		try {
+			for (final IResource r : container.members()) {
+				if ("ml".equals(r.getFileExtension())) {
 					r.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
 				}
-				if(r.getType() == IResource.FOLDER){
+				if (r.getType() == IResource.FOLDER) {
 					clearMarkers(r.getLocation());
 				}
 			}
-		}catch(CoreException e){
+		} catch (final CoreException e) {
 		}
 	}
-	
-	private static void setMarkers(GDSLError[] errors){
-		for(GDSLError e : errors){
+
+	/**
+	 * Sets markers for the given GDSLErrors
+	 * 
+	 * @param errors
+	 *            The GDSL errors
+	 */
+	private static void setMarkers(final GDSLError[] errors) {
+		for (final GDSLError e : errors) {
 			final IResource resource = e.resource;
 			IMarker marker;
 			try {
@@ -80,23 +123,35 @@ public class RunCompiler {
 				marker.setAttribute(IMarker.CHAR_START, e.charStart);
 				marker.setAttribute(IMarker.CHAR_END, e.charEnd);
 				marker.setAttribute(IMarker.MESSAGE, e.message);
-			} catch (CoreException e1) {
+			} catch (final CoreException e1) {
 			}
 		}
 	}
-	
-	private static class GDSLError{
+
+	/**
+	 * A helper class for handling errors returned by the GDSL compiler
+	 * 
+	 * @author Daniel Endress
+	 * 
+	 */
+	private static class GDSLError {
 		private final IResource resource;
 		private final int line;
 		private final int charStart;
 		private final int charEnd;
 		private final String message;
-		
-		public GDSLError(String errorMessage){
+
+		/**
+		 * Creates a new GDSLError object with the given compiler error message
+		 * 
+		 * @param errorMessage
+		 *            The error message returned by the GDSL compiler
+		 */
+		public GDSLError(final String errorMessage) {
 			String[] split = errorMessage.split(Pattern.quote(" Error: "));
 			Assert.isTrue(2 == split.length);
 			message = split[1];
-			final String location = split[0].substring(split[0].indexOf("[")+1, split[0].lastIndexOf("]"));
+			final String location = split[0].substring(split[0].indexOf("[") + 1, split[0].lastIndexOf("]"));
 			split = location.split(Pattern.quote(":"));
 			Assert.isTrue(2 == split.length);
 			final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();

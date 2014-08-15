@@ -1,6 +1,6 @@
 package gdsl.plugin.preferences.project;
 
-import gdsl.plugin.preferences.plugin.GDSLPluginPreferences;
+import gdsl.plugin.preferences.GDSLPluginPreferences;
 
 import java.io.File;
 
@@ -23,79 +23,92 @@ import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.osgi.service.prefs.BackingStoreException;
 
-public class GdslPropertyPage extends PropertyPage implements
-		IWorkbenchPropertyPage {
-	
+/**
+ * A property page for project specific compiler settings
+ * 
+ * @author Daniel Endress
+ * 
+ */
+public class GdslPropertyPage extends PropertyPage implements IWorkbenchPropertyPage {
+
 	private Text txtOutputName;
 	private Button btnCheckPrefix;
 	private Text txtPrefix;
 	private Text txtRuntimePath;
 
 	@Override
-	protected Control createContents(Composite parent) {
-		Composite pageComponent = new Composite(parent, SWT.NULL);
-        GridLayout layout = new GridLayout();
-        layout.marginWidth = 0;
-        layout.marginHeight = 0;
-        pageComponent.setLayout(layout);
-        GridData data = new GridData();
-        data.verticalAlignment = GridData.FILL;
-        data.horizontalAlignment = GridData.FILL;
-        pageComponent.setLayoutData(data);
-        
-        createFields(pageComponent);
+	protected Control createContents(final Composite parent) {
+		final Composite pageComponent = new Composite(parent, SWT.NULL);
+		final GridLayout layout = new GridLayout();
+		layout.marginWidth = 0;
+		layout.marginHeight = 0;
+		pageComponent.setLayout(layout);
+		final GridData data = new GridData();
+		data.verticalAlignment = GridData.FILL;
+		data.horizontalAlignment = GridData.FILL;
+		pageComponent.setLayoutData(data);
+
+		createFields(pageComponent);
 
 		return pageComponent;
 	}
-	
-	protected void createFields(Composite parent){
+
+	/**
+	 * Create all graphical elements
+	 * 
+	 * @param parent
+	 *            The parent composite
+	 */
+	protected void createFields(final Composite parent) {
 		parent.setLayout(new GridLayout(3, false));
-		
-		Label lblOutputName = new Label(parent, SWT.NONE);
+
+		final Label lblOutputName = new Label(parent, SWT.NONE);
 		lblOutputName.setText("Output-Name:");
 		lblOutputName.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		
+
 		txtOutputName = new Text(parent, SWT.BORDER);
 		txtOutputName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		
-		
+
 		btnCheckPrefix = new Button(parent, SWT.CHECK);
 		btnCheckPrefix.setText("Prefix for emitted declarations:");
 		btnCheckPrefix.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		btnCheckPrefix.addSelectionListener(new SelectionAdapter() {
 			@Override
-			public void widgetSelected(final SelectionEvent e){
+			public void widgetSelected(final SelectionEvent e) {
 				setEnablements();
 			}
 		});
-		
+
 		txtPrefix = new Text(parent, SWT.BORDER);
 		txtPrefix.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		
-		Label lblRuntimePath = new Label(parent, SWT.NONE);
+
+		final Label lblRuntimePath = new Label(parent, SWT.NONE);
 		lblRuntimePath.setText("Path to runtime templates:");
 		lblRuntimePath.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		
+
 		txtRuntimePath = new Text(parent, SWT.BORDER);
 		txtRuntimePath.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Button searchRuntimePath = new Button(parent, SWT.PUSH);
+
+		final Button searchRuntimePath = new Button(parent, SWT.PUSH);
 		searchRuntimePath.setText("...");
 		searchRuntimePath.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		searchRuntimePath.addSelectionListener(new SelectionAdapter() {
 			@Override
-			public void widgetSelected(final SelectionEvent e){
+			public void widgetSelected(final SelectionEvent e) {
 				queryRuntimePath();
 			}
 		});
 
 		initializeElements();
-	
+
 	}
 
+	/**
+	 * Initalize all settings
+	 */
 	private void initializeElements() {
-		IEclipsePreferences projectNode = getProjectNode();
-		if(null != projectNode){
+		final IEclipsePreferences projectNode = getProjectNode();
+		if (null != projectNode) {
 			txtOutputName.setText(projectNode.get(GDSLPluginPreferences.P_OUTPUT_NAME, GDSLPluginPreferences.D_OUTPUT_NAME));
 			btnCheckPrefix.setSelection(projectNode.getBoolean(GDSLPluginPreferences.P_HAS_PREFIX, GDSLPluginPreferences.D_HAS_PREFIX));
 			txtPrefix.setText(projectNode.get(GDSLPluginPreferences.P_PREFIX, GDSLPluginPreferences.D_PREFIX));
@@ -104,7 +117,10 @@ public class GdslPropertyPage extends PropertyPage implements
 		setEnablements();
 	}
 
-	private void queryRuntimePath(){
+	/**
+	 * A dialog to select a directory as runtime path
+	 */
+	private void queryRuntimePath() {
 		final DirectoryDialog dialog = new DirectoryDialog(getShell(), SWT.OPEN | SWT.SHEET);
 		dialog.setText("Select the path to runtime templates");
 
@@ -117,10 +133,10 @@ public class GdslPropertyPage extends PropertyPage implements
 		txtRuntimePath.setText(path);
 
 	}
-	
+
 	@Override
-	protected void performApply(){
-		IEclipsePreferences projectNode = getProjectNode();
+	protected void performApply() {
+		final IEclipsePreferences projectNode = getProjectNode();
 		if (projectNode != null) {
 			projectNode.put(GDSLPluginPreferences.P_OUTPUT_NAME, txtOutputName.getText());
 			projectNode.putBoolean(GDSLPluginPreferences.P_HAS_PREFIX, btnCheckPrefix.getSelection());
@@ -130,21 +146,29 @@ public class GdslPropertyPage extends PropertyPage implements
 
 		try {
 			projectNode.flush();
-		} catch (BackingStoreException e) {
+		} catch (final BackingStoreException e) {
 		}
 	}
-	
-	private IEclipsePreferences getProjectNode(){
-		Object adapter = getElement().getAdapter(IProject.class);
-		if(adapter instanceof IProject){
-			IProject project = (IProject)adapter;
-			IScopeContext projectScope = new ProjectScope(project);
-			IEclipsePreferences projectNode = projectScope.getNode(GDSLPluginPreferences.PLUGIN_SCOPE);
+
+	/**
+	 * Returns the project preference store
+	 * 
+	 * @return The preference store for the project
+	 */
+	private IEclipsePreferences getProjectNode() {
+		final Object adapter = getElement().getAdapter(IProject.class);
+		if (adapter instanceof IProject) {
+			final IProject project = (IProject) adapter;
+			final IScopeContext projectScope = new ProjectScope(project);
+			final IEclipsePreferences projectNode = projectScope.getNode(GDSLPluginPreferences.PLUGIN_SCOPE);
 			return projectNode;
 		}
 		return null;
 	}
 
+	/**
+	 * Set enablement status according to the current settings
+	 */
 	private void setEnablements() {
 		txtPrefix.setEnabled(btnCheckPrefix.getSelection());
 	}
