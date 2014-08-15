@@ -16,7 +16,7 @@ DeclExport:
 	'export' name=[DeclVal] (tyVars=TyVars)? ':' type=Ty
 ;
 
-DeclType:
+DeclType returns Type:
 	'type' name=ID 
 	(
 		('=' (=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) | value=Ty))
@@ -32,7 +32,11 @@ DeclVal:
 ;
 
 TyVars:
-	'[' attr+=ID (',' attr+=ID)* ']'
+	'[' attr+=TyVar (',' attr+=TyVar)* ']'
+;
+
+TyVar returns Type:
+	name=ID
 ;
 
 ConDecl:
@@ -42,7 +46,7 @@ ConDecl:
 Ty:
 	value=INTEGER |
 //	'|' value=INTEGER '|' |
-	(decl=[DeclType] | type='int') ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
+	(typeRef=[Type] | type=('int'|'string'|'unit')) ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
 	{Ty} '{' (elements+=TyElement (',' elements+=TyElement)*)? '}' |
 	'(' param+=Ty (',' param+=Ty)* ')' '->' resType=Ty |
 	{Ty} '()' |
@@ -155,7 +159,7 @@ terminal ID_WO_CONS:('A'..'Z'|'a'..'z'|'/') (USCORE|IDCHAR)*;
 terminal STRING:'"' ( '\\'('b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\') | !('\\'|'"') )* '"';
 terminal fragment IDCHAR:('A'..'Z'|'a'..'z'|'/'|'0'..'9'|CHARSYM);
 terminal fragment CHARSYM:'-'|'?'/*|"'"*/|'!';
-terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'/*|'#'*/|'*'|'\\';
+terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'|'/*|'#'*/|'*'|'\\';
 terminal DUALS: ('0'|'1')+;
 terminal BINS:('0'|'1'|'\\'|'.'|'|')*;
 terminal POSINT_WO_DUALS: ('0'..'9')+;

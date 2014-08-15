@@ -45,6 +45,7 @@ public class GDSLParser extends AbstractContentAssistParser {
 					put(grammarAccess.getDeclValAccess().getAlternatives_1_2_4(), "rule__DeclVal__Alternatives_1_2_4");
 					put(grammarAccess.getTyAccess().getAlternatives(), "rule__Ty__Alternatives");
 					put(grammarAccess.getTyAccess().getAlternatives_1_0(), "rule__Ty__Alternatives_1_0");
+					put(grammarAccess.getTyAccess().getTypeAlternatives_1_0_1_0(), "rule__Ty__TypeAlternatives_1_0_1_0");
 					put(grammarAccess.getExpAccess().getAlternatives(), "rule__Exp__Alternatives");
 					put(grammarAccess.getCaseExpAccess().getAlternatives(), "rule__CaseExp__Alternatives");
 					put(grammarAccess.getClosedExpAccess().getAlternatives(), "rule__ClosedExp__Alternatives");
@@ -174,10 +175,11 @@ public class GDSLParser extends AbstractContentAssistParser {
 					put(grammarAccess.getDeclValAccess().getExpsAssignment_1_2_4_1_3(), "rule__DeclVal__ExpsAssignment_1_2_4_1_3");
 					put(grammarAccess.getTyVarsAccess().getAttrAssignment_1(), "rule__TyVars__AttrAssignment_1");
 					put(grammarAccess.getTyVarsAccess().getAttrAssignment_2_1(), "rule__TyVars__AttrAssignment_2_1");
+					put(grammarAccess.getTyVarAccess().getNameAssignment(), "rule__TyVar__NameAssignment");
 					put(grammarAccess.getConDeclAccess().getNameAssignment_0(), "rule__ConDecl__NameAssignment_0");
 					put(grammarAccess.getConDeclAccess().getTyAssignment_1_1(), "rule__ConDecl__TyAssignment_1_1");
 					put(grammarAccess.getTyAccess().getValueAssignment_0(), "rule__Ty__ValueAssignment_0");
-					put(grammarAccess.getTyAccess().getDeclAssignment_1_0_0(), "rule__Ty__DeclAssignment_1_0_0");
+					put(grammarAccess.getTyAccess().getTypeRefAssignment_1_0_0(), "rule__Ty__TypeRefAssignment_1_0_0");
 					put(grammarAccess.getTyAccess().getTypeAssignment_1_0_1(), "rule__Ty__TypeAssignment_1_0_1");
 					put(grammarAccess.getTyAccess().getTyBindAssignment_1_1_1(), "rule__Ty__TyBindAssignment_1_1_1");
 					put(grammarAccess.getTyAccess().getTyBindAssignment_1_1_2_1(), "rule__Ty__TyBindAssignment_1_1_2_1");

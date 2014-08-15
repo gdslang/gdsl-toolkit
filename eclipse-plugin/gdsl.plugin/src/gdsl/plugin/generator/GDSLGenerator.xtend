@@ -4,10 +4,14 @@
 package gdsl.plugin.generator
 
 import gdsl.plugin.preferences.plugin.GDSLPluginPreferences
+import org.eclipse.core.resources.IResource
+import org.eclipse.core.resources.IWorkspaceRoot
+import org.eclipse.core.resources.ResourcesPlugin
+import org.eclipse.core.runtime.CoreException
+import org.eclipse.core.runtime.IPath
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.core.resources.ResourcesPlugin
 
 /**
  * Generates code from your model files on save.
@@ -23,10 +27,6 @@ class GDSLGenerator implements IGenerator {
 //				.map[name]
 //				.join(', '))\
 
-		val projectPath = GDSLPluginPreferences.obtainProject(resource).fullPath;
-		val workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString()
-		val fullProjectPath = workspacePath + projectPath + "/"
-		
 		var commandBuilder = new StringBuilder()
 		
 		//Compiler invocation
@@ -38,7 +38,7 @@ class GDSLGenerator implements IGenerator {
 		
 		//Runtime templates
 		commandBuilder.append(" --runtime=");
-		commandBuilder.append(makeAbsolute(fullProjectPath, GDSLPluginPreferences.getRuntimeTemplates(resource)));
+		commandBuilder.append(GDSLPluginPreferences.getRuntimeTemplates(resource));
 		
 		//Prefix
 		val prefix = GDSLPluginPreferences.getPrefix(resource); 
@@ -54,16 +54,30 @@ class GDSLGenerator implements IGenerator {
 			commandBuilder.append(" -t");
 		}
 		
-		// TODO append files
+		//Files
+		val projectPath = GDSLPluginPreferences.obtainProject(resource).location;
+		val workspaceRoot = ResourcesPlugin.workspace.root;
+		commandBuilder.append(recursiveGetMLFiles(projectPath, workspaceRoot));
 
-		RunCompiler.compile("echo " + commandBuilder.toString)
+		RunCompiler.compileAndSetMarkers(commandBuilder.toString, projectPath);
 		
 	}
-	
-	private def String makeAbsolute(String projectPath, String relativePath){
-		if(relativePath.startsWith("/")){
-			return relativePath;
+		
+	private def String recursiveGetMLFiles(IPath path, IWorkspaceRoot root){
+		val container = root.getContainerForLocation(path);
+		var result = new StringBuilder();
+		try{
+			for(IResource r : container.members){
+				if("ml".equals(r.fileExtension)){
+					result.append(" " + r.location.toOSString);
+				}
+				if(r.type == IResource.FOLDER){
+					result.append(recursiveGetMLFiles(r.location, root));
+				}
+			}
 		}
-		return projectPath + relativePath;
+		catch(CoreException e){
+		}
+		return result.toString;
 	}
 }

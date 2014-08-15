@@ -25,19 +25,19 @@ import org.eclipse.emf.ecore.EObject;
 public interface TyVars extends EObject
 {
   /**
-   * Returns the value of the '<em><b>Attr</b></em>' attribute list.
-   * The list contents are of type {@link java.lang.String}.
+   * Returns the value of the '<em><b>Attr</b></em>' containment reference list.
+   * The list contents are of type {@link gdsl.plugin.gDSL.Type}.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Attr</em>' attribute list isn't clear,
+   * If the meaning of the '<em>Attr</em>' containment reference list isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Attr</em>' attribute list.
+   * @return the value of the '<em>Attr</em>' containment reference list.
    * @see gdsl.plugin.gDSL.GDSLPackage#getTyVars_Attr()
-   * @model unique="false"
+   * @model containment="true"
    * @generated
    */
-  EList<String> getAttr();
+  EList<Type> getAttr();
 
 } // TyVars

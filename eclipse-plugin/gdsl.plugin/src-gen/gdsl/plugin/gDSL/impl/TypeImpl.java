@@ -3,10 +3,10 @@
 package gdsl.plugin.gDSL.impl;
 
 import gdsl.plugin.gDSL.ConDecl;
-import gdsl.plugin.gDSL.DeclType;
 import gdsl.plugin.gDSL.GDSLPackage;
 import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.TyVars;
+import gdsl.plugin.gDSL.Type;
 
 import java.util.Collection;
 
@@ -25,21 +25,21 @@ import org.eclipse.emf.ecore.util.InternalEList;
 
 /**
  * <!-- begin-user-doc -->
- * An implementation of the model object '<em><b>Decl Type</b></em>'.
+ * An implementation of the model object '<em><b>Type</b></em>'.
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.DeclTypeImpl#getName <em>Name</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.DeclTypeImpl#getConDecl <em>Con Decl</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.DeclTypeImpl#getValue <em>Value</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.DeclTypeImpl#getTyVars <em>Ty Vars</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TypeImpl#getName <em>Name</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TypeImpl#getConDecl <em>Con Decl</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TypeImpl#getValue <em>Value</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TypeImpl#getTyVars <em>Ty Vars</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class DeclTypeImpl extends DeclImpl implements DeclType
+public class TypeImpl extends DeclImpl implements Type
 {
   /**
    * The default value of the '{@link #getName() <em>Name</em>}' attribute.
@@ -96,7 +96,7 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
    * <!-- end-user-doc -->
    * @generated
    */
-  protected DeclTypeImpl()
+  protected TypeImpl()
   {
     super();
   }
@@ -109,7 +109,7 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   @Override
   protected EClass eStaticClass()
   {
-    return GDSLPackage.Literals.DECL_TYPE;
+    return GDSLPackage.Literals.TYPE;
   }
 
   /**
@@ -132,7 +132,7 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
     String oldName = name;
     name = newName;
     if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_TYPE__NAME, oldName, name));
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.TYPE__NAME, oldName, name));
   }
 
   /**
@@ -144,7 +144,7 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     if (conDecl == null)
     {
-      conDecl = new EObjectContainmentEList<ConDecl>(ConDecl.class, this, GDSLPackage.DECL_TYPE__CON_DECL);
+      conDecl = new EObjectContainmentEList<ConDecl>(ConDecl.class, this, GDSLPackage.TYPE__CON_DECL);
     }
     return conDecl;
   }
@@ -170,7 +170,7 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
     value = newValue;
     if (eNotificationRequired())
     {
-      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_TYPE__VALUE, oldValue, newValue);
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.TYPE__VALUE, oldValue, newValue);
       if (msgs == null) msgs = notification; else msgs.add(notification);
     }
     return msgs;
@@ -187,14 +187,14 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
     {
       NotificationChain msgs = null;
       if (value != null)
-        msgs = ((InternalEObject)value).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.DECL_TYPE__VALUE, null, msgs);
+        msgs = ((InternalEObject)value).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.TYPE__VALUE, null, msgs);
       if (newValue != null)
-        msgs = ((InternalEObject)newValue).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.DECL_TYPE__VALUE, null, msgs);
+        msgs = ((InternalEObject)newValue).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.TYPE__VALUE, null, msgs);
       msgs = basicSetValue(newValue, msgs);
       if (msgs != null) msgs.dispatch();
     }
     else if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_TYPE__VALUE, newValue, newValue));
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.TYPE__VALUE, newValue, newValue));
   }
 
   /**
@@ -218,7 +218,7 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
     tyVars = newTyVars;
     if (eNotificationRequired())
     {
-      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_TYPE__TY_VARS, oldTyVars, newTyVars);
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.TYPE__TY_VARS, oldTyVars, newTyVars);
       if (msgs == null) msgs = notification; else msgs.add(notification);
     }
     return msgs;
@@ -235,14 +235,14 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
     {
       NotificationChain msgs = null;
       if (tyVars != null)
-        msgs = ((InternalEObject)tyVars).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.DECL_TYPE__TY_VARS, null, msgs);
+        msgs = ((InternalEObject)tyVars).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.TYPE__TY_VARS, null, msgs);
       if (newTyVars != null)
-        msgs = ((InternalEObject)newTyVars).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.DECL_TYPE__TY_VARS, null, msgs);
+        msgs = ((InternalEObject)newTyVars).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.TYPE__TY_VARS, null, msgs);
       msgs = basicSetTyVars(newTyVars, msgs);
       if (msgs != null) msgs.dispatch();
     }
     else if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_TYPE__TY_VARS, newTyVars, newTyVars));
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.TYPE__TY_VARS, newTyVars, newTyVars));
   }
 
   /**
@@ -255,11 +255,11 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__CON_DECL:
+      case GDSLPackage.TYPE__CON_DECL:
         return ((InternalEList<?>)getConDecl()).basicRemove(otherEnd, msgs);
-      case GDSLPackage.DECL_TYPE__VALUE:
+      case GDSLPackage.TYPE__VALUE:
         return basicSetValue(null, msgs);
-      case GDSLPackage.DECL_TYPE__TY_VARS:
+      case GDSLPackage.TYPE__TY_VARS:
         return basicSetTyVars(null, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
@@ -275,13 +275,13 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__NAME:
+      case GDSLPackage.TYPE__NAME:
         return getName();
-      case GDSLPackage.DECL_TYPE__CON_DECL:
+      case GDSLPackage.TYPE__CON_DECL:
         return getConDecl();
-      case GDSLPackage.DECL_TYPE__VALUE:
+      case GDSLPackage.TYPE__VALUE:
         return getValue();
-      case GDSLPackage.DECL_TYPE__TY_VARS:
+      case GDSLPackage.TYPE__TY_VARS:
         return getTyVars();
     }
     return super.eGet(featureID, resolve, coreType);
@@ -298,17 +298,17 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__NAME:
+      case GDSLPackage.TYPE__NAME:
         setName((String)newValue);
         return;
-      case GDSLPackage.DECL_TYPE__CON_DECL:
+      case GDSLPackage.TYPE__CON_DECL:
         getConDecl().clear();
         getConDecl().addAll((Collection<? extends ConDecl>)newValue);
         return;
-      case GDSLPackage.DECL_TYPE__VALUE:
+      case GDSLPackage.TYPE__VALUE:
         setValue((Ty)newValue);
         return;
-      case GDSLPackage.DECL_TYPE__TY_VARS:
+      case GDSLPackage.TYPE__TY_VARS:
         setTyVars((TyVars)newValue);
         return;
     }
@@ -325,16 +325,16 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__NAME:
+      case GDSLPackage.TYPE__NAME:
         setName(NAME_EDEFAULT);
         return;
-      case GDSLPackage.DECL_TYPE__CON_DECL:
+      case GDSLPackage.TYPE__CON_DECL:
         getConDecl().clear();
         return;
-      case GDSLPackage.DECL_TYPE__VALUE:
+      case GDSLPackage.TYPE__VALUE:
         setValue((Ty)null);
         return;
-      case GDSLPackage.DECL_TYPE__TY_VARS:
+      case GDSLPackage.TYPE__TY_VARS:
         setTyVars((TyVars)null);
         return;
     }
@@ -351,13 +351,13 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__NAME:
+      case GDSLPackage.TYPE__NAME:
         return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
-      case GDSLPackage.DECL_TYPE__CON_DECL:
+      case GDSLPackage.TYPE__CON_DECL:
         return conDecl != null && !conDecl.isEmpty();
-      case GDSLPackage.DECL_TYPE__VALUE:
+      case GDSLPackage.TYPE__VALUE:
         return value != null;
-      case GDSLPackage.DECL_TYPE__TY_VARS:
+      case GDSLPackage.TYPE__TY_VARS:
         return tyVars != null;
     }
     return super.eIsSet(featureID);
@@ -380,4 +380,4 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
     return result.toString();
   }
 
-} //DeclTypeImpl
+} //TypeImpl

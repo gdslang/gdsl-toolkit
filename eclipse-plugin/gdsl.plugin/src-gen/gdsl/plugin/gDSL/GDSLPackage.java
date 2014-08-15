@@ -150,14 +150,14 @@ public interface GDSLPackage extends EPackage
   int DECL_EXPORT_FEATURE_COUNT = DECL_FEATURE_COUNT + 3;
 
   /**
-   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclTypeImpl <em>Decl Type</em>}' class.
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TypeImpl <em>Type</em>}' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see gdsl.plugin.gDSL.impl.DeclTypeImpl
-   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclType()
+   * @see gdsl.plugin.gDSL.impl.TypeImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getType()
    * @generated
    */
-  int DECL_TYPE = 3;
+  int TYPE = 3;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -166,7 +166,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE__NAME = DECL_FEATURE_COUNT + 0;
+  int TYPE__NAME = DECL_FEATURE_COUNT + 0;
 
   /**
    * The feature id for the '<em><b>Con Decl</b></em>' containment reference list.
@@ -175,7 +175,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE__CON_DECL = DECL_FEATURE_COUNT + 1;
+  int TYPE__CON_DECL = DECL_FEATURE_COUNT + 1;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' containment reference.
@@ -184,7 +184,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE__VALUE = DECL_FEATURE_COUNT + 2;
+  int TYPE__VALUE = DECL_FEATURE_COUNT + 2;
 
   /**
    * The feature id for the '<em><b>Ty Vars</b></em>' containment reference.
@@ -193,16 +193,16 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int DECL_TYPE__TY_VARS = DECL_FEATURE_COUNT + 3;
+  int TYPE__TY_VARS = DECL_FEATURE_COUNT + 3;
 
   /**
-   * The number of structural features of the '<em>Decl Type</em>' class.
+   * The number of structural features of the '<em>Type</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_TYPE_FEATURE_COUNT = DECL_FEATURE_COUNT + 4;
+  int TYPE_FEATURE_COUNT = DECL_FEATURE_COUNT + 4;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclValImpl <em>Decl Val</em>}' class.
@@ -288,7 +288,7 @@ public interface GDSLPackage extends EPackage
   int TY_VARS = 5;
 
   /**
-   * The feature id for the '<em><b>Attr</b></em>' attribute list.
+   * The feature id for the '<em><b>Attr</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -362,13 +362,13 @@ public interface GDSLPackage extends EPackage
   int TY__VALUE = 0;
 
   /**
-   * The feature id for the '<em><b>Decl</b></em>' reference.
+   * The feature id for the '<em><b>Type Ref</b></em>' reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int TY__DECL = 1;
+  int TY__TYPE_REF = 1;
 
   /**
    * The feature id for the '<em><b>Type</b></em>' attribute.
@@ -2064,58 +2064,58 @@ public interface GDSLPackage extends EPackage
   EReference getDeclExport_Type();
 
   /**
-   * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclType <em>Decl Type</em>}'.
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.Type <em>Type</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for class '<em>Decl Type</em>'.
-   * @see gdsl.plugin.gDSL.DeclType
+   * @return the meta object for class '<em>Type</em>'.
+   * @see gdsl.plugin.gDSL.Type
    * @generated
    */
-  EClass getDeclType();
+  EClass getType();
 
   /**
-   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.DeclType#getName <em>Name</em>}'.
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.Type#getName <em>Name</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @return the meta object for the attribute '<em>Name</em>'.
-   * @see gdsl.plugin.gDSL.DeclType#getName()
-   * @see #getDeclType()
+   * @see gdsl.plugin.gDSL.Type#getName()
+   * @see #getType()
    * @generated
    */
-  EAttribute getDeclType_Name();
+  EAttribute getType_Name();
 
   /**
-   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.DeclType#getConDecl <em>Con Decl</em>}'.
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Type#getConDecl <em>Con Decl</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @return the meta object for the containment reference list '<em>Con Decl</em>'.
-   * @see gdsl.plugin.gDSL.DeclType#getConDecl()
-   * @see #getDeclType()
+   * @see gdsl.plugin.gDSL.Type#getConDecl()
+   * @see #getType()
    * @generated
    */
-  EReference getDeclType_ConDecl();
+  EReference getType_ConDecl();
 
   /**
-   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclType#getValue <em>Value</em>}'.
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Type#getValue <em>Value</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @return the meta object for the containment reference '<em>Value</em>'.
-   * @see gdsl.plugin.gDSL.DeclType#getValue()
-   * @see #getDeclType()
+   * @see gdsl.plugin.gDSL.Type#getValue()
+   * @see #getType()
    * @generated
    */
-  EReference getDeclType_Value();
+  EReference getType_Value();
 
   /**
-   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclType#getTyVars <em>Ty Vars</em>}'.
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Type#getTyVars <em>Ty Vars</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @return the meta object for the containment reference '<em>Ty Vars</em>'.
-   * @see gdsl.plugin.gDSL.DeclType#getTyVars()
-   * @see #getDeclType()
+   * @see gdsl.plugin.gDSL.Type#getTyVars()
+   * @see #getType()
    * @generated
    */
-  EReference getDeclType_TyVars();
+  EReference getType_TyVars();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclVal <em>Decl Val</em>}'.
@@ -2204,15 +2204,15 @@ public interface GDSLPackage extends EPackage
   EClass getTyVars();
 
   /**
-   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.TyVars#getAttr <em>Attr</em>}'.
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.TyVars#getAttr <em>Attr</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute list '<em>Attr</em>'.
+   * @return the meta object for the containment reference list '<em>Attr</em>'.
    * @see gdsl.plugin.gDSL.TyVars#getAttr()
    * @see #getTyVars()
    * @generated
    */
-  EAttribute getTyVars_Attr();
+  EReference getTyVars_Attr();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.ConDecl <em>Con Decl</em>}'.
@@ -2268,15 +2268,15 @@ public interface GDSLPackage extends EPackage
   EAttribute getTy_Value();
 
   /**
-   * Returns the meta object for the reference '{@link gdsl.plugin.gDSL.Ty#getDecl <em>Decl</em>}'.
+   * Returns the meta object for the reference '{@link gdsl.plugin.gDSL.Ty#getTypeRef <em>Type Ref</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the reference '<em>Decl</em>'.
-   * @see gdsl.plugin.gDSL.Ty#getDecl()
+   * @return the meta object for the reference '<em>Type Ref</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getTypeRef()
    * @see #getTy()
    * @generated
    */
-  EReference getTy_Decl();
+  EReference getTy_TypeRef();
 
   /**
    * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.Ty#getType <em>Type</em>}'.
@@ -3008,14 +3008,14 @@ public interface GDSLPackage extends EPackage
     EReference DECL_EXPORT__TYPE = eINSTANCE.getDeclExport_Type();
 
     /**
-     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclTypeImpl <em>Decl Type</em>}' class.
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TypeImpl <em>Type</em>}' class.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see gdsl.plugin.gDSL.impl.DeclTypeImpl
-     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDeclType()
+     * @see gdsl.plugin.gDSL.impl.TypeImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getType()
      * @generated
      */
-    EClass DECL_TYPE = eINSTANCE.getDeclType();
+    EClass TYPE = eINSTANCE.getType();
 
     /**
      * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
@@ -3023,7 +3023,7 @@ public interface GDSLPackage extends EPackage
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute DECL_TYPE__NAME = eINSTANCE.getDeclType_Name();
+    EAttribute TYPE__NAME = eINSTANCE.getType_Name();
 
     /**
      * The meta object literal for the '<em><b>Con Decl</b></em>' containment reference list feature.
@@ -3031,7 +3031,7 @@ public interface GDSLPackage extends EPackage
      * <!-- end-user-doc -->
      * @generated
      */
-    EReference DECL_TYPE__CON_DECL = eINSTANCE.getDeclType_ConDecl();
+    EReference TYPE__CON_DECL = eINSTANCE.getType_ConDecl();
 
     /**
      * The meta object literal for the '<em><b>Value</b></em>' containment reference feature.
@@ -3039,7 +3039,7 @@ public interface GDSLPackage extends EPackage
      * <!-- end-user-doc -->
      * @generated
      */
-    EReference DECL_TYPE__VALUE = eINSTANCE.getDeclType_Value();
+    EReference TYPE__VALUE = eINSTANCE.getType_Value();
 
     /**
      * The meta object literal for the '<em><b>Ty Vars</b></em>' containment reference feature.
@@ -3047,7 +3047,7 @@ public interface GDSLPackage extends EPackage
      * <!-- end-user-doc -->
      * @generated
      */
-    EReference DECL_TYPE__TY_VARS = eINSTANCE.getDeclType_TyVars();
+    EReference TYPE__TY_VARS = eINSTANCE.getType_TyVars();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclValImpl <em>Decl Val</em>}' class.
@@ -3118,12 +3118,12 @@ public interface GDSLPackage extends EPackage
     EClass TY_VARS = eINSTANCE.getTyVars();
 
     /**
-     * The meta object literal for the '<em><b>Attr</b></em>' attribute list feature.
+     * The meta object literal for the '<em><b>Attr</b></em>' containment reference list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute TY_VARS__ATTR = eINSTANCE.getTyVars_Attr();
+    EReference TY_VARS__ATTR = eINSTANCE.getTyVars_Attr();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ConDeclImpl <em>Con Decl</em>}' class.
@@ -3170,12 +3170,12 @@ public interface GDSLPackage extends EPackage
     EAttribute TY__VALUE = eINSTANCE.getTy_Value();
 
     /**
-     * The meta object literal for the '<em><b>Decl</b></em>' reference feature.
+     * The meta object literal for the '<em><b>Type Ref</b></em>' reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EReference TY__DECL = eINSTANCE.getTy_Decl();
+    EReference TY__TYPE_REF = eINSTANCE.getTy_TypeRef();
 
     /**
      * The meta object literal for the '<em><b>Type</b></em>' attribute feature.

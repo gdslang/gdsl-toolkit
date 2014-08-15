@@ -67,7 +67,7 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.MODEL: return createModel();
       case GDSLPackage.DECL: return createDecl();
       case GDSLPackage.DECL_EXPORT: return createDeclExport();
-      case GDSLPackage.DECL_TYPE: return createDeclType();
+      case GDSLPackage.TYPE: return createType();
       case GDSLPackage.DECL_VAL: return createDeclVal();
       case GDSLPackage.TY_VARS: return createTyVars();
       case GDSLPackage.CON_DECL: return createConDecl();
@@ -131,10 +131,10 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public DeclType createDeclType()
+  public Type createType()
   {
-    DeclTypeImpl declType = new DeclTypeImpl();
-    return declType;
+    TypeImpl type = new TypeImpl();
+    return type;
   }
 
   /**

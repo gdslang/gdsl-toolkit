@@ -6,24 +6,24 @@ import org.eclipse.emf.common.util.EList;
 
 /**
  * <!-- begin-user-doc -->
- * A representation of the model object '<em><b>Decl Type</b></em>'.
+ * A representation of the model object '<em><b>Type</b></em>'.
  * <!-- end-user-doc -->
  *
  * <p>
  * The following features are supported:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.DeclType#getName <em>Name</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.DeclType#getConDecl <em>Con Decl</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.DeclType#getValue <em>Value</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.DeclType#getTyVars <em>Ty Vars</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Type#getName <em>Name</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Type#getConDecl <em>Con Decl</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Type#getValue <em>Value</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Type#getTyVars <em>Ty Vars</em>}</li>
  * </ul>
  * </p>
  *
- * @see gdsl.plugin.gDSL.GDSLPackage#getDeclType()
+ * @see gdsl.plugin.gDSL.GDSLPackage#getType()
  * @model
  * @generated
  */
-public interface DeclType extends Decl
+public interface Type extends Decl
 {
   /**
    * Returns the value of the '<em><b>Name</b></em>' attribute.
@@ -35,14 +35,14 @@ public interface DeclType extends Decl
    * <!-- end-user-doc -->
    * @return the value of the '<em>Name</em>' attribute.
    * @see #setName(String)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclType_Name()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getType_Name()
    * @model
    * @generated
    */
   String getName();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.DeclType#getName <em>Name</em>}' attribute.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.Type#getName <em>Name</em>}' attribute.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @param value the new value of the '<em>Name</em>' attribute.
@@ -61,7 +61,7 @@ public interface DeclType extends Decl
    * </p>
    * <!-- end-user-doc -->
    * @return the value of the '<em>Con Decl</em>' containment reference list.
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclType_ConDecl()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getType_ConDecl()
    * @model containment="true"
    * @generated
    */
@@ -77,14 +77,14 @@ public interface DeclType extends Decl
    * <!-- end-user-doc -->
    * @return the value of the '<em>Value</em>' containment reference.
    * @see #setValue(Ty)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclType_Value()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getType_Value()
    * @model containment="true"
    * @generated
    */
   Ty getValue();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.DeclType#getValue <em>Value</em>}' containment reference.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.Type#getValue <em>Value</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @param value the new value of the '<em>Value</em>' containment reference.
@@ -103,14 +103,14 @@ public interface DeclType extends Decl
    * <!-- end-user-doc -->
    * @return the value of the '<em>Ty Vars</em>' containment reference.
    * @see #setTyVars(TyVars)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclType_TyVars()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getType_TyVars()
    * @model containment="true"
    * @generated
    */
   TyVars getTyVars();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.DeclType#getTyVars <em>Ty Vars</em>}' containment reference.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.Type#getTyVars <em>Ty Vars</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @param value the new value of the '<em>Ty Vars</em>' containment reference.
@@ -119,4 +119,4 @@ public interface DeclType extends Decl
    */
   void setTyVars(TyVars value);
 
-} // DeclType
+} // Type

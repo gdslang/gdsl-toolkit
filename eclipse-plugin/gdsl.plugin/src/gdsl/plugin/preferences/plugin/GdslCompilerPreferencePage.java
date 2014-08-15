@@ -48,18 +48,18 @@ public class GdslCompilerPreferencePage extends PreferencePage implements
 	}
 	
 	private void createFields(Composite parent){
-		parent.setLayout(new GridLayout(2, false));
+		parent.setLayout(new GridLayout(1, false));
 		
 		final Label lblCompilerInvocation = new Label(parent, SWT.NONE);
 		lblCompilerInvocation.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		lblCompilerInvocation.setText("Compiler invocation");
+		lblCompilerInvocation.setText("Compiler Invocation");
 		
 		txtCompilerInvocation = new Text(parent, SWT.BORDER);
 		txtCompilerInvocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		final Group grpTypeChecker = new Group(parent, SWT.NONE);
 		grpTypeChecker.setText("Typechecker");
-		grpTypeChecker.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		grpTypeChecker.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		grpTypeChecker.setLayout(new GridLayout(2, false));
 		
 		btnEnableTypechecker = new Button(grpTypeChecker, SWT.CHECK);

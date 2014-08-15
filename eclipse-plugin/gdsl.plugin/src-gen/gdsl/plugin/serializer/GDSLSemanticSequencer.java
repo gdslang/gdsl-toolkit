@@ -9,7 +9,6 @@ import gdsl.plugin.gDSL.CaseExp;
 import gdsl.plugin.gDSL.ClosedExp;
 import gdsl.plugin.gDSL.ConDecl;
 import gdsl.plugin.gDSL.DeclExport;
-import gdsl.plugin.gDSL.DeclType;
 import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.Exp;
 import gdsl.plugin.gDSL.Field;
@@ -21,6 +20,7 @@ import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.TyBind;
 import gdsl.plugin.gDSL.TyElement;
 import gdsl.plugin.gDSL.TyVars;
+import gdsl.plugin.gDSL.Type;
 import gdsl.plugin.gDSL.ValueDecl;
 import gdsl.plugin.services.GDSLGrammarAccess;
 import org.eclipse.emf.ecore.EObject;
@@ -137,13 +137,6 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 					return; 
 				}
 				else break;
-			case GDSLPackage.DECL_TYPE:
-				if(context == grammarAccess.getDeclRule() ||
-				   context == grammarAccess.getDeclTypeRule()) {
-					sequence_DeclType(context, (DeclType) semanticObject); 
-					return; 
-				}
-				else break;
 			case GDSLPackage.DECL_VAL:
 				if(context == grammarAccess.getDeclRule() ||
 				   context == grammarAccess.getDeclValRule()) {
@@ -205,6 +198,17 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 			case GDSLPackage.TY_VARS:
 				if(context == grammarAccess.getTyVarsRule()) {
 					sequence_TyVars(context, (TyVars) semanticObject); 
+					return; 
+				}
+				else break;
+			case GDSLPackage.TYPE:
+				if(context == grammarAccess.getDeclRule() ||
+				   context == grammarAccess.getDeclTypeRule()) {
+					sequence_DeclType(context, (Type) semanticObject); 
+					return; 
+				}
+				else if(context == grammarAccess.getTyVarRule()) {
+					sequence_TyVar(context, (Type) semanticObject); 
 					return; 
 				}
 				else break;
@@ -374,7 +378,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	 * Constraint:
 	 *     (name=ID ((conDecl+=ConDecl conDecl+=ConDecl*) | value=Ty | (tyVars=TyVars conDecl+=ConDecl conDecl+=ConDecl*)))
 	 */
-	protected void sequence_DeclType(EObject context, DeclType semanticObject) {
+	protected void sequence_DeclType(EObject context, Type semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
 	}
 	
@@ -463,7 +467,16 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     (attr+=ID attr+=ID*)
+	 *     name=ID
+	 */
+	protected void sequence_TyVar(EObject context, Type semanticObject) {
+		genericSequencer.createSequence(context, semanticObject);
+	}
+	
+	
+	/**
+	 * Constraint:
+	 *     (attr+=TyVar attr+=TyVar*)
 	 */
 	protected void sequence_TyVars(EObject context, TyVars semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);

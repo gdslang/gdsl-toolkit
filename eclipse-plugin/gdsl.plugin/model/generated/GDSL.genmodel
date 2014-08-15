@@ -16,11 +16,11 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclExport/tyVars"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclExport/type"/>
     </genClasses>
-    <genClasses ecoreClass="GDSL.ecore#//DeclType">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclType/name"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclType/conDecl"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclType/value"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclType/tyVars"/>
+    <genClasses ecoreClass="GDSL.ecore#//Type">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Type/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/conDecl"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/value"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/tyVars"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//DeclVal">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/name"/>
@@ -31,7 +31,7 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/exps"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//TyVars">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//TyVars/attr"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//TyVars/attr"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//ConDecl">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//ConDecl/name"/>
@@ -39,7 +39,7 @@
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//Ty">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Ty/value"/>
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/decl"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/typeRef"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Ty/type"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/tyBind"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/elements"/>

@@ -752,9 +752,9 @@ ruleTyVars returns [EObject current=null]
 (
 (
 		{ 
-	        newCompositeNode(grammarAccess.getTyVarsAccess().getAttrIDParserRuleCall_1_0()); 
+	        newCompositeNode(grammarAccess.getTyVarsAccess().getAttrTyVarParserRuleCall_1_0()); 
 	    }
-		lv_attr_1_0=ruleID		{
+		lv_attr_1_0=ruleTyVar		{
 	        if ($current==null) {
 	            $current = createModelElementForParent(grammarAccess.getTyVarsRule());
 	        }
@@ -762,7 +762,7 @@ ruleTyVars returns [EObject current=null]
        			$current, 
        			"attr",
         		lv_attr_1_0, 
-        		"ID");
+        		"TyVar");
 	        afterParserOrEnumRuleCall();
 	    }
 
@@ -774,9 +774,9 @@ ruleTyVars returns [EObject current=null]
 (
 (
 		{ 
-	        newCompositeNode(grammarAccess.getTyVarsAccess().getAttrIDParserRuleCall_2_1_0()); 
+	        newCompositeNode(grammarAccess.getTyVarsAccess().getAttrTyVarParserRuleCall_2_1_0()); 
 	    }
-		lv_attr_3_0=ruleID		{
+		lv_attr_3_0=ruleTyVar		{
 	        if ($current==null) {
 	            $current = createModelElementForParent(grammarAccess.getTyVarsRule());
 	        }
@@ -784,7 +784,7 @@ ruleTyVars returns [EObject current=null]
        			$current, 
        			"attr",
         		lv_attr_3_0, 
-        		"ID");
+        		"TyVar");
 	        afterParserOrEnumRuleCall();
 	    }
 
@@ -793,6 +793,45 @@ ruleTyVars returns [EObject current=null]
     {
     	newLeafNode(otherlv_4, grammarAccess.getTyVarsAccess().getRightSquareBracketKeyword_3());
     }
+)
+;
+
+
+
+
+
+// Entry rule entryRuleTyVar
+entryRuleTyVar returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getTyVarRule()); }
+	 iv_ruleTyVar=ruleTyVar 
+	 { $current=$iv_ruleTyVar.current; } 
+	 EOF 
+;
+
+// Rule TyVar
+ruleTyVar returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getTyVarAccess().getNameIDParserRuleCall_0()); 
+	    }
+		lv_name_0_0=ruleID		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getTyVarRule());
+	        }
+       		set(
+       			$current, 
+       			"name",
+        		lv_name_0_0, 
+        		"ID");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
 )
 ;
 
@@ -902,7 +941,7 @@ ruleTy returns [EObject current=null]
 	        }
         }
 		{ 
-	        newCompositeNode(grammarAccess.getTyAccess().getDeclDeclTypeCrossReference_1_0_0_0()); 
+	        newCompositeNode(grammarAccess.getTyAccess().getTypeRefTypeCrossReference_1_0_0_0()); 
 	    }
 		ruleID		{ 
 	        afterParserOrEnumRuleCall();
@@ -912,17 +951,44 @@ ruleTy returns [EObject current=null]
 )
     |(
 (
-		lv_type_2_0=	'int' 
+(
+		lv_type_2_1=	'int' 
     {
-        newLeafNode(lv_type_2_0, grammarAccess.getTyAccess().getTypeIntKeyword_1_0_1_0());
+        newLeafNode(lv_type_2_1, grammarAccess.getTyAccess().getTypeIntKeyword_1_0_1_0_0());
     }
  
 	    {
 	        if ($current==null) {
 	            $current = createModelElement(grammarAccess.getTyRule());
 	        }
-       		setWithLastConsumed($current, "type", lv_type_2_0, "int");
+       		setWithLastConsumed($current, "type", lv_type_2_1, null);
 	    }
+
+    |		lv_type_2_2=	'string' 
+    {
+        newLeafNode(lv_type_2_2, grammarAccess.getTyAccess().getTypeStringKeyword_1_0_1_0_1());
+    }
+ 
+	    {
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getTyRule());
+	        }
+       		setWithLastConsumed($current, "type", lv_type_2_2, null);
+	    }
+
+    |		lv_type_2_3=	'unit' 
+    {
+        newLeafNode(lv_type_2_3, grammarAccess.getTyAccess().getTypeUnitKeyword_1_0_1_0_2());
+    }
+ 
+	    {
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getTyRule());
+	        }
+       		setWithLastConsumed($current, "type", lv_type_2_3, null);
+	    }
+
+)
 
 )
 ))(	otherlv_3='[' 
@@ -3596,7 +3662,7 @@ fragment RULE_IDCHAR : ('A'..'Z'|'a'..'z'|'/'|'0'..'9'|RULE_CHARSYM);
 
 fragment RULE_CHARSYM : ('-'|'?'|'!');
 
-fragment RULE_OTHERSYM : ('%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'*'|'\\');
+fragment RULE_OTHERSYM : ('%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'|'|'*'|'\\');
 
 RULE_DUALS : ('0'|'1')+;
 

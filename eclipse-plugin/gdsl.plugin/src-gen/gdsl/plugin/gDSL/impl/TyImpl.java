@@ -2,11 +2,11 @@
  */
 package gdsl.plugin.gDSL.impl;
 
-import gdsl.plugin.gDSL.DeclType;
 import gdsl.plugin.gDSL.GDSLPackage;
 import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.TyBind;
 import gdsl.plugin.gDSL.TyElement;
+import gdsl.plugin.gDSL.Type;
 
 import java.util.Collection;
 
@@ -32,7 +32,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
  * The following features are implemented:
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.impl.TyImpl#getValue <em>Value</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.TyImpl#getDecl <em>Decl</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TyImpl#getTypeRef <em>Type Ref</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.TyImpl#getType <em>Type</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.TyImpl#getTyBind <em>Ty Bind</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.TyImpl#getElements <em>Elements</em>}</li>
@@ -69,14 +69,14 @@ public class TyImpl extends MinimalEObjectImpl.Container implements Ty
   protected String value = VALUE_EDEFAULT;
 
   /**
-   * The cached value of the '{@link #getDecl() <em>Decl</em>}' reference.
+   * The cached value of the '{@link #getTypeRef() <em>Type Ref</em>}' reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getDecl()
+   * @see #getTypeRef()
    * @generated
    * @ordered
    */
-  protected DeclType decl;
+  protected Type typeRef;
 
   /**
    * The default value of the '{@link #getType() <em>Type</em>}' attribute.
@@ -217,19 +217,19 @@ public class TyImpl extends MinimalEObjectImpl.Container implements Ty
    * <!-- end-user-doc -->
    * @generated
    */
-  public DeclType getDecl()
+  public Type getTypeRef()
   {
-    if (decl != null && decl.eIsProxy())
+    if (typeRef != null && typeRef.eIsProxy())
     {
-      InternalEObject oldDecl = (InternalEObject)decl;
-      decl = (DeclType)eResolveProxy(oldDecl);
-      if (decl != oldDecl)
+      InternalEObject oldTypeRef = (InternalEObject)typeRef;
+      typeRef = (Type)eResolveProxy(oldTypeRef);
+      if (typeRef != oldTypeRef)
       {
         if (eNotificationRequired())
-          eNotify(new ENotificationImpl(this, Notification.RESOLVE, GDSLPackage.TY__DECL, oldDecl, decl));
+          eNotify(new ENotificationImpl(this, Notification.RESOLVE, GDSLPackage.TY__TYPE_REF, oldTypeRef, typeRef));
       }
     }
-    return decl;
+    return typeRef;
   }
 
   /**
@@ -237,9 +237,9 @@ public class TyImpl extends MinimalEObjectImpl.Container implements Ty
    * <!-- end-user-doc -->
    * @generated
    */
-  public DeclType basicGetDecl()
+  public Type basicGetTypeRef()
   {
-    return decl;
+    return typeRef;
   }
 
   /**
@@ -247,12 +247,12 @@ public class TyImpl extends MinimalEObjectImpl.Container implements Ty
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setDecl(DeclType newDecl)
+  public void setTypeRef(Type newTypeRef)
   {
-    DeclType oldDecl = decl;
-    decl = newDecl;
+    Type oldTypeRef = typeRef;
+    typeRef = newTypeRef;
     if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.TY__DECL, oldDecl, decl));
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.TY__TYPE_REF, oldTypeRef, typeRef));
   }
 
   /**
@@ -552,9 +552,9 @@ public class TyImpl extends MinimalEObjectImpl.Container implements Ty
     {
       case GDSLPackage.TY__VALUE:
         return getValue();
-      case GDSLPackage.TY__DECL:
-        if (resolve) return getDecl();
-        return basicGetDecl();
+      case GDSLPackage.TY__TYPE_REF:
+        if (resolve) return getTypeRef();
+        return basicGetTypeRef();
       case GDSLPackage.TY__TYPE:
         return getType();
       case GDSLPackage.TY__TY_BIND:
@@ -589,8 +589,8 @@ public class TyImpl extends MinimalEObjectImpl.Container implements Ty
       case GDSLPackage.TY__VALUE:
         setValue((String)newValue);
         return;
-      case GDSLPackage.TY__DECL:
-        setDecl((DeclType)newValue);
+      case GDSLPackage.TY__TYPE_REF:
+        setTypeRef((Type)newValue);
         return;
       case GDSLPackage.TY__TYPE:
         setType((String)newValue);
@@ -636,8 +636,8 @@ public class TyImpl extends MinimalEObjectImpl.Container implements Ty
       case GDSLPackage.TY__VALUE:
         setValue(VALUE_EDEFAULT);
         return;
-      case GDSLPackage.TY__DECL:
-        setDecl((DeclType)null);
+      case GDSLPackage.TY__TYPE_REF:
+        setTypeRef((Type)null);
         return;
       case GDSLPackage.TY__TYPE:
         setType(TYPE_EDEFAULT);
@@ -679,8 +679,8 @@ public class TyImpl extends MinimalEObjectImpl.Container implements Ty
     {
       case GDSLPackage.TY__VALUE:
         return VALUE_EDEFAULT == null ? value != null : !VALUE_EDEFAULT.equals(value);
-      case GDSLPackage.TY__DECL:
-        return decl != null;
+      case GDSLPackage.TY__TYPE_REF:
+        return typeRef != null;
       case GDSLPackage.TY__TYPE:
         return TYPE_EDEFAULT == null ? type != null : !TYPE_EDEFAULT.equals(type);
       case GDSLPackage.TY__TY_BIND:
