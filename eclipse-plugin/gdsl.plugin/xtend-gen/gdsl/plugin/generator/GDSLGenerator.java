@@ -3,15 +3,9 @@
  */
 package gdsl.plugin.generator;
 
-import com.google.common.base.Objects;
-import gdsl.plugin.generator.RunCompiler;
-import gdsl.plugin.preferences.GDSLPluginPreferences;
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -27,37 +21,6 @@ import org.eclipse.xtext.xbase.lib.Exceptions;
 @SuppressWarnings("all")
 public class GDSLGenerator implements IGenerator {
   public void doGenerate(final Resource resource, final IFileSystemAccess fsa) {
-    StringBuilder commandBuilder = new StringBuilder();
-    String _compilerInvocation = GDSLPluginPreferences.getCompilerInvocation();
-    commandBuilder.append(_compilerInvocation);
-    commandBuilder.append(" -o");
-    String _outputName = GDSLPluginPreferences.getOutputName(resource);
-    String _plus = (" " + _outputName);
-    commandBuilder.append(_plus);
-    commandBuilder.append(" --runtime=");
-    String _runtimeTemplates = GDSLPluginPreferences.getRuntimeTemplates(resource);
-    commandBuilder.append(_runtimeTemplates);
-    final String prefix = GDSLPluginPreferences.getPrefix(resource);
-    boolean _notEquals = (!Objects.equal(null, prefix));
-    if (_notEquals) {
-      commandBuilder.append((" --prefix=" + prefix));
-    }
-    boolean _isTypeCheckerEnabled = GDSLPluginPreferences.isTypeCheckerEnabled();
-    if (_isTypeCheckerEnabled) {
-      int _typeCheckerIteration = GDSLPluginPreferences.getTypeCheckerIteration();
-      String _plus_1 = (" --maxIter=" + Integer.valueOf(_typeCheckerIteration));
-      commandBuilder.append(_plus_1);
-    } else {
-      commandBuilder.append(" -t");
-    }
-    IProject _obtainProject = GDSLPluginPreferences.obtainProject(resource);
-    final IPath projectPath = _obtainProject.getLocation();
-    IWorkspace _workspace = ResourcesPlugin.getWorkspace();
-    final IWorkspaceRoot workspaceRoot = _workspace.getRoot();
-    String _recursiveGetMLFiles = this.recursiveGetMLFiles(projectPath, workspaceRoot);
-    commandBuilder.append(_recursiveGetMLFiles);
-    String _string = commandBuilder.toString();
-    RunCompiler.compileAndSetMarkers(_string, projectPath);
   }
   
   /**

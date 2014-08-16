@@ -27,40 +27,40 @@ class GDSLGenerator implements IGenerator {
 //				.map[name]
 //				.join(', '))\
 
-		var commandBuilder = new StringBuilder()
-		
-		//Compiler invocation
-		commandBuilder.append(GDSLPluginPreferences.compilerInvocation);
-		
-		//Output name
-		commandBuilder.append(" -o");
-		commandBuilder.append(" " + GDSLPluginPreferences.getOutputName(resource));
-		
-		//Runtime templates
-		commandBuilder.append(" --runtime=");
-		commandBuilder.append(GDSLPluginPreferences.getRuntimeTemplates(resource));
-		
-		//Prefix
-		val prefix = GDSLPluginPreferences.getPrefix(resource); 
-		if(null != prefix){
-			commandBuilder.append(" --prefix=" + prefix);		
-		}
-		
-		//Typechecker
-		if(GDSLPluginPreferences.typeCheckerEnabled){
-			commandBuilder.append(" --maxIter=" + GDSLPluginPreferences.typeCheckerIteration);		
-		}
-		else{
-			commandBuilder.append(" -t");
-		}
-		
-		//Files
-		val projectPath = GDSLPluginPreferences.obtainProject(resource).location;
-		val workspaceRoot = ResourcesPlugin.workspace.root;
-		commandBuilder.append(recursiveGetMLFiles(projectPath, workspaceRoot));
-
-		//Call the compiler and set markers for the returned errors
-		RunCompiler.compileAndSetMarkers(commandBuilder.toString, projectPath);
+//		var commandBuilder = new StringBuilder()
+//		
+//		//Compiler invocation
+//		commandBuilder.append(GDSLPluginPreferences.compilerInvocation);
+//		
+//		//Output name
+//		commandBuilder.append(" -o");
+//		commandBuilder.append(" " + GDSLPluginPreferences.getOutputName(resource));
+//		
+//		//Runtime templates
+//		commandBuilder.append(" --runtime=");
+//		commandBuilder.append(GDSLPluginPreferences.getRuntimeTemplates(resource));
+//		
+//		//Prefix
+//		val prefix = GDSLPluginPreferences.getPrefix(resource); 
+//		if(null != prefix){
+//			commandBuilder.append(" --prefix=" + prefix);		
+//		}
+//		
+//		//Typechecker
+//		if(GDSLPluginPreferences.typeCheckerEnabled){
+//			commandBuilder.append(" --maxIter=" + GDSLPluginPreferences.typeCheckerIteration);		
+//		}
+//		else{
+//			commandBuilder.append(" -t");
+//		}
+//		
+//		//Files
+//		val projectPath = GDSLPluginPreferences.obtainProject(resource).location;
+//		val workspaceRoot = ResourcesPlugin.workspace.root;
+//		commandBuilder.append(recursiveGetMLFiles(projectPath, workspaceRoot));
+//
+//		//Call the compiler and set markers for the returned errors
+//		RunCompiler.compileAndSetMarkers(commandBuilder.toString, projectPath);
 		
 	}
 		

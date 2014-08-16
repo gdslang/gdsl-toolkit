@@ -1,4 +1,4 @@
-package gdsl.plugin.generator;
+package gdsl.plugin.validation;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -15,6 +16,10 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.ui.editors.text.TextFileDocumentProvider;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 
 /**
  * A class to work with the GDSL compiler
@@ -22,7 +27,7 @@ import org.eclipse.core.runtime.Path;
  * @author Daniel Endress
  * 
  */
-public class RunCompiler {
+public class GDSLCompilerTools {
 
 	/**
 	 * Compiles using the given command
@@ -33,6 +38,7 @@ public class RunCompiler {
 	 *            The path to the current project
 	 */
 	public static void compileAndSetMarkers(final String command, final IPath projectPath) {
+		System.out.println("Run compiler"); // TODO:delete line
 		final String[] compilerResult = compile(command);
 		final GDSLError[] errors = parseErrors(compilerResult);
 		Assert.isNotNull(errors);
@@ -80,6 +86,7 @@ public class RunCompiler {
 		for (final String s : compilerResult) {
 			if (s.matches("\\[.+:\\d+\\.\\d+\\] Error: .*\\n?")) {
 				result.add(new GDSLError(s));
+				System.out.println(s); // TODO:delete line
 			}
 		}
 		return result.toArray(new GDSLError[] {});
@@ -150,7 +157,7 @@ public class RunCompiler {
 		public GDSLError(final String errorMessage) {
 			String[] split = errorMessage.split(Pattern.quote(" Error: "));
 			Assert.isTrue(2 == split.length);
-			message = split[1];
+			message = split[1].trim();
 			final String location = split[0].substring(split[0].indexOf("[") + 1, split[0].lastIndexOf("]"));
 			split = location.split(Pattern.quote(":"));
 			Assert.isTrue(2 == split.length);
@@ -161,8 +168,22 @@ public class RunCompiler {
 			Assert.isTrue(2 == split.length);
 			line = Integer.parseInt(split[0]);
 			final int character = Integer.parseInt(split[1]) - 1;
-			charStart = character;
-			charEnd = character + 1;
+			int start = 0;
+			int end = 1;
+			if (resource instanceof IFile) {
+				try {
+					final IFile ifile = (IFile) resource;
+					final IDocumentProvider provider = new TextFileDocumentProvider();
+					provider.connect(ifile);
+					final IDocument document = provider.getDocument(ifile);
+					final int offset = document.getLineOffset(line - 1);
+					start = offset + character;
+					end = start + 1;
+				} catch (final CoreException | BadLocationException e) {
+				}
+			}
+			charStart = start;
+			charEnd = end;
 		}
 	}
 }
