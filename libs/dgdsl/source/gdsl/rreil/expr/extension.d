@@ -34,7 +34,6 @@ class Extension : Expression {
   }
   
   public override string toString() {
-    //return "[" ~ to!string(fromSize) ~ "->" ~ cast(string)_op ~ "]" ~ _opnd.toString();
     return "[" ~ to!string(_fromSize) ~ "->" ~ cast(string)_op ~ "]" ~ _opnd.toString();
   }
 }
