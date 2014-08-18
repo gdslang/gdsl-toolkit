@@ -17,7 +17,7 @@ DeclExport:
 ;
 
 DeclType returns Type:
-	'type' name=ID 
+	'type' name=ID
 	(
 		('=' (=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) | value=Ty))
 		| (tyVars=TyVars '=' (conDecl+=ConDecl ('|' conDecl+=ConDecl)*))
@@ -158,8 +158,8 @@ terminal CONS_WO_S:('A'..'Z') (USCORE|IDCHAR)*;
 terminal ID_WO_CONS:('A'..'Z'|'a'..'z'|'/') (USCORE|IDCHAR)*;
 terminal STRING:'"' ( '\\'('b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\') | !('\\'|'"') )* '"';
 terminal fragment IDCHAR:('A'..'Z'|'a'..'z'|'/'|'0'..'9'|CHARSYM);
-terminal fragment CHARSYM:'-'|'?'/*|"'"*/|'!';
-terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'|'/*|'#'*/|'*'|'\\';
+terminal fragment CHARSYM:'-'|'?'|/*"'"|*/'!';
+terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'|'|'#'|'*'|'\\';
 terminal DUALS: ('0'|'1')+;
 terminal BINS:('0'|'1'|'\\'|'.'|'|')*;
 terminal POSINT_WO_DUALS: ('0'..'9')+;

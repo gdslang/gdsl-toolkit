@@ -3662,7 +3662,7 @@ fragment RULE_IDCHAR : ('A'..'Z'|'a'..'z'|'/'|'0'..'9'|RULE_CHARSYM);
 
 fragment RULE_CHARSYM : ('-'|'?'|'!');
 
-fragment RULE_OTHERSYM : ('%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'|'|'*'|'\\');
+fragment RULE_OTHERSYM : ('%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'|'|'#'|'*'|'\\');
 
 RULE_DUALS : ('0'|'1')+;
 

@@ -2721,13 +2721,13 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	} 
 
 	//terminal fragment CHARSYM:
-	//	"-" / *|"'"* / | "?" | "!";
+	//	"-" | "?" | / *"'"|* / "!";
 	public TerminalRule getCHARSYMRule() {
 		return (tCHARSYM != null) ? tCHARSYM : (tCHARSYM = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "CHARSYM"));
 	} 
 
 	//terminal fragment OTHERSYM:
-	//	"%" / *|'#'* / | "&" | "$" | "+" | "/" | ":" | "<" | "=" | ">" | "@" | "~" | "`" | "^" | "|" | "*" | "\\";
+	//	"%" | "&" | "$" | "+" | "/" | ":" | "<" | "=" | ">" | "@" | "~" | "`" | "^" | "|" | "#" | "*" | "\\";
 	public TerminalRule getOTHERSYMRule() {
 		return (tOTHERSYM != null) ? tOTHERSYM : (tOTHERSYM = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "OTHERSYM"));
 	} 
