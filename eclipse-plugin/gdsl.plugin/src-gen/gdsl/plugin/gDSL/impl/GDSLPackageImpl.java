@@ -213,6 +213,20 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
   private EClass valueDeclEClass = null;
 
   /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass patEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass consEClass = null;
+
+  /**
    * Creates an instance of the model <b>Package</b>, registered with
    * {@link org.eclipse.emf.ecore.EPackage.Registry EPackage.Registry} by the package
    * package URI value.
@@ -500,9 +514,9 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EAttribute getConDecl_Name()
+  public EReference getConDecl_Name()
   {
-    return (EAttribute)conDeclEClass.getEStructuralFeatures().get(0);
+    return (EReference)conDeclEClass.getEStructuralFeatures().get(0);
   }
 
   /**
@@ -760,9 +774,9 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EAttribute getCaseExp_Pat()
+  public EReference getCaseExp_Pat()
   {
-    return (EAttribute)caseExpEClass.getEStructuralFeatures().get(2);
+    return (EReference)caseExpEClass.getEStructuralFeatures().get(2);
   }
 
   /**
@@ -1150,6 +1164,56 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
+  public EClass getPAT()
+  {
+    return patEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getPAT_Id()
+  {
+    return (EAttribute)patEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getPAT_Pat()
+  {
+    return (EReference)patEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getCONS()
+  {
+    return consEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getCONS_ConName()
+  {
+    return (EAttribute)consEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public GDSLFactory getGDSLFactory()
   {
     return (GDSLFactory)getEFactoryInstance();
@@ -1203,7 +1267,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     createEReference(tyVarsEClass, TY_VARS__ATTR);
 
     conDeclEClass = createEClass(CON_DECL);
-    createEAttribute(conDeclEClass, CON_DECL__NAME);
+    createEReference(conDeclEClass, CON_DECL__NAME);
     createEReference(conDeclEClass, CON_DECL__TY);
 
     tyEClass = createEClass(TY);
@@ -1234,7 +1298,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     caseExpEClass = createEClass(CASE_EXP);
     createEAttribute(caseExpEClass, CASE_EXP__NAME);
     createEReference(caseExpEClass, CASE_EXP__CLOSED_EXP);
-    createEAttribute(caseExpEClass, CASE_EXP__PAT);
+    createEReference(caseExpEClass, CASE_EXP__PAT);
     createEReference(caseExpEClass, CASE_EXP__EXP);
 
     closedExpEClass = createEClass(CLOSED_EXP);
@@ -1285,6 +1349,13 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     createEAttribute(valueDeclEClass, VALUE_DECL__NAME);
     createEAttribute(valueDeclEClass, VALUE_DECL__IDS);
     createEReference(valueDeclEClass, VALUE_DECL__EXP);
+
+    patEClass = createEClass(PAT);
+    createEAttribute(patEClass, PAT__ID);
+    createEReference(patEClass, PAT__PAT);
+
+    consEClass = createEClass(CONS);
+    createEAttribute(consEClass, CONS__CON_NAME);
   }
 
   /**
@@ -1358,7 +1429,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEReference(getTyVars_Attr(), this.getType(), null, "attr", null, 0, -1, TyVars.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(conDeclEClass, ConDecl.class, "ConDecl", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-    initEAttribute(getConDecl_Name(), ecorePackage.getEString(), "name", null, 0, 1, ConDecl.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getConDecl_Name(), this.getCONS(), null, "name", null, 0, 1, ConDecl.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getConDecl_Ty(), this.getTy(), null, "ty", null, 0, 1, ConDecl.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(tyEClass, Ty.class, "Ty", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
@@ -1389,7 +1460,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEClass(caseExpEClass, CaseExp.class, "CaseExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getCaseExp_Name(), ecorePackage.getEString(), "name", null, 0, 1, CaseExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getCaseExp_ClosedExp(), this.getClosedExp(), null, "closedExp", null, 0, 1, CaseExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-    initEAttribute(getCaseExp_Pat(), ecorePackage.getEString(), "pat", null, 0, -1, CaseExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getCaseExp_Pat(), this.getPAT(), null, "pat", null, 0, -1, CaseExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getCaseExp_Exp(), this.getExp(), null, "exp", null, 0, -1, CaseExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(closedExpEClass, ClosedExp.class, "ClosedExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
@@ -1440,6 +1511,13 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEAttribute(getValueDecl_Name(), ecorePackage.getEString(), "name", null, 0, 1, ValueDecl.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEAttribute(getValueDecl_Ids(), ecorePackage.getEString(), "ids", null, 0, -1, ValueDecl.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getValueDecl_Exp(), this.getExp(), null, "exp", null, 0, 1, ValueDecl.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(patEClass, gdsl.plugin.gDSL.PAT.class, "PAT", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getPAT_Id(), ecorePackage.getEString(), "id", null, 0, 1, gdsl.plugin.gDSL.PAT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getPAT_Pat(), this.getPAT(), null, "pat", null, 0, 1, gdsl.plugin.gDSL.PAT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(consEClass, gdsl.plugin.gDSL.CONS.class, "CONS", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getCONS_ConName(), ecorePackage.getEString(), "conName", null, 0, 1, gdsl.plugin.gDSL.CONS.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     // Create resource
     createResource(eNS_URI);

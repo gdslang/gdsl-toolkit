@@ -37,7 +37,7 @@
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ConDecl">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="name" eType="#//CONS" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="ty" eType="#//Ty" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Ty">
@@ -76,8 +76,8 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="closedExp" eType="#//ClosedExp"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pat" unique="false" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pat" upperBound="-1" eType="#//PAT"
+        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" upperBound="-1" eType="#//Exp"
         containment="true"/>
   </eClassifiers>
@@ -145,5 +145,12 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ids" unique="false" upperBound="-1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Exp" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PAT">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pat" eType="#//PAT" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CONS">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="conName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
 </ecore:EPackage>

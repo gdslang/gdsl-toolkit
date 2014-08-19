@@ -4,7 +4,10 @@
 package gdsl.plugin.validation;
 
 import com.google.common.base.Objects;
+import gdsl.plugin.gDSL.CONS;
+import gdsl.plugin.gDSL.GDSLPackage;
 import gdsl.plugin.gDSL.Model;
+import gdsl.plugin.gDSL.PAT;
 import gdsl.plugin.preferences.GDSLPluginPreferences;
 import gdsl.plugin.validation.AbstractGDSLValidator;
 import gdsl.plugin.validation.GDSLCompilerTools;
@@ -16,6 +19,8 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.xbase.lib.Exceptions;
@@ -27,6 +32,34 @@ import org.eclipse.xtext.xbase.lib.Exceptions;
  */
 @SuppressWarnings("all")
 public class GDSLValidator extends AbstractGDSLValidator {
+  @Check
+  public void upperCaseCons(final CONS cons) {
+    String _conName = cons.getConName();
+    char _charAt = _conName.charAt(0);
+    boolean _isUpperCase = Character.isUpperCase(_charAt);
+    boolean _not = (!_isUpperCase);
+    if (_not) {
+      EAttribute _cONS_ConName = GDSLPackage.eINSTANCE.getCONS_ConName();
+      this.error("Constructors have to start with a capital", _cONS_ConName);
+    }
+  }
+  
+  @Check
+  public void patternOnlyForConstructors(final PAT pat) {
+    PAT _pat = pat.getPat();
+    boolean _notEquals = (!Objects.equal(null, _pat));
+    if (_notEquals) {
+      String _id = pat.getId();
+      char _charAt = _id.charAt(0);
+      boolean _isUpperCase = Character.isUpperCase(_charAt);
+      boolean _not = (!_isUpperCase);
+      if (_not) {
+        EReference _pAT_Pat = GDSLPackage.eINSTANCE.getPAT_Pat();
+        this.error("A pattern is only allowed for constructors", _pAT_Pat);
+      }
+    }
+  }
+  
   @Check
   public void checkExternalCompiler(final Model model) {
     final Resource resource = model.eResource();

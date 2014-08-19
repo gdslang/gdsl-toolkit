@@ -239,6 +239,24 @@ public interface GDSLFactory extends EFactory
   ValueDecl createValueDecl();
 
   /**
+   * Returns a new object of class '<em>PAT</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>PAT</em>'.
+   * @generated
+   */
+  PAT createPAT();
+
+  /**
+   * Returns a new object of class '<em>CONS</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>CONS</em>'.
+   * @generated
+   */
+  CONS createCONS();
+
+  /**
    * Returns the package supported by this factory.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->

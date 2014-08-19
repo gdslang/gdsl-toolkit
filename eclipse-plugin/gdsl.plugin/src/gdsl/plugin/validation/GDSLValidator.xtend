@@ -3,7 +3,10 @@
  */
 package gdsl.plugin.validation
 
+import gdsl.plugin.gDSL.CONS
+import gdsl.plugin.gDSL.GDSLPackage
 import gdsl.plugin.gDSL.Model
+import gdsl.plugin.gDSL.PAT
 import gdsl.plugin.preferences.GDSLPluginPreferences
 import org.eclipse.core.resources.IResource
 import org.eclipse.core.resources.IWorkspaceRoot
@@ -11,6 +14,8 @@ import org.eclipse.core.resources.ResourcesPlugin
 import org.eclipse.core.runtime.CoreException
 import org.eclipse.core.runtime.IPath
 import org.eclipse.xtext.validation.Check
+
+import static extension java.lang.Character.*
 
 //import org.eclipse.xtext.validation.Check
 
@@ -31,6 +36,22 @@ class GDSLValidator extends AbstractGDSLValidator {
 //					INVALID_NAME)
 //		}
 //	}
+
+	@Check
+	def upperCaseCons(CONS cons){
+		if(!cons.conName.charAt(0).upperCase){
+			error("Constructors have to start with a capital", GDSLPackage::eINSTANCE.CONS_ConName);
+		}
+	}
+	
+	@Check
+	def patternOnlyForConstructors(PAT pat){
+		if(null != pat.pat){
+			if(!pat.id.charAt(0).upperCase){
+				error("A pattern is only allowed for constructors", GDSLPackage::eINSTANCE.PAT_Pat)
+			}
+		}
+	}
 
 	@Check
 	def checkExternalCompiler(Model model){

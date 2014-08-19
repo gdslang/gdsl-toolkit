@@ -316,7 +316,7 @@ public interface GDSLPackage extends EPackage
   int CON_DECL = 6;
 
   /**
-   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * The feature id for the '<em><b>Name</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -600,7 +600,7 @@ public interface GDSLPackage extends EPackage
   int CASE_EXP__CLOSED_EXP = 1;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -655,7 +655,7 @@ public interface GDSLPackage extends EPackage
   int CLOSED_EXP__CLOSED_EXP = CASE_EXP__CLOSED_EXP;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -783,7 +783,7 @@ public interface GDSLPackage extends EPackage
   int OR_ELSE_EXP__CLOSED_EXP = CLOSED_EXP__CLOSED_EXP;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -892,7 +892,7 @@ public interface GDSLPackage extends EPackage
   int AND_ALSO_EXP__CLOSED_EXP = OR_ELSE_EXP__CLOSED_EXP;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -1001,7 +1001,7 @@ public interface GDSLPackage extends EPackage
   int REXP__CLOSED_EXP = AND_ALSO_EXP__CLOSED_EXP;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -1110,7 +1110,7 @@ public interface GDSLPackage extends EPackage
   int AEXP__CLOSED_EXP = REXP__CLOSED_EXP;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -1237,7 +1237,7 @@ public interface GDSLPackage extends EPackage
   int MEXP__CLOSED_EXP = AEXP__CLOSED_EXP;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -1382,7 +1382,7 @@ public interface GDSLPackage extends EPackage
   int SELECT_EXP__CLOSED_EXP = MEXP__CLOSED_EXP;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -1545,7 +1545,7 @@ public interface GDSLPackage extends EPackage
   int APPLY_EXP__CLOSED_EXP = SELECT_EXP__CLOSED_EXP;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -1717,7 +1717,7 @@ public interface GDSLPackage extends EPackage
   int ATOMIC_EXP__CLOSED_EXP = APPLY_EXP__CLOSED_EXP;
 
   /**
-   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * The feature id for the '<em><b>Pat</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -1988,6 +1988,71 @@ public interface GDSLPackage extends EPackage
    */
   int VALUE_DECL_FEATURE_COUNT = 3;
 
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.PATImpl <em>PAT</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.PATImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getPAT()
+   * @generated
+   */
+  int PAT = 24;
+
+  /**
+   * The feature id for the '<em><b>Id</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int PAT__ID = 0;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int PAT__PAT = 1;
+
+  /**
+   * The number of structural features of the '<em>PAT</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int PAT_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.CONSImpl <em>CONS</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.CONSImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCONS()
+   * @generated
+   */
+  int CONS = 25;
+
+  /**
+   * The feature id for the '<em><b>Con Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CONS__CON_NAME = 0;
+
+  /**
+   * The number of structural features of the '<em>CONS</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CONS_FEATURE_COUNT = 1;
+
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.Model <em>Model</em>}'.
@@ -2225,15 +2290,15 @@ public interface GDSLPackage extends EPackage
   EClass getConDecl();
 
   /**
-   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.ConDecl#getName <em>Name</em>}'.
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ConDecl#getName <em>Name</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute '<em>Name</em>'.
+   * @return the meta object for the containment reference '<em>Name</em>'.
    * @see gdsl.plugin.gDSL.ConDecl#getName()
    * @see #getConDecl()
    * @generated
    */
-  EAttribute getConDecl_Name();
+  EReference getConDecl_Name();
 
   /**
    * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ConDecl#getTy <em>Ty</em>}'.
@@ -2506,15 +2571,15 @@ public interface GDSLPackage extends EPackage
   EReference getCaseExp_ClosedExp();
 
   /**
-   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.CaseExp#getPat <em>Pat</em>}'.
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.CaseExp#getPat <em>Pat</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute list '<em>Pat</em>'.
+   * @return the meta object for the containment reference list '<em>Pat</em>'.
    * @see gdsl.plugin.gDSL.CaseExp#getPat()
    * @see #getCaseExp()
    * @generated
    */
-  EAttribute getCaseExp_Pat();
+  EReference getCaseExp_Pat();
 
   /**
    * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.CaseExp#getExp <em>Exp</em>}'.
@@ -2923,6 +2988,59 @@ public interface GDSLPackage extends EPackage
   EReference getValueDecl_Exp();
 
   /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.PAT <em>PAT</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>PAT</em>'.
+   * @see gdsl.plugin.gDSL.PAT
+   * @generated
+   */
+  EClass getPAT();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.PAT#getId <em>Id</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Id</em>'.
+   * @see gdsl.plugin.gDSL.PAT#getId()
+   * @see #getPAT()
+   * @generated
+   */
+  EAttribute getPAT_Id();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.PAT#getPat <em>Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Pat</em>'.
+   * @see gdsl.plugin.gDSL.PAT#getPat()
+   * @see #getPAT()
+   * @generated
+   */
+  EReference getPAT_Pat();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.CONS <em>CONS</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>CONS</em>'.
+   * @see gdsl.plugin.gDSL.CONS
+   * @generated
+   */
+  EClass getCONS();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.CONS#getConName <em>Con Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Con Name</em>'.
+   * @see gdsl.plugin.gDSL.CONS#getConName()
+   * @see #getCONS()
+   * @generated
+   */
+  EAttribute getCONS_ConName();
+
+  /**
    * Returns the factory that creates the instances of the model.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -3136,12 +3254,12 @@ public interface GDSLPackage extends EPackage
     EClass CON_DECL = eINSTANCE.getConDecl();
 
     /**
-     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * The meta object literal for the '<em><b>Name</b></em>' containment reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute CON_DECL__NAME = eINSTANCE.getConDecl_Name();
+    EReference CON_DECL__NAME = eINSTANCE.getConDecl_Name();
 
     /**
      * The meta object literal for the '<em><b>Ty</b></em>' containment reference feature.
@@ -3354,12 +3472,12 @@ public interface GDSLPackage extends EPackage
     EReference CASE_EXP__CLOSED_EXP = eINSTANCE.getCaseExp_ClosedExp();
 
     /**
-     * The meta object literal for the '<em><b>Pat</b></em>' attribute list feature.
+     * The meta object literal for the '<em><b>Pat</b></em>' containment reference list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute CASE_EXP__PAT = eINSTANCE.getCaseExp_Pat();
+    EReference CASE_EXP__PAT = eINSTANCE.getCaseExp_Pat();
 
     /**
      * The meta object literal for the '<em><b>Exp</b></em>' containment reference list feature.
@@ -3688,6 +3806,50 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EReference VALUE_DECL__EXP = eINSTANCE.getValueDecl_Exp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.PATImpl <em>PAT</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.PATImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getPAT()
+     * @generated
+     */
+    EClass PAT = eINSTANCE.getPAT();
+
+    /**
+     * The meta object literal for the '<em><b>Id</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute PAT__ID = eINSTANCE.getPAT_Id();
+
+    /**
+     * The meta object literal for the '<em><b>Pat</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference PAT__PAT = eINSTANCE.getPAT_Pat();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.CONSImpl <em>CONS</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.CONSImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCONS()
+     * @generated
+     */
+    EClass CONS = eINSTANCE.getCONS();
+
+    /**
+     * The meta object literal for the '<em><b>Con Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute CONS__CON_NAME = eINSTANCE.getCONS_ConName();
 
   }
 

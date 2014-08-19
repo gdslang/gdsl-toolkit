@@ -2,6 +2,7 @@
  */
 package gdsl.plugin.gDSL.impl;
 
+import gdsl.plugin.gDSL.CONS;
 import gdsl.plugin.gDSL.ConDecl;
 import gdsl.plugin.gDSL.GDSLPackage;
 import gdsl.plugin.gDSL.Ty;
@@ -32,24 +33,14 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 public class ConDeclImpl extends MinimalEObjectImpl.Container implements ConDecl
 {
   /**
-   * The default value of the '{@link #getName() <em>Name</em>}' attribute.
+   * The cached value of the '{@link #getName() <em>Name</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @see #getName()
    * @generated
    * @ordered
    */
-  protected static final String NAME_EDEFAULT = null;
-
-  /**
-   * The cached value of the '{@link #getName() <em>Name</em>}' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @see #getName()
-   * @generated
-   * @ordered
-   */
-  protected String name = NAME_EDEFAULT;
+  protected CONS name;
 
   /**
    * The cached value of the '{@link #getTy() <em>Ty</em>}' containment reference.
@@ -87,7 +78,7 @@ public class ConDeclImpl extends MinimalEObjectImpl.Container implements ConDecl
    * <!-- end-user-doc -->
    * @generated
    */
-  public String getName()
+  public CONS getName()
   {
     return name;
   }
@@ -97,12 +88,37 @@ public class ConDeclImpl extends MinimalEObjectImpl.Container implements ConDecl
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setName(String newName)
+  public NotificationChain basicSetName(CONS newName, NotificationChain msgs)
   {
-    String oldName = name;
+    CONS oldName = name;
     name = newName;
     if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.CON_DECL__NAME, oldName, name));
+    {
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.CON_DECL__NAME, oldName, newName);
+      if (msgs == null) msgs = notification; else msgs.add(notification);
+    }
+    return msgs;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setName(CONS newName)
+  {
+    if (newName != name)
+    {
+      NotificationChain msgs = null;
+      if (name != null)
+        msgs = ((InternalEObject)name).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.CON_DECL__NAME, null, msgs);
+      if (newName != null)
+        msgs = ((InternalEObject)newName).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.CON_DECL__NAME, null, msgs);
+      msgs = basicSetName(newName, msgs);
+      if (msgs != null) msgs.dispatch();
+    }
+    else if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.CON_DECL__NAME, newName, newName));
   }
 
   /**
@@ -163,6 +179,8 @@ public class ConDeclImpl extends MinimalEObjectImpl.Container implements ConDecl
   {
     switch (featureID)
     {
+      case GDSLPackage.CON_DECL__NAME:
+        return basicSetName(null, msgs);
       case GDSLPackage.CON_DECL__TY:
         return basicSetTy(null, msgs);
     }
@@ -198,7 +216,7 @@ public class ConDeclImpl extends MinimalEObjectImpl.Container implements ConDecl
     switch (featureID)
     {
       case GDSLPackage.CON_DECL__NAME:
-        setName((String)newValue);
+        setName((CONS)newValue);
         return;
       case GDSLPackage.CON_DECL__TY:
         setTy((Ty)newValue);
@@ -218,7 +236,7 @@ public class ConDeclImpl extends MinimalEObjectImpl.Container implements ConDecl
     switch (featureID)
     {
       case GDSLPackage.CON_DECL__NAME:
-        setName(NAME_EDEFAULT);
+        setName((CONS)null);
         return;
       case GDSLPackage.CON_DECL__TY:
         setTy((Ty)null);
@@ -238,28 +256,11 @@ public class ConDeclImpl extends MinimalEObjectImpl.Container implements ConDecl
     switch (featureID)
     {
       case GDSLPackage.CON_DECL__NAME:
-        return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
+        return name != null;
       case GDSLPackage.CON_DECL__TY:
         return ty != null;
     }
     return super.eIsSet(featureID);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  @Override
-  public String toString()
-  {
-    if (eIsProxy()) return super.toString();
-
-    StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (name: ");
-    result.append(name);
-    result.append(')');
-    return result.toString();
   }
 
 } //ConDeclImpl

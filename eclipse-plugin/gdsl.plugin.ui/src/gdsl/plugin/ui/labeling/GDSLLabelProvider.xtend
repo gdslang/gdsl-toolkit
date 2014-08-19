@@ -78,6 +78,14 @@ class GDSLLabelProvider extends DefaultEObjectLabelProvider {
 		JavaUI.sharedImages.getImage(ISharedImages.IMG_OBJS_PROTECTED)
 	}
 	
+	def text(ConDecl cd){
+		var result = new StyledString()
+		result.append(cd.name.conName)
+		if(null != cd.ty){
+			result.append(" : " + text(cd.ty), StyledString.COUNTER_STYLER)
+		}
+		return result
+	}
 	def image(ConDecl cd){
 		JavaUI.sharedImages.getImage(ISharedImages.IMG_OBJS_IMPDECL)
 	}

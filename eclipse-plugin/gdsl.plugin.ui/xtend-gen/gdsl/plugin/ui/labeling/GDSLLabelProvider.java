@@ -5,6 +5,7 @@ package gdsl.plugin.ui.labeling;
 
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
+import gdsl.plugin.gDSL.CONS;
 import gdsl.plugin.gDSL.ConDecl;
 import gdsl.plugin.gDSL.DeclExport;
 import gdsl.plugin.gDSL.DeclVal;
@@ -128,6 +129,22 @@ public class GDSLLabelProvider extends DefaultEObjectLabelProvider {
   public Image image(final Type t) {
     ISharedImages _sharedImages = JavaUI.getSharedImages();
     return _sharedImages.getImage(ISharedImages.IMG_OBJS_PROTECTED);
+  }
+  
+  public StyledString text(final ConDecl cd) {
+    StyledString result = new StyledString();
+    CONS _name = cd.getName();
+    String _conName = _name.getConName();
+    result.append(_conName);
+    Ty _ty = cd.getTy();
+    boolean _notEquals = (!Objects.equal(null, _ty));
+    if (_notEquals) {
+      Ty _ty_1 = cd.getTy();
+      String _text = this.text(_ty_1);
+      String _plus = (" : " + _text);
+      result.append(_plus, StyledString.COUNTER_STYLER);
+    }
+    return result;
   }
   
   public Image image(final ConDecl cd) {

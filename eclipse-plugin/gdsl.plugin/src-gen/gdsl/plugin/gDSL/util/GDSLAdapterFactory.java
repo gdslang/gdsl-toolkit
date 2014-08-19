@@ -195,6 +195,16 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createValueDeclAdapter();
       }
       @Override
+      public Adapter casePAT(PAT object)
+      {
+        return createPATAdapter();
+      }
+      @Override
+      public Adapter caseCONS(CONS object)
+      {
+        return createCONSAdapter();
+      }
+      @Override
       public Adapter defaultCase(EObject object)
       {
         return createEObjectAdapter();
@@ -572,6 +582,36 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createValueDeclAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.PAT <em>PAT</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.PAT
+   * @generated
+   */
+  public Adapter createPATAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.CONS <em>CONS</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.CONS
+   * @generated
+   */
+  public Adapter createCONSAdapter()
   {
     return null;
   }

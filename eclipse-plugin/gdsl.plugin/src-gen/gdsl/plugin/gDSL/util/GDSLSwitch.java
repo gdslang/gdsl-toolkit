@@ -288,6 +288,20 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
+      case GDSLPackage.PAT:
+      {
+        PAT pat = (PAT)theEObject;
+        T result = casePAT(pat);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.CONS:
+      {
+        CONS cons = (CONS)theEObject;
+        T result = caseCONS(cons);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
       default: return defaultCase(theEObject);
     }
   }
@@ -672,6 +686,38 @@ public class GDSLSwitch<T> extends Switch<T>
    * @generated
    */
   public T caseValueDecl(ValueDecl object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>PAT</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>PAT</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T casePAT(PAT object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>CONS</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>CONS</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseCONS(CONS object)
   {
     return null;
   }

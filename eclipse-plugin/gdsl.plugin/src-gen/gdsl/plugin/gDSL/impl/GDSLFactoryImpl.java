@@ -88,6 +88,8 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.ATOMIC_EXP: return createAtomicExp();
       case GDSLPackage.FIELD: return createField();
       case GDSLPackage.VALUE_DECL: return createValueDecl();
+      case GDSLPackage.PAT: return createPAT();
+      case GDSLPackage.CONS: return createCONS();
       default:
         throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
     }
@@ -355,6 +357,28 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     ValueDeclImpl valueDecl = new ValueDeclImpl();
     return valueDecl;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public PAT createPAT()
+  {
+    PATImpl pat = new PATImpl();
+    return pat;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public CONS createCONS()
+  {
+    CONSImpl cons = new CONSImpl();
+    return cons;
   }
 
   /**
