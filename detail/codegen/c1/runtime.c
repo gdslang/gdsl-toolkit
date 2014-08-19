@@ -375,7 +375,12 @@ static char blob[BUF_SIZE];
 int main (int argc, char** argv) {
   uint64_t buf_size = BUF_SIZE;
   FILE* file = NULL;
-  int_t decode_options = 0;
+  int_t decode_options =
+#if defined(gdsl_default_config)
+    gdsl_default_config;
+#else
+    0;
+#endif
   int_t run_translate = 0;
   int_t translate_options = 0;
   int_t base_address = 0;
@@ -395,21 +400,26 @@ int main (int argc, char** argv) {
       }
     } else {
       arg+=2;
+      int negated = 0;
+      if (strcmp(arg,"no-")==0) { negated = 1; arg+=3; };
 #if defined(gdsl_decoder_config)
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
         if (strcmp(arg,gdsl_conf_short(s,config))==0) {
-          decode_options |= gdsl_conf_data(s,config);
+          if (negated)
+            decode_options &= ~gdsl_conf_data(s,config);
+          else
+            decode_options |= gdsl_conf_data(s,config);
           break;
         }
       if (gdsl_has_conf(s,config)) continue;
 #endif
       if (strncmp(arg,"base=",5)==0) {
-        scanf(arg+5,"%lli",&base_address);
+        sscanf(arg+5,"%lli",&base_address);
         continue;
       }
       if (strncmp(arg,"start=",6)==0) {
-        scanf(arg+6,"%lli",&start_address);
+        sscanf(arg+6,"%lli",&start_address);
         continue;
       }
       if (strcmp(arg,"trans")==0) {
@@ -418,15 +428,20 @@ int main (int argc, char** argv) {
       }
       fprintf(stderr,
         "usage: %s [options] filename\nwhere\n"
-        "  --trans          translate to semantics\n"
-        "  --base=addr      print addresses relative to addr\n"
-        "  --start=addr     decode starting from addr\n", argv[0]);
+        "  --trans               translate to semantics\n"
+        "  --base=addr           print addresses relative to addr\n"
+        "  --start=addr          decode starting from addr\n", argv[0]);
 #if defined(gdsl_decoder_config)
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
-        fprintf(stderr,"  --%s\t\t%s\n",
-          gdsl_conf_short(s,config), gdsl_conf_long(s,config));
+        fprintf(stderr,"  --%s\t\t%s%s\n  --no-%s%s\t\tnegated option\n",
+          gdsl_conf_short(s,config),
+          gdsl_conf_data(s,config) & decode_options ? "*" : "",
+          gdsl_conf_long(s,config),
+          gdsl_conf_short(s,config),
+          gdsl_conf_data(s,config) & decode_options ? "" : "*");
 #endif
+      fprintf(stderr,"The default is denoted by *.\n");
       return 1;
     }
   }
@@ -470,7 +485,7 @@ int main (int argc, char** argv) {
           2);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
-        printf("%llx:\n",address);
+        printf("0x%llx:\n",address);
         fputs(str,stdout);
 #else
         fputs("GDSL modules contain no semantic translation\n",stdout);
@@ -488,9 +503,9 @@ int main (int argc, char** argv) {
 #endif
       }
     } else {
-      fputs("exception: ",stdout);
-      fputs(gdsl_get_error_message(s),stdout);
-      if (gdsl_seek(s,gdsl_get_ip_offset(s)+1)) break;
+      int_t address = gdsl_get_ip_offset(s);
+      fprintf(stdout,"exception at address 0x%llx: %s\n", address, gdsl_get_error_message(s));
+      return 1;
     }
     fputs("\n",stdout);
     int_t size = gdsl_heap_residency(s);

@@ -2,10 +2,12 @@ export config-default: decoder-configuration
 export decode: (decoder-configuration) -> S insndata <{} => {}>
 export decoder-config : configuration[vec=decoder-configuration]
 
-type decoder-configuration = 0
+type decoder-configuration = |1|
 
-val decoder-config = END
-val config-default = ''
+val decoder-config =
+ conf '1' "reduced" "decode for ATtiny4/5/9/10 controller"
+ 
+val config-default = '0'
 
 val d ['bit:1'] = do
  rd <- query $rd;
@@ -191,7 +193,7 @@ val / ['1001010010111000'] = nullop CLV
 val / ['1001010010011000'] = nullop CLZ
 
 ### COM
-###  - One’s Complement
+###  - One's Complement
 val / ['1001010 d d d d d 0000'] = unop COM rd5
 
 ### CP
@@ -305,7 +307,7 @@ val / ['1110 k k k k d d d d k k k k'] = binop LDI rd4 ck8
 ### LDS
 ###  - Load Direct from Data Space
 val / ['1001000 d d d d d 0000' 'k k k k k k k k k k k k k k k k'] = binop LDS rd5 ck16
-#val / ['10100 k k k d d d d k k k k'] = binop LDS rd4 ck7
+val /tiny ['10100 k k k d d d d k k k k'] = binop LDS rd4 ck7
 
 ### LPM
 ###  - Load Program Memory
@@ -480,13 +482,15 @@ val / ['1001001 r r r r r 1110'] = binop ST (//X DECR) rr5
 ###  - Store Indirect From Register to Data Space using Index Y
 val / ['1001001 r r r r r 1001'] = binop ST (//Y (INCR 1)) rr5
 val / ['1001001 r r r r r 1010'] = binop ST (//Y DECR) rr5
-val / ['10 q 0 q q 1 r r r r r 1 q q q '] = binop ST (///Y dq6) rr5
+val / ['10 q 0 q q 1 r r r r r 1 q q q '] | isTiny = genTinyInstr
+                                          | otherwise = binop ST (///Y dq6) rr5
 
 ### ST
 ###  - Store Indirect From Register to Data Space using Index Z
 val / ['1001001 r r r r r 0001'] = binop ST (//Z (INCR 1)) rr5
 val / ['1001001 r r r r r 0010'] = binop ST (//Z DECR) rr5
-val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
+val / ['10 q 0 q q 1 r r r r r 0 q q q '] | isTiny = genTinyInstr
+                                          | otherwise = binop ST (///Z dq6) rr5
 
 ### STS
 ###  - Store Direct to Data Space
@@ -495,7 +499,7 @@ val / ['1001001 r r r r r 0000' 'k k k k k k k k k k k k k k k k'] = binop STS c
 # ATtiny4,5,9, and 10 implement the instruction below while other
 # chips (notably those that implement ST with dq6) implement only the 32-bit
 # variant of STS; see Wikipedia
-#val / ['10101 k k k r r r r k k k k'] = binop STS ck7 rr4
+val /tiny ['10101 k k k r r r r k k k k'] = binop STS ck7 rr4
 
 ### SUB
 ###  - Subtract without Carry
@@ -522,11 +526,20 @@ val / ['1001010110101000'] = nullop WDR
 val / ['1001001 d d d d d 0100'] = binop XCH /Z rd5
 
 val decode config = do
-  update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
+  update@{rd='',rr='',ck='',cs='',cb='',io='',dq='', config = config};
   idx-before <- idxget;
   insn <- /;
   idx-after <- idxget;
   return {length=(idx-after - idx-before), insn=insn}
+end
+
+val isTiny s = zx (s.config and '1') > 0
+
+val genTinyInstr = do
+  update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
+  index <- idxget;
+  seek (index - 4);
+  /tiny
 end
 
 type side-effect =
