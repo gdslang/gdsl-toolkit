@@ -1,6 +1,6 @@
 export generalize : (insndata) -> asm-insn
 
-val generalize insn = asm-insn insn.length (string-from-rope-lit (pretty-mnemonic insn)) (generalize-ua (uarity-of insn.insn))
+val generalize insn = asm-insn insn.length (string-from-rope (pretty-mnemonic insn)) (generalize-ua (uarity-of insn.insn))
   
 val generalize-ua ua = case ua of
    UA0: asm-opnds-none
@@ -8,7 +8,7 @@ val generalize-ua ua = case ua of
  | UA2 u: asm-opnds-more (generalize-opnd u.opnd1) (asm-opnds-one (generalize-opnd u.opnd2))
  | UA3 u: asm-opnds-more (generalize-opnd u.opnd1) (asm-opnds-more (generalize-opnd u.opnd2) (asm-opnds-one (generalize-opnd u.opnd3)))
  | UA4 u: asm-opnds-more (generalize-opnd u.opnd1) (asm-opnds-more (generalize-opnd u.opnd2) (asm-opnds-more (generalize-opnd u.opnd3) (asm-opnds-one (generalize-opnd u.opnd4))))
-# | UAF u: asm-opnds-one (asm-copnd (string-from-rope-lit "flow") (asm-ropnd (asm-rel (generalize-opnd u.opnd1))))
+# | UAF u: asm-opnds-one (asm-copnd (string-from-rope "flow") (asm-ropnd (asm-rel (generalize-opnd u.opnd1))))
 end
 
 
@@ -28,7 +28,7 @@ val generalize-immediate sz imm = asm-bounded (asm-boundary-sz sz) (asm-imm imm)
 val generalize-register r = let
   val rs = semantic-register-of r
 in
-  asm-bounded (asm-boundary-sz-o rs.size rs.offset) (asm-reg (string-from-rope-lit (pretty-arch-id rs.id)))
+  asm-bounded (asm-boundary-sz-o rs.size rs.offset) (asm-reg (string-from-rope (pretty-arch-id rs.id)))
 end
 
 val generalize-memory m =

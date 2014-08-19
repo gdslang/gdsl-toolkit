@@ -91,6 +91,7 @@ structure Imp = struct
        | GET_CON_IDXprim
        | GET_CON_ARGprim
        | VOIDprim
+       | MERGE_ROPEprim
 
    (* information on how to print primitives, the name is the C name
       and the priority is the operator precedence, 0 if not infix *)
@@ -128,6 +129,7 @@ structure Imp = struct
      | prim_info GET_CON_IDXprim = { name = "__get_con_idx", prio = 0 }
      | prim_info GET_CON_ARGprim = { name = "__get_con_arg", prio = 0 }
      | prim_info VOIDprim = { name = "void", prio = 0 }
+     | prim_info MERGE_ROPEprim = { name = "merge-rope", prio = 0 }
 
    (*
    * fun f x =
@@ -195,7 +197,7 @@ structure Imp = struct
    and stmt =
       ASSIGNstmt of sym option * exp
     | IFstmt of exp * block * block
-    | CASEstmt of exp * (pat * block) list
+    | CASEstmt of exp * (Error.span * pat * block) list
    
    and block = BASICblock of arg list * stmt list
 
@@ -331,9 +333,10 @@ structure Imp = struct
         | pat (CONpat s) = con s
         | pat (INTpat i) = str (IntInf.toString i)
         | pat WILDpat = str "_"
-      and casee (p, ss) =
+      and casee (s, p, ss) =
          align
             [seq [pat p, space, str ":"],
+             str (Error.spanToString s),
              block ss]
       and cases cs =
          case cs of [] => str "<empty>" | cs =>

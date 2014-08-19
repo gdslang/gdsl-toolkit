@@ -1,5 +1,3 @@
-# vim:ts=3:sw=3:expandtab
-
 export pretty : (insndata) -> rope
 
 val pretty i = show/instruction i
@@ -43,11 +41,11 @@ val show/immediate imm =
 
 val show/format format = 
    case format of
-      S : ".S"
-    | D : ".D"
-    | W : ".W"
-    | L : ".L"
-    | PS : ".PS"
+      S : "S"
+    | D : "D"
+    | W : "W"
+    | L : "L"
+    | PS : "PS"
    end
 
 val show/register r =
@@ -87,6 +85,38 @@ val show/register r =
     | HI: "hi"
     | LO: "lo"
     | PC: "pc"
+    | F0: "f0"
+    | F1: "f1"
+    | F2: "f2"
+    | F3: "f3"
+    | F4: "f4"
+    | F5: "f5"
+    | F6: "f6"
+    | F7: "f7"
+    | F8: "f8"
+    | F9: "f9"
+    | F10: "f10"
+    | F11: "f11"
+    | F12: "f12"
+    | F13: "f13"
+    | F14: "f14"
+    | F15: "f15"
+    | F16: "f16"
+    | F17: "f17"
+    | F18: "f18"
+    | F19: "f19"
+    | F20: "f20"
+    | F21: "f21"
+    | F22: "f22"
+    | F23: "f23"
+    | F24: "f24"
+    | F25: "f25"
+    | F26: "f26"
+    | F27: "f27"
+    | F28: "f28"
+    | F29: "f29"
+    | F30: "f30"
+    | F31: "f31"
     | F x: "f" +++ show-int x
     | FIR: "fir"
     | FCCR: "fccr"
@@ -116,14 +146,14 @@ val show/instruction insn = let
     | UNOP_SRC x: mnemonic -++ show/unop-src x
     | UNOP x: mnemonic -++ show/unop x
     | BINOP_SRC x: mnemonic -++ show/binop-src x
-    | BINOP_FMT x: mnemonic -++ show/binop-fmt x
+    | BINOP_FMT x: mnemonic +++ "." +++ show/format x.fmt -++ show/binop-fmt x
     | BINOP x: mnemonic -++ show/binop x
     | TERNOP_SRC x: mnemonic -++ show/ternop-src x
     | TERNOP x: mnemonic -++ show/ternop x
-    | TERNOP_FMT x: mnemonic -++ show/ternop-fmt x
+    | TERNOP_FMT x: mnemonic +++ "." +++ show/format x.fmt -++ show/ternop-fmt x
     | QUADOP x: mnemonic -++ show/quadop x
-    | QUADOP_FMT x: mnemonic -++ show/quadop-fmt x
-    | QUADOP_FMT_SRC x: mnemonic -++ show/quadop-fmt-src x
+    | QUADOP_FMT x: mnemonic +++ "." +++ show/format x.fmt -++ show/quadop-fmt x
+    | QUADOP_FMT_SRC x: mnemonic +++ "." +++ show/format x.fmt -++ show/quadop-fmt-src x
    end
 in
    traverse show/ua insn.insn

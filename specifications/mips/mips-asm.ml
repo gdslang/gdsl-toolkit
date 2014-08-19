@@ -4,22 +4,23 @@ val generalize insn = let
   val recordify mnemonic ua = {mnemonic=mnemonic, ua=ua}
   val traversed = traverse recordify insn.insn
 in
-  asm-insn insn.length (string-from-rope-lit traversed.mnemonic) (generalize-ua traversed.ua)
+  asm-insn-flags insn.length (string-from-rope traversed.mnemonic) (generalize-fmt traversed.ua) (generalize-ua traversed.ua)
 end
 
 val generalize-lvalue lval = let
-  val generalize-register r = asm-reg (string-from-rope-lit (show/register r))
+  val generalize-register r = asm-reg (string-from-rope (show/register r))
 in case lval of
    GPR r: generalize-register r
  | FPR f: generalize-register f
 end end
 
-val generalize-rvalue rval = let
-  val generalize-register r = asm-reg (string-from-rope-lit (show/register r))
-in case rval of
-   LVALUE lval: generalize-lvalue lval
- | IMM i: generalize-immediate i
-end end
+val generalize-rvalue rval =
+   case rval of
+      LVALUE lval: generalize-lvalue lval
+    | IMM i: generalize-immediate i
+   end
+
+val generalize-format fmt = asm-ann-string (string-from-rope (show/format fmt))
 
 val generalize-immediate i = let
    val inner i sz = asm-bounded (asm-boundary-sz sz) (asm-imm (zx i))
@@ -60,6 +61,23 @@ val generalize-ua ua =
     | QUADOP x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3))))
     | QUADOP_FMT x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3))))
     | QUADOP_FMT_SRC x: asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-more (generalize-rvalue x.source3) (asm-opnds-one (generalize-rvalue x.source4))))
+   end
+
+
+val generalize-fmt ua =
+   case ua of
+      NULLOP: asm-anns-none
+    | UNOP_SRC x: asm-anns-none
+    | UNOP x: asm-anns-none
+    | BINOP_SRC x: asm-anns-none
+    | BINOP_FMT x: asm-anns-one (generalize-format x.fmt)
+    | BINOP x: asm-anns-none
+    | TERNOP_SRC x: asm-anns-none
+    | TERNOP x: asm-anns-none
+    | TERNOP_FMT x: asm-anns-one (generalize-format x.fmt)
+    | QUADOP x: asm-anns-none
+    | QUADOP_FMT x: asm-anns-one (generalize-format x.fmt)
+    | QUADOP_FMT_SRC x: asm-anns-one (generalize-format x.fmt)
    end
 
 

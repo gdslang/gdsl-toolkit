@@ -60,7 +60,7 @@ structure C1 = struct
            | calleesStmt ss (CASEstmt (e,ps)) =
                foldl (fn (p,ss) => calleesCase ss p) (calleesExp ss e) ps
 
-         and calleesCase ss (p,stmts) = calleesBlock ss stmts
+         and calleesCase ss (_,p,stmts) = calleesBlock ss stmts
    
          and calleesExp ss (IDexp sym) =
             if SymSet.member (domSet,sym) then SymSet.add (ss,sym) else ss
@@ -738,7 +738,7 @@ structure C1 = struct
          str "};"
       ]
 
-   and emitCase s (p,bb) =
+   and emitCase s (sp,p,bb) =
       align [
          seq [emitPat s p, space, str "{"],
          emitBlock s bb,
@@ -894,6 +894,7 @@ structure C1 = struct
      | emitPrim s (GET_CON_IDXprim, [e],[t]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->tag"]
      | emitPrim s (GET_CON_ARGprim, [_,e],[FUNvtype (_,_,[t]),_]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->payload"]
      | emitPrim s (VOIDprim, [],_) = str "0 /* void value */"
+     | emitPrim s (MERGE_ROPEprim, [e],_) = seq [str (#prefix s ^ "merge_rope"), fArgs [emitExp s e]] 
      | emitPrim s _ = raise CodeGenBug
    
    and addConsume s n = #consumeSizes s := IntListSet.add (!(#consumeSizes s),n)

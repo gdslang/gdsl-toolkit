@@ -141,7 +141,7 @@ end = struct
        | otherwise => otherwise
    
    and desugarDecl (n, ns, e) = (n, ns, desugar e)
-   and desugarCase (p, e) = (p, desugar e)
+   and desugarCase (s, p, e) = (s, p, desugar e)
    and desugarField (f, e) = (f, desugar e)
 
    and flattenSeq ss = List.concat (List.map flatten ss)

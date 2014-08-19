@@ -8,7 +8,7 @@ export insn-length : (insndata) -> int
 export decoder-config : configuration[vec=decoder-configuration]
 export operands : (insndata) -> int
 
-type decoder-configuration = 2
+type decoder-configuration = |2|
 
 val decoder-config =
  conf '01' "mode64" "decode x86-64 instructions" &*

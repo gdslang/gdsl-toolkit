@@ -23,23 +23,25 @@ struct _generic {
 };
 struct _decoder {
   int_t function (state_t) config_default;
+  obj_t function (state_t) decoder_config;
+  int_t function (state_t, obj_t) has_conf;
+  obj_t function (state_t, obj_t) conf_next;
+  string_t function (state_t, obj_t) conf_short;
+  string_t function (state_t, obj_t) conf_long;
+  int_t function (state_t, obj_t) conf_data;
   obj_t function (state_t, int_t) decode;
-  int_t function (state_t, obj_t) insn_length;
-  int_t function (state_t, obj_t) operands;
+  obj_t function (state_t, obj_t) generalize;
+  obj_t function (state_t, obj_t) asm_convert_insn;
   obj_t* function (state_t, obj_t) pretty;
-  obj_t* function (state_t, obj_t, int_t) pretty_operand;
-  obj_t* function (state_t, obj_t) pretty_mnemonic;
-  int_t function (state_t, obj_t, int) typeof_opnd;
  }
 struct _translator {
   obj_t function (state_t, obj_t) translate;
   obj_t* function (state_t, obj_t) pretty;
   obj_t* function (state_t, obj_t) pretty_arch_id;
   obj_t* function (state_t, obj_t) pretty_arch_exception;
-  void function (state_t, obj_t) rreil_cif_userdata_set;
-  obj_t function (state_t) rreil_cif_userdata_get;
-  obj_t function (state_t, callbacks_t, obj_t) rreil_convert_sem_stmts;
-  obj_t function (state_t, int_t, int_t, int_t, obj_t, obj_t function (state_t, obj_t, obj_t)) decode_translate_block_optimized_int;
+  obj_t function (state_t, callbacks_t, obj_t) rreil_convert_sem_stmt_list;
+  opt_result_t function (state_t, int_t, int_t, int_t, obj_t, 
+    obj_t function (state_t, obj_t, obj_t)) decode_translate_block_optimized_insncb;
 }
 
 struct frontend {

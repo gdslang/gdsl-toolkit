@@ -150,7 +150,7 @@ static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
   sexpr->cmp = (struct rreil_comparator*)this;
   return (obj_t)sexpr;
 }
-static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
+static obj_t sem_sexpr_arb(state_t state) {
   struct rreil_sexpr *sexpr = (struct rreil_sexpr*)malloc(sizeof(struct rreil_sexpr));
   sexpr->type = RREIL_SEXPR_TYPE_ARB;
   return (obj_t)sexpr;
@@ -320,7 +320,7 @@ static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
   variable_tuple->variables[variable_tuple->variables_length++] = (struct rreil_variable_limited*)next;
   return (obj_t)variable_tuple;
 }
-static obj_t sem_varls_init(state_t state, obj_t nothing) {
+static obj_t sem_varls_init(state_t state) {
   struct rreil_variable_limited_tuple *variable_tuple = (struct rreil_variable_limited_tuple*)malloc(
       sizeof(struct rreil_variable_limited_tuple));
   variable_tuple->variables = NULL;
@@ -459,7 +459,7 @@ static obj_t sem_stmts_next(state_t state, obj_t next, obj_t list) {
   statements->statements[statements->statements_length++] = (struct rreil_statement*)next;
   return (obj_t)statements;
 }
-static obj_t sem_stmts_init(state_t state, obj_t nothing) {
+static obj_t sem_stmts_init(state_t state) {
   struct rreil_statements *statements = (struct rreil_statements*)malloc(sizeof(struct rreil_statements));
   statements->statements = NULL;
   statements->statements_length = 0;
