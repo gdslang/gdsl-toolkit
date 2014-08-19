@@ -449,7 +449,9 @@ end = struct
                inspectPat cs cons
             end
 
-        val cases = addDefault cases
+        (* thus this optimization off for now since it can lead to warnings
+           about unused constructors *)
+        (*val cases = addDefault cases*)
 
       in
          (stmts @ [CASEstmt (scrut, cases)], IDexp res)
