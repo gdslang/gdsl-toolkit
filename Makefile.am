@@ -233,22 +233,22 @@ GDSL_ARM7 = \
 	$(srcdir)/specifications/arm7/arm7-pretty.ml
 #	$(srcdir)/specifications/arm7/arm7-asm.ml
 
-#if X86_RREIL
+if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 nodist_include_HEADERS += gdsl-x86-rreil.h
 #libjgdsl_la_LIBADD += libgdsl-x86-rreil.la
 #semantics_opt_LDADD += libgdsl-x86-rreil.la
 CLEANFILES += gdsl-x86-rreil.c gdsl-x86-rreil.h
-#endif
-libgdsl_x86_rreil_la_SOURCES =
-nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
-libgdsl_x86_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 if INSTALL_AUXBINS
 bin_PROGRAMS += gdsl_x86_rreil_demo
 endif
 if BUILD_AUXBINS
 noinst_PROGRAMS += gdsl_x86_rreil_demo
 endif
+endif
+libgdsl_x86_rreil_la_SOURCES =
+nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
+libgdsl_x86_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_x86_rreil_demo_SOURCES = gdsl-x86-rreil.c
 gdsl_x86_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
 
@@ -256,21 +256,21 @@ GS_X86_RREIL = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM
 gdsl-x86-rreil.c: $(GDSLC_DEP) $(GS_X86_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86_RREIL)
 
-#if X86
+if X86
 lib_LTLIBRARIES += libgdsl-x86.la
 #decoder_cli_LDADD += libgdsl-x86.la
 nodist_include_HEADERS += gdsl-x86.h
 CLEANFILES += gdsl-x86.c gdsl-x86.h
-#endif
-libgdsl_x86_la_SOURCES =
-nodist_libgdsl_x86_la_SOURCES = gdsl-x86.c
-libgdsl_x86_la_DEPENDENCIES = $(GDSLC_DEP)
 if INSTALL_AUXBINS
 bin_PROGRAMS += gdsl_x86_demo
 endif
 if BUILD_AUXBINS
 noinst_PROGRAMS += gdsl_x86_demo
 endif
+endif
+libgdsl_x86_la_SOURCES =
+nodist_libgdsl_x86_la_SOURCES = gdsl-x86.c
+libgdsl_x86_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_x86_demo_SOURCES = gdsl-x86.c
 gdsl_x86_demo_CFLAGS = -std=c99 -DWITHMAIN
 
@@ -278,22 +278,22 @@ GS_X86 = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86)
 gdsl-x86.c: $(GDSLC_DEP) $(GS_X86)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86)
 
-#if AVR_RREIL
+if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
 #libjgdsl_la_LIBADD += libgdsl-avr-rreil.la
 #semantics_opt_LDADD += libgdsl-avr-rreil.la
 nodist_include_HEADERS += gdsl-avr-rreil.h
 CLEANFILES += gdsl-avr-rreil.c gdsl-avr-rreil.h
-#endif
-libgdsl_avr_rreil_la_SOURCES =
-nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
-libgdsl_avr_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 if INSTALL_AUXBINS
 bin_PROGRAMS += gdsl_avr_rreil_demo
 endif
 if BUILD_AUXBINS
 noinst_PROGRAMS += gdsl_avr_rreil_demo
 endif
+endif
+libgdsl_avr_rreil_la_SOURCES =
+nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
+libgdsl_avr_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_avr_rreil_demo_SOURCES = gdsl-avr-rreil.c
 gdsl_avr_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
 
@@ -301,21 +301,21 @@ GS_AVR_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSE
 gdsl-avr-rreil.c: $(GDSLC_DEP) $(GS_AVR_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
 
-#if AVR
+if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
 #decoder_cli_LDADD += libgdsl-avr.la
 nodist_include_HEADERS += gdsl-avr.h
 CLEANFILES += gdsl-avr.c gdsl-avr.h
-#endif
-libgdsl_avr_la_SOURCES =
-nodist_libgdsl_avr_la_SOURCES = gdsl-avr.c
-libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
 if INSTALL_AUXBINS
 bin_PROGRAMS += gdsl_avr_demo
 endif
 if BUILD_AUXBINS
 noinst_PROGRAMS += gdsl_avr_demo
 endif
+endif
+libgdsl_avr_la_SOURCES =
+nodist_libgdsl_avr_la_SOURCES = gdsl-avr.c
+libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_avr_demo_SOURCES = gdsl-avr.c
 gdsl_avr_demo_CFLAGS = -std=c99 -DWITHMAIN
 
@@ -323,22 +323,22 @@ GS_AVR = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_AVR)
 gdsl-avr.c: $(GDSLC_DEP) $(GS_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR)
 
-#if MIPS_RREIL
+if MIPS_RREIL
 lib_LTLIBRARIES += libgdsl-mips-rreil.la
 #libjgdsl_la_LIBADD += libgdsl-mips-rreil.la
 #semantics_opt_LDADD += libgdsl-mips-rreil.la
 nodist_include_HEADERS += gdsl-mips-rreil.h
 CLEANFILES += gdsl-mips-rreil.c gdsl-mips-rreil.h
-#endif
-libgdsl_mips_rreil_la_SOURCES =
-nodist_libgdsl_mips_rreil_la_SOURCES = gdsl-mips-rreil.c
-libgdsl_mips_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 if INSTALL_AUXBINS
 bin_PROGRAMS += gdsl_mips_rreil_demo
 endif
 if BUILD_AUXBINS
 noinst_PROGRAMS += gdsl_mips_rreil_demo
 endif
+endif
+libgdsl_mips_rreil_la_SOURCES =
+nodist_libgdsl_mips_rreil_la_SOURCES = gdsl-mips-rreil.c
+libgdsl_mips_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_mips_rreil_demo_SOURCES = gdsl-mips-rreil.c
 gdsl_mips_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
 
@@ -346,21 +346,21 @@ GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS) $(GDSL_RREIL) $(GDSL_MIP
 gdsl-mips-rreil.c: $(GDSLC_DEP) $(GS_MIPS_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS_RREIL)
 
-#if MIPS
+if MIPS
 lib_LTLIBRARIES += libgdsl-mips.la
 #decoder_cli_LDADD += libgdsl-mips.la
 nodist_include_HEADERS += gdsl-mips.h
 CLEANFILES += gdsl-mips.c gdsl-mips.h
-#endif
-libgdsl_mips_la_SOURCES =
-nodist_libgdsl_mips_la_SOURCES = gdsl-mips.c
-libgdsl_mips_la_DEPENDENCIES = $(GDSLC_DEP)
 if INSTALL_AUXBINS
 bin_PROGRAMS += gdsl_mips_demo
 endif
 if BUILD_AUXBINS
 noinst_PROGRAMS += gdsl_mips_demo
 endif
+endif
+libgdsl_mips_la_SOURCES =
+nodist_libgdsl_mips_la_SOURCES = gdsl-mips.c
+libgdsl_mips_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_mips_demo_SOURCES = gdsl-mips.c
 gdsl_mips_demo_CFLAGS = -std=c99 -DWITHMAIN
 
@@ -368,21 +368,20 @@ GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS)
 gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
 
-
-#if ARM7 
+if ARM7 
 lib_LTLIBRARIES += libgdsl-arm7.la
 nodist_include_HEADERS += gdsl-arm7.h
 CLEANFILES += gdsl-arm7.c gdsl-arm7.h
-#endif
-libgdsl_arm7_la_SOURCES =
-nodist_libgdsl_arm7_la_SOURCES = gdsl-arm7.c
-libgdsl_arm7_la_DEPENDENCIES = $(GDSLC_DEP)
 if INSTALL_AUXBINS
 bin_PROGRAMS += gdsl_arm7_demo
 endif
 if BUILD_AUXBINS
 noinst_PROGRAMS += gdsl_arm7_demo
 endif
+endif
+libgdsl_arm7_la_SOURCES =
+nodist_libgdsl_arm7_la_SOURCES = gdsl-arm7.c
+libgdsl_arm7_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_arm7_demo_SOURCES = gdsl-arm7.c
 gdsl_arm7_demo_CFLAGS = -std=c99 -DWITHMAIN
 
@@ -390,7 +389,6 @@ GS_ARM7 = $(GDSL_BASIS) $(GDSL_ARM7)
 gdsl-arm7.c: $(GDSLC_DEP) $(GS_ARM7)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_ARM7)
 
-#if HAVE_RREIL
 JSOURCES = src/Program.java \
 src/gdsl/BareFrontend.java \
 src/gdsl/translator/Translator.java \
@@ -542,9 +540,7 @@ $(JAR): pre-build $(JSOURCES:%=libs/jgdsl/%)
 	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jgdsl && javac -cp /usr/share/java/junit4.jar:. $(JSOURCES) -d $$ABS_DST/
 	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
 
-CLEANFILES += jgdsl.jar
-
-#endif
+CLEANFILES += gdslc jgdsl.jar
 
 clean-local:
 	-rm -rf build/
@@ -552,10 +548,18 @@ clean-local:
 
 if INSTALL_AUXLIBS
 if HAVE_GDSL_MULTIPLEX
+if HAVE_RREIL
+if SINGLE
 lib_LTLIBRARIES += libgdsl-multiplex.la
 endif
+endif
+endif
 if HAVE_JGDSL
+if HAVE_RREIL
+if SINGLE
 lib_LTLIBRARIES += libjgdsl.la
+endif
+endif
 endif
 if HAVE_MEMSTREAM
 lib_LTLIBRARIES += libmemstream.la
@@ -564,17 +568,24 @@ endif
 
 if BUILD_AUXLIBS
 if HAVE_GDSL_MULTIPLEX
+if HAVE_RREIL
+if SINGLE
 noinst_LTLIBRARIES += libgdsl-multiplex.la
 endif
+endif
+endif
 if HAVE_JGDSL
+if HAVE_RREIL
+if SINGLE
 noinst_LTLIBRARIES += libjgdsl.la
+endif
+endif
 endif
 if HAVE_MEMSTREAM
 noinst_LTLIBRARIES += libmemstream.la
 endif
 endif
 
-#if HAVE_RREIL
 libgdsl_multiplex_la_SOURCES = $(srcdir)/libs/gdsl-multiplex/src/gdsl_multiplex.c
 libgdsl_multiplex_la_CFLAGS = -std=c99 -I$(srcdir)/libs/gdsl-multiplex/include
 libgdsl_multiplex_la_LDFLAGS = -ldl
@@ -583,15 +594,11 @@ if HAVE_MEMSTREAM
 libgdsl_multiplex_la_CFLAGS += -include$(srcdir)/libs/memstream/include/memstream.h
 libgdsl_multiplex_la_LIBADD += libmemstream.la
 endif
-#endif
 
-#if HAVE_RREIL
 libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_NativeInstruction.c $(srcdir)/libs/jgdsl/src/gdsl_asm_GeneralizerBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Frontend.c $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.c $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.c $(srcdir)/libs/jgdsl/src/util.c
 libjgdsl_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
-libjgdsl_la_LIBADD += libgdsl-multiplex.la
-libjgdsl.la: jgdsl.jar
+libjgdsl_la_LIBADD += libgdsl-multiplex.la jgdsl.jar
 private_headers += $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.h $(srcdir)/libs/jgdsl/src/gdsl_Frontend.h $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.h $(srcdir)/libs/jgdsl/src/util.h
-#endif
 
 if HAVE_MEMSTREAM
 libmemstream_la_SOURCES = $(srcdir)/libs/memstream/src/memstream.c
@@ -619,18 +626,3 @@ private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 #endif
 
 EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm
-
-#if X86_RREIL
-install-data-hook:
-	ln -fs $(DESTDIR)$(libdir)/libgdsl-x86-rreil.so $(DESTDIR)$(libdir)/libgdsl-x86.so
-#endif
-
-#if AVR_RREIL
-install-data-hook:
-	ln -fs $(DESTDIR)$(libdir)/libgdsl-avr-rreil.so $(DESTDIR)$(libdir)/libgdsl-avr.so
-#endif
-
-#if MIPS_RREIL
-install-data-hook:
-	ln -fs $(DESTDIR)$(libdir)/libgdsl-mips-rreil.so $(DESTDIR)$(libdir)/libgdsl-mips.so
-#endif
