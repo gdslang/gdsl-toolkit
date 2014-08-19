@@ -582,7 +582,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             otherlv_1=(Token)match(input,RULE_ID,FOLLOW_RULE_ID_in_ruleDeclExport419); if (state.failed) return current;
             if ( state.backtracking==0 ) {
 
-              		newLeafNode(otherlv_1, grammarAccess.getDeclExportAccess().getNameDeclValCrossReference_1_0()); 
+              		newLeafNode(otherlv_1, grammarAccess.getDeclExportAccess().getNameValCrossReference_1_0()); 
               	
             }
 

@@ -3,11 +3,18 @@
 */
 package gdsl.plugin.ui.quickfix
 
+import gdsl.plugin.gDSL.Decl
+import gdsl.plugin.gDSL.GDSLFactory
+import gdsl.plugin.gDSL.GDSLPackage
+import gdsl.plugin.gDSL.Model
 import gdsl.plugin.validation.GDSLValidator
+import org.eclipse.xtext.diagnostics.Diagnostic
 import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
 import org.eclipse.xtext.ui.editor.quickfix.Fix
 import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
 import org.eclipse.xtext.validation.Issue
+
+import static extension org.eclipse.xtext.EcoreUtil2.*
 
 //import org.eclipse.xtext.ui.editor.quickfix.Fix
 //import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
@@ -67,4 +74,37 @@ class GDSLQuickfixProvider extends DefaultQuickfixProvider {
 		)
 	}
 	
+//	@Fix(Diagnostic::LINKING_DIAGNOSTIC)
+//	def createMissingDecl(Issue issue, IssueResolutionAcceptor acceptor){
+//		if(issue.message.contains('reference to ' + GDSLPackage::eINSTANCE.^val.name)){
+//			acceptor.accept(issue,
+//				'Create new val',
+//				'Create new val',
+//				'',
+//				[element, context |
+//					val decl = element.getContainerOfType(typeof(Decl))
+//					val model = decl.eContainer as Model
+//					model.decl.add(
+//						model.decl.indexOf(decl) + 1,
+//						GDSLFactory::eINSTANCE.createDecl() => [
+//							^val = GDSLFactory::eINSTANCE.createVal() => [
+//								name = context.xtextDocument.get(issue.offset, issue.length)
+//							]
+//						]
+//					)
+//				]
+//			)
+//		}
+//		if(issue.message.contains('reference to ' + GDSLPackage::eINSTANCE.type.name)){
+//			acceptor.accept(issue,
+//				'Create new type',
+//				'Create new type',
+//				'',
+//				[element, context |
+//					
+//				]
+//			)
+//		}
+//	}
+//	
 }

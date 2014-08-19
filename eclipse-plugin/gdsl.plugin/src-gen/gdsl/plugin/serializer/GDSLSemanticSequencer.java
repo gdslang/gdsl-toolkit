@@ -10,7 +10,6 @@ import gdsl.plugin.gDSL.CaseExp;
 import gdsl.plugin.gDSL.ClosedExp;
 import gdsl.plugin.gDSL.ConDecl;
 import gdsl.plugin.gDSL.DeclExport;
-import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.Exp;
 import gdsl.plugin.gDSL.Field;
 import gdsl.plugin.gDSL.GDSLPackage;
@@ -23,6 +22,7 @@ import gdsl.plugin.gDSL.TyBind;
 import gdsl.plugin.gDSL.TyElement;
 import gdsl.plugin.gDSL.TyVars;
 import gdsl.plugin.gDSL.Type;
+import gdsl.plugin.gDSL.Val;
 import gdsl.plugin.gDSL.ValueDecl;
 import gdsl.plugin.services.GDSLGrammarAccess;
 import org.eclipse.emf.ecore.EObject;
@@ -142,13 +142,6 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 					return; 
 				}
 				else break;
-			case GDSLPackage.DECL_VAL:
-				if(context == grammarAccess.getDeclRule() ||
-				   context == grammarAccess.getDeclValRule()) {
-					sequence_DeclVal(context, (DeclVal) semanticObject); 
-					return; 
-				}
-				else break;
 			case GDSLPackage.EXP:
 				if(context == grammarAccess.getExpRule()) {
 					sequence_Exp(context, (Exp) semanticObject); 
@@ -220,6 +213,13 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 				}
 				else if(context == grammarAccess.getTyVarRule()) {
 					sequence_TyVar(context, (Type) semanticObject); 
+					return; 
+				}
+				else break;
+			case GDSLPackage.VAL:
+				if(context == grammarAccess.getDeclRule() ||
+				   context == grammarAccess.getDeclValRule()) {
+					sequence_DeclVal(context, (Val) semanticObject); 
 					return; 
 				}
 				else break;
@@ -387,7 +387,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     (name=[DeclVal|ID] tyVars=TyVars? type=Ty)
+	 *     (name=[Val|ID] tyVars=TyVars? type=Ty)
 	 */
 	protected void sequence_DeclExport(EObject context, DeclExport semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
@@ -411,7 +411,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	 *         ((name=ID | name=S) decPat+=DECODEPAT* (exp=Exp | (exps+=Exp exps+=Exp)+))
 	 *     )
 	 */
-	protected void sequence_DeclVal(EObject context, DeclVal semanticObject) {
+	protected void sequence_DeclVal(EObject context, Val semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
 	}
 	

@@ -201,7 +201,7 @@ ruleDeclExport returns [EObject current=null]
         }
 	otherlv_1=RULE_ID
 	{
-		newLeafNode(otherlv_1, grammarAccess.getDeclExportAccess().getNameDeclValCrossReference_1_0()); 
+		newLeafNode(otherlv_1, grammarAccess.getDeclExportAccess().getNameValCrossReference_1_0()); 
 	}
 
 )

@@ -59,13 +59,13 @@ public interface GDSLFactory extends EFactory
   Type createType();
 
   /**
-   * Returns a new object of class '<em>Decl Val</em>'.
+   * Returns a new object of class '<em>Val</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return a new object of class '<em>Decl Val</em>'.
+   * @return a new object of class '<em>Val</em>'.
    * @generated
    */
-  DeclVal createDeclVal();
+  Val createVal();
 
   /**
    * Returns a new object of class '<em>Ty Vars</em>'.

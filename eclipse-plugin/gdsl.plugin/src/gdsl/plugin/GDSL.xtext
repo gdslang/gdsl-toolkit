@@ -13,7 +13,7 @@ Decl:
 ;
 
 DeclExport:
-	'export' name=[DeclVal] (tyVars=TyVars)? ':' type=Ty
+	'export' name=[Val] (tyVars=TyVars)? ':' type=Ty
 ;
 
 DeclType returns Type:
@@ -24,7 +24,7 @@ DeclType returns Type:
 	)
 ;
 
-DeclVal:
+DeclVal returns Val:
 	'val'
 	(=>((name=(ID | S) | =>name=SYM) (attr += (ID | S))* '=' exp=Exp) |
 	((mid+=MID attr+=(ID | S))* '=' exp=Exp) |

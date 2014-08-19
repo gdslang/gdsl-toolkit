@@ -95,9 +95,9 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createTypeAdapter();
       }
       @Override
-      public Adapter caseDeclVal(DeclVal object)
+      public Adapter caseVal(Val object)
       {
-        return createDeclValAdapter();
+        return createValAdapter();
       }
       @Override
       public Adapter caseTyVars(TyVars object)
@@ -287,16 +287,16 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
   }
 
   /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.DeclVal <em>Decl Val</em>}'.
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Val <em>Val</em>}'.
    * <!-- begin-user-doc -->
    * This default implementation returns null so that we can easily ignore cases;
    * it's useful to ignore a case when inheritance will catch all the cases anyway.
    * <!-- end-user-doc -->
    * @return the new adapter.
-   * @see gdsl.plugin.gDSL.DeclVal
+   * @see gdsl.plugin.gDSL.Val
    * @generated
    */
-  public Adapter createDeclValAdapter()
+  public Adapter createValAdapter()
   {
     return null;
   }

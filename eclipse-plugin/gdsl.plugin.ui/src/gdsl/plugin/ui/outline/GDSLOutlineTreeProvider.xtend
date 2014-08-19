@@ -5,7 +5,7 @@ package gdsl.plugin.ui.outline
 
 import gdsl.plugin.gDSL.ConDecl
 import gdsl.plugin.gDSL.DeclExport
-import gdsl.plugin.gDSL.DeclVal
+import gdsl.plugin.gDSL.Val
 import gdsl.plugin.gDSL.Model
 import gdsl.plugin.gDSL.Type
 import org.eclipse.xtext.ui.editor.outline.IOutlineNode
@@ -20,7 +20,7 @@ import org.eclipse.xtext.ui.editor.outline.impl.DocumentRootNode
 class GDSLOutlineTreeProvider extends DefaultOutlineTreeProvider {
 	
 	def _isLeaf(DeclExport e){ true }
-	def _isLeaf(DeclVal v){ true }
+	def _isLeaf(Val v){ true }
 	def _isLeaf(ConDecl cd){ true }
 	def _isLeaf(Type t){
 		t.value != null

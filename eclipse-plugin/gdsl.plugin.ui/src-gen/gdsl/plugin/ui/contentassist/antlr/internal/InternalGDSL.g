@@ -9470,12 +9470,12 @@ rule__DeclExport__NameAssignment_1
     }
 :
 (
-{ before(grammarAccess.getDeclExportAccess().getNameDeclValCrossReference_1_0()); }
+{ before(grammarAccess.getDeclExportAccess().getNameValCrossReference_1_0()); }
 (
-{ before(grammarAccess.getDeclExportAccess().getNameDeclValIDTerminalRuleCall_1_0_1()); }
-	RULE_ID{ after(grammarAccess.getDeclExportAccess().getNameDeclValIDTerminalRuleCall_1_0_1()); }
+{ before(grammarAccess.getDeclExportAccess().getNameValIDTerminalRuleCall_1_0_1()); }
+	RULE_ID{ after(grammarAccess.getDeclExportAccess().getNameValIDTerminalRuleCall_1_0_1()); }
 )
-{ after(grammarAccess.getDeclExportAccess().getNameDeclValCrossReference_1_0()); }
+{ after(grammarAccess.getDeclExportAccess().getNameValCrossReference_1_0()); }
 )
 
 ;

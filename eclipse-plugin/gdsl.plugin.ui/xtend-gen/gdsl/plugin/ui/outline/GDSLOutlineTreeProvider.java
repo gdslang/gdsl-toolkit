@@ -7,10 +7,10 @@ import com.google.common.base.Objects;
 import gdsl.plugin.gDSL.ConDecl;
 import gdsl.plugin.gDSL.Decl;
 import gdsl.plugin.gDSL.DeclExport;
-import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.Model;
 import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.Type;
+import gdsl.plugin.gDSL.Val;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.xtext.ui.editor.outline.IOutlineNode;
 import org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider;
@@ -29,7 +29,7 @@ public class GDSLOutlineTreeProvider extends DefaultOutlineTreeProvider {
     return true;
   }
   
-  public boolean _isLeaf(final DeclVal v) {
+  public boolean _isLeaf(final Val v) {
     return true;
   }
   

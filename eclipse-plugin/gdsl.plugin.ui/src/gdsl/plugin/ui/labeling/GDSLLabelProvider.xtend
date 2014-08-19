@@ -6,7 +6,7 @@ package gdsl.plugin.ui.labeling
 import com.google.inject.Inject
 import gdsl.plugin.gDSL.ConDecl
 import gdsl.plugin.gDSL.DeclExport
-import gdsl.plugin.gDSL.DeclVal
+import gdsl.plugin.gDSL.Val
 import gdsl.plugin.gDSL.Ty
 import gdsl.plugin.gDSL.Type
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider
@@ -90,7 +90,7 @@ class GDSLLabelProvider extends DefaultEObjectLabelProvider {
 		JavaUI.sharedImages.getImage(ISharedImages.IMG_OBJS_IMPDECL)
 	}
 	
-	def text(DeclVal v){
+	def text(Val v){
 		var result = new StyledString()
 		result.append(v.name)
 		val decPat = v.decPat
@@ -110,7 +110,7 @@ class GDSLLabelProvider extends DefaultEObjectLabelProvider {
 		}
 		return result
 	}
-	def image(DeclVal v){
+	def image(Val v){
 		JavaUI.sharedImages.getImage(ISharedImages.IMG_OBJS_PUBLIC)
 	}
 	

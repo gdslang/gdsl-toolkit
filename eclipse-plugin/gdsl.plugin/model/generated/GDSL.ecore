@@ -7,7 +7,7 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Decl"/>
   <eClassifiers xsi:type="ecore:EClass" name="DeclExport" eSuperTypes="#//Decl">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="name" eType="#//DeclVal"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="name" eType="#//Val"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="tyVars" eType="#//TyVars"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//Ty" containment="true"/>
@@ -20,7 +20,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="tyVars" eType="#//TyVars"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="DeclVal" eSuperTypes="#//Decl">
+  <eClassifiers xsi:type="ecore:EClass" name="Val" eSuperTypes="#//Decl">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="attr" unique="false" upperBound="-1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>

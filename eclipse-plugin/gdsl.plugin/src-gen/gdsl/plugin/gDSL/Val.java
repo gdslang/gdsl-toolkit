@@ -6,26 +6,26 @@ import org.eclipse.emf.common.util.EList;
 
 /**
  * <!-- begin-user-doc -->
- * A representation of the model object '<em><b>Decl Val</b></em>'.
+ * A representation of the model object '<em><b>Val</b></em>'.
  * <!-- end-user-doc -->
  *
  * <p>
  * The following features are supported:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.DeclVal#getName <em>Name</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.DeclVal#getAttr <em>Attr</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.DeclVal#getExp <em>Exp</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.DeclVal#getMid <em>Mid</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.DeclVal#getDecPat <em>Dec Pat</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.DeclVal#getExps <em>Exps</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Val#getName <em>Name</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Val#getAttr <em>Attr</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Val#getExp <em>Exp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Val#getMid <em>Mid</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Val#getDecPat <em>Dec Pat</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Val#getExps <em>Exps</em>}</li>
  * </ul>
  * </p>
  *
- * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal()
+ * @see gdsl.plugin.gDSL.GDSLPackage#getVal()
  * @model
  * @generated
  */
-public interface DeclVal extends Decl
+public interface Val extends Decl
 {
   /**
    * Returns the value of the '<em><b>Name</b></em>' attribute.
@@ -37,14 +37,14 @@ public interface DeclVal extends Decl
    * <!-- end-user-doc -->
    * @return the value of the '<em>Name</em>' attribute.
    * @see #setName(String)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal_Name()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getVal_Name()
    * @model
    * @generated
    */
   String getName();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.DeclVal#getName <em>Name</em>}' attribute.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.Val#getName <em>Name</em>}' attribute.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @param value the new value of the '<em>Name</em>' attribute.
@@ -63,7 +63,7 @@ public interface DeclVal extends Decl
    * </p>
    * <!-- end-user-doc -->
    * @return the value of the '<em>Attr</em>' attribute list.
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal_Attr()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getVal_Attr()
    * @model unique="false"
    * @generated
    */
@@ -79,14 +79,14 @@ public interface DeclVal extends Decl
    * <!-- end-user-doc -->
    * @return the value of the '<em>Exp</em>' containment reference.
    * @see #setExp(Exp)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal_Exp()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getVal_Exp()
    * @model containment="true"
    * @generated
    */
   Exp getExp();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.DeclVal#getExp <em>Exp</em>}' containment reference.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.Val#getExp <em>Exp</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @param value the new value of the '<em>Exp</em>' containment reference.
@@ -105,7 +105,7 @@ public interface DeclVal extends Decl
    * </p>
    * <!-- end-user-doc -->
    * @return the value of the '<em>Mid</em>' attribute list.
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal_Mid()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getVal_Mid()
    * @model unique="false"
    * @generated
    */
@@ -121,7 +121,7 @@ public interface DeclVal extends Decl
    * </p>
    * <!-- end-user-doc -->
    * @return the value of the '<em>Dec Pat</em>' attribute list.
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal_DecPat()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getVal_DecPat()
    * @model unique="false"
    * @generated
    */
@@ -137,10 +137,10 @@ public interface DeclVal extends Decl
    * </p>
    * <!-- end-user-doc -->
    * @return the value of the '<em>Exps</em>' containment reference list.
-   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal_Exps()
+   * @see gdsl.plugin.gDSL.GDSLPackage#getVal_Exps()
    * @model containment="true"
    * @generated
    */
   EList<Exp> getExps();
 
-} // DeclVal
+} // Val

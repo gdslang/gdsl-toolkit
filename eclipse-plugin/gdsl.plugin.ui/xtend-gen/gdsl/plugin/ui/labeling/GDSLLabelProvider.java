@@ -8,10 +8,10 @@ import com.google.inject.Inject;
 import gdsl.plugin.gDSL.CONS;
 import gdsl.plugin.gDSL.ConDecl;
 import gdsl.plugin.gDSL.DeclExport;
-import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.TyElement;
 import gdsl.plugin.gDSL.Type;
+import gdsl.plugin.gDSL.Val;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider;
 import org.eclipse.jdt.ui.ISharedImages;
@@ -34,7 +34,7 @@ public class GDSLLabelProvider extends DefaultEObjectLabelProvider {
   }
   
   public String text(final DeclExport e) {
-    DeclVal _name = e.getName();
+    Val _name = e.getName();
     return _name.getName();
   }
   
@@ -152,7 +152,7 @@ public class GDSLLabelProvider extends DefaultEObjectLabelProvider {
     return _sharedImages.getImage(ISharedImages.IMG_OBJS_IMPDECL);
   }
   
-  public StyledString text(final DeclVal v) {
+  public StyledString text(final Val v) {
     StyledString result = new StyledString();
     String _name = v.getName();
     result.append(_name);
@@ -196,7 +196,7 @@ public class GDSLLabelProvider extends DefaultEObjectLabelProvider {
     return result;
   }
   
-  public Image image(final DeclVal v) {
+  public Image image(final Val v) {
     ISharedImages _sharedImages = JavaUI.getSharedImages();
     return _sharedImages.getImage(ISharedImages.IMG_OBJS_PUBLIC);
   }

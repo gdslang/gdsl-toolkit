@@ -102,11 +102,11 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
-      case GDSLPackage.DECL_VAL:
+      case GDSLPackage.VAL:
       {
-        DeclVal declVal = (DeclVal)theEObject;
-        T result = caseDeclVal(declVal);
-        if (result == null) result = caseDecl(declVal);
+        Val val = (Val)theEObject;
+        T result = caseVal(val);
+        if (result == null) result = caseDecl(val);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -371,17 +371,17 @@ public class GDSLSwitch<T> extends Switch<T>
   }
 
   /**
-   * Returns the result of interpreting the object as an instance of '<em>Decl Val</em>'.
+   * Returns the result of interpreting the object as an instance of '<em>Val</em>'.
    * <!-- begin-user-doc -->
    * This implementation returns null;
    * returning a non-null result will terminate the switch.
    * <!-- end-user-doc -->
    * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Decl Val</em>'.
+   * @return the result of interpreting the object as an instance of '<em>Val</em>'.
    * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
    * @generated
    */
-  public T caseDeclVal(DeclVal object)
+  public T caseVal(Val object)
   {
     return null;
   }

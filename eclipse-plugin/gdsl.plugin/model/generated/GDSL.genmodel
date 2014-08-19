@@ -22,13 +22,13 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/value"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/tyVars"/>
     </genClasses>
-    <genClasses ecoreClass="GDSL.ecore#//DeclVal">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/name"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/attr"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/exp"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/mid"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/decPat"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/exps"/>
+    <genClasses ecoreClass="GDSL.ecore#//Val">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Val/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Val/attr"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Val/exp"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Val/mid"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Val/decPat"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Val/exps"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//TyVars">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//TyVars/attr"/>

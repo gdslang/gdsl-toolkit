@@ -32,12 +32,12 @@ public interface DeclExport extends Decl
    * </p>
    * <!-- end-user-doc -->
    * @return the value of the '<em>Name</em>' reference.
-   * @see #setName(DeclVal)
+   * @see #setName(Val)
    * @see gdsl.plugin.gDSL.GDSLPackage#getDeclExport_Name()
    * @model
    * @generated
    */
-  DeclVal getName();
+  Val getName();
 
   /**
    * Sets the value of the '{@link gdsl.plugin.gDSL.DeclExport#getName <em>Name</em>}' reference.
@@ -47,7 +47,7 @@ public interface DeclExport extends Decl
    * @see #getName()
    * @generated
    */
-  void setName(DeclVal value);
+  void setName(Val value);
 
   /**
    * Returns the value of the '<em><b>Ty Vars</b></em>' containment reference.

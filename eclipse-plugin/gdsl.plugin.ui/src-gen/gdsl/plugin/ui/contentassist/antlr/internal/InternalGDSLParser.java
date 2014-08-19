@@ -28239,23 +28239,23 @@ public class InternalGDSLParser extends AbstractInternalContentAssistParser {
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9473:1: ( RULE_ID )
             {
             if ( state.backtracking==0 ) {
-               before(grammarAccess.getDeclExportAccess().getNameDeclValCrossReference_1_0()); 
+               before(grammarAccess.getDeclExportAccess().getNameValCrossReference_1_0()); 
             }
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9474:1: ( RULE_ID )
             // ../gdsl.plugin.ui/src-gen/gdsl/plugin/ui/contentassist/antlr/internal/InternalGDSL.g:9475:1: RULE_ID
             {
             if ( state.backtracking==0 ) {
-               before(grammarAccess.getDeclExportAccess().getNameDeclValIDTerminalRuleCall_1_0_1()); 
+               before(grammarAccess.getDeclExportAccess().getNameValIDTerminalRuleCall_1_0_1()); 
             }
             match(input,RULE_ID,FOLLOW_RULE_ID_in_rule__DeclExport__NameAssignment_119268); if (state.failed) return ;
             if ( state.backtracking==0 ) {
-               after(grammarAccess.getDeclExportAccess().getNameDeclValIDTerminalRuleCall_1_0_1()); 
+               after(grammarAccess.getDeclExportAccess().getNameValIDTerminalRuleCall_1_0_1()); 
             }
 
             }
 
             if ( state.backtracking==0 ) {
-               after(grammarAccess.getDeclExportAccess().getNameDeclValCrossReference_1_0()); 
+               after(grammarAccess.getDeclExportAccess().getNameValCrossReference_1_0()); 
             }
 
             }

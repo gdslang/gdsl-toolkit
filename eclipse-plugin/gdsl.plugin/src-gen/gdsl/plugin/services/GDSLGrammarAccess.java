@@ -82,8 +82,8 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final Group cGroup = (Group)rule.eContents().get(1);
 		private final Keyword cExportKeyword_0 = (Keyword)cGroup.eContents().get(0);
 		private final Assignment cNameAssignment_1 = (Assignment)cGroup.eContents().get(1);
-		private final CrossReference cNameDeclValCrossReference_1_0 = (CrossReference)cNameAssignment_1.eContents().get(0);
-		private final RuleCall cNameDeclValIDTerminalRuleCall_1_0_1 = (RuleCall)cNameDeclValCrossReference_1_0.eContents().get(1);
+		private final CrossReference cNameValCrossReference_1_0 = (CrossReference)cNameAssignment_1.eContents().get(0);
+		private final RuleCall cNameValIDTerminalRuleCall_1_0_1 = (RuleCall)cNameValCrossReference_1_0.eContents().get(1);
 		private final Assignment cTyVarsAssignment_2 = (Assignment)cGroup.eContents().get(2);
 		private final RuleCall cTyVarsTyVarsParserRuleCall_2_0 = (RuleCall)cTyVarsAssignment_2.eContents().get(0);
 		private final Keyword cColonKeyword_3 = (Keyword)cGroup.eContents().get(3);
@@ -91,23 +91,23 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cTypeTyParserRuleCall_4_0 = (RuleCall)cTypeAssignment_4.eContents().get(0);
 		
 		//DeclExport:
-		//	"export" name=[DeclVal] tyVars=TyVars? ":" type=Ty;
+		//	"export" name=[Val] tyVars=TyVars? ":" type=Ty;
 		public ParserRule getRule() { return rule; }
 
-		//"export" name=[DeclVal] tyVars=TyVars? ":" type=Ty
+		//"export" name=[Val] tyVars=TyVars? ":" type=Ty
 		public Group getGroup() { return cGroup; }
 
 		//"export"
 		public Keyword getExportKeyword_0() { return cExportKeyword_0; }
 
-		//name=[DeclVal]
+		//name=[Val]
 		public Assignment getNameAssignment_1() { return cNameAssignment_1; }
 
-		//[DeclVal]
-		public CrossReference getNameDeclValCrossReference_1_0() { return cNameDeclValCrossReference_1_0; }
+		//[Val]
+		public CrossReference getNameValCrossReference_1_0() { return cNameValCrossReference_1_0; }
 
 		//ID
-		public RuleCall getNameDeclValIDTerminalRuleCall_1_0_1() { return cNameDeclValIDTerminalRuleCall_1_0_1; }
+		public RuleCall getNameValIDTerminalRuleCall_1_0_1() { return cNameValIDTerminalRuleCall_1_0_1; }
 
 		//tyVars=TyVars?
 		public Assignment getTyVarsAssignment_2() { return cTyVarsAssignment_2; }
@@ -314,7 +314,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final Assignment cExpsAssignment_1_2_4_1_3 = (Assignment)cGroup_1_2_4_1.eContents().get(3);
 		private final RuleCall cExpsExpParserRuleCall_1_2_4_1_3_0 = (RuleCall)cExpsAssignment_1_2_4_1_3.eContents().get(0);
 		
-		//DeclVal:
+		//DeclVal returns Val:
 		//	"val" (=> ((name=(ID | S) | => name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp |
 		//	name=(ID | S) "[" decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+));
 		public ParserRule getRule() { return rule; }
@@ -2445,7 +2445,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//DeclExport:
-	//	"export" name=[DeclVal] tyVars=TyVars? ":" type=Ty;
+	//	"export" name=[Val] tyVars=TyVars? ":" type=Ty;
 	public DeclExportElements getDeclExportAccess() {
 		return (pDeclExport != null) ? pDeclExport : (pDeclExport = new DeclExportElements());
 	}
@@ -2465,7 +2465,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getDeclTypeAccess().getRule();
 	}
 
-	//DeclVal:
+	//DeclVal returns Val:
 	//	"val" (=> ((name=(ID | S) | => name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp |
 	//	name=(ID | S) "[" decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+));
 	public DeclValElements getDeclValAccess() {
