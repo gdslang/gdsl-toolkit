@@ -38,7 +38,7 @@ public class GDSLCompilerTools {
 	 *            The path to the current project
 	 */
 	public static void compileAndSetMarkers(final String command, final IPath projectPath) {
-		System.out.println("Run compiler"); // TODO:delete line
+		// System.out.println("Run compiler: " + command); // delete line
 		final String[] compilerResult = compile(command);
 		final GDSLError[] errors = parseErrors(compilerResult);
 		Assert.isNotNull(errors);
@@ -59,9 +59,9 @@ public class GDSLCompilerTools {
 		try {
 			p = Runtime.getRuntime().exec(command);
 			p.waitFor();
-			final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			final BufferedReader errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 			String line = "";
-			while ((line = reader.readLine()) != null) {
+			while ((line = errorReader.readLine()) != null) {
 				output.add(line + "\n");
 			}
 		} catch (final Exception e) {
@@ -84,9 +84,9 @@ public class GDSLCompilerTools {
 		}
 		final List<GDSLError> result = new LinkedList<GDSLError>();
 		for (final String s : compilerResult) {
-			if (s.matches("\\[.+:\\d+\\.\\d+\\] Error: .*\\n?")) {
+			if (s.matches("\\[.+:\\d+\\.\\d+(-\\d+(\\.\\d+)?)?\\] Error: .*\\n?")) {
 				result.add(new GDSLError(s));
-				System.out.println(s); // TODO:delete line
+				// System.out.println(s); // Tdelete line
 			}
 		}
 		return result.toArray(new GDSLError[] {});
@@ -143,10 +143,10 @@ public class GDSLCompilerTools {
 	 */
 	private static class GDSLError {
 		private final IResource resource;
+		private final String message;
 		private final int line;
 		private final int charStart;
 		private final int charEnd;
-		private final String message;
 
 		/**
 		 * Creates a new GDSLError object with the given compiler error message
@@ -156,34 +156,56 @@ public class GDSLCompilerTools {
 		 */
 		public GDSLError(final String errorMessage) {
 			String[] split = errorMessage.split(Pattern.quote(" Error: "));
-			Assert.isTrue(2 == split.length);
-			message = split[1].trim();
-			final String location = split[0].substring(split[0].indexOf("[") + 1, split[0].lastIndexOf("]"));
+			Assert.isTrue(2 == split.length); // [file:loc] , errormsg
+			message = split[1].trim(); // message = errormsg
+
+			final String location = split[0].substring(split[0].indexOf("[") + 1, split[0].lastIndexOf("]")); // file:loc
 			split = location.split(Pattern.quote(":"));
-			Assert.isTrue(2 == split.length);
+			Assert.isTrue(2 == split.length); // split = file , loc
 			final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 			split[0] = new Path(split[0]).makeRelativeTo(root.getLocation()).toString();
-			resource = root.findMember(split[0]);
-			split = split[1].split(Pattern.quote("."));
-			Assert.isTrue(2 == split.length);
-			line = Integer.parseInt(split[0]);
-			final int character = Integer.parseInt(split[1]) - 1;
-			int start = 0;
-			int end = 1;
-			if (resource instanceof IFile) {
-				try {
-					final IFile ifile = (IFile) resource;
-					final IDocumentProvider provider = new TextFileDocumentProvider();
-					provider.connect(ifile);
-					final IDocument document = provider.getDocument(ifile);
-					final int offset = document.getLineOffset(line - 1);
-					start = offset + character;
-					end = start + 1;
-				} catch (final CoreException | BadLocationException e) {
+			resource = root.findMember(split[0]); // resource = file
+
+			Assert.isTrue(resource instanceof IFile);
+			final int[] loc = parseLocation((IFile) resource, split[1]);
+			Assert.isTrue(3 == loc.length);
+			line = loc[0];
+			charStart = loc[1];
+			charEnd = loc[2];
+		}
+
+		private int[] parseLocation(final IFile resource, final String s) {
+			try {
+				final IDocumentProvider provider = new TextFileDocumentProvider();
+				provider.connect(resource);
+				final IDocument document = provider.getDocument(resource);
+
+				final int[] result = new int[] { 0, 0, 0 };
+				final String[] split = s.split(Pattern.quote("-"));
+				Assert.isTrue(0 < split.length);
+				final String[] startSplit = split[0].split(Pattern.quote("."));
+				Assert.isTrue(2 == startSplit.length);
+
+				result[0] = Integer.parseInt(startSplit[0]);
+
+				int offset = document.getLineOffset(result[0] - 1);
+				result[1] = offset + Integer.parseInt(startSplit[1]) - 1;
+
+				if (1 == split.length) {
+					result[2] = result[1] + 1;
+				} else if (2 == split.length) {
+					final String[] endSplit = split[1].split(Pattern.quote("."));
+					if (1 == endSplit.length) {
+						result[2] = offset + Integer.parseInt(endSplit[0]) - 1;
+					} else if (2 == endSplit.length) {
+						offset = document.getLineOffset(Integer.parseInt(endSplit[0]) - 1);
+						result[2] = offset + Integer.parseInt(endSplit[1]) - 1;
+					}
 				}
+				return result;
+			} catch (CoreException | BadLocationException e) {
+				return new int[] { 0, 0, 0 };
 			}
-			charStart = start;
-			charEnd = end;
 		}
 	}
 }
