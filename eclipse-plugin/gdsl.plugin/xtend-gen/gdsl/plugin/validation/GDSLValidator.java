@@ -36,6 +36,9 @@ public class GDSLValidator extends AbstractGDSLValidator {
   
   public final static String PATTERN_MISPLACEMENT = "patternMisplacement";
   
+  /**
+   * Check whether all constructors start with a captial letter
+   */
   @Check
   public void upperCaseCons(final CONS cons) {
     String _conName = cons.getConName();
@@ -50,6 +53,9 @@ public class GDSLValidator extends AbstractGDSLValidator {
     }
   }
   
+  /**
+   * Checks whether a pattern is only used after a constructor
+   */
   @Check
   public void patternOnlyForConstructors(final PAT pat) {
     PAT _pat = pat.getPat();
@@ -96,40 +102,48 @@ public class GDSLValidator extends AbstractGDSLValidator {
     return null;
   }
   
+  /**
+   * Calls the external GDSL compiler for verification
+   */
   @Check
   public void checkExternalCompiler(final Model model) {
     final Resource resource = model.eResource();
-    StringBuilder commandBuilder = new StringBuilder();
-    String _compilerInvocation = GDSLPluginPreferences.getCompilerInvocation();
-    commandBuilder.append(_compilerInvocation);
-    commandBuilder.append(" -o");
-    String _outputName = GDSLPluginPreferences.getOutputName(resource);
-    String _plus = (" " + _outputName);
-    commandBuilder.append(_plus);
-    commandBuilder.append(" --runtime=");
-    String _runtimeTemplates = GDSLPluginPreferences.getRuntimeTemplates(resource);
-    commandBuilder.append(_runtimeTemplates);
-    final String prefix = GDSLPluginPreferences.getPrefix(resource);
-    boolean _notEquals = (!Objects.equal(null, prefix));
-    if (_notEquals) {
-      commandBuilder.append((" --prefix=" + prefix));
-    }
-    boolean _isTypeCheckerEnabled = GDSLPluginPreferences.isTypeCheckerEnabled();
-    if (_isTypeCheckerEnabled) {
-      int _typeCheckerIteration = GDSLPluginPreferences.getTypeCheckerIteration();
-      String _plus_1 = (" --maxIter=" + Integer.valueOf(_typeCheckerIteration));
-      commandBuilder.append(_plus_1);
-    } else {
-      commandBuilder.append(" -t");
-    }
     IProject _obtainProject = GDSLPluginPreferences.obtainProject(resource);
     final IPath projectPath = _obtainProject.getLocation();
     IWorkspace _workspace = ResourcesPlugin.getWorkspace();
     final IWorkspaceRoot workspaceRoot = _workspace.getRoot();
-    String _recursiveGetMLFiles = this.recursiveGetMLFiles(projectPath, workspaceRoot);
-    commandBuilder.append(_recursiveGetMLFiles);
-    String _string = commandBuilder.toString();
-    GDSLCompilerTools.compileAndSetMarkers(_string, projectPath);
+    boolean _compilerEnablement = GDSLPluginPreferences.getCompilerEnablement();
+    if (_compilerEnablement) {
+      StringBuilder commandBuilder = new StringBuilder();
+      String _compilerInvocation = GDSLPluginPreferences.getCompilerInvocation();
+      commandBuilder.append(_compilerInvocation);
+      commandBuilder.append(" -o");
+      String _outputName = GDSLPluginPreferences.getOutputName(resource);
+      String _plus = (" " + _outputName);
+      commandBuilder.append(_plus);
+      commandBuilder.append(" --runtime=");
+      String _runtimeTemplates = GDSLPluginPreferences.getRuntimeTemplates(resource);
+      commandBuilder.append(_runtimeTemplates);
+      final String prefix = GDSLPluginPreferences.getPrefix(resource);
+      boolean _notEquals = (!Objects.equal(null, prefix));
+      if (_notEquals) {
+        commandBuilder.append((" --prefix=" + prefix));
+      }
+      boolean _isTypeCheckerEnabled = GDSLPluginPreferences.isTypeCheckerEnabled();
+      if (_isTypeCheckerEnabled) {
+        int _typeCheckerIteration = GDSLPluginPreferences.getTypeCheckerIteration();
+        String _plus_1 = (" --maxIter=" + Integer.valueOf(_typeCheckerIteration));
+        commandBuilder.append(_plus_1);
+      } else {
+        commandBuilder.append(" -t");
+      }
+      String _recursiveGetMLFiles = this.recursiveGetMLFiles(projectPath, workspaceRoot);
+      commandBuilder.append(_recursiveGetMLFiles);
+      String _string = commandBuilder.toString();
+      GDSLCompilerTools.compileAndSetMarkers(_string, projectPath);
+    } else {
+      GDSLCompilerTools.clearMarkers(projectPath);
+    }
   }
   
   /**

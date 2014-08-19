@@ -45,7 +45,7 @@ ConDecl:
 
 Ty:
 	value=INTEGER |
-//	'|' value=INTEGER '|' |
+	'|' value=INTEGER '|' |
 	(typeRef=[Type] | type=('int'|'string'|'unit')) ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
 	{Ty} '{' (elements+=TyElement (',' elements+=TyElement)*)? '}' |
 	'(' param+=Ty (',' param+=Ty)* ')' '->' resType=Ty |

@@ -28,7 +28,10 @@ import org.osgi.service.prefs.BackingStoreException;
  */
 public class GdslCompilerPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
+	private Button btnEnableCompilerValidation;
+	private Label lblCompilerInvocation;
 	private Text txtCompilerInvocation;
+	private Group grpTypeChecker;
 	private Button btnEnableTypechecker;
 	private Label lblIterations;
 	private Spinner spinnerIterations;
@@ -63,14 +66,24 @@ public class GdslCompilerPreferencePage extends PreferencePage implements IWorkb
 	private void createFields(final Composite parent) {
 		parent.setLayout(new GridLayout(1, false));
 
-		final Label lblCompilerInvocation = new Label(parent, SWT.NONE);
+		btnEnableCompilerValidation = new Button(parent, SWT.CHECK);
+		btnEnableCompilerValidation.setText("Enable gdsl compiler validation");
+		btnEnableCompilerValidation.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		btnEnableCompilerValidation.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(final SelectionEvent e) {
+				setEnablements();
+			}
+		});
+
+		lblCompilerInvocation = new Label(parent, SWT.NONE);
 		lblCompilerInvocation.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		lblCompilerInvocation.setText("Compiler Invocation");
 
 		txtCompilerInvocation = new Text(parent, SWT.BORDER);
 		txtCompilerInvocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
-		final Group grpTypeChecker = new Group(parent, SWT.NONE);
+		grpTypeChecker = new Group(parent, SWT.NONE);
 		grpTypeChecker.setText("Typechecker");
 		grpTypeChecker.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		grpTypeChecker.setLayout(new GridLayout(2, false));
@@ -106,6 +119,8 @@ public class GdslCompilerPreferencePage extends PreferencePage implements IWorkb
 	private void initializeElements() {
 		final IEclipsePreferences store = GDSLPluginPreferences.getPreferenceStore();
 		if (null != store) {
+			btnEnableCompilerValidation.setSelection(store.getBoolean(GDSLPluginPreferences.P_ENABLE_COMPILER,
+					GDSLPluginPreferences.D_ENABLE_COMPILER));
 			txtCompilerInvocation.setText(store.get(GDSLPluginPreferences.P_COMPILER_INVOCATION,
 					GDSLPluginPreferences.D_COMPILER_INVOCATION));
 			btnEnableTypechecker.setSelection(store.getBoolean(GDSLPluginPreferences.P_USE_TYPECHECKER,
@@ -120,6 +135,7 @@ public class GdslCompilerPreferencePage extends PreferencePage implements IWorkb
 	protected void performApply() {
 		final IEclipsePreferences store = GDSLPluginPreferences.getPreferenceStore();
 		if (store != null) {
+			store.putBoolean(GDSLPluginPreferences.P_ENABLE_COMPILER, btnEnableCompilerValidation.getSelection());
 			store.put(GDSLPluginPreferences.P_COMPILER_INVOCATION, txtCompilerInvocation.getText());
 			store.putBoolean(GDSLPluginPreferences.P_USE_TYPECHECKER, btnEnableTypechecker.getSelection());
 			store.putInt(GDSLPluginPreferences.P_ITERATION_TYPECHECKER, spinnerIterations.getSelection());
@@ -135,9 +151,15 @@ public class GdslCompilerPreferencePage extends PreferencePage implements IWorkb
 	 * Set the enablement status according to current settings
 	 */
 	private void setEnablements() {
-		final boolean enabled = btnEnableTypechecker.getSelection();
-		lblIterations.setEnabled(enabled);
-		spinnerIterations.setEnabled(enabled);
+		final boolean enabled = btnEnableCompilerValidation.getSelection();
+		final boolean enableTypeChecker = btnEnableTypechecker.getSelection();
+		lblCompilerInvocation.setEnabled(enabled);
+		txtCompilerInvocation.setEnabled(enabled);
+		grpTypeChecker.setEnabled(enabled);
+		btnEnableTypechecker.setEnabled(enabled);
+		lblIterations.setEnabled(enabled && enableTypeChecker);
+		spinnerIterations.setEnabled(enabled && enableTypeChecker);
+
 	}
 
 }

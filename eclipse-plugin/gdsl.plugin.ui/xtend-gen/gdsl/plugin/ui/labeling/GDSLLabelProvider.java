@@ -18,6 +18,7 @@ import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider;
 import org.eclipse.xtext.xbase.lib.Conversions;
 
@@ -53,9 +54,8 @@ public class GDSLLabelProvider extends DefaultEObjectLabelProvider {
       final StyledString.Styler style = StyledString.DECORATIONS_STYLER;
       Ty _value_1 = t.getValue();
       String _text = this.text(_value_1);
-      String _plus = (" (" + _text);
-      String _plus_1 = (_plus + ")");
-      result.append(_plus_1, style);
+      String _plus = (" = " + _text);
+      result.append(_plus, style);
     }
     return result;
   }
@@ -95,31 +95,43 @@ public class GDSLLabelProvider extends DefaultEObjectLabelProvider {
         _and = _greaterThan;
       }
       if (_and) {
+        result.append("{");
         EList<TyElement> _elements_2 = t.getElements();
         TyElement _get = _elements_2.get(0);
-        Ty _value_2 = _get.getValue();
-        String _text = this.text(_value_2);
-        result.append(_text);
-        int i = 1;
+        String _name_1 = _get.getName();
+        String _plus = (_name_1 + ":");
         EList<TyElement> _elements_3 = t.getElements();
-        int _length_1 = ((Object[])Conversions.unwrapArray(_elements_3, Object.class)).length;
+        TyElement _get_1 = _elements_3.get(0);
+        Ty _value_2 = _get_1.getValue();
+        String _text = this.text(_value_2);
+        String _plus_1 = (_plus + _text);
+        result.append(_plus_1);
+        int i = 1;
+        EList<TyElement> _elements_4 = t.getElements();
+        int _length_1 = ((Object[])Conversions.unwrapArray(_elements_4, Object.class)).length;
         boolean _lessThan = (i < _length_1);
         boolean _while = _lessThan;
         while (_while) {
           {
-            EList<TyElement> _elements_4 = t.getElements();
-            TyElement _get_1 = _elements_4.get(i);
-            Ty _value_3 = _get_1.getValue();
+            EList<TyElement> _elements_5 = t.getElements();
+            TyElement _get_2 = _elements_5.get(i);
+            String _name_2 = _get_2.getName();
+            String _plus_2 = (", " + _name_2);
+            String _plus_3 = (_plus_2 + ":");
+            EList<TyElement> _elements_6 = t.getElements();
+            TyElement _get_3 = _elements_6.get(i);
+            Ty _value_3 = _get_3.getValue();
             String _text_1 = this.text(_value_3);
-            String _plus = (", " + _text_1);
-            result.append(_plus);
+            String _plus_4 = (_plus_3 + _text_1);
+            result.append(_plus_4);
             i = (i + 1);
           }
-          EList<TyElement> _elements_4 = t.getElements();
-          int _length_2 = ((Object[])Conversions.unwrapArray(_elements_4, Object.class)).length;
+          EList<TyElement> _elements_5 = t.getElements();
+          int _length_2 = ((Object[])Conversions.unwrapArray(_elements_5, Object.class)).length;
           boolean _lessThan_1 = (i < _length_2);
           _while = _lessThan_1;
         }
+        result.append("}");
       }
       _xblockexpression = result.toString();
     }
@@ -132,6 +144,7 @@ public class GDSLLabelProvider extends DefaultEObjectLabelProvider {
   }
   
   public StyledString text(final ConDecl cd) {
+    final StyledString.Styler style = StyledString.COUNTER_STYLER;
     StyledString result = new StyledString();
     CONS _name = cd.getName();
     String _conName = _name.getConName();
@@ -141,9 +154,14 @@ public class GDSLLabelProvider extends DefaultEObjectLabelProvider {
     if (_notEquals) {
       Ty _ty_1 = cd.getTy();
       String _text = this.text(_ty_1);
-      String _plus = (" : " + _text);
-      result.append(_plus, StyledString.COUNTER_STYLER);
+      String _plus = (" (" + _text);
+      String _plus_1 = (_plus + ")");
+      result.append(_plus_1, style);
     }
+    Type _containerOfType = EcoreUtil2.<Type>getContainerOfType(cd, Type.class);
+    String _name_1 = _containerOfType.getName();
+    String _plus_2 = (" : " + _name_1);
+    result.append(_plus_2, style);
     return result;
   }
   
@@ -188,10 +206,26 @@ public class GDSLLabelProvider extends DefaultEObjectLabelProvider {
       _and_1 = _greaterThan_1;
     }
     if (_and_1) {
-      result.append(" :", StyledString.COUNTER_STYLER);
-      for (final String s_1 : attr) {
-        result.append((" " + s_1), StyledString.COUNTER_STYLER);
+      final StyledString.Styler style = StyledString.COUNTER_STYLER;
+      result.append(" (", style);
+      String _get = attr.get(0);
+      result.append(_get, style);
+      int i = 1;
+      int _length_2 = ((Object[])Conversions.unwrapArray(attr, Object.class)).length;
+      boolean _lessThan = (i < _length_2);
+      boolean _while = _lessThan;
+      while (_while) {
+        {
+          String _get_1 = attr.get(i);
+          String _plus_2 = (", " + _get_1);
+          result.append(_plus_2, style);
+          i = (i + 1);
+        }
+        int _length_3 = ((Object[])Conversions.unwrapArray(attr, Object.class)).length;
+        boolean _lessThan_1 = (i < _length_3);
+        _while = _lessThan_1;
       }
+      result.append(")", style);
     }
     return result;
   }

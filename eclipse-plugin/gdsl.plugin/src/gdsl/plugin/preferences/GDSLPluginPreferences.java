@@ -16,11 +16,13 @@ import org.eclipse.emf.ecore.resource.Resource;
 public class GDSLPluginPreferences {
 	public static final String PLUGIN_SCOPE = "gdsl.plugin";
 
+	public static final String P_ENABLE_COMPILER = "enableCompiler";
 	public static final String P_COMPILER_INVOCATION = "compilerInvocation";
 	public static final String P_USE_TYPECHECKER = "useTypechecker";
 	public static final String P_ITERATION_TYPECHECKER = "iterationTypechecker";
 
-	public static final String D_COMPILER_INVOCATION = "/usr/bin/sml @SMLload=./gdslc-image";
+	public static final boolean D_ENABLE_COMPILER = true;
+	public static final String D_COMPILER_INVOCATION = "./build/gdslc";
 	public static final boolean D_USE_TYPECHECKER = true;
 	public static final int D_ITERATION_TYPECHEKCER = 10;
 
@@ -33,6 +35,10 @@ public class GDSLPluginPreferences {
 	public static final boolean D_HAS_PREFIX = false;
 	public static final String D_PREFIX = "";
 	public static final String D_RUNTIME_TEMPLATES = "detail/codegen/c1";
+
+	public static boolean getCompilerEnablement() {
+		return getPreferenceStore().getBoolean(P_ENABLE_COMPILER, D_ENABLE_COMPILER);
+	}
 
 	public static String getCompilerInvocation() {
 		return getPreferenceStore().get(P_COMPILER_INVOCATION, D_COMPILER_INVOCATION);

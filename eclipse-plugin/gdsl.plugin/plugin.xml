@@ -19,10 +19,10 @@
   <extension
         point="org.eclipse.ui.preferencePages">
      <page
-           category="gdsl.plugin.GDSL.compiler.preferencePage"
+           category="gdsl.plugin.GDSL"
            class="gdsl.plugin.preferences.plugin.GdslCompilerPreferencePage"
            id="gdsl.plugin.preferences.plugin.GDSLCompiler"
-           name="GDSL Compiler">
+           name="GDSL Compiler Validation">
      </page>
   </extension>
 	<extension id="preferences" point="org.eclipse.core.runtime.preferences" name="preferences">
@@ -31,10 +31,10 @@
  <extension
        point="org.eclipse.ui.propertyPages">
     <page
-          category="gdsl.plugin.GDSL.compiler.propertyPage"
+          category="gdsl.plugin.GDSL"
           class="gdsl.plugin.preferences.project.GdslPropertyPage"
           id="gdsl.plugin.preferences.project.GDSLCompiler"
-          name="GDSL Compiler"
+          name="GDSL Compiler Validation"
           nameFilter="*">
        <enabledWhen>
           <instanceof

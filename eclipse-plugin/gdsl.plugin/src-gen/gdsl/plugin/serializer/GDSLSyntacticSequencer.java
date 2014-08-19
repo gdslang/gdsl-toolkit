@@ -20,13 +20,13 @@ public class GDSLSyntacticSequencer extends AbstractSyntacticSequencer {
 
 	protected GDSLGrammarAccess grammarAccess;
 	protected AbstractElementAlias match_Model_SemicolonKeyword_1_0_q;
-	protected AbstractElementAlias match_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__;
+	protected AbstractElementAlias match_Ty_LeftParenthesisRightParenthesisKeyword_5_1_or___LeftCurlyBracketKeyword_3_1_RightCurlyBracketKeyword_3_3__;
 	
 	@Inject
 	protected void init(IGrammarAccess access) {
 		grammarAccess = (GDSLGrammarAccess) access;
 		match_Model_SemicolonKeyword_1_0_q = new TokenAlias(false, true, grammarAccess.getModelAccess().getSemicolonKeyword_1_0());
-		match_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__ = new AlternativeAlias(false, false, new GroupAlias(false, false, new TokenAlias(false, false, grammarAccess.getTyAccess().getLeftCurlyBracketKeyword_2_1()), new TokenAlias(false, false, grammarAccess.getTyAccess().getRightCurlyBracketKeyword_2_3())), new TokenAlias(false, false, grammarAccess.getTyAccess().getLeftParenthesisRightParenthesisKeyword_4_1()));
+		match_Ty_LeftParenthesisRightParenthesisKeyword_5_1_or___LeftCurlyBracketKeyword_3_1_RightCurlyBracketKeyword_3_3__ = new AlternativeAlias(false, false, new GroupAlias(false, false, new TokenAlias(false, false, grammarAccess.getTyAccess().getLeftCurlyBracketKeyword_3_1()), new TokenAlias(false, false, grammarAccess.getTyAccess().getRightCurlyBracketKeyword_3_3())), new TokenAlias(false, false, grammarAccess.getTyAccess().getLeftParenthesisRightParenthesisKeyword_5_1()));
 	}
 	
 	@Override
@@ -86,8 +86,8 @@ public class GDSLSyntacticSequencer extends AbstractSyntacticSequencer {
 			List<INode> syntaxNodes = getNodesFor(transitionNodes, syntax);
 			if(match_Model_SemicolonKeyword_1_0_q.equals(syntax))
 				emit_Model_SemicolonKeyword_1_0_q(semanticObject, getLastNavigableState(), syntaxNodes);
-			else if(match_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__.equals(syntax))
-				emit_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__(semanticObject, getLastNavigableState(), syntaxNodes);
+			else if(match_Ty_LeftParenthesisRightParenthesisKeyword_5_1_or___LeftCurlyBracketKeyword_3_1_RightCurlyBracketKeyword_3_3__.equals(syntax))
+				emit_Ty_LeftParenthesisRightParenthesisKeyword_5_1_or___LeftCurlyBracketKeyword_3_1_RightCurlyBracketKeyword_3_3__(semanticObject, getLastNavigableState(), syntaxNodes);
 			else acceptNodes(getLastNavigableState(), syntaxNodes);
 		}
 	}
@@ -102,9 +102,9 @@ public class GDSLSyntacticSequencer extends AbstractSyntacticSequencer {
 	
 	/**
 	 * Syntax:
-	 *     '()' | ('{' '}')
+	 *     ('{' '}') | '()'
 	 */
-	protected void emit_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__(EObject semanticObject, ISynNavigable transition, List<INode> nodes) {
+	protected void emit_Ty_LeftParenthesisRightParenthesisKeyword_5_1_or___LeftCurlyBracketKeyword_3_1_RightCurlyBracketKeyword_3_3__(EObject semanticObject, ISynNavigable transition, List<INode> nodes) {
 		acceptNodes(transition, nodes);
 	}
 	

@@ -40,6 +40,9 @@ class GDSLValidator extends AbstractGDSLValidator {
 	public static val UPPERCASE_CONS = 'uppercaseCons'
 	public static val PATTERN_MISPLACEMENT = 'patternMisplacement'
 
+	/**
+	 * Check whether all constructors start with a captial letter
+	 */
 	@Check
 	def upperCaseCons(CONS cons){
 		if(!cons.conName.charAt(0).upperCase){
@@ -51,6 +54,9 @@ class GDSLValidator extends AbstractGDSLValidator {
 		}
 	}
 	
+	/**
+	 * Checks whether a pattern is only used after a constructor
+	 */
 	@Check
 	def patternOnlyForConstructors(PAT pat){
 		if(null != pat.pat){
@@ -72,44 +78,52 @@ class GDSLValidator extends AbstractGDSLValidator {
 		if(null != pat.bitpat) return "'" + pat.bitpat + "'"
 	}
 
+	/**
+	 * Calls the external GDSL compiler for verification
+	 */
 	@Check
 	def checkExternalCompiler(Model model){
 		val resource = model.eResource;
-		var commandBuilder = new StringBuilder()
-		
-		//Compiler invocation
-		commandBuilder.append(GDSLPluginPreferences.compilerInvocation);
-		
-		//Output name
-		commandBuilder.append(" -o");
-		commandBuilder.append(" " + GDSLPluginPreferences.getOutputName(resource));
-		
-		//Runtime templates
-		commandBuilder.append(" --runtime=");
-		commandBuilder.append(GDSLPluginPreferences.getRuntimeTemplates(resource));
-		
-		//Prefix
-		val prefix = GDSLPluginPreferences.getPrefix(resource); 
-		if(null != prefix){
-			commandBuilder.append(" --prefix=" + prefix);		
-		}
-		
-		//Typechecker
-		if(GDSLPluginPreferences.typeCheckerEnabled){
-			commandBuilder.append(" --maxIter=" + GDSLPluginPreferences.typeCheckerIteration);		
-		}
-		else{
-			commandBuilder.append(" -t");
-		}
-		
-		//Files
 		val projectPath = GDSLPluginPreferences.obtainProject(resource).location;
 		val workspaceRoot = ResourcesPlugin.workspace.root;
-		commandBuilder.append(recursiveGetMLFiles(projectPath, workspaceRoot));
-
-		//Call the compiler and set markers for the returned errors
-		GDSLCompilerTools.compileAndSetMarkers(commandBuilder.toString, projectPath);
 		
+		if(GDSLPluginPreferences.compilerEnablement){
+			var commandBuilder = new StringBuilder()
+			
+			//Compiler invocation
+			commandBuilder.append(GDSLPluginPreferences.compilerInvocation);
+			
+			//Output name
+			commandBuilder.append(" -o");
+			commandBuilder.append(" " + GDSLPluginPreferences.getOutputName(resource));
+			
+			//Runtime templates
+			commandBuilder.append(" --runtime=");
+			commandBuilder.append(GDSLPluginPreferences.getRuntimeTemplates(resource));
+			
+			//Prefix
+			val prefix = GDSLPluginPreferences.getPrefix(resource); 
+			if(null != prefix){
+				commandBuilder.append(" --prefix=" + prefix);		
+			}
+			
+			//Typechecker
+			if(GDSLPluginPreferences.typeCheckerEnabled){
+				commandBuilder.append(" --maxIter=" + GDSLPluginPreferences.typeCheckerIteration);		
+			}
+			else{
+				commandBuilder.append(" -t");
+			}
+			
+			//Files
+			commandBuilder.append(recursiveGetMLFiles(projectPath, workspaceRoot));
+	
+			//Call the compiler and set markers for the returned errors
+			GDSLCompilerTools.compileAndSetMarkers(commandBuilder.toString, projectPath);
+		} else {
+			//Clear possible set markers
+			GDSLCompilerTools.clearMarkers(projectPath)
+		}
 	}
 		
 	/**

@@ -14,6 +14,7 @@ import org.eclipse.jdt.ui.ISharedImages
 import org.eclipse.jdt.ui.JavaUI
 import org.eclipse.jface.viewers.StyledString
 import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider
+import static extension org.eclipse.xtext.EcoreUtil2.*
 
 /**
  * Provides labels for a EObjects.
@@ -49,7 +50,7 @@ class GDSLLabelProvider extends DefaultEObjectLabelProvider {
 		result.append(t.name)
 		if(null != t.value){
 			val style = StyledString.DECORATIONS_STYLER
-			result.append(" (" + text(t.value) + ")", style)
+			result.append(" = " + text(t.value), style)
 		}
 		return result
 	}
@@ -65,12 +66,14 @@ class GDSLLabelProvider extends DefaultEObjectLabelProvider {
 			result.append(t.type)
 		}
 		if(null != t.elements && t.elements.length > 0){
-			result.append(text(t.elements.get(0).value))
+			result.append('{')
+			result.append(t.elements.get(0).name + ':' + text(t.elements.get(0).value))
 			var i = 1
 			while(i < t.elements.length){
-				result.append(", " + text(t.elements.get(i).value))
+				result.append(", " + t.elements.get(i).name + ':' + text(t.elements.get(i).value))
 				i=i+1
 			}
+			result.append('}')
 		}
 		result.toString
 	}
@@ -79,11 +82,13 @@ class GDSLLabelProvider extends DefaultEObjectLabelProvider {
 	}
 	
 	def text(ConDecl cd){
+		val style = StyledString.COUNTER_STYLER
 		var result = new StyledString()
 		result.append(cd.name.conName)
 		if(null != cd.ty){
-			result.append(" : " + text(cd.ty), StyledString.COUNTER_STYLER)
+			result.append(' (' + text(cd.ty) + ')', style)
 		}
+		result.append(' : ' + cd.getContainerOfType(typeof(Type)).name, style)
 		return result
 	}
 	def image(ConDecl cd){
@@ -103,10 +108,15 @@ class GDSLLabelProvider extends DefaultEObjectLabelProvider {
 		}
 		val attr = v.attr
 		if(null != attr && attr.length > 0){
-			result.append(" :", StyledString.COUNTER_STYLER)
-			for(s : attr){
-				result.append(" " + s, StyledString.COUNTER_STYLER)
+			val style = StyledString.COUNTER_STYLER
+			result.append(" (", style)
+			result.append(attr.get(0), style)
+			var i = 1;
+			while(i < attr.length){
+				result.append(", " + attr.get(i), style)
+				i=i+1
 			}
+			result.append(")", style)
 		}
 		return result
 	}

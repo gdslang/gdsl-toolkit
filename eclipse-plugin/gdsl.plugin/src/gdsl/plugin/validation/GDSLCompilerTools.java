@@ -62,7 +62,7 @@ public class GDSLCompilerTools {
 			final BufferedReader errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 			String line = "";
 			while ((line = errorReader.readLine()) != null) {
-				output.add(line + "\n");
+				output.add(line);
 			}
 		} catch (final Exception e) {
 			return null;
@@ -85,8 +85,12 @@ public class GDSLCompilerTools {
 		final List<GDSLError> result = new LinkedList<GDSLError>();
 		for (final String s : compilerResult) {
 			if (s.matches("\\[.+:\\d+\\.\\d+(-\\d+(\\.\\d+)?)?\\] Error: .*\\n?")) {
-				result.add(new GDSLError(s));
-				// System.out.println(s); // Tdelete line
+				for (final String sPart : s.split(Pattern.quote("["))) {
+					if (sPart.matches(".+:\\d+\\.\\d+(-\\d+(\\.\\d+)?)?\\] Error: .*\\n?")) {
+						result.add(new GDSLError(sPart));
+					}
+				}
+				// System.out.println(s); // delete line
 			}
 		}
 		return result.toArray(new GDSLError[] {});
@@ -98,7 +102,7 @@ public class GDSLCompilerTools {
 	 * @param path
 	 *            The path to delete markers from
 	 */
-	private static void clearMarkers(final IPath path) {
+	public static void clearMarkers(final IPath path) {
 		final IContainer container = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(path);
 		try {
 			for (final IResource r : container.members()) {
@@ -155,12 +159,11 @@ public class GDSLCompilerTools {
 		 *            The error message returned by the GDSL compiler
 		 */
 		public GDSLError(final String errorMessage) {
-			String[] split = errorMessage.split(Pattern.quote(" Error: "));
+			String[] split = errorMessage.split(Pattern.quote("] Error: "));
 			Assert.isTrue(2 == split.length); // [file:loc] , errormsg
 			message = split[1].trim(); // message = errormsg
 
-			final String location = split[0].substring(split[0].indexOf("[") + 1, split[0].lastIndexOf("]")); // file:loc
-			split = location.split(Pattern.quote(":"));
+			split = split[0].split(Pattern.quote(":"));
 			Assert.isTrue(2 == split.length); // split = file , loc
 			final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 			split[0] = new Path(split[0]).makeRelativeTo(root.getLocation()).toString();
@@ -174,6 +177,17 @@ public class GDSLCompilerTools {
 			charEnd = loc[2];
 		}
 
+		/**
+		 * Parse the information of a location given by the gdsl compiler
+		 * 
+		 * @param resource
+		 *            The file the location refers to
+		 * @param s
+		 *            The string containing the location information to parse
+		 * @return An integer array with three cells. The first one (index = 0)
+		 *         contains the starting line, the other two (index = 1,2)
+		 *         contain the start and end offset of the location
+		 */
 		private int[] parseLocation(final IFile resource, final String s) {
 			try {
 				final IDocumentProvider provider = new TextFileDocumentProvider();
