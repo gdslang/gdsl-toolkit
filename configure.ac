@@ -54,39 +54,44 @@ AM_CONDITIONAL(LINUX, test "$LINUX" = "yes")
 #AM_CONDITIONAL(HAVE_JNI_H, test "$HAVE_JNI_H" != "")
 dnl conditionals for the various decoders, either with or without semantics
 
-#FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil";
+FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil arm7";
 
-#AC_ARG_WITH([frontend],
-#  [AS_HELP_STRING(
-#    [--with-frontend=frontend],
-#    [one of: ]$FRONTENDS)],
-#  [], [with_frontend=x86-rreil])
-#
-#case $with_frontend in
-#	x86)
-#		AC_DEFINE([USE_X86],[1],[build x86 bare decoder])
-#	 	with_frontend=x86;;
-#	x86-rreil)
-#		AC_DEFINE([USE_X86_RREIL],[1],[build x86 decoder and RReil semantics])
-#		with_frontend=x86-rreil;;
-#	avr)
-#		AC_DEFINE([USE_AVR],[1],[build AVR bare decoder])
-#		with_frontend=avr;;
-#	avr-rreil)
-#		AC_DEFINE([USE_AVR_RREIL],[1],[build AVR decoder and RReil semantics])
-#		with_frontend=avr-rreil;;
-#	mips)
-#		AC_DEFINE([USE_MIPS],[1],[build MIPS bare decoder])
-#		with_frontend=mips;;
-#	mips-rreil)
-#		AC_DEFINE([USE_MIPS_RREIL],[1],[build MIPS decoder and RReil semantics])
-#		with_frontend=mips-rreil;;
-#	*) AC_MSG_FAILURE([invalid frontend, choose one of ]$FRONTENDS);;
-#esac
-#case $with_frontend in
-#	*-rreil) has_rreil=yes;;
-#	*) has_rreil=no;;
-#esac
+AC_ARG_WITH([frontend],
+  [AS_HELP_STRING(
+    [--with-frontend=frontend],
+    [one of: ]$FRONTENDS)],
+  [], [with_frontend=all])
+
+case $with_frontend in
+	all)
+	 	with_frontend=all;;
+	x86)
+		AC_DEFINE([USE_X86],[1],[build x86 bare decoder])
+	 	with_frontend=x86;;
+	x86-rreil)
+		AC_DEFINE([USE_X86_RREIL],[1],[build x86 decoder and RReil semantics])
+		with_frontend=x86-rreil;;
+	avr)
+		AC_DEFINE([USE_AVR],[1],[build AVR bare decoder])
+		with_frontend=avr;;
+	avr-rreil)
+		AC_DEFINE([USE_AVR_RREIL],[1],[build AVR decoder and RReil semantics])
+		with_frontend=avr-rreil;;
+	mips)
+		AC_DEFINE([USE_MIPS],[1],[build MIPS bare decoder])
+		with_frontend=mips;;
+	mips-rreil)
+		AC_DEFINE([USE_MIPS_RREIL],[1],[build MIPS decoder and RReil semantics])
+		with_frontend=mips-rreil;;
+	arm7)
+		AC_DEFINE([USE_ARM7],[1],[build ARM7 bare decoder])
+		with_frontend=arm7;;
+	*) AC_MSG_FAILURE([invalid frontend, choose one of ]$FRONTENDS);;
+esac
+case $with_frontend in
+	*-rreil) has_rreil=yes;;
+	*) has_rreil=no;;
+esac
 #case $with_frontend in
 #	x86*) has_x86=yes;;
 #	*) has_x86=no;;
@@ -131,13 +136,15 @@ AC_CHECK_HEADERS([gelf.h], [has_elf=yes], [has_elf=no])
 AC_CHECK_HEADERS([jni.h], [has_jni=yes], [has_jni=no])
 AC_CHECK_HEADERS([stdint-gcc.h], [has_stdint_gcc=yes], [has_stdint_gcc=no])
 
-#AM_CONDITIONAL([X86_RREIL],[test x$with_frontend = xx86-rreil])
-#AM_CONDITIONAL([X86],[test x$with_frontend = xx86])
-#AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil])
-#AM_CONDITIONAL([AVR],[test x$with_frontend = xavr])
-#AM_CONDITIONAL([MIPS_RREIL],[test x$with_frontend = xmips-rreil])
-#AM_CONDITIONAL([MIPS],[test x$with_frontend = xmips])
-#AM_CONDITIONAL([HAVE_RREIL],[test x$has_rreil = xyes])
+AM_CONDITIONAL([X86_RREIL],[test x$with_frontend = xx86-rreil -o x$with_frontend = xall])
+AM_CONDITIONAL([X86],[test x$with_frontend = xx86 -o x$with_frontend = xall])
+AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil -o x$with_frontend = xall])
+AM_CONDITIONAL([AVR],[test x$with_frontend = xavr -o x$with_frontend = xall])
+AM_CONDITIONAL([MIPS_RREIL],[test x$with_frontend = xmips-rreil -o x$with_frontend = xall])
+AM_CONDITIONAL([MIPS],[test x$with_frontend = xmips -o x$with_frontend = xall])
+AM_CONDITIONAL([ARM7],[test x$with_frontend = xarm7 -o x$with_frontend = xall])
+AM_CONDITIONAL([HAVE_RREIL],[test x$has_rreil = xyes -o x$with_frontend = xall])
+AM_CONDITIONAL([SINGLE],[test x$with_frontend != xall])
 #AM_CONDITIONAL([HAVE_X86], [test x$has_x86 = xyes])
 #AM_CONDITIONAL([HAVE_GNU_C11], [echo "int main(void) { return 0; }" | gcc -std=gnu11 -xc - -o /dev/null])
 #AM_CONDITIONAL([HAVE_POSIX200809], [test `getconf _POSIX_VERSION` -ge 200809 >/dev/null 2>&1])
@@ -206,12 +213,18 @@ AC_CONFIG_FILES([
   Makefile
 ])
 
+AM_COND_IF([HAVE_GDSL_MULTIPLEX], libjgdsl_msg=yes, libjgdsl_msg=no)
+AM_COND_IF([HAVE_RREIL], libjgdsl_msg=$libjgdsl_msg, libjgdsl_msg="no; translator API missing")
+AM_COND_IF([HAVE_GDSL_MULTIPLEX], libgdsl_multiplex_msg=yes, libgdsl_multiplex_msg=no)
+AM_COND_IF([HAVE_RREIL], libgdsl_multiplex_msg=$libgdsl_multiplex_msg, libgdsl_multiplex_msg="no; translator API missing")
+
 AC_OUTPUT()
 cat <<EOF
 
 GDSL toolkit configuration:
   directory prefix:             $prefix
   C flags:                      $CFLAGS
+  frontend to build:            $with_frontend
   build auxiliary libraries:    $enable_build_auxlibs
   install auxiliary libraries:  $enable_install_auxlibs
   build auxiliary programs:     $enable_build_auxbins
@@ -219,8 +232,8 @@ GDSL toolkit configuration:
   version:                      $VERSION
 EOF
 echo Libraries:
-AS_ECHO_N "  libgdsl-multiplex:            "; AM_COND_IF([HAVE_GDSL_MULTIPLEX], echo yes, echo no)
-AS_ECHO_N "  libjgdsl:                     "; AM_COND_IF([HAVE_JGDSL], echo yes, echo no)
+AS_ECHO_N "  libgdsl-multiplex:            "; echo $libjgdsl_msg
+AS_ECHO_N "  libjgdsl:                     "; echo $libgdsl_multiplex_msg
 AS_ECHO_N "  libmemstream:                 "; AM_COND_IF([HAVE_MEMSTREAM], echo yes, echo no)
 echo
 
