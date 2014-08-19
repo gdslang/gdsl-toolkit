@@ -50,6 +50,6 @@ class Frontend : IReferable {
 }
 
 unittest {
-  Frontend f = new Frontend("x86");
+  Frontend f = new Frontend("current");
   clear(f);
 }

@@ -36,7 +36,7 @@ class Gdsl : IReferable {
 
 unittest {
   for(uint i = 0; i < 10; i++) {
-    Frontend f = new Frontend("x86");
+    Frontend f = new Frontend("current");
     Gdsl gdsl = new Gdsl(f);
   }
   import core.memory;

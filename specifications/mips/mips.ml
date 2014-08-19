@@ -1510,9 +1510,12 @@ type register =
  | SP
  | S8
  | RA
- | HI
+
+type register =
+   HI
  | LO
  | PC
+ | SREG
 
 type register =
    F0
