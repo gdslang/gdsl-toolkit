@@ -116,8 +116,11 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ValueDecl/exp"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//PAT">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//PAT/uscore"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//PAT/int"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//PAT/id"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//PAT/pat"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//PAT/bitpat"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//CONS">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//CONS/conName"/>

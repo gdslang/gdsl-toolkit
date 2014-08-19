@@ -1174,7 +1174,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EAttribute getPAT_Id()
+  public EAttribute getPAT_Uscore()
   {
     return (EAttribute)patEClass.getEStructuralFeatures().get(0);
   }
@@ -1184,9 +1184,39 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
+  public EAttribute getPAT_Int()
+  {
+    return (EAttribute)patEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getPAT_Id()
+  {
+    return (EAttribute)patEClass.getEStructuralFeatures().get(2);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public EReference getPAT_Pat()
   {
-    return (EReference)patEClass.getEStructuralFeatures().get(1);
+    return (EReference)patEClass.getEStructuralFeatures().get(3);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getPAT_Bitpat()
+  {
+    return (EAttribute)patEClass.getEStructuralFeatures().get(4);
   }
 
   /**
@@ -1351,8 +1381,11 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     createEReference(valueDeclEClass, VALUE_DECL__EXP);
 
     patEClass = createEClass(PAT);
+    createEAttribute(patEClass, PAT__USCORE);
+    createEAttribute(patEClass, PAT__INT);
     createEAttribute(patEClass, PAT__ID);
     createEReference(patEClass, PAT__PAT);
+    createEAttribute(patEClass, PAT__BITPAT);
 
     consEClass = createEClass(CONS);
     createEAttribute(consEClass, CONS__CON_NAME);
@@ -1513,8 +1546,11 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEReference(getValueDecl_Exp(), this.getExp(), null, "exp", null, 0, 1, ValueDecl.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(patEClass, gdsl.plugin.gDSL.PAT.class, "PAT", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getPAT_Uscore(), ecorePackage.getEString(), "uscore", null, 0, 1, gdsl.plugin.gDSL.PAT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getPAT_Int(), ecorePackage.getEString(), "int", null, 0, 1, gdsl.plugin.gDSL.PAT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEAttribute(getPAT_Id(), ecorePackage.getEString(), "id", null, 0, 1, gdsl.plugin.gDSL.PAT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getPAT_Pat(), this.getPAT(), null, "pat", null, 0, 1, gdsl.plugin.gDSL.PAT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getPAT_Bitpat(), ecorePackage.getEString(), "bitpat", null, 0, 1, gdsl.plugin.gDSL.PAT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(consEClass, gdsl.plugin.gDSL.CONS.class, "CONS", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getCONS_ConName(), ecorePackage.getEString(), "conName", null, 0, 1, gdsl.plugin.gDSL.CONS.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

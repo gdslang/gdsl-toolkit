@@ -37,10 +37,17 @@ class GDSLValidator extends AbstractGDSLValidator {
 //		}
 //	}
 
+	public static val UPPERCASE_CONS = 'uppercaseCons'
+	public static val PATTERN_MISPLACEMENT = 'patternMisplacement'
+
 	@Check
 	def upperCaseCons(CONS cons){
 		if(!cons.conName.charAt(0).upperCase){
-			error("Constructors have to start with a capital", GDSLPackage::eINSTANCE.CONS_ConName);
+			error("Constructors have to start with a capital", 
+				GDSLPackage::eINSTANCE.CONS_ConName,
+				UPPERCASE_CONS,
+				cons.conName
+			);
 		}
 	}
 	
@@ -48,9 +55,21 @@ class GDSLValidator extends AbstractGDSLValidator {
 	def patternOnlyForConstructors(PAT pat){
 		if(null != pat.pat){
 			if(!pat.id.charAt(0).upperCase){
-				error("A pattern is only allowed for constructors", GDSLPackage::eINSTANCE.PAT_Pat)
+				error("A pattern is only allowed for constructors",
+					GDSLPackage::eINSTANCE.PAT_Pat,
+					PATTERN_MISPLACEMENT,
+					pat.id,
+					text(pat.pat)
+				)
 			}
 		}
+	}
+	
+	def String text(PAT pat){
+		if(null != pat.uscore) return pat.uscore
+		if(null != pat.int) return pat.int
+		if(null != pat.id) return pat.id
+		if(null != pat.bitpat) return "'" + pat.bitpat + "'"
 	}
 
 	@Check

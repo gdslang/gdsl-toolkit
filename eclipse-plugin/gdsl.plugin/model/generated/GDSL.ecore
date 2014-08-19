@@ -147,8 +147,11 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Exp" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="PAT">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="uscore" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="int" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="pat" eType="#//PAT" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bitpat" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="CONS">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="conName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>

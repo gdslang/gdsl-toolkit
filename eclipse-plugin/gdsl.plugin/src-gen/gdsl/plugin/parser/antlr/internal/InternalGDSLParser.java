@@ -9105,25 +9105,29 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "rulePAT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3286:1: rulePAT returns [EObject current=null] : ( ( () this_USCORE_1= RULE_USCORE ) | ( ( ( () ruleINTEGER ) )=> ( () ruleINTEGER ) ) | ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) ) ( (lv_pat_5_0= rulePAT ) )? ) ) | (otherlv_6= '\\'' () ruleBITPAT otherlv_9= '\\'' ) ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3286:1: rulePAT returns [EObject current=null] : ( ( (lv_uscore_0_0= RULE_USCORE ) ) | ( ( ( ( ruleINTEGER ) ) )=> ( (lv_int_1_0= ruleINTEGER ) ) ) | ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) ) ( (lv_pat_3_0= rulePAT ) )? ) ) | (otherlv_4= '\\'' ( (lv_bitpat_5_0= ruleBITPAT ) ) otherlv_6= '\\'' ) ) ;
     public final EObject rulePAT() throws RecognitionException {
         EObject current = null;
 
-        Token this_USCORE_1=null;
-        Token lv_id_4_1=null;
-        Token lv_id_4_2=null;
+        Token lv_uscore_0_0=null;
+        Token lv_id_2_1=null;
+        Token lv_id_2_2=null;
+        Token otherlv_4=null;
         Token otherlv_6=null;
-        Token otherlv_9=null;
-        EObject lv_pat_5_0 = null;
+        AntlrDatatypeRuleToken lv_int_1_0 = null;
+
+        EObject lv_pat_3_0 = null;
+
+        AntlrDatatypeRuleToken lv_bitpat_5_0 = null;
 
 
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3289:28: ( ( ( () this_USCORE_1= RULE_USCORE ) | ( ( ( () ruleINTEGER ) )=> ( () ruleINTEGER ) ) | ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) ) ( (lv_pat_5_0= rulePAT ) )? ) ) | (otherlv_6= '\\'' () ruleBITPAT otherlv_9= '\\'' ) ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:1: ( ( () this_USCORE_1= RULE_USCORE ) | ( ( ( () ruleINTEGER ) )=> ( () ruleINTEGER ) ) | ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) ) ( (lv_pat_5_0= rulePAT ) )? ) ) | (otherlv_6= '\\'' () ruleBITPAT otherlv_9= '\\'' ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3289:28: ( ( ( (lv_uscore_0_0= RULE_USCORE ) ) | ( ( ( ( ruleINTEGER ) ) )=> ( (lv_int_1_0= ruleINTEGER ) ) ) | ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) ) ( (lv_pat_3_0= rulePAT ) )? ) ) | (otherlv_4= '\\'' ( (lv_bitpat_5_0= ruleBITPAT ) ) otherlv_6= '\\'' ) ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:1: ( ( (lv_uscore_0_0= RULE_USCORE ) ) | ( ( ( ( ruleINTEGER ) ) )=> ( (lv_int_1_0= ruleINTEGER ) ) ) | ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) ) ( (lv_pat_3_0= rulePAT ) )? ) ) | (otherlv_4= '\\'' ( (lv_bitpat_5_0= ruleBITPAT ) ) otherlv_6= '\\'' ) )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:1: ( ( () this_USCORE_1= RULE_USCORE ) | ( ( ( () ruleINTEGER ) )=> ( () ruleINTEGER ) ) | ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) ) ( (lv_pat_5_0= rulePAT ) )? ) ) | (otherlv_6= '\\'' () ruleBITPAT otherlv_9= '\\'' ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:1: ( ( (lv_uscore_0_0= RULE_USCORE ) ) | ( ( ( ( ruleINTEGER ) ) )=> ( (lv_int_1_0= ruleINTEGER ) ) ) | ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) ) ( (lv_pat_3_0= rulePAT ) )? ) ) | (otherlv_4= '\\'' ( (lv_bitpat_5_0= ruleBITPAT ) ) otherlv_6= '\\'' ) )
             int alt75=4;
             int LA75_0 = input.LA(1);
 
@@ -9160,30 +9164,35 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             }
             switch (alt75) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:2: ( () this_USCORE_1= RULE_USCORE )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:2: ( (lv_uscore_0_0= RULE_USCORE ) )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:2: ( () this_USCORE_1= RULE_USCORE )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:3: () this_USCORE_1= RULE_USCORE
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:2: ( (lv_uscore_0_0= RULE_USCORE ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3291:1: (lv_uscore_0_0= RULE_USCORE )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3290:3: ()
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3291:5: 
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3291:1: (lv_uscore_0_0= RULE_USCORE )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3292:3: lv_uscore_0_0= RULE_USCORE
                     {
+                    lv_uscore_0_0=(Token)match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_rulePAT6394); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
-                              current = forceCreateModelElement(
-                                  grammarAccess.getPATAccess().getPATAction_0_0(),
-                                  current);
-                          
+                      			newLeafNode(lv_uscore_0_0, grammarAccess.getPATAccess().getUscoreUSCORETerminalRuleCall_0_0()); 
+                      		
                     }
-
-                    }
-
-                    this_USCORE_1=(Token)match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_rulePAT6398); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
-                       
-                          newLeafNode(this_USCORE_1, grammarAccess.getPATAccess().getUSCORETerminalRuleCall_0_1()); 
-                          
+
+                      	        if (current==null) {
+                      	            current = createModelElement(grammarAccess.getPATRule());
+                      	        }
+                             		setWithLastConsumed(
+                             			current, 
+                             			"uscore",
+                              		lv_uscore_0_0, 
+                              		"USCORE");
+                      	    
                     }
+
+                    }
+
 
                     }
 
@@ -9191,42 +9200,43 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3301:6: ( ( ( () ruleINTEGER ) )=> ( () ruleINTEGER ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3309:6: ( ( ( ( ruleINTEGER ) ) )=> ( (lv_int_1_0= ruleINTEGER ) ) )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3301:6: ( ( ( () ruleINTEGER ) )=> ( () ruleINTEGER ) )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3301:7: ( ( () ruleINTEGER ) )=> ( () ruleINTEGER )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3309:6: ( ( ( ( ruleINTEGER ) ) )=> ( (lv_int_1_0= ruleINTEGER ) ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3309:7: ( ( ( ruleINTEGER ) ) )=> ( (lv_int_1_0= ruleINTEGER ) )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3302:18: ( () ruleINTEGER )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3302:19: () ruleINTEGER
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3313:5: ( (lv_int_1_0= ruleINTEGER ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3314:1: (lv_int_1_0= ruleINTEGER )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3302:19: ()
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3303:5: 
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3314:1: (lv_int_1_0= ruleINTEGER )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3315:3: lv_int_1_0= ruleINTEGER
                     {
-                    if ( state.backtracking==0 ) {
-
-                              current = forceCreateModelElement(
-                                  grammarAccess.getPATAccess().getPATAction_1_0_0(),
-                                  current);
-                          
-                    }
-
-                    }
-
                     if ( state.backtracking==0 ) {
                        
-                              newCompositeNode(grammarAccess.getPATAccess().getINTEGERParserRuleCall_1_0_1()); 
-                          
+                      	        newCompositeNode(grammarAccess.getPATAccess().getIntINTEGERParserRuleCall_1_0_0()); 
+                      	    
                     }
-                    pushFollow(FOLLOW_ruleINTEGER_in_rulePAT6441);
-                    ruleINTEGER();
+                    pushFollow(FOLLOW_ruleINTEGER_in_rulePAT6439);
+                    lv_int_1_0=ruleINTEGER();
 
                     state._fsp--;
                     if (state.failed) return current;
                     if ( state.backtracking==0 ) {
-                       
-                              afterParserOrEnumRuleCall();
-                          
+
+                      	        if (current==null) {
+                      	            current = createModelElementForParent(grammarAccess.getPATRule());
+                      	        }
+                             		set(
+                             			current, 
+                             			"int",
+                              		lv_int_1_0, 
+                              		"INTEGER");
+                      	        afterParserOrEnumRuleCall();
+                      	    
                     }
+
+                    }
+
 
                     }
 
@@ -9237,21 +9247,21 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 3 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3317:6: ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) ) ( (lv_pat_5_0= rulePAT ) )? ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:6: ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) ) ( (lv_pat_3_0= rulePAT ) )? ) )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3317:6: ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) ) ( (lv_pat_5_0= rulePAT ) )? ) )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3317:7: ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) ) ( (lv_pat_5_0= rulePAT ) )? )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:6: ( ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) ) ( (lv_pat_3_0= rulePAT ) )? ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:7: ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )=> ( ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) ) ( (lv_pat_3_0= rulePAT ) )? )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3331:7: ( ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) ) ( (lv_pat_5_0= rulePAT ) )? )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3331:8: ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) ) ( (lv_pat_5_0= rulePAT ) )?
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3346:7: ( ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) ) ( (lv_pat_3_0= rulePAT ) )? )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3346:8: ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) ) ( (lv_pat_3_0= rulePAT ) )?
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3331:8: ( ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) ) )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:1: ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3346:8: ( ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3347:1: ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:1: ( (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S ) )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3333:1: (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3347:1: ( (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3348:1: (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3333:1: (lv_id_4_1= RULE_ID | lv_id_4_2= RULE_S )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3348:1: (lv_id_2_1= RULE_ID | lv_id_2_2= RULE_S )
                     int alt73=2;
                     int LA73_0 = input.LA(1);
 
@@ -9270,12 +9280,12 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     switch (alt73) {
                         case 1 :
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3334:3: lv_id_4_1= RULE_ID
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3349:3: lv_id_2_1= RULE_ID
                             {
-                            lv_id_4_1=(Token)match(input,RULE_ID,FOLLOW_RULE_ID_in_rulePAT6509); if (state.failed) return current;
+                            lv_id_2_1=(Token)match(input,RULE_ID,FOLLOW_RULE_ID_in_rulePAT6507); if (state.failed) return current;
                             if ( state.backtracking==0 ) {
 
-                              			newLeafNode(lv_id_4_1, grammarAccess.getPATAccess().getIdIDTerminalRuleCall_2_0_0_0_0()); 
+                              			newLeafNode(lv_id_2_1, grammarAccess.getPATAccess().getIdIDTerminalRuleCall_2_0_0_0_0()); 
                               		
                             }
                             if ( state.backtracking==0 ) {
@@ -9286,7 +9296,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                                      		setWithLastConsumed(
                                      			current, 
                                      			"id",
-                                      		lv_id_4_1, 
+                                      		lv_id_2_1, 
                                       		"ID");
                               	    
                             }
@@ -9294,12 +9304,12 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                             }
                             break;
                         case 2 :
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3349:8: lv_id_4_2= RULE_S
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3364:8: lv_id_2_2= RULE_S
                             {
-                            lv_id_4_2=(Token)match(input,RULE_S,FOLLOW_RULE_S_in_rulePAT6529); if (state.failed) return current;
+                            lv_id_2_2=(Token)match(input,RULE_S,FOLLOW_RULE_S_in_rulePAT6527); if (state.failed) return current;
                             if ( state.backtracking==0 ) {
 
-                              			newLeafNode(lv_id_4_2, grammarAccess.getPATAccess().getIdSTerminalRuleCall_2_0_0_0_1()); 
+                              			newLeafNode(lv_id_2_2, grammarAccess.getPATAccess().getIdSTerminalRuleCall_2_0_0_0_1()); 
                               		
                             }
                             if ( state.backtracking==0 ) {
@@ -9310,7 +9320,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                                      		setWithLastConsumed(
                                      			current, 
                                      			"id",
-                                      		lv_id_4_2, 
+                                      		lv_id_2_2, 
                                       		"S");
                               	    
                             }
@@ -9326,7 +9336,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
                     }
 
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3367:2: ( (lv_pat_5_0= rulePAT ) )?
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3382:2: ( (lv_pat_3_0= rulePAT ) )?
                     int alt74=2;
                     int LA74_0 = input.LA(1);
 
@@ -9335,18 +9345,18 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     switch (alt74) {
                         case 1 :
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3368:1: (lv_pat_5_0= rulePAT )
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3383:1: (lv_pat_3_0= rulePAT )
                             {
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3368:1: (lv_pat_5_0= rulePAT )
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3369:3: lv_pat_5_0= rulePAT
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3383:1: (lv_pat_3_0= rulePAT )
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3384:3: lv_pat_3_0= rulePAT
                             {
                             if ( state.backtracking==0 ) {
                                
                               	        newCompositeNode(grammarAccess.getPATAccess().getPatPATParserRuleCall_2_0_1_0()); 
                               	    
                             }
-                            pushFollow(FOLLOW_rulePAT_in_rulePAT6558);
-                            lv_pat_5_0=rulePAT();
+                            pushFollow(FOLLOW_rulePAT_in_rulePAT6556);
+                            lv_pat_3_0=rulePAT();
 
                             state._fsp--;
                             if (state.failed) return current;
@@ -9358,7 +9368,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                                      		set(
                                      			current, 
                                      			"pat",
-                                      		lv_pat_5_0, 
+                                      		lv_pat_3_0, 
                                       		"PAT");
                               	        afterParserOrEnumRuleCall();
                               	    
@@ -9382,49 +9392,56 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 4 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3386:6: (otherlv_6= '\\'' () ruleBITPAT otherlv_9= '\\'' )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3401:6: (otherlv_4= '\\'' ( (lv_bitpat_5_0= ruleBITPAT ) ) otherlv_6= '\\'' )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3386:6: (otherlv_6= '\\'' () ruleBITPAT otherlv_9= '\\'' )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3386:8: otherlv_6= '\\'' () ruleBITPAT otherlv_9= '\\''
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3401:6: (otherlv_4= '\\'' ( (lv_bitpat_5_0= ruleBITPAT ) ) otherlv_6= '\\'' )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3401:8: otherlv_4= '\\'' ( (lv_bitpat_5_0= ruleBITPAT ) ) otherlv_6= '\\''
                     {
-                    otherlv_6=(Token)match(input,65,FOLLOW_65_in_rulePAT6580); if (state.failed) return current;
+                    otherlv_4=(Token)match(input,65,FOLLOW_65_in_rulePAT6578); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
-                          	newLeafNode(otherlv_6, grammarAccess.getPATAccess().getApostropheKeyword_3_0());
+                          	newLeafNode(otherlv_4, grammarAccess.getPATAccess().getApostropheKeyword_3_0());
                           
                     }
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3390:1: ()
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3391:5: 
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3405:1: ( (lv_bitpat_5_0= ruleBITPAT ) )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3406:1: (lv_bitpat_5_0= ruleBITPAT )
                     {
-                    if ( state.backtracking==0 ) {
-
-                              current = forceCreateModelElement(
-                                  grammarAccess.getPATAccess().getPATAction_3_1(),
-                                  current);
-                          
-                    }
-
-                    }
-
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3406:1: (lv_bitpat_5_0= ruleBITPAT )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3407:3: lv_bitpat_5_0= ruleBITPAT
+                    {
                     if ( state.backtracking==0 ) {
                        
-                              newCompositeNode(grammarAccess.getPATAccess().getBITPATParserRuleCall_3_2()); 
-                          
+                      	        newCompositeNode(grammarAccess.getPATAccess().getBitpatBITPATParserRuleCall_3_1_0()); 
+                      	    
                     }
-                    pushFollow(FOLLOW_ruleBITPAT_in_rulePAT6605);
-                    ruleBITPAT();
+                    pushFollow(FOLLOW_ruleBITPAT_in_rulePAT6599);
+                    lv_bitpat_5_0=ruleBITPAT();
 
                     state._fsp--;
                     if (state.failed) return current;
                     if ( state.backtracking==0 ) {
-                       
-                              afterParserOrEnumRuleCall();
-                          
+
+                      	        if (current==null) {
+                      	            current = createModelElementForParent(grammarAccess.getPATRule());
+                      	        }
+                             		set(
+                             			current, 
+                             			"bitpat",
+                              		lv_bitpat_5_0, 
+                              		"BITPAT");
+                      	        afterParserOrEnumRuleCall();
+                      	    
                     }
-                    otherlv_9=(Token)match(input,65,FOLLOW_65_in_rulePAT6616); if (state.failed) return current;
+
+                    }
+
+
+                    }
+
+                    otherlv_6=(Token)match(input,65,FOLLOW_65_in_rulePAT6611); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
-                          	newLeafNode(otherlv_9, grammarAccess.getPATAccess().getApostropheKeyword_3_3());
+                          	newLeafNode(otherlv_6, grammarAccess.getPATAccess().getApostropheKeyword_3_2());
                           
                     }
 
@@ -9456,7 +9473,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleCONS"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3416:1: entryRuleCONS returns [EObject current=null] : iv_ruleCONS= ruleCONS EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3435:1: entryRuleCONS returns [EObject current=null] : iv_ruleCONS= ruleCONS EOF ;
     public final EObject entryRuleCONS() throws RecognitionException {
         EObject current = null;
 
@@ -9464,13 +9481,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3417:2: (iv_ruleCONS= ruleCONS EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3418:2: iv_ruleCONS= ruleCONS EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3436:2: (iv_ruleCONS= ruleCONS EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3437:2: iv_ruleCONS= ruleCONS EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getCONSRule()); 
             }
-            pushFollow(FOLLOW_ruleCONS_in_entryRuleCONS6653);
+            pushFollow(FOLLOW_ruleCONS_in_entryRuleCONS6648);
             iv_ruleCONS=ruleCONS();
 
             state._fsp--;
@@ -9478,7 +9495,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleCONS; 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleCONS6663); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleCONS6658); if (state.failed) return current;
 
             }
 
@@ -9496,7 +9513,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleCONS"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3425:1: ruleCONS returns [EObject current=null] : ( ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) ) ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3444:1: ruleCONS returns [EObject current=null] : ( ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) ) ) ;
     public final EObject ruleCONS() throws RecognitionException {
         EObject current = null;
 
@@ -9506,16 +9523,16 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3428:28: ( ( ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) ) ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3429:1: ( ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3447:28: ( ( ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) ) ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3448:1: ( ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) ) )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3429:1: ( ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3430:1: ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3448:1: ( ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3449:1: ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3430:1: ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3431:1: (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3449:1: ( (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3450:1: (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3431:1: (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3450:1: (lv_conName_0_1= RULE_ID | lv_conName_0_2= RULE_S )
             int alt76=2;
             int LA76_0 = input.LA(1);
 
@@ -9534,9 +9551,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             }
             switch (alt76) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3432:3: lv_conName_0_1= RULE_ID
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3451:3: lv_conName_0_1= RULE_ID
                     {
-                    lv_conName_0_1=(Token)match(input,RULE_ID,FOLLOW_RULE_ID_in_ruleCONS6706); if (state.failed) return current;
+                    lv_conName_0_1=(Token)match(input,RULE_ID,FOLLOW_RULE_ID_in_ruleCONS6701); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       			newLeafNode(lv_conName_0_1, grammarAccess.getCONSAccess().getConNameIDTerminalRuleCall_0_0()); 
@@ -9558,9 +9575,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3447:8: lv_conName_0_2= RULE_S
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3466:8: lv_conName_0_2= RULE_S
                     {
-                    lv_conName_0_2=(Token)match(input,RULE_S,FOLLOW_RULE_S_in_ruleCONS6726); if (state.failed) return current;
+                    lv_conName_0_2=(Token)match(input,RULE_S,FOLLOW_RULE_S_in_ruleCONS6721); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       			newLeafNode(lv_conName_0_2, grammarAccess.getCONSAccess().getConNameSTerminalRuleCall_0_1()); 
@@ -9610,7 +9627,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleDECODEPAT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3473:1: entryRuleDECODEPAT returns [String current=null] : iv_ruleDECODEPAT= ruleDECODEPAT EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3492:1: entryRuleDECODEPAT returns [String current=null] : iv_ruleDECODEPAT= ruleDECODEPAT EOF ;
     public final String entryRuleDECODEPAT() throws RecognitionException {
         String current = null;
 
@@ -9618,13 +9635,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3474:2: (iv_ruleDECODEPAT= ruleDECODEPAT EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3475:2: iv_ruleDECODEPAT= ruleDECODEPAT EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3493:2: (iv_ruleDECODEPAT= ruleDECODEPAT EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3494:2: iv_ruleDECODEPAT= ruleDECODEPAT EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getDECODEPATRule()); 
             }
-            pushFollow(FOLLOW_ruleDECODEPAT_in_entryRuleDECODEPAT6770);
+            pushFollow(FOLLOW_ruleDECODEPAT_in_entryRuleDECODEPAT6765);
             iv_ruleDECODEPAT=ruleDECODEPAT();
 
             state._fsp--;
@@ -9632,7 +9649,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleDECODEPAT.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleDECODEPAT6781); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleDECODEPAT6776); if (state.failed) return current;
 
             }
 
@@ -9650,7 +9667,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleDECODEPAT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3482:1: ruleDECODEPAT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : ( (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' ) | this_TOKPAT_3= ruleTOKPAT ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3501:1: ruleDECODEPAT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : ( (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' ) | this_TOKPAT_3= ruleTOKPAT ) ;
     public final AntlrDatatypeRuleToken ruleDECODEPAT() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -9663,10 +9680,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3485:28: ( ( (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' ) | this_TOKPAT_3= ruleTOKPAT ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3486:1: ( (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' ) | this_TOKPAT_3= ruleTOKPAT )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3504:28: ( ( (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' ) | this_TOKPAT_3= ruleTOKPAT ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3505:1: ( (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' ) | this_TOKPAT_3= ruleTOKPAT )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3486:1: ( (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' ) | this_TOKPAT_3= ruleTOKPAT )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3505:1: ( (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' ) | this_TOKPAT_3= ruleTOKPAT )
             int alt78=2;
             int LA78_0 = input.LA(1);
 
@@ -9685,19 +9702,19 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             }
             switch (alt78) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3486:2: (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3505:2: (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3486:2: (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3487:2: kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\''
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3505:2: (kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\'' )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3506:2: kw= '\\'' (this_BITPAT_1= ruleBITPAT )+ kw= '\\''
                     {
-                    kw=(Token)match(input,65,FOLLOW_65_in_ruleDECODEPAT6820); if (state.failed) return current;
+                    kw=(Token)match(input,65,FOLLOW_65_in_ruleDECODEPAT6815); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                               current.merge(kw);
                               newLeafNode(kw, grammarAccess.getDECODEPATAccess().getApostropheKeyword_0_0()); 
                           
                     }
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3492:1: (this_BITPAT_1= ruleBITPAT )+
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3511:1: (this_BITPAT_1= ruleBITPAT )+
                     int cnt77=0;
                     loop77:
                     do {
@@ -9711,14 +9728,14 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
                         switch (alt77) {
                     	case 1 :
-                    	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3493:5: this_BITPAT_1= ruleBITPAT
+                    	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3512:5: this_BITPAT_1= ruleBITPAT
                     	    {
                     	    if ( state.backtracking==0 ) {
                     	       
                     	              newCompositeNode(grammarAccess.getDECODEPATAccess().getBITPATParserRuleCall_0_1()); 
                     	          
                     	    }
-                    	    pushFollow(FOLLOW_ruleBITPAT_in_ruleDECODEPAT6843);
+                    	    pushFollow(FOLLOW_ruleBITPAT_in_ruleDECODEPAT6838);
                     	    this_BITPAT_1=ruleBITPAT();
 
                     	    state._fsp--;
@@ -9747,7 +9764,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                         cnt77++;
                     } while (true);
 
-                    kw=(Token)match(input,65,FOLLOW_65_in_ruleDECODEPAT6863); if (state.failed) return current;
+                    kw=(Token)match(input,65,FOLLOW_65_in_ruleDECODEPAT6858); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                               current.merge(kw);
@@ -9761,14 +9778,14 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3511:5: this_TOKPAT_3= ruleTOKPAT
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3530:5: this_TOKPAT_3= ruleTOKPAT
                     {
                     if ( state.backtracking==0 ) {
                        
                               newCompositeNode(grammarAccess.getDECODEPATAccess().getTOKPATParserRuleCall_1()); 
                           
                     }
-                    pushFollow(FOLLOW_ruleTOKPAT_in_ruleDECODEPAT6892);
+                    pushFollow(FOLLOW_ruleTOKPAT_in_ruleDECODEPAT6887);
                     this_TOKPAT_3=ruleTOKPAT();
 
                     state._fsp--;
@@ -9809,7 +9826,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleTOKPAT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3529:1: entryRuleTOKPAT returns [String current=null] : iv_ruleTOKPAT= ruleTOKPAT EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3548:1: entryRuleTOKPAT returns [String current=null] : iv_ruleTOKPAT= ruleTOKPAT EOF ;
     public final String entryRuleTOKPAT() throws RecognitionException {
         String current = null;
 
@@ -9817,13 +9834,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3530:2: (iv_ruleTOKPAT= ruleTOKPAT EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3531:2: iv_ruleTOKPAT= ruleTOKPAT EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3549:2: (iv_ruleTOKPAT= ruleTOKPAT EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3550:2: iv_ruleTOKPAT= ruleTOKPAT EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getTOKPATRule()); 
             }
-            pushFollow(FOLLOW_ruleTOKPAT_in_entryRuleTOKPAT6938);
+            pushFollow(FOLLOW_ruleTOKPAT_in_entryRuleTOKPAT6933);
             iv_ruleTOKPAT=ruleTOKPAT();
 
             state._fsp--;
@@ -9831,7 +9848,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleTOKPAT.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleTOKPAT6949); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleTOKPAT6944); if (state.failed) return current;
 
             }
 
@@ -9849,7 +9866,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleTOKPAT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3538:1: ruleTOKPAT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_HEXINT_0= RULE_HEXINT | (this_ID_1= RULE_ID | this_S_2= RULE_S ) ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3557:1: ruleTOKPAT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_HEXINT_0= RULE_HEXINT | (this_ID_1= RULE_ID | this_S_2= RULE_S ) ) ;
     public final AntlrDatatypeRuleToken ruleTOKPAT() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -9860,10 +9877,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3541:28: ( (this_HEXINT_0= RULE_HEXINT | (this_ID_1= RULE_ID | this_S_2= RULE_S ) ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3542:1: (this_HEXINT_0= RULE_HEXINT | (this_ID_1= RULE_ID | this_S_2= RULE_S ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3560:28: ( (this_HEXINT_0= RULE_HEXINT | (this_ID_1= RULE_ID | this_S_2= RULE_S ) ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3561:1: (this_HEXINT_0= RULE_HEXINT | (this_ID_1= RULE_ID | this_S_2= RULE_S ) )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3542:1: (this_HEXINT_0= RULE_HEXINT | (this_ID_1= RULE_ID | this_S_2= RULE_S ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3561:1: (this_HEXINT_0= RULE_HEXINT | (this_ID_1= RULE_ID | this_S_2= RULE_S ) )
             int alt80=2;
             int LA80_0 = input.LA(1);
 
@@ -9882,9 +9899,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             }
             switch (alt80) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3542:6: this_HEXINT_0= RULE_HEXINT
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3561:6: this_HEXINT_0= RULE_HEXINT
                     {
-                    this_HEXINT_0=(Token)match(input,RULE_HEXINT,FOLLOW_RULE_HEXINT_in_ruleTOKPAT6989); if (state.failed) return current;
+                    this_HEXINT_0=(Token)match(input,RULE_HEXINT,FOLLOW_RULE_HEXINT_in_ruleTOKPAT6984); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_HEXINT_0);
@@ -9899,9 +9916,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3550:6: (this_ID_1= RULE_ID | this_S_2= RULE_S )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3569:6: (this_ID_1= RULE_ID | this_S_2= RULE_S )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3550:6: (this_ID_1= RULE_ID | this_S_2= RULE_S )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3569:6: (this_ID_1= RULE_ID | this_S_2= RULE_S )
                     int alt79=2;
                     int LA79_0 = input.LA(1);
 
@@ -9920,9 +9937,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     switch (alt79) {
                         case 1 :
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3550:11: this_ID_1= RULE_ID
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3569:11: this_ID_1= RULE_ID
                             {
-                            this_ID_1=(Token)match(input,RULE_ID,FOLLOW_RULE_ID_in_ruleTOKPAT7016); if (state.failed) return current;
+                            this_ID_1=(Token)match(input,RULE_ID,FOLLOW_RULE_ID_in_ruleTOKPAT7011); if (state.failed) return current;
                             if ( state.backtracking==0 ) {
 
                               		current.merge(this_ID_1);
@@ -9937,9 +9954,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                             }
                             break;
                         case 2 :
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3558:10: this_S_2= RULE_S
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3577:10: this_S_2= RULE_S
                             {
-                            this_S_2=(Token)match(input,RULE_S,FOLLOW_RULE_S_in_ruleTOKPAT7042); if (state.failed) return current;
+                            this_S_2=(Token)match(input,RULE_S,FOLLOW_RULE_S_in_ruleTOKPAT7037); if (state.failed) return current;
                             if ( state.backtracking==0 ) {
 
                               		current.merge(this_S_2);
@@ -9982,7 +9999,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleBITPAT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3573:1: entryRuleBITPAT returns [String current=null] : iv_ruleBITPAT= ruleBITPAT EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3592:1: entryRuleBITPAT returns [String current=null] : iv_ruleBITPAT= ruleBITPAT EOF ;
     public final String entryRuleBITPAT() throws RecognitionException {
         String current = null;
 
@@ -9990,13 +10007,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3574:2: (iv_ruleBITPAT= ruleBITPAT EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3575:2: iv_ruleBITPAT= ruleBITPAT EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3593:2: (iv_ruleBITPAT= ruleBITPAT EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3594:2: iv_ruleBITPAT= ruleBITPAT EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getBITPATRule()); 
             }
-            pushFollow(FOLLOW_ruleBITPAT_in_entryRuleBITPAT7089);
+            pushFollow(FOLLOW_ruleBITPAT_in_entryRuleBITPAT7084);
             iv_ruleBITPAT=ruleBITPAT();
 
             state._fsp--;
@@ -10004,7 +10021,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleBITPAT.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleBITPAT7100); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleBITPAT7095); if (state.failed) return current;
 
             }
 
@@ -10022,7 +10039,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleBITPAT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3582:1: ruleBITPAT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_BINARY_0= ruleBINARY | ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? ) ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3601:1: ruleBITPAT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_BINARY_0= ruleBINARY | ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? ) ) ;
     public final AntlrDatatypeRuleToken ruleBITPAT() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -10036,10 +10053,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3585:28: ( (this_BINARY_0= ruleBINARY | ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? ) ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3586:1: (this_BINARY_0= ruleBINARY | ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3604:28: ( (this_BINARY_0= ruleBINARY | ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? ) ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3605:1: (this_BINARY_0= ruleBINARY | ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? ) )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3586:1: (this_BINARY_0= ruleBINARY | ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3605:1: (this_BINARY_0= ruleBINARY | ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? ) )
             int alt83=2;
             int LA83_0 = input.LA(1);
 
@@ -10058,14 +10075,14 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             }
             switch (alt83) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3587:5: this_BINARY_0= ruleBINARY
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3606:5: this_BINARY_0= ruleBINARY
                     {
                     if ( state.backtracking==0 ) {
                        
                               newCompositeNode(grammarAccess.getBITPATAccess().getBINARYParserRuleCall_0()); 
                           
                     }
-                    pushFollow(FOLLOW_ruleBINARY_in_ruleBITPAT7147);
+                    pushFollow(FOLLOW_ruleBINARY_in_ruleBITPAT7142);
                     this_BINARY_0=ruleBINARY();
 
                     state._fsp--;
@@ -10084,12 +10101,12 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3598:6: ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3617:6: ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3598:6: ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3598:7: (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )?
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3617:6: ( (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )? )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3617:7: (this_ID_1= RULE_ID | this_S_2= RULE_S ) (this_BITPATORINT_3= ruleBITPATORINT )?
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3598:7: (this_ID_1= RULE_ID | this_S_2= RULE_S )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3617:7: (this_ID_1= RULE_ID | this_S_2= RULE_S )
                     int alt81=2;
                     int LA81_0 = input.LA(1);
 
@@ -10108,9 +10125,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     switch (alt81) {
                         case 1 :
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3598:12: this_ID_1= RULE_ID
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3617:12: this_ID_1= RULE_ID
                             {
-                            this_ID_1=(Token)match(input,RULE_ID,FOLLOW_RULE_ID_in_ruleBITPAT7175); if (state.failed) return current;
+                            this_ID_1=(Token)match(input,RULE_ID,FOLLOW_RULE_ID_in_ruleBITPAT7170); if (state.failed) return current;
                             if ( state.backtracking==0 ) {
 
                               		current.merge(this_ID_1);
@@ -10125,9 +10142,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                             }
                             break;
                         case 2 :
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3606:10: this_S_2= RULE_S
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3625:10: this_S_2= RULE_S
                             {
-                            this_S_2=(Token)match(input,RULE_S,FOLLOW_RULE_S_in_ruleBITPAT7201); if (state.failed) return current;
+                            this_S_2=(Token)match(input,RULE_S,FOLLOW_RULE_S_in_ruleBITPAT7196); if (state.failed) return current;
                             if ( state.backtracking==0 ) {
 
                               		current.merge(this_S_2);
@@ -10144,7 +10161,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
                     }
 
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3613:2: (this_BITPATORINT_3= ruleBITPATORINT )?
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3632:2: (this_BITPATORINT_3= ruleBITPATORINT )?
                     int alt82=2;
                     int LA82_0 = input.LA(1);
 
@@ -10153,14 +10170,14 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     switch (alt82) {
                         case 1 :
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3614:5: this_BITPATORINT_3= ruleBITPATORINT
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3633:5: this_BITPATORINT_3= ruleBITPATORINT
                             {
                             if ( state.backtracking==0 ) {
                                
                                       newCompositeNode(grammarAccess.getBITPATAccess().getBITPATORINTParserRuleCall_1_1()); 
                                   
                             }
-                            pushFollow(FOLLOW_ruleBITPATORINT_in_ruleBITPAT7230);
+                            pushFollow(FOLLOW_ruleBITPATORINT_in_ruleBITPAT7225);
                             this_BITPATORINT_3=ruleBITPATORINT();
 
                             state._fsp--;
@@ -10210,7 +10227,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleBITPATORINT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3632:1: entryRuleBITPATORINT returns [String current=null] : iv_ruleBITPATORINT= ruleBITPATORINT EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3651:1: entryRuleBITPATORINT returns [String current=null] : iv_ruleBITPATORINT= ruleBITPATORINT EOF ;
     public final String entryRuleBITPATORINT() throws RecognitionException {
         String current = null;
 
@@ -10218,13 +10235,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3633:2: (iv_ruleBITPATORINT= ruleBITPATORINT EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3634:2: iv_ruleBITPATORINT= ruleBITPATORINT EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3652:2: (iv_ruleBITPATORINT= ruleBITPATORINT EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3653:2: iv_ruleBITPATORINT= ruleBITPATORINT EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getBITPATORINTRule()); 
             }
-            pushFollow(FOLLOW_ruleBITPATORINT_in_entryRuleBITPATORINT7279);
+            pushFollow(FOLLOW_ruleBITPATORINT_in_entryRuleBITPATORINT7274);
             iv_ruleBITPATORINT=ruleBITPATORINT();
 
             state._fsp--;
@@ -10232,7 +10249,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleBITPATORINT.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleBITPATORINT7290); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleBITPATORINT7285); if (state.failed) return current;
 
             }
 
@@ -10250,7 +10267,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleBITPATORINT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3641:1: ruleBITPATORINT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : ( (kw= ':' this_POSINT_1= rulePOSINT ) | (kw= '@' this_BINARY_3= ruleBINARY ) ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3660:1: ruleBITPATORINT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : ( (kw= ':' this_POSINT_1= rulePOSINT ) | (kw= '@' this_BINARY_3= ruleBINARY ) ) ;
     public final AntlrDatatypeRuleToken ruleBITPATORINT() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -10263,10 +10280,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3644:28: ( ( (kw= ':' this_POSINT_1= rulePOSINT ) | (kw= '@' this_BINARY_3= ruleBINARY ) ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3645:1: ( (kw= ':' this_POSINT_1= rulePOSINT ) | (kw= '@' this_BINARY_3= ruleBINARY ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3663:28: ( ( (kw= ':' this_POSINT_1= rulePOSINT ) | (kw= '@' this_BINARY_3= ruleBINARY ) ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3664:1: ( (kw= ':' this_POSINT_1= rulePOSINT ) | (kw= '@' this_BINARY_3= ruleBINARY ) )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3645:1: ( (kw= ':' this_POSINT_1= rulePOSINT ) | (kw= '@' this_BINARY_3= ruleBINARY ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3664:1: ( (kw= ':' this_POSINT_1= rulePOSINT ) | (kw= '@' this_BINARY_3= ruleBINARY ) )
             int alt84=2;
             int LA84_0 = input.LA(1);
 
@@ -10285,12 +10302,12 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             }
             switch (alt84) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3645:2: (kw= ':' this_POSINT_1= rulePOSINT )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3664:2: (kw= ':' this_POSINT_1= rulePOSINT )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3645:2: (kw= ':' this_POSINT_1= rulePOSINT )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3646:2: kw= ':' this_POSINT_1= rulePOSINT
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3664:2: (kw= ':' this_POSINT_1= rulePOSINT )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3665:2: kw= ':' this_POSINT_1= rulePOSINT
                     {
-                    kw=(Token)match(input,27,FOLLOW_27_in_ruleBITPATORINT7329); if (state.failed) return current;
+                    kw=(Token)match(input,27,FOLLOW_27_in_ruleBITPATORINT7324); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                               current.merge(kw);
@@ -10302,7 +10319,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                               newCompositeNode(grammarAccess.getBITPATORINTAccess().getPOSINTParserRuleCall_0_1()); 
                           
                     }
-                    pushFollow(FOLLOW_rulePOSINT_in_ruleBITPATORINT7351);
+                    pushFollow(FOLLOW_rulePOSINT_in_ruleBITPATORINT7346);
                     this_POSINT_1=rulePOSINT();
 
                     state._fsp--;
@@ -10324,12 +10341,12 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3663:6: (kw= '@' this_BINARY_3= ruleBINARY )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3682:6: (kw= '@' this_BINARY_3= ruleBINARY )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3663:6: (kw= '@' this_BINARY_3= ruleBINARY )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3664:2: kw= '@' this_BINARY_3= ruleBINARY
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3682:6: (kw= '@' this_BINARY_3= ruleBINARY )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3683:2: kw= '@' this_BINARY_3= ruleBINARY
                     {
-                    kw=(Token)match(input,61,FOLLOW_61_in_ruleBITPATORINT7377); if (state.failed) return current;
+                    kw=(Token)match(input,61,FOLLOW_61_in_ruleBITPATORINT7372); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                               current.merge(kw);
@@ -10341,7 +10358,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                               newCompositeNode(grammarAccess.getBITPATORINTAccess().getBINARYParserRuleCall_1_1()); 
                           
                     }
-                    pushFollow(FOLLOW_ruleBINARY_in_ruleBITPATORINT7399);
+                    pushFollow(FOLLOW_ruleBINARY_in_ruleBITPATORINT7394);
                     this_BINARY_3=ruleBINARY();
 
                     state._fsp--;
@@ -10385,7 +10402,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleLIT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3688:1: entryRuleLIT returns [String current=null] : iv_ruleLIT= ruleLIT EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3707:1: entryRuleLIT returns [String current=null] : iv_ruleLIT= ruleLIT EOF ;
     public final String entryRuleLIT() throws RecognitionException {
         String current = null;
 
@@ -10393,13 +10410,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3689:2: (iv_ruleLIT= ruleLIT EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3690:2: iv_ruleLIT= ruleLIT EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3708:2: (iv_ruleLIT= ruleLIT EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3709:2: iv_ruleLIT= ruleLIT EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getLITRule()); 
             }
-            pushFollow(FOLLOW_ruleLIT_in_entryRuleLIT7446);
+            pushFollow(FOLLOW_ruleLIT_in_entryRuleLIT7441);
             iv_ruleLIT=ruleLIT();
 
             state._fsp--;
@@ -10407,7 +10424,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleLIT.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleLIT7457); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleLIT7452); if (state.failed) return current;
 
             }
 
@@ -10425,7 +10442,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleLIT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3697:1: ruleLIT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_INTEGER_0= ruleINTEGER | (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' ) ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3716:1: ruleLIT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_INTEGER_0= ruleINTEGER | (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' ) ) ;
     public final AntlrDatatypeRuleToken ruleLIT() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -10438,10 +10455,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3700:28: ( (this_INTEGER_0= ruleINTEGER | (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' ) ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3701:1: (this_INTEGER_0= ruleINTEGER | (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3719:28: ( (this_INTEGER_0= ruleINTEGER | (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' ) ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3720:1: (this_INTEGER_0= ruleINTEGER | (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' ) )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3701:1: (this_INTEGER_0= ruleINTEGER | (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3720:1: (this_INTEGER_0= ruleINTEGER | (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' ) )
             int alt86=2;
             int LA86_0 = input.LA(1);
 
@@ -10460,14 +10477,14 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             }
             switch (alt86) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3702:5: this_INTEGER_0= ruleINTEGER
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3721:5: this_INTEGER_0= ruleINTEGER
                     {
                     if ( state.backtracking==0 ) {
                        
                               newCompositeNode(grammarAccess.getLITAccess().getINTEGERParserRuleCall_0()); 
                           
                     }
-                    pushFollow(FOLLOW_ruleINTEGER_in_ruleLIT7504);
+                    pushFollow(FOLLOW_ruleINTEGER_in_ruleLIT7499);
                     this_INTEGER_0=ruleINTEGER();
 
                     state._fsp--;
@@ -10486,19 +10503,19 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3713:6: (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3732:6: (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' )
                     {
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3713:6: (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' )
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3714:2: kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\''
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3732:6: (kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\'' )
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3733:2: kw= '\\'' (this_BINARY_2= ruleBINARY )? kw= '\\''
                     {
-                    kw=(Token)match(input,65,FOLLOW_65_in_ruleLIT7529); if (state.failed) return current;
+                    kw=(Token)match(input,65,FOLLOW_65_in_ruleLIT7524); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                               current.merge(kw);
                               newLeafNode(kw, grammarAccess.getLITAccess().getApostropheKeyword_1_0()); 
                           
                     }
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3719:1: (this_BINARY_2= ruleBINARY )?
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3738:1: (this_BINARY_2= ruleBINARY )?
                     int alt85=2;
                     int LA85_0 = input.LA(1);
 
@@ -10507,14 +10524,14 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     switch (alt85) {
                         case 1 :
-                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3720:5: this_BINARY_2= ruleBINARY
+                            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3739:5: this_BINARY_2= ruleBINARY
                             {
                             if ( state.backtracking==0 ) {
                                
                                       newCompositeNode(grammarAccess.getLITAccess().getBINARYParserRuleCall_1_1()); 
                                   
                             }
-                            pushFollow(FOLLOW_ruleBINARY_in_ruleLIT7552);
+                            pushFollow(FOLLOW_ruleBINARY_in_ruleLIT7547);
                             this_BINARY_2=ruleBINARY();
 
                             state._fsp--;
@@ -10535,7 +10552,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
                     }
 
-                    kw=(Token)match(input,65,FOLLOW_65_in_ruleLIT7572); if (state.failed) return current;
+                    kw=(Token)match(input,65,FOLLOW_65_in_ruleLIT7567); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                               current.merge(kw);
@@ -10571,7 +10588,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleMID"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3744:1: entryRuleMID returns [String current=null] : iv_ruleMID= ruleMID EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3763:1: entryRuleMID returns [String current=null] : iv_ruleMID= ruleMID EOF ;
     public final String entryRuleMID() throws RecognitionException {
         String current = null;
 
@@ -10579,13 +10596,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3745:2: (iv_ruleMID= ruleMID EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3746:2: iv_ruleMID= ruleMID EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3764:2: (iv_ruleMID= ruleMID EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3765:2: iv_ruleMID= ruleMID EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getMIDRule()); 
             }
-            pushFollow(FOLLOW_ruleMID_in_entryRuleMID7614);
+            pushFollow(FOLLOW_ruleMID_in_entryRuleMID7609);
             iv_ruleMID=ruleMID();
 
             state._fsp--;
@@ -10593,7 +10610,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleMID.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleMID7625); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleMID7620); if (state.failed) return current;
 
             }
 
@@ -10611,7 +10628,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleMID"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3753:1: ruleMID returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_MIXID_0= RULE_MIXID | this_USCORE_1= RULE_USCORE ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3772:1: ruleMID returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_MIXID_0= RULE_MIXID | this_USCORE_1= RULE_USCORE ) ;
     public final AntlrDatatypeRuleToken ruleMID() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -10621,10 +10638,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3756:28: ( (this_MIXID_0= RULE_MIXID | this_USCORE_1= RULE_USCORE ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3757:1: (this_MIXID_0= RULE_MIXID | this_USCORE_1= RULE_USCORE )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3775:28: ( (this_MIXID_0= RULE_MIXID | this_USCORE_1= RULE_USCORE ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3776:1: (this_MIXID_0= RULE_MIXID | this_USCORE_1= RULE_USCORE )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3757:1: (this_MIXID_0= RULE_MIXID | this_USCORE_1= RULE_USCORE )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3776:1: (this_MIXID_0= RULE_MIXID | this_USCORE_1= RULE_USCORE )
             int alt87=2;
             int LA87_0 = input.LA(1);
 
@@ -10643,9 +10660,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             }
             switch (alt87) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3757:6: this_MIXID_0= RULE_MIXID
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3776:6: this_MIXID_0= RULE_MIXID
                     {
-                    this_MIXID_0=(Token)match(input,RULE_MIXID,FOLLOW_RULE_MIXID_in_ruleMID7665); if (state.failed) return current;
+                    this_MIXID_0=(Token)match(input,RULE_MIXID,FOLLOW_RULE_MIXID_in_ruleMID7660); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_MIXID_0);
@@ -10660,9 +10677,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3765:10: this_USCORE_1= RULE_USCORE
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3784:10: this_USCORE_1= RULE_USCORE
                     {
-                    this_USCORE_1=(Token)match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_ruleMID7691); if (state.failed) return current;
+                    this_USCORE_1=(Token)match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_ruleMID7686); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_USCORE_1);
@@ -10699,7 +10716,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleSYM"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3780:1: entryRuleSYM returns [String current=null] : iv_ruleSYM= ruleSYM EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3799:1: entryRuleSYM returns [String current=null] : iv_ruleSYM= ruleSYM EOF ;
     public final String entryRuleSYM() throws RecognitionException {
         String current = null;
 
@@ -10707,13 +10724,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3781:2: (iv_ruleSYM= ruleSYM EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3782:2: iv_ruleSYM= ruleSYM EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3800:2: (iv_ruleSYM= ruleSYM EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3801:2: iv_ruleSYM= ruleSYM EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getSYMRule()); 
             }
-            pushFollow(FOLLOW_ruleSYM_in_entryRuleSYM7737);
+            pushFollow(FOLLOW_ruleSYM_in_entryRuleSYM7732);
             iv_ruleSYM=ruleSYM();
 
             state._fsp--;
@@ -10721,7 +10738,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleSYM.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleSYM7748); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleSYM7743); if (state.failed) return current;
 
             }
 
@@ -10739,7 +10756,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleSYM"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3789:1: ruleSYM returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3808:1: ruleSYM returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER ) ;
     public final AntlrDatatypeRuleToken ruleSYM() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -10753,10 +10770,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3792:28: ( (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3793:1: (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3811:28: ( (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3812:1: (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3793:1: (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3812:1: (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER )
             int alt88=6;
             switch ( input.LA(1) ) {
             case RULE_USCORE:
@@ -10799,9 +10816,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
             switch (alt88) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3793:6: this_USCORE_0= RULE_USCORE
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3812:6: this_USCORE_0= RULE_USCORE
                     {
-                    this_USCORE_0=(Token)match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_ruleSYM7788); if (state.failed) return current;
+                    this_USCORE_0=(Token)match(input,RULE_USCORE,FOLLOW_RULE_USCORE_in_ruleSYM7783); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_USCORE_0);
@@ -10816,9 +10833,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3801:10: this_BS_1= RULE_BS
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3820:10: this_BS_1= RULE_BS
                     {
-                    this_BS_1=(Token)match(input,RULE_BS,FOLLOW_RULE_BS_in_ruleSYM7814); if (state.failed) return current;
+                    this_BS_1=(Token)match(input,RULE_BS,FOLLOW_RULE_BS_in_ruleSYM7809); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_BS_1);
@@ -10833,9 +10850,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 3 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3809:10: this_DOT_2= RULE_DOT
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3828:10: this_DOT_2= RULE_DOT
                     {
-                    this_DOT_2=(Token)match(input,RULE_DOT,FOLLOW_RULE_DOT_in_ruleSYM7840); if (state.failed) return current;
+                    this_DOT_2=(Token)match(input,RULE_DOT,FOLLOW_RULE_DOT_in_ruleSYM7835); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_DOT_2);
@@ -10850,9 +10867,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 4 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3817:10: this_LESS_3= RULE_LESS
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3836:10: this_LESS_3= RULE_LESS
                     {
-                    this_LESS_3=(Token)match(input,RULE_LESS,FOLLOW_RULE_LESS_in_ruleSYM7866); if (state.failed) return current;
+                    this_LESS_3=(Token)match(input,RULE_LESS,FOLLOW_RULE_LESS_in_ruleSYM7861); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_LESS_3);
@@ -10867,9 +10884,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 5 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3825:10: this_GREATER_4= RULE_GREATER
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3844:10: this_GREATER_4= RULE_GREATER
                     {
-                    this_GREATER_4=(Token)match(input,RULE_GREATER,FOLLOW_RULE_GREATER_in_ruleSYM7892); if (state.failed) return current;
+                    this_GREATER_4=(Token)match(input,RULE_GREATER,FOLLOW_RULE_GREATER_in_ruleSYM7887); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_GREATER_4);
@@ -10884,9 +10901,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 6 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3833:10: this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3852:10: this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER
                     {
-                    this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5=(Token)match(input,RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER,FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_ruleSYM7918); if (state.failed) return current;
+                    this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5=(Token)match(input,RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER,FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_ruleSYM7913); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5);
@@ -10923,7 +10940,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleINTEGER"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3848:1: entryRuleINTEGER returns [String current=null] : iv_ruleINTEGER= ruleINTEGER EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3867:1: entryRuleINTEGER returns [String current=null] : iv_ruleINTEGER= ruleINTEGER EOF ;
     public final String entryRuleINTEGER() throws RecognitionException {
         String current = null;
 
@@ -10931,13 +10948,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3849:2: (iv_ruleINTEGER= ruleINTEGER EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3850:2: iv_ruleINTEGER= ruleINTEGER EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3868:2: (iv_ruleINTEGER= ruleINTEGER EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3869:2: iv_ruleINTEGER= ruleINTEGER EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getINTEGERRule()); 
             }
-            pushFollow(FOLLOW_ruleINTEGER_in_entryRuleINTEGER7964);
+            pushFollow(FOLLOW_ruleINTEGER_in_entryRuleINTEGER7959);
             iv_ruleINTEGER=ruleINTEGER();
 
             state._fsp--;
@@ -10945,7 +10962,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleINTEGER.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleINTEGER7975); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleINTEGER7970); if (state.failed) return current;
 
             }
 
@@ -10963,7 +10980,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleINTEGER"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3857:1: ruleINTEGER returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_POSINT_0= rulePOSINT | this_HEXINT_1= RULE_HEXINT | this_NEGINT_2= RULE_NEGINT ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3876:1: ruleINTEGER returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_POSINT_0= rulePOSINT | this_HEXINT_1= RULE_HEXINT | this_NEGINT_2= RULE_NEGINT ) ;
     public final AntlrDatatypeRuleToken ruleINTEGER() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -10975,10 +10992,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3860:28: ( (this_POSINT_0= rulePOSINT | this_HEXINT_1= RULE_HEXINT | this_NEGINT_2= RULE_NEGINT ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3861:1: (this_POSINT_0= rulePOSINT | this_HEXINT_1= RULE_HEXINT | this_NEGINT_2= RULE_NEGINT )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3879:28: ( (this_POSINT_0= rulePOSINT | this_HEXINT_1= RULE_HEXINT | this_NEGINT_2= RULE_NEGINT ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3880:1: (this_POSINT_0= rulePOSINT | this_HEXINT_1= RULE_HEXINT | this_NEGINT_2= RULE_NEGINT )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3861:1: (this_POSINT_0= rulePOSINT | this_HEXINT_1= RULE_HEXINT | this_NEGINT_2= RULE_NEGINT )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3880:1: (this_POSINT_0= rulePOSINT | this_HEXINT_1= RULE_HEXINT | this_NEGINT_2= RULE_NEGINT )
             int alt89=3;
             switch ( input.LA(1) ) {
             case RULE_POSINT_WO_DUALS:
@@ -11007,14 +11024,14 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
             switch (alt89) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3862:5: this_POSINT_0= rulePOSINT
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3881:5: this_POSINT_0= rulePOSINT
                     {
                     if ( state.backtracking==0 ) {
                        
                               newCompositeNode(grammarAccess.getINTEGERAccess().getPOSINTParserRuleCall_0()); 
                           
                     }
-                    pushFollow(FOLLOW_rulePOSINT_in_ruleINTEGER8022);
+                    pushFollow(FOLLOW_rulePOSINT_in_ruleINTEGER8017);
                     this_POSINT_0=rulePOSINT();
 
                     state._fsp--;
@@ -11033,9 +11050,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3873:10: this_HEXINT_1= RULE_HEXINT
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3892:10: this_HEXINT_1= RULE_HEXINT
                     {
-                    this_HEXINT_1=(Token)match(input,RULE_HEXINT,FOLLOW_RULE_HEXINT_in_ruleINTEGER8048); if (state.failed) return current;
+                    this_HEXINT_1=(Token)match(input,RULE_HEXINT,FOLLOW_RULE_HEXINT_in_ruleINTEGER8043); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_HEXINT_1);
@@ -11050,9 +11067,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 3 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3881:10: this_NEGINT_2= RULE_NEGINT
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3900:10: this_NEGINT_2= RULE_NEGINT
                     {
-                    this_NEGINT_2=(Token)match(input,RULE_NEGINT,FOLLOW_RULE_NEGINT_in_ruleINTEGER8074); if (state.failed) return current;
+                    this_NEGINT_2=(Token)match(input,RULE_NEGINT,FOLLOW_RULE_NEGINT_in_ruleINTEGER8069); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_NEGINT_2);
@@ -11089,7 +11106,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRulePOSINT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3896:1: entryRulePOSINT returns [String current=null] : iv_rulePOSINT= rulePOSINT EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3915:1: entryRulePOSINT returns [String current=null] : iv_rulePOSINT= rulePOSINT EOF ;
     public final String entryRulePOSINT() throws RecognitionException {
         String current = null;
 
@@ -11097,13 +11114,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3897:2: (iv_rulePOSINT= rulePOSINT EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3898:2: iv_rulePOSINT= rulePOSINT EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3916:2: (iv_rulePOSINT= rulePOSINT EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3917:2: iv_rulePOSINT= rulePOSINT EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getPOSINTRule()); 
             }
-            pushFollow(FOLLOW_rulePOSINT_in_entryRulePOSINT8120);
+            pushFollow(FOLLOW_rulePOSINT_in_entryRulePOSINT8115);
             iv_rulePOSINT=rulePOSINT();
 
             state._fsp--;
@@ -11111,7 +11128,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_rulePOSINT.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRulePOSINT8131); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRulePOSINT8126); if (state.failed) return current;
 
             }
 
@@ -11129,7 +11146,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "rulePOSINT"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3905:1: rulePOSINT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS | this_DUALS_1= RULE_DUALS ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3924:1: rulePOSINT returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS | this_DUALS_1= RULE_DUALS ) ;
     public final AntlrDatatypeRuleToken rulePOSINT() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -11139,10 +11156,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3908:28: ( (this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS | this_DUALS_1= RULE_DUALS ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3909:1: (this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS | this_DUALS_1= RULE_DUALS )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3927:28: ( (this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS | this_DUALS_1= RULE_DUALS ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3928:1: (this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS | this_DUALS_1= RULE_DUALS )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3909:1: (this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS | this_DUALS_1= RULE_DUALS )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3928:1: (this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS | this_DUALS_1= RULE_DUALS )
             int alt90=2;
             int LA90_0 = input.LA(1);
 
@@ -11161,9 +11178,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             }
             switch (alt90) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3909:6: this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3928:6: this_POSINT_WO_DUALS_0= RULE_POSINT_WO_DUALS
                     {
-                    this_POSINT_WO_DUALS_0=(Token)match(input,RULE_POSINT_WO_DUALS,FOLLOW_RULE_POSINT_WO_DUALS_in_rulePOSINT8171); if (state.failed) return current;
+                    this_POSINT_WO_DUALS_0=(Token)match(input,RULE_POSINT_WO_DUALS,FOLLOW_RULE_POSINT_WO_DUALS_in_rulePOSINT8166); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_POSINT_WO_DUALS_0);
@@ -11178,9 +11195,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3917:10: this_DUALS_1= RULE_DUALS
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3936:10: this_DUALS_1= RULE_DUALS
                     {
-                    this_DUALS_1=(Token)match(input,RULE_DUALS,FOLLOW_RULE_DUALS_in_rulePOSINT8197); if (state.failed) return current;
+                    this_DUALS_1=(Token)match(input,RULE_DUALS,FOLLOW_RULE_DUALS_in_rulePOSINT8192); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_DUALS_1);
@@ -11217,7 +11234,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "entryRuleBINARY"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3932:1: entryRuleBINARY returns [String current=null] : iv_ruleBINARY= ruleBINARY EOF ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3951:1: entryRuleBINARY returns [String current=null] : iv_ruleBINARY= ruleBINARY EOF ;
     public final String entryRuleBINARY() throws RecognitionException {
         String current = null;
 
@@ -11225,13 +11242,13 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3933:2: (iv_ruleBINARY= ruleBINARY EOF )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3934:2: iv_ruleBINARY= ruleBINARY EOF
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3952:2: (iv_ruleBINARY= ruleBINARY EOF )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3953:2: iv_ruleBINARY= ruleBINARY EOF
             {
             if ( state.backtracking==0 ) {
                newCompositeNode(grammarAccess.getBINARYRule()); 
             }
-            pushFollow(FOLLOW_ruleBINARY_in_entryRuleBINARY8243);
+            pushFollow(FOLLOW_ruleBINARY_in_entryRuleBINARY8238);
             iv_ruleBINARY=ruleBINARY();
 
             state._fsp--;
@@ -11239,7 +11256,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             if ( state.backtracking==0 ) {
                current =iv_ruleBINARY.getText(); 
             }
-            match(input,EOF,FOLLOW_EOF_in_entryRuleBINARY8254); if (state.failed) return current;
+            match(input,EOF,FOLLOW_EOF_in_entryRuleBINARY8249); if (state.failed) return current;
 
             }
 
@@ -11257,7 +11274,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleBINARY"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3941:1: ruleBINARY returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_DUALS_0= RULE_DUALS | this_BINS_1= RULE_BINS | this_BS_2= RULE_BS | this_DOT_3= RULE_DOT ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3960:1: ruleBINARY returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_DUALS_0= RULE_DUALS | this_BINS_1= RULE_BINS | this_BS_2= RULE_BS | this_DOT_3= RULE_DOT ) ;
     public final AntlrDatatypeRuleToken ruleBINARY() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -11269,10 +11286,10 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3944:28: ( (this_DUALS_0= RULE_DUALS | this_BINS_1= RULE_BINS | this_BS_2= RULE_BS | this_DOT_3= RULE_DOT ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3945:1: (this_DUALS_0= RULE_DUALS | this_BINS_1= RULE_BINS | this_BS_2= RULE_BS | this_DOT_3= RULE_DOT )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3963:28: ( (this_DUALS_0= RULE_DUALS | this_BINS_1= RULE_BINS | this_BS_2= RULE_BS | this_DOT_3= RULE_DOT ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3964:1: (this_DUALS_0= RULE_DUALS | this_BINS_1= RULE_BINS | this_BS_2= RULE_BS | this_DOT_3= RULE_DOT )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3945:1: (this_DUALS_0= RULE_DUALS | this_BINS_1= RULE_BINS | this_BS_2= RULE_BS | this_DOT_3= RULE_DOT )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3964:1: (this_DUALS_0= RULE_DUALS | this_BINS_1= RULE_BINS | this_BS_2= RULE_BS | this_DOT_3= RULE_DOT )
             int alt91=4;
             switch ( input.LA(1) ) {
             case RULE_DUALS:
@@ -11305,9 +11322,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
             switch (alt91) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3945:6: this_DUALS_0= RULE_DUALS
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3964:6: this_DUALS_0= RULE_DUALS
                     {
-                    this_DUALS_0=(Token)match(input,RULE_DUALS,FOLLOW_RULE_DUALS_in_ruleBINARY8294); if (state.failed) return current;
+                    this_DUALS_0=(Token)match(input,RULE_DUALS,FOLLOW_RULE_DUALS_in_ruleBINARY8289); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_DUALS_0);
@@ -11322,9 +11339,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 2 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3953:10: this_BINS_1= RULE_BINS
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3972:10: this_BINS_1= RULE_BINS
                     {
-                    this_BINS_1=(Token)match(input,RULE_BINS,FOLLOW_RULE_BINS_in_ruleBINARY8320); if (state.failed) return current;
+                    this_BINS_1=(Token)match(input,RULE_BINS,FOLLOW_RULE_BINS_in_ruleBINARY8315); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_BINS_1);
@@ -11339,9 +11356,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 3 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3961:10: this_BS_2= RULE_BS
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3980:10: this_BS_2= RULE_BS
                     {
-                    this_BS_2=(Token)match(input,RULE_BS,FOLLOW_RULE_BS_in_ruleBINARY8346); if (state.failed) return current;
+                    this_BS_2=(Token)match(input,RULE_BS,FOLLOW_RULE_BS_in_ruleBINARY8341); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_BS_2);
@@ -11356,9 +11373,9 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 4 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3969:10: this_DOT_3= RULE_DOT
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3988:10: this_DOT_3= RULE_DOT
                     {
-                    this_DOT_3=(Token)match(input,RULE_DOT,FOLLOW_RULE_DOT_in_ruleBINARY8372); if (state.failed) return current;
+                    this_DOT_3=(Token)match(input,RULE_DOT,FOLLOW_RULE_DOT_in_ruleBINARY8367); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
                       		current.merge(this_DOT_3);
@@ -11790,17 +11807,15 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
     // $ANTLR start synpred11_InternalGDSL
     public final void synpred11_InternalGDSL_fragment() throws RecognitionException {   
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3301:7: ( ( () ruleINTEGER ) )
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3301:8: ( () ruleINTEGER )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3309:7: ( ( ( ruleINTEGER ) ) )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3309:8: ( ( ruleINTEGER ) )
         {
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3301:8: ( () ruleINTEGER )
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3301:9: () ruleINTEGER
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3309:8: ( ( ruleINTEGER ) )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3310:1: ( ruleINTEGER )
         {
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3301:9: ()
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3302:1: 
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3310:1: ( ruleINTEGER )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3311:1: ruleINTEGER
         {
-        }
-
         pushFollow(FOLLOW_ruleINTEGER_in_synpred11_InternalGDSL6420);
         ruleINTEGER();
 
@@ -11811,22 +11826,25 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
         }
+
+
+        }
     }
     // $ANTLR end synpred11_InternalGDSL
 
     // $ANTLR start synpred12_InternalGDSL
     public final void synpred12_InternalGDSL_fragment() throws RecognitionException {   
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3317:7: ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3317:8: ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:7: ( ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? ) )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:8: ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? )
         {
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3317:8: ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? )
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3317:9: ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )?
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:8: ( ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )? )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:9: ( ( ( RULE_ID | RULE_S ) ) ) ( ( rulePAT ) )?
         {
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3317:9: ( ( ( RULE_ID | RULE_S ) ) )
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3318:1: ( ( RULE_ID | RULE_S ) )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3332:9: ( ( ( RULE_ID | RULE_S ) ) )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3333:1: ( ( RULE_ID | RULE_S ) )
         {
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3318:1: ( ( RULE_ID | RULE_S ) )
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3319:1: ( RULE_ID | RULE_S )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3333:1: ( ( RULE_ID | RULE_S ) )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3334:1: ( RULE_ID | RULE_S )
         {
         if ( (input.LA(1)>=RULE_ID && input.LA(1)<=RULE_S) ) {
             input.consume();
@@ -11844,7 +11862,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
         }
 
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3327:2: ( ( rulePAT ) )?
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3342:2: ( ( rulePAT ) )?
         int alt95=2;
         int LA95_0 = input.LA(1);
 
@@ -11853,12 +11871,12 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
         }
         switch (alt95) {
             case 1 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3328:1: ( rulePAT )
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3343:1: ( rulePAT )
                 {
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3328:1: ( rulePAT )
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3329:1: rulePAT
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3343:1: ( rulePAT )
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3344:1: rulePAT
                 {
-                pushFollow(FOLLOW_rulePAT_in_synpred12_InternalGDSL6489);
+                pushFollow(FOLLOW_rulePAT_in_synpred12_InternalGDSL6487);
                 rulePAT();
 
                 state._fsp--;
@@ -12144,9 +12162,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                         int index7_2 = input.index();
                         input.rewind();
                         s = -1;
-                        if ( ((LA7_2>=RULE_ID && LA7_2<=RULE_S)||LA7_2==RULE_HEXINT||(LA7_2>=RULE_NEGINT && LA7_2<=RULE_DUALS)||(LA7_2>=36 && LA7_2<=39)||LA7_2==41||LA7_2==44) ) {s = 3;}
-
-                        else if ( (LA7_2==35) && (synpred1_InternalGDSL())) {s = 5;}
+                        if ( (LA7_2==35) && (synpred1_InternalGDSL())) {s = 5;}
 
                         else if ( (LA7_2==30) && (synpred1_InternalGDSL())) {s = 6;}
 
@@ -12159,6 +12175,8 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                         else if ( (LA7_2==31) && (synpred1_InternalGDSL())) {s = 10;}
 
                         else if ( (LA7_2==EOF) && (synpred1_InternalGDSL())) {s = 11;}
+
+                        else if ( ((LA7_2>=RULE_ID && LA7_2<=RULE_S)||LA7_2==RULE_HEXINT||(LA7_2>=RULE_NEGINT && LA7_2<=RULE_DUALS)||(LA7_2>=36 && LA7_2<=39)||LA7_2==41||LA7_2==44) ) {s = 3;}
 
                          
                         input.seek(index7_2);
@@ -12329,7 +12347,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
     static final String DFA42_acceptS =
         "\1\uffff\7\1\2\uffff\34\1\1\2";
     static final String DFA42_specialS =
-        "\1\1\7\uffff\1\2\1\0\35\uffff}>";
+        "\1\0\7\uffff\1\1\1\2\35\uffff}>";
     static final String[] DFA42_transitionS = {
             "\1\10\1\11\2\uffff\1\7\1\uffff\1\23\1\4\1\22\2\uffff\1\5\1\2"+
             "\1\3\25\uffff\1\15\1\uffff\1\14\4\uffff\1\21\1\uffff\1\17\2"+
@@ -12417,77 +12435,6 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
         	int _s = s;
             switch ( s ) {
                     case 0 : 
-                        int LA42_9 = input.LA(1);
-
-                         
-                        int index42_9 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (LA42_9==RULE_DOT) && (synpred5_InternalGDSL())) {s = 20;}
-
-                        else if ( (LA42_9==59) && (synpred5_InternalGDSL())) {s = 21;}
-
-                        else if ( (LA42_9==57) && (synpred5_InternalGDSL())) {s = 22;}
-
-                        else if ( (LA42_9==58) && (synpred5_InternalGDSL())) {s = 23;}
-
-                        else if ( (LA42_9==55) && (synpred5_InternalGDSL())) {s = 24;}
-
-                        else if ( (LA42_9==56) && (synpred5_InternalGDSL())) {s = 25;}
-
-                        else if ( (LA42_9==RULE_USCORE) && (synpred5_InternalGDSL())) {s = 26;}
-
-                        else if ( (LA42_9==RULE_BS) && (synpred5_InternalGDSL())) {s = 27;}
-
-                        else if ( (LA42_9==RULE_LESS) && (synpred5_InternalGDSL())) {s = 28;}
-
-                        else if ( (LA42_9==RULE_GREATER) && (synpred5_InternalGDSL())) {s = 29;}
-
-                        else if ( (LA42_9==RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER) && (synpred5_InternalGDSL())) {s = 30;}
-
-                        else if ( (LA42_9==54) && (synpred5_InternalGDSL())) {s = 31;}
-
-                        else if ( (LA42_9==53) && (synpred5_InternalGDSL())) {s = 32;}
-
-                        else if ( (LA42_9==25) && (synpred5_InternalGDSL())) {s = 33;}
-
-                        else if ( (LA42_9==47) && (synpred5_InternalGDSL())) {s = 34;}
-
-                        else if ( (LA42_9==EOF) && (synpred5_InternalGDSL())) {s = 35;}
-
-                        else if ( (LA42_9==RULE_POSINT_WO_DUALS) && (synpred5_InternalGDSL())) {s = 2;}
-
-                        else if ( (LA42_9==RULE_DUALS) && (synpred5_InternalGDSL())) {s = 3;}
-
-                        else if ( (LA42_9==RULE_HEXINT) && (synpred5_InternalGDSL())) {s = 4;}
-
-                        else if ( (LA42_9==RULE_NEGINT) && (synpred5_InternalGDSL())) {s = 5;}
-
-                        else if ( (LA42_9==65) && (synpred5_InternalGDSL())) {s = 6;}
-
-                        else if ( (LA42_9==RULE_STRING) && (synpred5_InternalGDSL())) {s = 7;}
-
-                        else if ( (LA42_9==RULE_ID) && (synpred5_InternalGDSL())) {s = 36;}
-
-                        else if ( (LA42_9==RULE_S) && (synpred5_InternalGDSL())) {s = 37;}
-
-                        else if ( (LA42_9==61) && (synpred5_InternalGDSL())) {s = 10;}
-
-                        else if ( (LA42_9==62) && (synpred5_InternalGDSL())) {s = 11;}
-
-                        else if ( (LA42_9==41) && (synpred5_InternalGDSL())) {s = 12;}
-
-                        else if ( (LA42_9==39) && (synpred5_InternalGDSL())) {s = 13;}
-
-                        else if ( (LA42_9==63) && (synpred5_InternalGDSL())) {s = 14;}
-
-                        else if ( (LA42_9==52) ) {s = 38;}
-
-                         
-                        input.seek(index42_9);
-                        if ( s>=0 ) return s;
-                        break;
-                    case 1 : 
                         int LA42_0 = input.LA(1);
 
                          
@@ -12536,7 +12483,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                         input.seek(index42_0);
                         if ( s>=0 ) return s;
                         break;
-                    case 2 : 
+                    case 1 : 
                         int LA42_8 = input.LA(1);
 
                          
@@ -12605,6 +12552,77 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
                          
                         input.seek(index42_8);
+                        if ( s>=0 ) return s;
+                        break;
+                    case 2 : 
+                        int LA42_9 = input.LA(1);
+
+                         
+                        int index42_9 = input.index();
+                        input.rewind();
+                        s = -1;
+                        if ( (LA42_9==RULE_DOT) && (synpred5_InternalGDSL())) {s = 20;}
+
+                        else if ( (LA42_9==59) && (synpred5_InternalGDSL())) {s = 21;}
+
+                        else if ( (LA42_9==57) && (synpred5_InternalGDSL())) {s = 22;}
+
+                        else if ( (LA42_9==58) && (synpred5_InternalGDSL())) {s = 23;}
+
+                        else if ( (LA42_9==55) && (synpred5_InternalGDSL())) {s = 24;}
+
+                        else if ( (LA42_9==56) && (synpred5_InternalGDSL())) {s = 25;}
+
+                        else if ( (LA42_9==RULE_USCORE) && (synpred5_InternalGDSL())) {s = 26;}
+
+                        else if ( (LA42_9==RULE_BS) && (synpred5_InternalGDSL())) {s = 27;}
+
+                        else if ( (LA42_9==RULE_LESS) && (synpred5_InternalGDSL())) {s = 28;}
+
+                        else if ( (LA42_9==RULE_GREATER) && (synpred5_InternalGDSL())) {s = 29;}
+
+                        else if ( (LA42_9==RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER) && (synpred5_InternalGDSL())) {s = 30;}
+
+                        else if ( (LA42_9==54) && (synpred5_InternalGDSL())) {s = 31;}
+
+                        else if ( (LA42_9==53) && (synpred5_InternalGDSL())) {s = 32;}
+
+                        else if ( (LA42_9==25) && (synpred5_InternalGDSL())) {s = 33;}
+
+                        else if ( (LA42_9==47) && (synpred5_InternalGDSL())) {s = 34;}
+
+                        else if ( (LA42_9==EOF) && (synpred5_InternalGDSL())) {s = 35;}
+
+                        else if ( (LA42_9==RULE_POSINT_WO_DUALS) && (synpred5_InternalGDSL())) {s = 2;}
+
+                        else if ( (LA42_9==RULE_DUALS) && (synpred5_InternalGDSL())) {s = 3;}
+
+                        else if ( (LA42_9==RULE_HEXINT) && (synpred5_InternalGDSL())) {s = 4;}
+
+                        else if ( (LA42_9==RULE_NEGINT) && (synpred5_InternalGDSL())) {s = 5;}
+
+                        else if ( (LA42_9==65) && (synpred5_InternalGDSL())) {s = 6;}
+
+                        else if ( (LA42_9==RULE_STRING) && (synpred5_InternalGDSL())) {s = 7;}
+
+                        else if ( (LA42_9==RULE_ID) && (synpred5_InternalGDSL())) {s = 36;}
+
+                        else if ( (LA42_9==RULE_S) && (synpred5_InternalGDSL())) {s = 37;}
+
+                        else if ( (LA42_9==61) && (synpred5_InternalGDSL())) {s = 10;}
+
+                        else if ( (LA42_9==62) && (synpred5_InternalGDSL())) {s = 11;}
+
+                        else if ( (LA42_9==41) && (synpred5_InternalGDSL())) {s = 12;}
+
+                        else if ( (LA42_9==39) && (synpred5_InternalGDSL())) {s = 13;}
+
+                        else if ( (LA42_9==63) && (synpred5_InternalGDSL())) {s = 14;}
+
+                        else if ( (LA42_9==52) ) {s = 38;}
+
+                         
+                        input.seek(index42_9);
                         if ( s>=0 ) return s;
                         break;
             }
@@ -13114,74 +13132,74 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
     public static final BitSet FOLLOW_ruleExp_in_ruleValueDecl6306 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_rulePAT_in_entryRulePAT6342 = new BitSet(new long[]{0x0000000000000000L});
     public static final BitSet FOLLOW_EOF_in_entryRulePAT6352 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_USCORE_in_rulePAT6398 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleINTEGER_in_rulePAT6441 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_ID_in_rulePAT6509 = new BitSet(new long[]{0x0000000000038C32L,0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_S_in_rulePAT6529 = new BitSet(new long[]{0x0000000000038C32L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rulePAT_in_rulePAT6558 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_65_in_rulePAT6580 = new BitSet(new long[]{0x0000000000062230L});
-    public static final BitSet FOLLOW_ruleBITPAT_in_rulePAT6605 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-    public static final BitSet FOLLOW_65_in_rulePAT6616 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleCONS_in_entryRuleCONS6653 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleCONS6663 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_ID_in_ruleCONS6706 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_S_in_ruleCONS6726 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleDECODEPAT_in_entryRuleDECODEPAT6770 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleDECODEPAT6781 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_65_in_ruleDECODEPAT6820 = new BitSet(new long[]{0x0000000000062230L});
-    public static final BitSet FOLLOW_ruleBITPAT_in_ruleDECODEPAT6843 = new BitSet(new long[]{0x0000000000062230L,0x0000000000000002L});
-    public static final BitSet FOLLOW_65_in_ruleDECODEPAT6863 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTOKPAT_in_ruleDECODEPAT6892 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleTOKPAT_in_entryRuleTOKPAT6938 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleTOKPAT6949 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_HEXINT_in_ruleTOKPAT6989 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_ID_in_ruleTOKPAT7016 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_S_in_ruleTOKPAT7042 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBITPAT_in_entryRuleBITPAT7089 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleBITPAT7100 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBINARY_in_ruleBITPAT7147 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_ID_in_ruleBITPAT7175 = new BitSet(new long[]{0x2000000008000002L});
-    public static final BitSet FOLLOW_RULE_S_in_ruleBITPAT7201 = new BitSet(new long[]{0x2000000008000002L});
-    public static final BitSet FOLLOW_ruleBITPATORINT_in_ruleBITPAT7230 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBITPATORINT_in_entryRuleBITPATORINT7279 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleBITPATORINT7290 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_27_in_ruleBITPATORINT7329 = new BitSet(new long[]{0x0000000000030000L});
-    public static final BitSet FOLLOW_rulePOSINT_in_ruleBITPATORINT7351 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_61_in_ruleBITPATORINT7377 = new BitSet(new long[]{0x0000000000062200L});
-    public static final BitSet FOLLOW_ruleBINARY_in_ruleBITPATORINT7399 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleLIT_in_entryRuleLIT7446 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleLIT7457 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleINTEGER_in_ruleLIT7504 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_65_in_ruleLIT7529 = new BitSet(new long[]{0x0000000000062200L,0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBINARY_in_ruleLIT7552 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
-    public static final BitSet FOLLOW_65_in_ruleLIT7572 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleMID_in_entryRuleMID7614 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleMID7625 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_MIXID_in_ruleMID7665 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_USCORE_in_ruleMID7691 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleSYM_in_entryRuleSYM7737 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleSYM7748 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_USCORE_in_ruleSYM7788 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_BS_in_ruleSYM7814 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DOT_in_ruleSYM7840 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_LESS_in_ruleSYM7866 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_GREATER_in_ruleSYM7892 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_ruleSYM7918 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleINTEGER_in_entryRuleINTEGER7964 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleINTEGER7975 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rulePOSINT_in_ruleINTEGER8022 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_HEXINT_in_ruleINTEGER8048 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_NEGINT_in_ruleINTEGER8074 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_rulePOSINT_in_entryRulePOSINT8120 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRulePOSINT8131 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_POSINT_WO_DUALS_in_rulePOSINT8171 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DUALS_in_rulePOSINT8197 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ruleBINARY_in_entryRuleBINARY8243 = new BitSet(new long[]{0x0000000000000000L});
-    public static final BitSet FOLLOW_EOF_in_entryRuleBINARY8254 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DUALS_in_ruleBINARY8294 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_BINS_in_ruleBINARY8320 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_BS_in_ruleBINARY8346 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_DOT_in_ruleBINARY8372 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_USCORE_in_rulePAT6394 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleINTEGER_in_rulePAT6439 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_ID_in_rulePAT6507 = new BitSet(new long[]{0x0000000000038C32L,0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_S_in_rulePAT6527 = new BitSet(new long[]{0x0000000000038C32L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rulePAT_in_rulePAT6556 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_65_in_rulePAT6578 = new BitSet(new long[]{0x0000000000062230L});
+    public static final BitSet FOLLOW_ruleBITPAT_in_rulePAT6599 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+    public static final BitSet FOLLOW_65_in_rulePAT6611 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleCONS_in_entryRuleCONS6648 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleCONS6658 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_ID_in_ruleCONS6701 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_S_in_ruleCONS6721 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleDECODEPAT_in_entryRuleDECODEPAT6765 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleDECODEPAT6776 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_65_in_ruleDECODEPAT6815 = new BitSet(new long[]{0x0000000000062230L});
+    public static final BitSet FOLLOW_ruleBITPAT_in_ruleDECODEPAT6838 = new BitSet(new long[]{0x0000000000062230L,0x0000000000000002L});
+    public static final BitSet FOLLOW_65_in_ruleDECODEPAT6858 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTOKPAT_in_ruleDECODEPAT6887 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleTOKPAT_in_entryRuleTOKPAT6933 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleTOKPAT6944 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_HEXINT_in_ruleTOKPAT6984 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_ID_in_ruleTOKPAT7011 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_S_in_ruleTOKPAT7037 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBITPAT_in_entryRuleBITPAT7084 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleBITPAT7095 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBINARY_in_ruleBITPAT7142 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_ID_in_ruleBITPAT7170 = new BitSet(new long[]{0x2000000008000002L});
+    public static final BitSet FOLLOW_RULE_S_in_ruleBITPAT7196 = new BitSet(new long[]{0x2000000008000002L});
+    public static final BitSet FOLLOW_ruleBITPATORINT_in_ruleBITPAT7225 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBITPATORINT_in_entryRuleBITPATORINT7274 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleBITPATORINT7285 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_27_in_ruleBITPATORINT7324 = new BitSet(new long[]{0x0000000000030000L});
+    public static final BitSet FOLLOW_rulePOSINT_in_ruleBITPATORINT7346 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_61_in_ruleBITPATORINT7372 = new BitSet(new long[]{0x0000000000062200L});
+    public static final BitSet FOLLOW_ruleBINARY_in_ruleBITPATORINT7394 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleLIT_in_entryRuleLIT7441 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleLIT7452 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleINTEGER_in_ruleLIT7499 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_65_in_ruleLIT7524 = new BitSet(new long[]{0x0000000000062200L,0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBINARY_in_ruleLIT7547 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
+    public static final BitSet FOLLOW_65_in_ruleLIT7567 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleMID_in_entryRuleMID7609 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleMID7620 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_MIXID_in_ruleMID7660 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_USCORE_in_ruleMID7686 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleSYM_in_entryRuleSYM7732 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleSYM7743 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_USCORE_in_ruleSYM7783 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_BS_in_ruleSYM7809 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DOT_in_ruleSYM7835 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_LESS_in_ruleSYM7861 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_GREATER_in_ruleSYM7887 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_ruleSYM7913 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleINTEGER_in_entryRuleINTEGER7959 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleINTEGER7970 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rulePOSINT_in_ruleINTEGER8017 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_HEXINT_in_ruleINTEGER8043 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_NEGINT_in_ruleINTEGER8069 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_rulePOSINT_in_entryRulePOSINT8115 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRulePOSINT8126 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_POSINT_WO_DUALS_in_rulePOSINT8166 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DUALS_in_rulePOSINT8192 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ruleBINARY_in_entryRuleBINARY8238 = new BitSet(new long[]{0x0000000000000000L});
+    public static final BitSet FOLLOW_EOF_in_entryRuleBINARY8249 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DUALS_in_ruleBINARY8289 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_BINS_in_ruleBINARY8315 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_BS_in_ruleBINARY8341 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_DOT_in_ruleBINARY8367 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ruleConDecl_in_synpred1_InternalGDSL635 = new BitSet(new long[]{0x0000000040000002L});
     public static final BitSet FOLLOW_30_in_synpred1_InternalGDSL642 = new BitSet(new long[]{0x0000000000000030L});
     public static final BitSet FOLLOW_ruleConDecl_in_synpred1_InternalGDSL649 = new BitSet(new long[]{0x0000000040000002L});
@@ -13199,7 +13217,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
     public static final BitSet FOLLOW_RULE_DOT_in_synpred9_InternalGDSL5440 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_set_in_synpred10_InternalGDSL6138 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ruleINTEGER_in_synpred11_InternalGDSL6420 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_set_in_synpred12_InternalGDSL6464 = new BitSet(new long[]{0x0000000000038C32L,0x0000000000000002L});
-    public static final BitSet FOLLOW_rulePAT_in_synpred12_InternalGDSL6489 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_set_in_synpred12_InternalGDSL6462 = new BitSet(new long[]{0x0000000000038C32L,0x0000000000000002L});
+    public static final BitSet FOLLOW_rulePAT_in_synpred12_InternalGDSL6487 = new BitSet(new long[]{0x0000000000000002L});
 
 }

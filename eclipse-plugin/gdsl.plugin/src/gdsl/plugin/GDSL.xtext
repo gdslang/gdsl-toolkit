@@ -131,11 +131,11 @@ ValueDecl:
 	'val' (=>name=(ID | S) | name=SYM) ids+=(ID | S)* '=' exp=Exp
 ;
 
-PAT: {PAT}USCORE | 
-	=>({PAT}INTEGER) | 
+PAT: uscore=USCORE | 
+	=>(int=INTEGER) | 
 //	=>(cons=CONS pat=PAT?) | 
 	=>(id=(ID | S) pat=PAT?) | 
-	"'"{PAT}BITPAT"'"
+	"'"bitpat=BITPAT"'"
 ;
 CONS: conName=(ID | S);//S | CONS_WO_S;
 

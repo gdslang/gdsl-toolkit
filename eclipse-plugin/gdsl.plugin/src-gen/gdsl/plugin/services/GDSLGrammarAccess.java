@@ -1932,13 +1932,11 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	public class PATElements extends AbstractParserRuleElementFinder {
 		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "PAT");
 		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
-		private final Group cGroup_0 = (Group)cAlternatives.eContents().get(0);
-		private final Action cPATAction_0_0 = (Action)cGroup_0.eContents().get(0);
-		private final RuleCall cUSCORETerminalRuleCall_0_1 = (RuleCall)cGroup_0.eContents().get(1);
+		private final Assignment cUscoreAssignment_0 = (Assignment)cAlternatives.eContents().get(0);
+		private final RuleCall cUscoreUSCORETerminalRuleCall_0_0 = (RuleCall)cUscoreAssignment_0.eContents().get(0);
 		private final Group cGroup_1 = (Group)cAlternatives.eContents().get(1);
-		private final Group cGroup_1_0 = (Group)cGroup_1.eContents().get(0);
-		private final Action cPATAction_1_0_0 = (Action)cGroup_1_0.eContents().get(0);
-		private final RuleCall cINTEGERParserRuleCall_1_0_1 = (RuleCall)cGroup_1_0.eContents().get(1);
+		private final Assignment cIntAssignment_1_0 = (Assignment)cGroup_1.eContents().get(0);
+		private final RuleCall cIntINTEGERParserRuleCall_1_0_0 = (RuleCall)cIntAssignment_1_0.eContents().get(0);
 		private final Group cGroup_2 = (Group)cAlternatives.eContents().get(2);
 		private final Group cGroup_2_0 = (Group)cGroup_2.eContents().get(0);
 		private final Assignment cIdAssignment_2_0_0 = (Assignment)cGroup_2_0.eContents().get(0);
@@ -1949,39 +1947,33 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cPatPATParserRuleCall_2_0_1_0 = (RuleCall)cPatAssignment_2_0_1.eContents().get(0);
 		private final Group cGroup_3 = (Group)cAlternatives.eContents().get(3);
 		private final Keyword cApostropheKeyword_3_0 = (Keyword)cGroup_3.eContents().get(0);
-		private final Action cPATAction_3_1 = (Action)cGroup_3.eContents().get(1);
-		private final RuleCall cBITPATParserRuleCall_3_2 = (RuleCall)cGroup_3.eContents().get(2);
-		private final Keyword cApostropheKeyword_3_3 = (Keyword)cGroup_3.eContents().get(3);
+		private final Assignment cBitpatAssignment_3_1 = (Assignment)cGroup_3.eContents().get(1);
+		private final RuleCall cBitpatBITPATParserRuleCall_3_1_0 = (RuleCall)cBitpatAssignment_3_1.eContents().get(0);
+		private final Keyword cApostropheKeyword_3_2 = (Keyword)cGroup_3.eContents().get(2);
 		
 		//PAT:
-		//	{PAT} USCORE | => ({PAT} INTEGER) | //	=>(cons=CONS pat=PAT?) | 
-		//	=> (id=(ID | S) pat=PAT?) | "\'" {PAT} BITPAT "\'";
+		//	uscore=USCORE | => (int=INTEGER) | //	=>(cons=CONS pat=PAT?) | 
+		//	=> (id=(ID | S) pat=PAT?) | "\'" bitpat=BITPAT "\'";
 		public ParserRule getRule() { return rule; }
 
-		//{PAT} USCORE | => ({PAT} INTEGER) | //	=>(cons=CONS pat=PAT?) | 
-		//=> (id=(ID | S) pat=PAT?) | "\'" {PAT} BITPAT "\'"
+		//uscore=USCORE | => (int=INTEGER) | //	=>(cons=CONS pat=PAT?) | 
+		//=> (id=(ID | S) pat=PAT?) | "\'" bitpat=BITPAT "\'"
 		public Alternatives getAlternatives() { return cAlternatives; }
 
-		//{PAT} USCORE
-		public Group getGroup_0() { return cGroup_0; }
-
-		//{PAT}
-		public Action getPATAction_0_0() { return cPATAction_0_0; }
+		//uscore=USCORE
+		public Assignment getUscoreAssignment_0() { return cUscoreAssignment_0; }
 
 		//USCORE
-		public RuleCall getUSCORETerminalRuleCall_0_1() { return cUSCORETerminalRuleCall_0_1; }
+		public RuleCall getUscoreUSCORETerminalRuleCall_0_0() { return cUscoreUSCORETerminalRuleCall_0_0; }
 
-		//=> ({PAT} INTEGER)
+		//=> (int=INTEGER)
 		public Group getGroup_1() { return cGroup_1; }
 
-		//{PAT} INTEGER
-		public Group getGroup_1_0() { return cGroup_1_0; }
-
-		//{PAT}
-		public Action getPATAction_1_0_0() { return cPATAction_1_0_0; }
+		//int=INTEGER
+		public Assignment getIntAssignment_1_0() { return cIntAssignment_1_0; }
 
 		//INTEGER
-		public RuleCall getINTEGERParserRuleCall_1_0_1() { return cINTEGERParserRuleCall_1_0_1; }
+		public RuleCall getIntINTEGERParserRuleCall_1_0_0() { return cIntINTEGERParserRuleCall_1_0_0; }
 
 		////	=>(cons=CONS pat=PAT?) | 
 		//=> (id=(ID | S) pat=PAT?)
@@ -2008,20 +2000,20 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		//PAT
 		public RuleCall getPatPATParserRuleCall_2_0_1_0() { return cPatPATParserRuleCall_2_0_1_0; }
 
-		//"\'" {PAT} BITPAT "\'"
+		//"\'" bitpat=BITPAT "\'"
 		public Group getGroup_3() { return cGroup_3; }
 
 		//"\'"
 		public Keyword getApostropheKeyword_3_0() { return cApostropheKeyword_3_0; }
 
-		//{PAT}
-		public Action getPATAction_3_1() { return cPATAction_3_1; }
+		//bitpat=BITPAT
+		public Assignment getBitpatAssignment_3_1() { return cBitpatAssignment_3_1; }
 
 		//BITPAT
-		public RuleCall getBITPATParserRuleCall_3_2() { return cBITPATParserRuleCall_3_2; }
+		public RuleCall getBitpatBITPATParserRuleCall_3_1_0() { return cBitpatBITPATParserRuleCall_3_1_0; }
 
 		//"\'"
-		public Keyword getApostropheKeyword_3_3() { return cApostropheKeyword_3_3; }
+		public Keyword getApostropheKeyword_3_2() { return cApostropheKeyword_3_2; }
 	}
 
 	public class CONSElements extends AbstractParserRuleElementFinder {
@@ -2692,8 +2684,8 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//PAT:
-	//	{PAT} USCORE | => ({PAT} INTEGER) | //	=>(cons=CONS pat=PAT?) | 
-	//	=> (id=(ID | S) pat=PAT?) | "\'" {PAT} BITPAT "\'";
+	//	uscore=USCORE | => (int=INTEGER) | //	=>(cons=CONS pat=PAT?) | 
+	//	=> (id=(ID | S) pat=PAT?) | "\'" bitpat=BITPAT "\'";
 	public PATElements getPATAccess() {
 		return (pPAT != null) ? pPAT : (pPAT = new PATElements());
 	}

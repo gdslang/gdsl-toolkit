@@ -162,9 +162,7 @@ public class GDSLParser extends AbstractContentAssistParser {
 					put(grammarAccess.getFieldAccess().getGroup_0(), "rule__Field__Group_0__0");
 					put(grammarAccess.getFieldAccess().getGroup_1(), "rule__Field__Group_1__0");
 					put(grammarAccess.getValueDeclAccess().getGroup(), "rule__ValueDecl__Group__0");
-					put(grammarAccess.getPATAccess().getGroup_0(), "rule__PAT__Group_0__0");
 					put(grammarAccess.getPATAccess().getGroup_1(), "rule__PAT__Group_1__0");
-					put(grammarAccess.getPATAccess().getGroup_1_0(), "rule__PAT__Group_1_0__0");
 					put(grammarAccess.getPATAccess().getGroup_2(), "rule__PAT__Group_2__0");
 					put(grammarAccess.getPATAccess().getGroup_2_0(), "rule__PAT__Group_2_0__0");
 					put(grammarAccess.getPATAccess().getGroup_3(), "rule__PAT__Group_3__0");
@@ -274,8 +272,11 @@ public class GDSLParser extends AbstractContentAssistParser {
 					put(grammarAccess.getValueDeclAccess().getNameAssignment_1_1(), "rule__ValueDecl__NameAssignment_1_1");
 					put(grammarAccess.getValueDeclAccess().getIdsAssignment_2(), "rule__ValueDecl__IdsAssignment_2");
 					put(grammarAccess.getValueDeclAccess().getExpAssignment_4(), "rule__ValueDecl__ExpAssignment_4");
+					put(grammarAccess.getPATAccess().getUscoreAssignment_0(), "rule__PAT__UscoreAssignment_0");
+					put(grammarAccess.getPATAccess().getIntAssignment_1_0(), "rule__PAT__IntAssignment_1_0");
 					put(grammarAccess.getPATAccess().getIdAssignment_2_0_0(), "rule__PAT__IdAssignment_2_0_0");
 					put(grammarAccess.getPATAccess().getPatAssignment_2_0_1(), "rule__PAT__PatAssignment_2_0_1");
+					put(grammarAccess.getPATAccess().getBitpatAssignment_3_1(), "rule__PAT__BitpatAssignment_3_1");
 					put(grammarAccess.getCONSAccess().getConNameAssignment(), "rule__CONS__ConNameAssignment");
 				}
 			};

@@ -32,6 +32,10 @@ import org.eclipse.xtext.xbase.lib.Exceptions;
  */
 @SuppressWarnings("all")
 public class GDSLValidator extends AbstractGDSLValidator {
+  public final static String UPPERCASE_CONS = "uppercaseCons";
+  
+  public final static String PATTERN_MISPLACEMENT = "patternMisplacement";
+  
   @Check
   public void upperCaseCons(final CONS cons) {
     String _conName = cons.getConName();
@@ -40,7 +44,9 @@ public class GDSLValidator extends AbstractGDSLValidator {
     boolean _not = (!_isUpperCase);
     if (_not) {
       EAttribute _cONS_ConName = GDSLPackage.eINSTANCE.getCONS_ConName();
-      this.error("Constructors have to start with a capital", _cONS_ConName);
+      String _conName_1 = cons.getConName();
+      this.error("Constructors have to start with a capital", _cONS_ConName, 
+        GDSLValidator.UPPERCASE_CONS, _conName_1);
     }
   }
   
@@ -55,9 +61,39 @@ public class GDSLValidator extends AbstractGDSLValidator {
       boolean _not = (!_isUpperCase);
       if (_not) {
         EReference _pAT_Pat = GDSLPackage.eINSTANCE.getPAT_Pat();
-        this.error("A pattern is only allowed for constructors", _pAT_Pat);
+        String _id_1 = pat.getId();
+        PAT _pat_1 = pat.getPat();
+        String _text = this.text(_pat_1);
+        this.error("A pattern is only allowed for constructors", _pAT_Pat, 
+          GDSLValidator.PATTERN_MISPLACEMENT, _id_1, _text);
       }
     }
+  }
+  
+  public String text(final PAT pat) {
+    String _uscore = pat.getUscore();
+    boolean _notEquals = (!Objects.equal(null, _uscore));
+    if (_notEquals) {
+      return pat.getUscore();
+    }
+    String _int = pat.getInt();
+    boolean _notEquals_1 = (!Objects.equal(null, _int));
+    if (_notEquals_1) {
+      return pat.getInt();
+    }
+    String _id = pat.getId();
+    boolean _notEquals_2 = (!Objects.equal(null, _id));
+    if (_notEquals_2) {
+      return pat.getId();
+    }
+    String _bitpat = pat.getBitpat();
+    boolean _notEquals_3 = (!Objects.equal(null, _bitpat));
+    if (_notEquals_3) {
+      String _bitpat_1 = pat.getBitpat();
+      String _plus = ("\'" + _bitpat_1);
+      return (_plus + "\'");
+    }
+    return null;
   }
   
   @Check

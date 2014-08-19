@@ -1999,13 +1999,31 @@ public interface GDSLPackage extends EPackage
   int PAT = 24;
 
   /**
+   * The feature id for the '<em><b>Uscore</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int PAT__USCORE = 0;
+
+  /**
+   * The feature id for the '<em><b>Int</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int PAT__INT = 1;
+
+  /**
    * The feature id for the '<em><b>Id</b></em>' attribute.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int PAT__ID = 0;
+  int PAT__ID = 2;
 
   /**
    * The feature id for the '<em><b>Pat</b></em>' containment reference.
@@ -2014,7 +2032,16 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int PAT__PAT = 1;
+  int PAT__PAT = 3;
+
+  /**
+   * The feature id for the '<em><b>Bitpat</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int PAT__BITPAT = 4;
 
   /**
    * The number of structural features of the '<em>PAT</em>' class.
@@ -2023,7 +2050,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int PAT_FEATURE_COUNT = 2;
+  int PAT_FEATURE_COUNT = 5;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.CONSImpl <em>CONS</em>}' class.
@@ -2998,6 +3025,28 @@ public interface GDSLPackage extends EPackage
   EClass getPAT();
 
   /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.PAT#getUscore <em>Uscore</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Uscore</em>'.
+   * @see gdsl.plugin.gDSL.PAT#getUscore()
+   * @see #getPAT()
+   * @generated
+   */
+  EAttribute getPAT_Uscore();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.PAT#getInt <em>Int</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Int</em>'.
+   * @see gdsl.plugin.gDSL.PAT#getInt()
+   * @see #getPAT()
+   * @generated
+   */
+  EAttribute getPAT_Int();
+
+  /**
    * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.PAT#getId <em>Id</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -3018,6 +3067,17 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EReference getPAT_Pat();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.PAT#getBitpat <em>Bitpat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Bitpat</em>'.
+   * @see gdsl.plugin.gDSL.PAT#getBitpat()
+   * @see #getPAT()
+   * @generated
+   */
+  EAttribute getPAT_Bitpat();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.CONS <em>CONS</em>}'.
@@ -3818,6 +3878,22 @@ public interface GDSLPackage extends EPackage
     EClass PAT = eINSTANCE.getPAT();
 
     /**
+     * The meta object literal for the '<em><b>Uscore</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute PAT__USCORE = eINSTANCE.getPAT_Uscore();
+
+    /**
+     * The meta object literal for the '<em><b>Int</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute PAT__INT = eINSTANCE.getPAT_Int();
+
+    /**
      * The meta object literal for the '<em><b>Id</b></em>' attribute feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -3832,6 +3908,14 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EReference PAT__PAT = eINSTANCE.getPAT_Pat();
+
+    /**
+     * The meta object literal for the '<em><b>Bitpat</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute PAT__BITPAT = eINSTANCE.getPAT_Bitpat();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.CONSImpl <em>CONS</em>}' class.

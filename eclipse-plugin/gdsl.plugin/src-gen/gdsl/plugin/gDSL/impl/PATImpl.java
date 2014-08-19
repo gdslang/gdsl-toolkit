@@ -21,8 +21,11 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
  * <p>
  * The following features are implemented:
  * <ul>
+ *   <li>{@link gdsl.plugin.gDSL.impl.PATImpl#getUscore <em>Uscore</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.PATImpl#getInt <em>Int</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.PATImpl#getId <em>Id</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.PATImpl#getPat <em>Pat</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.PATImpl#getBitpat <em>Bitpat</em>}</li>
  * </ul>
  * </p>
  *
@@ -30,6 +33,46 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
  */
 public class PATImpl extends MinimalEObjectImpl.Container implements PAT
 {
+  /**
+   * The default value of the '{@link #getUscore() <em>Uscore</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getUscore()
+   * @generated
+   * @ordered
+   */
+  protected static final String USCORE_EDEFAULT = null;
+
+  /**
+   * The cached value of the '{@link #getUscore() <em>Uscore</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getUscore()
+   * @generated
+   * @ordered
+   */
+  protected String uscore = USCORE_EDEFAULT;
+
+  /**
+   * The default value of the '{@link #getInt() <em>Int</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getInt()
+   * @generated
+   * @ordered
+   */
+  protected static final String INT_EDEFAULT = null;
+
+  /**
+   * The cached value of the '{@link #getInt() <em>Int</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getInt()
+   * @generated
+   * @ordered
+   */
+  protected String int_ = INT_EDEFAULT;
+
   /**
    * The default value of the '{@link #getId() <em>Id</em>}' attribute.
    * <!-- begin-user-doc -->
@@ -61,6 +104,26 @@ public class PATImpl extends MinimalEObjectImpl.Container implements PAT
   protected PAT pat;
 
   /**
+   * The default value of the '{@link #getBitpat() <em>Bitpat</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getBitpat()
+   * @generated
+   * @ordered
+   */
+  protected static final String BITPAT_EDEFAULT = null;
+
+  /**
+   * The cached value of the '{@link #getBitpat() <em>Bitpat</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getBitpat()
+   * @generated
+   * @ordered
+   */
+  protected String bitpat = BITPAT_EDEFAULT;
+
+  /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -79,6 +142,52 @@ public class PATImpl extends MinimalEObjectImpl.Container implements PAT
   protected EClass eStaticClass()
   {
     return GDSLPackage.Literals.PAT;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public String getUscore()
+  {
+    return uscore;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setUscore(String newUscore)
+  {
+    String oldUscore = uscore;
+    uscore = newUscore;
+    if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.PAT__USCORE, oldUscore, uscore));
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public String getInt()
+  {
+    return int_;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setInt(String newInt)
+  {
+    String oldInt = int_;
+    int_ = newInt;
+    if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.PAT__INT, oldInt, int_));
   }
 
   /**
@@ -157,6 +266,29 @@ public class PATImpl extends MinimalEObjectImpl.Container implements PAT
    * <!-- end-user-doc -->
    * @generated
    */
+  public String getBitpat()
+  {
+    return bitpat;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setBitpat(String newBitpat)
+  {
+    String oldBitpat = bitpat;
+    bitpat = newBitpat;
+    if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.PAT__BITPAT, oldBitpat, bitpat));
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   @Override
   public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs)
   {
@@ -178,10 +310,16 @@ public class PATImpl extends MinimalEObjectImpl.Container implements PAT
   {
     switch (featureID)
     {
+      case GDSLPackage.PAT__USCORE:
+        return getUscore();
+      case GDSLPackage.PAT__INT:
+        return getInt();
       case GDSLPackage.PAT__ID:
         return getId();
       case GDSLPackage.PAT__PAT:
         return getPat();
+      case GDSLPackage.PAT__BITPAT:
+        return getBitpat();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -196,11 +334,20 @@ public class PATImpl extends MinimalEObjectImpl.Container implements PAT
   {
     switch (featureID)
     {
+      case GDSLPackage.PAT__USCORE:
+        setUscore((String)newValue);
+        return;
+      case GDSLPackage.PAT__INT:
+        setInt((String)newValue);
+        return;
       case GDSLPackage.PAT__ID:
         setId((String)newValue);
         return;
       case GDSLPackage.PAT__PAT:
         setPat((PAT)newValue);
+        return;
+      case GDSLPackage.PAT__BITPAT:
+        setBitpat((String)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -216,11 +363,20 @@ public class PATImpl extends MinimalEObjectImpl.Container implements PAT
   {
     switch (featureID)
     {
+      case GDSLPackage.PAT__USCORE:
+        setUscore(USCORE_EDEFAULT);
+        return;
+      case GDSLPackage.PAT__INT:
+        setInt(INT_EDEFAULT);
+        return;
       case GDSLPackage.PAT__ID:
         setId(ID_EDEFAULT);
         return;
       case GDSLPackage.PAT__PAT:
         setPat((PAT)null);
+        return;
+      case GDSLPackage.PAT__BITPAT:
+        setBitpat(BITPAT_EDEFAULT);
         return;
     }
     super.eUnset(featureID);
@@ -236,10 +392,16 @@ public class PATImpl extends MinimalEObjectImpl.Container implements PAT
   {
     switch (featureID)
     {
+      case GDSLPackage.PAT__USCORE:
+        return USCORE_EDEFAULT == null ? uscore != null : !USCORE_EDEFAULT.equals(uscore);
+      case GDSLPackage.PAT__INT:
+        return INT_EDEFAULT == null ? int_ != null : !INT_EDEFAULT.equals(int_);
       case GDSLPackage.PAT__ID:
         return ID_EDEFAULT == null ? id != null : !ID_EDEFAULT.equals(id);
       case GDSLPackage.PAT__PAT:
         return pat != null;
+      case GDSLPackage.PAT__BITPAT:
+        return BITPAT_EDEFAULT == null ? bitpat != null : !BITPAT_EDEFAULT.equals(bitpat);
     }
     return super.eIsSet(featureID);
   }
@@ -255,8 +417,14 @@ public class PATImpl extends MinimalEObjectImpl.Container implements PAT
     if (eIsProxy()) return super.toString();
 
     StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (id: ");
+    result.append(" (uscore: ");
+    result.append(uscore);
+    result.append(", int: ");
+    result.append(int_);
+    result.append(", id: ");
     result.append(id);
+    result.append(", bitpat: ");
+    result.append(bitpat);
     result.append(')');
     return result.toString();
   }

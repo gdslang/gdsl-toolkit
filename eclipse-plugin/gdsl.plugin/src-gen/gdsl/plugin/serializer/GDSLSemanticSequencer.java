@@ -463,7 +463,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     {PAT}
+	 *     (uscore=USCORE | int=INTEGER | ((id=ID | id=S) pat=PAT?) | bitpat=BITPAT)
 	 */
 	protected void sequence_PAT(EObject context, PAT semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);

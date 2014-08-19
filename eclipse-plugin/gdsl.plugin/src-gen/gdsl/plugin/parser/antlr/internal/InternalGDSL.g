@@ -3287,32 +3287,47 @@ rulePAT returns [EObject current=null]
     @init { enterRule(); 
     }
     @after { leaveRule(); }:
-(((
-    {
-        $current = forceCreateModelElement(
-            grammarAccess.getPATAccess().getPATAction_0_0(),
-            $current);
-    }
-)this_USCORE_1=RULE_USCORE
-    { 
-    newLeafNode(this_USCORE_1, grammarAccess.getPATAccess().getUSCORETerminalRuleCall_0_1()); 
-    }
+((
+(
+		lv_uscore_0_0=RULE_USCORE
+		{
+			newLeafNode(lv_uscore_0_0, grammarAccess.getPATAccess().getUscoreUSCORETerminalRuleCall_0_0()); 
+		}
+		{
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getPATRule());
+	        }
+       		setWithLastConsumed(
+       			$current, 
+       			"uscore",
+        		lv_uscore_0_0, 
+        		"USCORE");
+	    }
+
 )
-    |((((
-)	ruleINTEGER))=>((
-    {
-        $current = forceCreateModelElement(
-            grammarAccess.getPATAccess().getPATAction_1_0_0(),
-            $current);
-    }
 )
-    { 
-        newCompositeNode(grammarAccess.getPATAccess().getINTEGERParserRuleCall_1_0_1()); 
-    }
+    |(((
+(
 ruleINTEGER
-    { 
-        afterParserOrEnumRuleCall();
-    }
+)
+))=>(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getPATAccess().getIntINTEGERParserRuleCall_1_0_0()); 
+	    }
+		lv_int_1_0=ruleINTEGER		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getPATRule());
+	        }
+       		set(
+       			$current, 
+       			"int",
+        		lv_int_1_0, 
+        		"INTEGER");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
 ))
     |((((
 (
@@ -3331,9 +3346,9 @@ rulePAT
 )?))=>((
 (
 (
-		lv_id_4_1=RULE_ID
+		lv_id_2_1=RULE_ID
 		{
-			newLeafNode(lv_id_4_1, grammarAccess.getPATAccess().getIdIDTerminalRuleCall_2_0_0_0_0()); 
+			newLeafNode(lv_id_2_1, grammarAccess.getPATAccess().getIdIDTerminalRuleCall_2_0_0_0_0()); 
 		}
 		{
 	        if ($current==null) {
@@ -3342,13 +3357,13 @@ rulePAT
        		setWithLastConsumed(
        			$current, 
        			"id",
-        		lv_id_4_1, 
+        		lv_id_2_1, 
         		"ID");
 	    }
 
-    |		lv_id_4_2=RULE_S
+    |		lv_id_2_2=RULE_S
 		{
-			newLeafNode(lv_id_4_2, grammarAccess.getPATAccess().getIdSTerminalRuleCall_2_0_0_0_1()); 
+			newLeafNode(lv_id_2_2, grammarAccess.getPATAccess().getIdSTerminalRuleCall_2_0_0_0_1()); 
 		}
 		{
 	        if ($current==null) {
@@ -3357,7 +3372,7 @@ rulePAT
        		setWithLastConsumed(
        			$current, 
        			"id",
-        		lv_id_4_2, 
+        		lv_id_2_2, 
         		"S");
 	    }
 
@@ -3369,41 +3384,45 @@ rulePAT
 		{ 
 	        newCompositeNode(grammarAccess.getPATAccess().getPatPATParserRuleCall_2_0_1_0()); 
 	    }
-		lv_pat_5_0=rulePAT		{
+		lv_pat_3_0=rulePAT		{
 	        if ($current==null) {
 	            $current = createModelElementForParent(grammarAccess.getPATRule());
 	        }
        		set(
        			$current, 
        			"pat",
-        		lv_pat_5_0, 
+        		lv_pat_3_0, 
         		"PAT");
 	        afterParserOrEnumRuleCall();
 	    }
 
 )
 )?))
-    |(	otherlv_6='\'' 
+    |(	otherlv_4='\'' 
     {
-    	newLeafNode(otherlv_6, grammarAccess.getPATAccess().getApostropheKeyword_3_0());
+    	newLeafNode(otherlv_4, grammarAccess.getPATAccess().getApostropheKeyword_3_0());
     }
 (
-    {
-        $current = forceCreateModelElement(
-            grammarAccess.getPATAccess().getPATAction_3_1(),
-            $current);
-    }
+(
+		{ 
+	        newCompositeNode(grammarAccess.getPATAccess().getBitpatBITPATParserRuleCall_3_1_0()); 
+	    }
+		lv_bitpat_5_0=ruleBITPAT		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getPATRule());
+	        }
+       		set(
+       			$current, 
+       			"bitpat",
+        		lv_bitpat_5_0, 
+        		"BITPAT");
+	        afterParserOrEnumRuleCall();
+	    }
+
 )
-    { 
-        newCompositeNode(grammarAccess.getPATAccess().getBITPATParserRuleCall_3_2()); 
-    }
-ruleBITPAT
-    { 
-        afterParserOrEnumRuleCall();
-    }
-	otherlv_9='\'' 
+)	otherlv_6='\'' 
     {
-    	newLeafNode(otherlv_9, grammarAccess.getPATAccess().getApostropheKeyword_3_3());
+    	newLeafNode(otherlv_6, grammarAccess.getPATAccess().getApostropheKeyword_3_2());
     }
 ))
 ;

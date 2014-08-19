@@ -20,43 +20,26 @@ public class GDSLSyntacticSequencer extends AbstractSyntacticSequencer {
 
 	protected GDSLGrammarAccess grammarAccess;
 	protected AbstractElementAlias match_Model_SemicolonKeyword_1_0_q;
-	protected AbstractElementAlias match_PAT___ApostropheKeyword_3_0_BITPATParserRuleCall_3_2_ApostropheKeyword_3_3___or___INTEGERParserRuleCall_1_0_1_or_USCORETerminalRuleCall_0_1__;
 	protected AbstractElementAlias match_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__;
 	
 	@Inject
 	protected void init(IGrammarAccess access) {
 		grammarAccess = (GDSLGrammarAccess) access;
 		match_Model_SemicolonKeyword_1_0_q = new TokenAlias(false, true, grammarAccess.getModelAccess().getSemicolonKeyword_1_0());
-		match_PAT___ApostropheKeyword_3_0_BITPATParserRuleCall_3_2_ApostropheKeyword_3_3___or___INTEGERParserRuleCall_1_0_1_or_USCORETerminalRuleCall_0_1__ = new AlternativeAlias(false, false, new AlternativeAlias(false, false, new TokenAlias(false, false, grammarAccess.getPATAccess().getINTEGERParserRuleCall_1_0_1()), new TokenAlias(false, false, grammarAccess.getPATAccess().getUSCORETerminalRuleCall_0_1())), new GroupAlias(false, false, new TokenAlias(false, false, grammarAccess.getPATAccess().getApostropheKeyword_3_0()), new TokenAlias(false, false, grammarAccess.getPATAccess().getBITPATParserRuleCall_3_2()), new TokenAlias(false, false, grammarAccess.getPATAccess().getApostropheKeyword_3_3())));
 		match_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__ = new AlternativeAlias(false, false, new GroupAlias(false, false, new TokenAlias(false, false, grammarAccess.getTyAccess().getLeftCurlyBracketKeyword_2_1()), new TokenAlias(false, false, grammarAccess.getTyAccess().getRightCurlyBracketKeyword_2_3())), new TokenAlias(false, false, grammarAccess.getTyAccess().getLeftParenthesisRightParenthesisKeyword_4_1()));
 	}
 	
 	@Override
 	protected String getUnassignedRuleCallToken(EObject semanticObject, RuleCall ruleCall, INode node) {
-		if(ruleCall.getRule() == grammarAccess.getBITPATRule())
-			return getBITPATToken(semanticObject, ruleCall, node);
-		else if(ruleCall.getRule() == grammarAccess.getDOTRule())
+		if(ruleCall.getRule() == grammarAccess.getDOTRule())
 			return getDOTToken(semanticObject, ruleCall, node);
 		else if(ruleCall.getRule() == grammarAccess.getGREATERRule())
 			return getGREATERToken(semanticObject, ruleCall, node);
-		else if(ruleCall.getRule() == grammarAccess.getINTEGERRule())
-			return getINTEGERToken(semanticObject, ruleCall, node);
 		else if(ruleCall.getRule() == grammarAccess.getLESSRule())
 			return getLESSToken(semanticObject, ruleCall, node);
 		else if(ruleCall.getRule() == grammarAccess.getSRule())
 			return getSToken(semanticObject, ruleCall, node);
-		else if(ruleCall.getRule() == grammarAccess.getUSCORERule())
-			return getUSCOREToken(semanticObject, ruleCall, node);
 		return "";
-	}
-	
-	/**
-	 * BITPAT: BINARY | ((ID | S) (BITPATORINT)?);
-	 */
-	protected String getBITPATToken(EObject semanticObject, RuleCall ruleCall, INode node) {
-		if (node != null)
-			return getTokenText(node);
-		return "0";
 	}
 	
 	/**
@@ -78,15 +61,6 @@ public class GDSLSyntacticSequencer extends AbstractSyntacticSequencer {
 	}
 	
 	/**
-	 * INTEGER: POSINT | HEXINT | NEGINT;
-	 */
-	protected String getINTEGERToken(EObject semanticObject, RuleCall ruleCall, INode node) {
-		if (node != null)
-			return getTokenText(node);
-		return "";
-	}
-	
-	/**
 	 * terminal LESS: '<';
 	 */
 	protected String getLESSToken(EObject semanticObject, RuleCall ruleCall, INode node) {
@@ -104,15 +78,6 @@ public class GDSLSyntacticSequencer extends AbstractSyntacticSequencer {
 		return "S";
 	}
 	
-	/**
-	 * terminal USCORE:'_';
-	 */
-	protected String getUSCOREToken(EObject semanticObject, RuleCall ruleCall, INode node) {
-		if (node != null)
-			return getTokenText(node);
-		return "_";
-	}
-	
 	@Override
 	protected void emitUnassignedTokens(EObject semanticObject, ISynTransition transition, INode fromNode, INode toNode) {
 		if (transition.getAmbiguousSyntaxes().isEmpty()) return;
@@ -121,8 +86,6 @@ public class GDSLSyntacticSequencer extends AbstractSyntacticSequencer {
 			List<INode> syntaxNodes = getNodesFor(transitionNodes, syntax);
 			if(match_Model_SemicolonKeyword_1_0_q.equals(syntax))
 				emit_Model_SemicolonKeyword_1_0_q(semanticObject, getLastNavigableState(), syntaxNodes);
-			else if(match_PAT___ApostropheKeyword_3_0_BITPATParserRuleCall_3_2_ApostropheKeyword_3_3___or___INTEGERParserRuleCall_1_0_1_or_USCORETerminalRuleCall_0_1__.equals(syntax))
-				emit_PAT___ApostropheKeyword_3_0_BITPATParserRuleCall_3_2_ApostropheKeyword_3_3___or___INTEGERParserRuleCall_1_0_1_or_USCORETerminalRuleCall_0_1__(semanticObject, getLastNavigableState(), syntaxNodes);
 			else if(match_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__.equals(syntax))
 				emit_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__(semanticObject, getLastNavigableState(), syntaxNodes);
 			else acceptNodes(getLastNavigableState(), syntaxNodes);
@@ -139,15 +102,7 @@ public class GDSLSyntacticSequencer extends AbstractSyntacticSequencer {
 	
 	/**
 	 * Syntax:
-	 *     (''' BITPAT ''') | (INTEGER | USCORE)
-	 */
-	protected void emit_PAT___ApostropheKeyword_3_0_BITPATParserRuleCall_3_2_ApostropheKeyword_3_3___or___INTEGERParserRuleCall_1_0_1_or_USCORETerminalRuleCall_0_1__(EObject semanticObject, ISynNavigable transition, List<INode> nodes) {
-		acceptNodes(transition, nodes);
-	}
-	
-	/**
-	 * Syntax:
-	 *     ('{' '}') | '()'
+	 *     '()' | ('{' '}')
 	 */
 	protected void emit_Ty_LeftParenthesisRightParenthesisKeyword_4_1_or___LeftCurlyBracketKeyword_2_1_RightCurlyBracketKeyword_2_3__(EObject semanticObject, ISynNavigable transition, List<INode> nodes) {
 		acceptNodes(transition, nodes);
