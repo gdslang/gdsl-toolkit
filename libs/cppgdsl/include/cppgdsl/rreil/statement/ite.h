@@ -11,6 +11,7 @@
 extern "C" {
 #include <gdsl_generic.h>
 }
+#include <vector>
 
 namespace gdsl {
 namespace rreil {
@@ -18,23 +19,23 @@ namespace rreil {
 class ite : public statement {
 private:
   sexpr *cond;
-  statement *then_branch;
-  statement *else_branch;
+  std::vector<statement*> *then_branch;
+  std::vector<statement*> *else_branch;
 
   void put(std::ostream &out);
 public:
-  ite(sexpr *cond, statement *then_branch, statement *else_branch);
+  ite(sexpr *cond, std::vector<statement*> *then_branch, std::vector<statement*> *else_branch);
   ~ite();
 
   sexpr *get_cond() {
     return cond;
   }
 
-  statement *get_then_branch() {
+  std::vector<statement*> *get_then_branch() {
     return then_branch;
   }
 
-  statement *get_else_branch() {
+  std::vector<statement*> *get_else_branch() {
     return else_branch;
   }
 

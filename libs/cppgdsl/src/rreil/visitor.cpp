@@ -82,14 +82,17 @@ void gdsl::rreil::visitor::visit(store *a) {
 void gdsl::rreil::visitor::visit(ite *a) {
   statement_visitor::visit(a);
   a->get_cond()->accept(*this);
-  a->get_then_branch()->accept(*this);
-  a->get_else_branch()->accept(*this);
+  for(auto stmt : *a->get_then_branch())
+    stmt->accept(*this);
+  for(auto stmt : *a->get_else_branch())
+    stmt->accept(*this);
 }
 
 void gdsl::rreil::visitor::visit(_while *a) {
   statement_visitor::visit(a);
   a->get_cond()->accept(*this);
-  a->get_body()->accept(*this);
+  for(auto stmt : *a->get_body())
+    stmt->accept(*this);
 }
 
 void gdsl::rreil::visitor::visit(cbranch *a) {
