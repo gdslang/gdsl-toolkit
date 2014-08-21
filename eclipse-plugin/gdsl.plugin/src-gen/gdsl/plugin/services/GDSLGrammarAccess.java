@@ -2250,13 +2250,13 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cDOTTerminalRuleCall_2 = (RuleCall)cAlternatives.eContents().get(2);
 		private final RuleCall cLESSTerminalRuleCall_3 = (RuleCall)cAlternatives.eContents().get(3);
 		private final RuleCall cGREATERTerminalRuleCall_4 = (RuleCall)cAlternatives.eContents().get(4);
-		private final RuleCall cSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATERTerminalRuleCall_5 = (RuleCall)cAlternatives.eContents().get(5);
+		private final RuleCall cSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATERTerminalRuleCall_5 = (RuleCall)cAlternatives.eContents().get(5);
 		
 		//SYM:
-		//	USCORE | BS | DOT | LESS | GREATER | SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER;
+		//	USCORE | BS | DOT | LESS | GREATER | SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER;
 		public ParserRule getRule() { return rule; }
 
-		//USCORE | BS | DOT | LESS | GREATER | SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER
+		//USCORE | BS | DOT | LESS | GREATER | SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER
 		public Alternatives getAlternatives() { return cAlternatives; }
 
 		//USCORE
@@ -2274,8 +2274,8 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		//GREATER
 		public RuleCall getGREATERTerminalRuleCall_4() { return cGREATERTerminalRuleCall_4; }
 
-		//SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER
-		public RuleCall getSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATERTerminalRuleCall_5() { return cSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATERTerminalRuleCall_5; }
+		//SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER
+		public RuleCall getSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATERTerminalRuleCall_5() { return cSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATERTerminalRuleCall_5; }
 	}
 
 	public class INTEGERElements extends AbstractParserRuleElementFinder {
@@ -2396,7 +2396,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	private TerminalRule tGREATER;
 	private TerminalRule tMIXID;
 	private TerminalRule tID;
-	private TerminalRule tSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER;
+	private TerminalRule tSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER;
 	private TerminalRule tSTRING;
 	private TerminalRule tIDCHAR;
 	private TerminalRule tCHARSYM;
@@ -2782,7 +2782,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//SYM:
-	//	USCORE | BS | DOT | LESS | GREATER | SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER;
+	//	USCORE | BS | DOT | LESS | GREATER | SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER;
 	public SYMElements getSYMAccess() {
 		return (pSYM != null) ? pSYM : (pSYM = new SYMElements());
 	}
@@ -2871,10 +2871,10 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return (tID != null) ? tID : (tID = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "ID"));
 	} 
 
-	//terminal SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER:
+	//terminal SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER:
 	//	(CHARSYM | OTHERSYM)+;
-	public TerminalRule getSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATERRule() {
-		return (tSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER != null) ? tSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER : (tSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER"));
+	public TerminalRule getSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATERRule() {
+		return (tSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER != null) ? tSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER : (tSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER"));
 	} 
 
 	//terminal STRING:
@@ -2890,7 +2890,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	} 
 
 	//terminal fragment CHARSYM:
-	//	"-" | "?" | / *"'"|* / "!";
+	//	"-" | "?" | "!";
 	public TerminalRule getCHARSYMRule() {
 		return (tCHARSYM != null) ? tCHARSYM : (tCHARSYM = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "CHARSYM"));
 	} 

@@ -3876,12 +3876,12 @@ ruleSYM returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()]
     newLeafNode(this_GREATER_4, grammarAccess.getSYMAccess().getGREATERTerminalRuleCall_4()); 
     }
 
-    |    this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5=RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER    {
-		$current.merge(this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5);
+    |    this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5=RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER    {
+		$current.merge(this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5);
     }
 
     { 
-    newLeafNode(this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5, grammarAccess.getSYMAccess().getSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATERTerminalRuleCall_5()); 
+    newLeafNode(this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5, grammarAccess.getSYMAccess().getSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATERTerminalRuleCall_5()); 
     }
 )
     ;
@@ -4042,7 +4042,7 @@ RULE_MIXID : '_' (RULE_USCORE|RULE_IDCHAR)*;
 
 RULE_ID : ('A'..'Z'|'a'..'z'|'/') (RULE_USCORE|RULE_IDCHAR)*;
 
-RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER : (RULE_CHARSYM|RULE_OTHERSYM)+;
+RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER : (RULE_CHARSYM|RULE_OTHERSYM)+;
 
 RULE_STRING : '"' ('\\' ('b'|'t'|'n'|'f'|'r'|'u'|'"'|'\''|'\\')|~(('\\'|'"')))* '"';
 

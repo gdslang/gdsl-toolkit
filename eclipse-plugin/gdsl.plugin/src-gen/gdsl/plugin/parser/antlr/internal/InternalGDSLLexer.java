@@ -22,7 +22,6 @@ public class InternalGDSLLexer extends Lexer {
     public static final int T__63=63;
     public static final int T__26=26;
     public static final int T__25=25;
-    public static final int RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER=14;
     public static final int T__61=61;
     public static final int T__60=60;
     public static final int EOF=-1;
@@ -37,6 +36,7 @@ public class InternalGDSLLexer extends Lexer {
     public static final int T__54=54;
     public static final int RULE_IDCHAR=19;
     public static final int T__59=59;
+    public static final int RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER=14;
     public static final int RULE_S=5;
     public static final int T__50=50;
     public static final int T__42=42;
@@ -1164,15 +1164,15 @@ public class InternalGDSLLexer extends Lexer {
     }
     // $ANTLR end "RULE_ID"
 
-    // $ANTLR start "RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER"
-    public final void mRULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER() throws RecognitionException {
+    // $ANTLR start "RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER"
+    public final void mRULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER() throws RecognitionException {
         try {
-            int _type = RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER;
+            int _type = RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:4045:61: ( ( RULE_CHARSYM | RULE_OTHERSYM )+ )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:4045:63: ( RULE_CHARSYM | RULE_OTHERSYM )+
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:4045:46: ( ( RULE_CHARSYM | RULE_OTHERSYM )+ )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:4045:48: ( RULE_CHARSYM | RULE_OTHERSYM )+
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:4045:63: ( RULE_CHARSYM | RULE_OTHERSYM )+
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:4045:48: ( RULE_CHARSYM | RULE_OTHERSYM )+
             int cnt3=0;
             loop3:
             do {
@@ -1219,7 +1219,7 @@ public class InternalGDSLLexer extends Lexer {
         finally {
         }
     }
-    // $ANTLR end "RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER"
+    // $ANTLR end "RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER"
 
     // $ANTLR start "RULE_STRING"
     public final void mRULE_STRING() throws RecognitionException {
@@ -1805,7 +1805,7 @@ public class InternalGDSLLexer extends Lexer {
     // $ANTLR end "RULE_SL_COMMENT"
 
     public void mTokens() throws RecognitionException {
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:8: ( T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | RULE_USCORE | RULE_BS | RULE_DOT | RULE_S | RULE_LESS | RULE_GREATER | RULE_MIXID | RULE_ID | RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER | RULE_STRING | RULE_DUALS | RULE_BINS | RULE_POSINT_WO_DUALS | RULE_HEXINT | RULE_NEGINT | RULE_WS | RULE_ML_COMMENT | RULE_SL_COMMENT )
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:8: ( T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | RULE_USCORE | RULE_BS | RULE_DOT | RULE_S | RULE_LESS | RULE_GREATER | RULE_MIXID | RULE_ID | RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER | RULE_STRING | RULE_DUALS | RULE_BINS | RULE_POSINT_WO_DUALS | RULE_HEXINT | RULE_NEGINT | RULE_WS | RULE_ML_COMMENT | RULE_SL_COMMENT )
         int alt13=59;
         alt13 = dfa13.predict(input);
         switch (alt13) {
@@ -2153,70 +2153,70 @@ public class InternalGDSLLexer extends Lexer {
                 }
                 break;
             case 50 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:334: RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:334: RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER
                 {
-                mRULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER(); 
+                mRULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER(); 
 
                 }
                 break;
             case 51 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:394: RULE_STRING
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:379: RULE_STRING
                 {
                 mRULE_STRING(); 
 
                 }
                 break;
             case 52 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:406: RULE_DUALS
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:391: RULE_DUALS
                 {
                 mRULE_DUALS(); 
 
                 }
                 break;
             case 53 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:417: RULE_BINS
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:402: RULE_BINS
                 {
                 mRULE_BINS(); 
 
                 }
                 break;
             case 54 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:427: RULE_POSINT_WO_DUALS
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:412: RULE_POSINT_WO_DUALS
                 {
                 mRULE_POSINT_WO_DUALS(); 
 
                 }
                 break;
             case 55 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:448: RULE_HEXINT
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:433: RULE_HEXINT
                 {
                 mRULE_HEXINT(); 
 
                 }
                 break;
             case 56 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:460: RULE_NEGINT
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:445: RULE_NEGINT
                 {
                 mRULE_NEGINT(); 
 
                 }
                 break;
             case 57 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:472: RULE_WS
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:457: RULE_WS
                 {
                 mRULE_WS(); 
 
                 }
                 break;
             case 58 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:480: RULE_ML_COMMENT
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:465: RULE_ML_COMMENT
                 {
                 mRULE_ML_COMMENT(); 
 
                 }
                 break;
             case 59 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:496: RULE_SL_COMMENT
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:481: RULE_SL_COMMENT
                 {
                 mRULE_SL_COMMENT(); 
 
@@ -2513,7 +2513,7 @@ public class InternalGDSLLexer extends Lexer {
             this.transition = DFA13_transition;
         }
         public String getDescription() {
-            return "1:1: Tokens : ( T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | RULE_USCORE | RULE_BS | RULE_DOT | RULE_S | RULE_LESS | RULE_GREATER | RULE_MIXID | RULE_ID | RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER | RULE_STRING | RULE_DUALS | RULE_BINS | RULE_POSINT_WO_DUALS | RULE_HEXINT | RULE_NEGINT | RULE_WS | RULE_ML_COMMENT | RULE_SL_COMMENT );";
+            return "1:1: Tokens : ( T__25 | T__26 | T__27 | T__28 | T__29 | T__30 | T__31 | T__32 | T__33 | T__34 | T__35 | T__36 | T__37 | T__38 | T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | RULE_USCORE | RULE_BS | RULE_DOT | RULE_S | RULE_LESS | RULE_GREATER | RULE_MIXID | RULE_ID | RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER | RULE_STRING | RULE_DUALS | RULE_BINS | RULE_POSINT_WO_DUALS | RULE_HEXINT | RULE_NEGINT | RULE_WS | RULE_ML_COMMENT | RULE_SL_COMMENT );";
         }
         public int specialStateTransition(int s, IntStream _input) throws NoViableAltException {
             IntStream input = _input;

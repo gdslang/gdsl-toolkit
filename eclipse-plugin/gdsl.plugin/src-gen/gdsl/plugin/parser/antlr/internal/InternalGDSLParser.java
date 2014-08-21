@@ -22,7 +22,7 @@ import java.util.HashMap;
 @SuppressWarnings("all")
 public class InternalGDSLParser extends AbstractInternalAntlrParser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "RULE_ID", "RULE_S", "RULE_LESS", "RULE_GREATER", "RULE_STRING", "RULE_DOT", "RULE_USCORE", "RULE_HEXINT", "RULE_MIXID", "RULE_BS", "RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER", "RULE_NEGINT", "RULE_POSINT_WO_DUALS", "RULE_DUALS", "RULE_BINS", "RULE_IDCHAR", "RULE_CHARSYM", "RULE_OTHERSYM", "RULE_WS", "RULE_ML_COMMENT", "RULE_SL_COMMENT", "';'", "'export'", "':'", "'type'", "'='", "'|'", "'val'", "'['", "']'", "','", "'of'", "'int'", "'string'", "'unit'", "'{'", "'}'", "'('", "')'", "'->'", "'()'", "'=>'", "'case'", "'end'", "'if'", "'then'", "'else'", "'do'", "'<-'", "'or'", "'and'", "'+'", "'-'", "'*'", "'%'", "'^'", "'~'", "'@'", "'$'", "'let'", "'in'", "'\\''"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "RULE_ID", "RULE_S", "RULE_LESS", "RULE_GREATER", "RULE_STRING", "RULE_DOT", "RULE_USCORE", "RULE_HEXINT", "RULE_MIXID", "RULE_BS", "RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER", "RULE_NEGINT", "RULE_POSINT_WO_DUALS", "RULE_DUALS", "RULE_BINS", "RULE_IDCHAR", "RULE_CHARSYM", "RULE_OTHERSYM", "RULE_WS", "RULE_ML_COMMENT", "RULE_SL_COMMENT", "';'", "'export'", "':'", "'type'", "'='", "'|'", "'val'", "'['", "']'", "','", "'of'", "'int'", "'string'", "'unit'", "'{'", "'}'", "'('", "')'", "'->'", "'()'", "'=>'", "'case'", "'end'", "'if'", "'then'", "'else'", "'do'", "'<-'", "'or'", "'and'", "'+'", "'-'", "'*'", "'%'", "'^'", "'~'", "'@'", "'$'", "'let'", "'in'", "'\\''"
     };
     public static final int RULE_ID=4;
     public static final int T__64=64;
@@ -34,7 +34,6 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
     public static final int T__26=26;
     public static final int T__63=63;
     public static final int T__25=25;
-    public static final int RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER=14;
     public static final int T__61=61;
     public static final int EOF=-1;
     public static final int T__60=60;
@@ -49,6 +48,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
     public static final int T__54=54;
     public static final int RULE_IDCHAR=19;
     public static final int T__59=59;
+    public static final int RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER=14;
     public static final int RULE_S=5;
     public static final int T__50=50;
     public static final int T__42=42;
@@ -1375,7 +1375,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     else if ( (LA11_0==RULE_GREATER) && (synpred4_InternalGDSL())) {
                         alt11=2;
                     }
-                    else if ( (LA11_0==RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER) && (synpred4_InternalGDSL())) {
+                    else if ( (LA11_0==RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER) && (synpred4_InternalGDSL())) {
                         alt11=2;
                     }
                     else {
@@ -8828,7 +8828,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
             else if ( (LA70_0==RULE_S) && (synpred10_InternalGDSL())) {
                 alt70=1;
             }
-            else if ( ((LA70_0>=RULE_LESS && LA70_0<=RULE_GREATER)||(LA70_0>=RULE_DOT && LA70_0<=RULE_USCORE)||(LA70_0>=RULE_BS && LA70_0<=RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER)) ) {
+            else if ( ((LA70_0>=RULE_LESS && LA70_0<=RULE_GREATER)||(LA70_0>=RULE_DOT && LA70_0<=RULE_USCORE)||(LA70_0>=RULE_BS && LA70_0<=RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER)) ) {
                 alt70=2;
             }
             else {
@@ -10824,7 +10824,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
 
     // $ANTLR start "ruleSYM"
-    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3835:1: ruleSYM returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER ) ;
+    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3835:1: ruleSYM returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] : (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5= RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER ) ;
     public final AntlrDatatypeRuleToken ruleSYM() throws RecognitionException {
         AntlrDatatypeRuleToken current = new AntlrDatatypeRuleToken();
 
@@ -10833,15 +10833,15 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
         Token this_DOT_2=null;
         Token this_LESS_3=null;
         Token this_GREATER_4=null;
-        Token this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5=null;
+        Token this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5=null;
 
          enterRule(); 
             
         try {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3838:28: ( (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER ) )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3839:1: (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3838:28: ( (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5= RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER ) )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3839:1: (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5= RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER )
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3839:1: (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3839:1: (this_USCORE_0= RULE_USCORE | this_BS_1= RULE_BS | this_DOT_2= RULE_DOT | this_LESS_3= RULE_LESS | this_GREATER_4= RULE_GREATER | this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5= RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER )
             int alt88=6;
             switch ( input.LA(1) ) {
             case RULE_USCORE:
@@ -10869,7 +10869,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                 alt88=5;
                 }
                 break;
-            case RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER:
+            case RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER:
                 {
                 alt88=6;
                 }
@@ -10969,17 +10969,17 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                     }
                     break;
                 case 6 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3879:10: this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5= RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:3879:10: this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5= RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER
                     {
-                    this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5=(Token)match(input,RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER,FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_ruleSYM7966); if (state.failed) return current;
+                    this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5=(Token)match(input,RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER,FOLLOW_RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_in_ruleSYM7966); if (state.failed) return current;
                     if ( state.backtracking==0 ) {
 
-                      		current.merge(this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5);
+                      		current.merge(this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5);
                           
                     }
                     if ( state.backtracking==0 ) {
                        
-                          newLeafNode(this_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_5, grammarAccess.getSYMAccess().getSYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATERTerminalRuleCall_5()); 
+                          newLeafNode(this_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_5, grammarAccess.getSYMAccess().getSYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATERTerminalRuleCall_5()); 
                           
                     }
 
@@ -11604,7 +11604,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
         else if ( (LA93_0==RULE_GREATER) && (synpred2_InternalGDSL())) {
             alt93=2;
         }
-        else if ( (LA93_0==RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER) && (synpred2_InternalGDSL())) {
+        else if ( (LA93_0==RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER) && (synpred2_InternalGDSL())) {
             alt93=2;
         }
         else {
@@ -12362,7 +12362,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
                         else if ( (LA20_0==RULE_GREATER) && (synpred3_InternalGDSL())) {s = 7;}
 
-                        else if ( (LA20_0==RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER) && (synpred3_InternalGDSL())) {s = 8;}
+                        else if ( (LA20_0==RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER) && (synpred3_InternalGDSL())) {s = 8;}
 
                         else if ( (LA20_0==RULE_MIXID||LA20_0==29) ) {s = 9;}
 
@@ -12548,7 +12548,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
                         else if ( (LA42_8==RULE_GREATER) && (synpred5_InternalGDSL())) {s = 29;}
 
-                        else if ( (LA42_8==RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER) && (synpred5_InternalGDSL())) {s = 30;}
+                        else if ( (LA42_8==RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER) && (synpred5_InternalGDSL())) {s = 30;}
 
                         else if ( (LA42_8==54) && (synpred5_InternalGDSL())) {s = 31;}
 
@@ -12668,7 +12668,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
                         else if ( (LA42_9==RULE_GREATER) && (synpred5_InternalGDSL())) {s = 29;}
 
-                        else if ( (LA42_9==RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER) && (synpred5_InternalGDSL())) {s = 30;}
+                        else if ( (LA42_9==RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER) && (synpred5_InternalGDSL())) {s = 30;}
 
                         else if ( (LA42_9==54) && (synpred5_InternalGDSL())) {s = 31;}
 
@@ -12817,7 +12817,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
 
                         else if ( (LA45_0==RULE_GREATER) && (synpred6_InternalGDSL())) {s = 23;}
 
-                        else if ( (LA45_0==RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER) && (synpred6_InternalGDSL())) {s = 24;}
+                        else if ( (LA45_0==RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER) && (synpred6_InternalGDSL())) {s = 24;}
 
                          
                         input.seek(index45_0);
@@ -12921,7 +12921,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
                         int index51_0 = input.index();
                         input.rewind();
                         s = -1;
-                        if ( (LA51_0==EOF||(LA51_0>=RULE_LESS && LA51_0<=RULE_GREATER)||(LA51_0>=RULE_DOT && LA51_0<=RULE_USCORE)||(LA51_0>=RULE_MIXID && LA51_0<=RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER)||(LA51_0>=25 && LA51_0<=26)||(LA51_0>=28 && LA51_0<=31)||(LA51_0>=34 && LA51_0<=35)||LA51_0==40||LA51_0==42||LA51_0==47||(LA51_0>=49 && LA51_0<=50)||(LA51_0>=53 && LA51_0<=59)||LA51_0==64) ) {s = 1;}
+                        if ( (LA51_0==EOF||(LA51_0>=RULE_LESS && LA51_0<=RULE_GREATER)||(LA51_0>=RULE_DOT && LA51_0<=RULE_USCORE)||(LA51_0>=RULE_MIXID && LA51_0<=RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER)||(LA51_0>=25 && LA51_0<=26)||(LA51_0>=28 && LA51_0<=31)||(LA51_0>=34 && LA51_0<=35)||LA51_0==40||LA51_0==42||LA51_0==47||(LA51_0>=49 && LA51_0<=50)||(LA51_0>=53 && LA51_0<=59)||LA51_0==64) ) {s = 1;}
 
                         else if ( (LA51_0==RULE_POSINT_WO_DUALS) && (synpred7_InternalGDSL())) {s = 2;}
 
@@ -13274,7 +13274,7 @@ public class InternalGDSLParser extends AbstractInternalAntlrParser {
     public static final BitSet FOLLOW_RULE_DOT_in_ruleSYM7888 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_RULE_LESS_in_ruleSYM7914 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_RULE_GREATER_in_ruleSYM7940 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RULE_SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER_in_ruleSYM7966 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_RULE_SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER_in_ruleSYM7966 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ruleINTEGER_in_entryRuleINTEGER8012 = new BitSet(new long[]{0x0000000000000000L});
     public static final BitSet FOLLOW_EOF_in_entryRuleINTEGER8023 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_rulePOSINT_in_ruleINTEGER8070 = new BitSet(new long[]{0x0000000000000002L});
