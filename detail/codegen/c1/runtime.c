@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <limits.h>
+#include <endian.h>
 
 /* generated declarations for records with fixed fields */
 @records@
@@ -209,6 +210,10 @@ char*
   return s->err_str;
 };
 
+uint8_t htole8(uint8_t a) {
+  return a;
+}
+
 #define GEN_CONSUME(size)                                 \
 static inline int_t consume ## size(state_t s) {          \
   if (s->ip+( size >>3)>s->ip_limit) {                    \
@@ -216,7 +221,7 @@ static inline int_t consume ## size(state_t s) {          \
     longjmp(s->err_tgt,1);                                \
   };                                                      \
   uint ## size ## _t* ptr = (uint ## size ## _t*) s->ip;  \
-  int_t res = (unsigned) *ptr;                            \
+  int_t res = htole ## size ((unsigned) *ptr);            \
   s->ip+= size >> 3;                                      \
   return res;                                             \
 }
@@ -301,10 +306,10 @@ int_t
 (state_t s, size_t i) {
   size_t size = (size_t)(s->ip_limit - s->ip_start);
   size_t start_offset = i - s->ip_base;
-	if(start_offset >= size)
-	  return 1;
-	s->ip = s->ip_start + start_offset;
-	return 0;
+  if(start_offset >= size)
+    return 1;
+  s->ip = s->ip_start + start_offset;
+  return 0;
 }
 
 string_t
