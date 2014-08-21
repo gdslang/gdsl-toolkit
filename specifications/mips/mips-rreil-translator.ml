@@ -1,6 +1,7 @@
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
 val exceptions_on = '1'
+val bigendian_mem = '1'
 
 type signedness =
    Signed
@@ -260,6 +261,10 @@ type sem_exception =
    SEM_EXC_OVERFLOW
  | SEM_EXC_VADDR_ERROR
  | SEM_EXC_TRAP
+ | SEM_EXC_SYSTEM_CALL
+ | SEM_EXC_BREAKPOINT
+ | SEM_EXC_DEBUG_BREAKPOINT
+ | SEM_EXC_DEBUG_MODE_BREAKPOINT
 
 ###########
 ### semantics of instructions
@@ -432,9 +437,7 @@ val sem-bltzl x = sem-bz /lts x
 val sem-bne x = sem-b /neq x
 val sem-bnel x = sem-b /neq x
 
-val sem-break x = return void	# TODO: EXCEPTION
-val sem-cache x = return void	# TODO: SEMANTICS
-val sem-cachee x = return void	# TODO: SEMANTICS
+val sem-break x = throw-exception SEM_EXC_BREAKPOINT
 
 val sem-cl bit x = do
 	rs <- rval Unsigned x.source1;
@@ -462,7 +465,18 @@ val sem-cl bit x = do
 end
 
 val sem-deret = return void	#TODO: SEMANTICS
-val sem-di x = return void	#TODO: SEMANTICS
+
+val sem-di x = do
+	sreg <- return (sreg-get);
+	
+	temp <- mktemp;
+	mov sreg.size temp (var sreg);
+	
+	ie <- return fIE;
+	mov 1 ie (imm 0);
+
+	write x.destination (var temp)
+end
 
 val sem-div-divu div_op mod_op x = do
 	num <- rval Signed x.source1;
@@ -479,7 +493,18 @@ end
 val sem-div x = sem-div-divu div mod x
 val sem-divu x = sem-div-divu divs mods x
 
-val sem-ei x = return void	#TODO: SEMANTICS
+val sem-ei x = do
+	sreg <- return (sreg-get);
+	
+	temp <- mktemp;
+	mov sreg.size temp (var sreg);
+	
+	ie <- return fIE;
+	mov 1 ie (imm 1);
+
+	write x.destination (var temp)
+end
+
 val sem-eret = return void	#TODO: SEMANTICS
 
 val sem-ext x = do
@@ -545,11 +570,94 @@ val sem-jal x = do
 	sem-j x
 end
 
-val sem-jalr x = return void	# TODO: SEMANTICS
-val sem-jalr-hb x = return void	# TODO: SEMANTICS
-val sem-jalx x = return void	# TODO: SEMANTICS
-val sem-jr x = return void	# TODO: SEMANTICS
-val sem-jr-hb x = return void	# TODO: SEMANTICS
+val sem-jalr x =  do
+	pc <- return (ip-get);
+	size <- return (sizeof-lval x.destination);
+
+	# 4 instead of 8 since pc got incremented already
+	temp <- mktemp;
+	add size temp (var pc) (imm 4);
+	write x.destination (var temp);
+
+	sem-jr x
+end
+
+val sem-jalr-hb x = sem-jalr x
+
+val sem-jalx x = do
+	isamode <- return (isa-mode-get);
+
+	xorb 1 isamode (var isamode) (imm 1);
+
+	sem-jal x		
+end
+
+val sem-jr x = do
+	rs <- rval Signed x.source1;
+	size <- return (sizeof-rval x.source1);
+	pc <- return (ip-get);
+
+	pc_true <- mktemp;
+	mov size pc_true rs; 
+
+	pc_false <- mktemp;
+	mov size pc_false rs;
+	mov 1 pc_false (imm 0);
+
+	config1CA <- return (fCA);
+	cond <- /eq 1 (var config1CA) (imm 0);
+
+	isamode <- return (isa-mode-get);
+	_if (/neq 1 (var config1CA) (imm 0)) _then
+		mov isamode.size isamode rs;
+	
+	cbranch cond (address pc.size (var pc_true)) (address pc.size (var pc_false))	
+end
+
+val sem-jr-hb x = sem-jr x
+
+val is-user-mode = do
+	dm <- return fDM;
+	ksu <- return fKSU;
+	exl <- return fEXL;
+	erl <- return fERL;
+
+	res <- mktemp;
+	mov 2 res (var ksu);
+	orb 1 res (var res) (var dm);
+	orb 1 res (var res) (var exl);
+	orb 1 res (var res) (var erl); 
+
+	/eq 2 (var res) (imm 2)
+end
+
+val is-reverse-endian = do
+	um <- is-user-mode;
+	re <- return fRE;
+
+	res <- mktemp;
+	andb 1 res um (var re);
+
+	/eq 1 (var res) (imm 1)
+end
+
+val is-big-endian-mem = do
+	res <- mktemp;
+	if (bigendian_mem) then
+		mov 1 res (imm 1)
+	else
+		mov 1 res (imm 0)
+	;
+	return (var res)
+end
+
+val is-big-endian-cpu = do
+	re <- is-reverse-endian;
+	if (bigendian_mem) then
+		/eq 1 re (imm 0)
+	else
+		/eq 1 re (imm 1)
+end
 
 val sem-lb-lbu ext_op x = do
 	base <- rval Signed x.source1;
@@ -631,6 +739,86 @@ val sem-lw x = do
 	load 32 memword size (var vaddr);
 
 	write x.destination (var memword)
+end
+
+val sem-ll x = do
+	llbit <- return (llbit-get);
+	mov 1 llbit (imm 1);
+
+	sem-lw x
+end
+
+val sem-lwl x = do
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source2;
+	rt <- lval Signed x.destination;
+	size <- return (sizeof-lval x.destination);
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	movsx 2 bcpu2 1 bcpu;
+ 
+	byte <- mktemp;
+	xorb 2 byte (var vaddr) (var bcpu2);
+	shl 32 byte (var byte) (imm 3);
+	
+	memword <- mktemp;
+	load 32 memword size (var vaddr);
+
+	lshift <- mktemp;
+	sub size lshift (imm 24) (var byte);
+	high <- mktemp;
+	shl size high (var memword) (var lshift);
+
+	rshift <- mktemp;
+	add size rshift (imm 8) (var byte); 
+	low <- mktemp;
+	shl size low rt (var rshift);
+	shr size low (var low) (var rshift);
+
+	res <- mktemp;
+	orb size res (var high) (var low);
+	write x.destination (var res)
+end
+
+val sem-lwr x = do
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source2;
+	rt <- lval Signed x.destination;
+	size <- return (sizeof-lval x.destination);
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	movsx 2 bcpu2 1 bcpu;
+ 
+	byte <- mktemp;
+	xorb 2 byte (var vaddr) (var bcpu2);
+	shl 32 byte (var byte) (imm 3);
+	
+	memword <- mktemp;
+	load 32 memword size (var vaddr);
+
+	lshift <- mktemp;
+	sub size lshift (imm 32) (var byte);
+	high <- mktemp;
+	shr size high (var memword) (var lshift);
+	shl size high (var high) (var lshift);
+
+	rshift <- mktemp;
+	sub size rshift (imm 31) (var byte); 
+	low <- mktemp;
+	shl size low rt (var rshift);
+	shr size low (var low) (var rshift);
+
+	res <- mktemp;
+	orb size res (var high) (var low);
+	write x.destination (var res)
 end
 
 val sem-lui x = do
@@ -936,6 +1124,93 @@ val sem-sw x = do
 	store 32 (address size (var vaddr)) rt
 end
 
+val sem-sc-sw x = do
+	rt <- lval Signed x.destination;
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source1);
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	_if (/neq 2 (var vaddr) (imm 0)) _then
+		throw-exception SEM_EXC_VADDR_ERROR;
+
+	store 32 (address size (var vaddr)) rt
+end
+
+val sem-sc x = do
+	llbit <- return (llbit-get);
+	size <- return (sizeof-lval x.destination);
+
+	_if (/eq llbit.size (var llbit) (imm 1)) _then
+		sem-sc-sw x;
+	
+	temp <- mktemp;
+	movzx size temp llbit.size (var llbit);
+	
+	write x.destination (var temp)
+end
+
+val sem-swl x = do
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source3;
+	rt <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source2);
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	movsx 2 bcpu2 1 bcpu;
+ 
+	byte <- mktemp;
+	xorb 2 byte (var vaddr) (var bcpu2);
+	shl 32 byte (var byte) (imm 3);
+
+	rshift <- mktemp;
+	sub size rshift (imm 24) (var byte);
+	memword <- mktemp;
+	shr size memword rt (var rshift);
+
+	store 32 (address size (var vaddr)) (var memword)
+end
+
+
+val sem-swr x = do
+	base <- rval Signed x.source1;
+	off <- rval Signed x.source3;
+	rt <- rval Signed x.source2;
+	size <- return (sizeof-rval x.source2);
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	movsx 2 bcpu2 1 bcpu;
+ 
+	byte <- mktemp;
+	xorb 2 byte (var vaddr) (var bcpu2);
+	shl 32 byte (var byte) (imm 3);
+
+	lshift <- mktemp;
+	memword <- mktemp;
+	shr size memword rt (var byte);
+
+	store 32 (address size (var vaddr)) (var memword)
+end
+
+val sem-sdbbp x = do
+	debugDM <- return (fDM);
+	
+	_if (/eq debugDM.size (var debugDM) (imm 0)) _then
+		throw-exception SEM_EXC_DEBUG_BREAKPOINT
+	_else
+		throw-exception SEM_EXC_DEBUG_MODE_BREAKPOINT 
+end
+
 val sem-sll-sra-srl shift_op x = do
 	rt <- rval Signed x.source1;
 	amount <- rval Signed x.source2;
@@ -969,6 +1244,7 @@ val sem-sllv x = sem-sllv-srav-srlv shl x
 val sem-srav x = sem-sllv-srav-srlv shrs x
 val sem-srlv x = sem-sllv-srav-srlv shr x
 
+val sem-syscall = throw-exception SEM_EXC_SYSTEM_CALL
 val sem-t cmp_op x = do
 	rs <- rval Signed x.source1;
 	rt <- rval Signed x.source2;
@@ -1000,6 +1276,38 @@ val sem-tgeiu x = sem-ti /geu Unsigned x
 val sem-tlti x = sem-ti /lts Signed x
 val sem-tltiu x = sem-ti /ltu Unsigned x
 val sem-tnei x = sem-ti /neq Signed x
+
+val sem-wsbh x = do
+	rt <- rval Unsigned x.source;
+	size <- return (sizeof-rval x.source);
+
+	temp <- mktemp;
+	mov size temp rt;
+ 
+	p1 <- mktemp;
+	p2 <- mktemp;
+	p3 <- mktemp;
+	p4 <- mktemp;
+	
+	mov 8 p1 rt;
+	shr size temp (var temp) (imm 8);
+	mov 8 p2 rt;
+	shr size temp (var temp) (imm 8);
+	mov 8 p3 rt;
+	shr size temp (var temp) (imm 8);
+	mov 8 p4 rt;
+	
+	res <- mktemp;
+	mov 8 res (var p3);
+	shl size res (var res) (imm 8);
+	mov 8 res (var p4);
+	shl size res (var res) (imm 8);
+	mov 8 res (var p1);
+	shl size res (var res) (imm 8);
+	mov 8 res (var p2);
+
+	write x.destination (var res)	
+end
 
 val semantics i =
    case i of
@@ -1038,8 +1346,8 @@ val semantics i =
     | BNEL x: sem-bnel x
     | BREAK x: sem-break x
     | C-cond-fmt x: sem-default-quadop-fmt-src-ro-generic i x
-    | CACHE x: sem-cache x
-    | CACHEE x: sem-cachee x
+    | CACHE x: sem-default-ternop-src-ro-generic i x
+    | CACHEE x: sem-default-ternop-src-ro-generic i x
     | CEIL-L-fmt x: sem-default-binop-fmt-ro-generic i x
     | CEIL-W-fmt x: sem-default-binop-fmt-ro-generic i x
     | CFC1 x: sem-default-binop-ro-generic i x
@@ -1085,18 +1393,18 @@ val semantics i =
     | LHE x: sem-lh x
     | LHU x: sem-lhu x
     | LHUE x: sem-lhu x
-    | LL x: sem-foo
-    | LLE x: sem-foo
+    | LL x: sem-ll x
+    | LLE x: sem-ll x
     | LUI x: sem-lui x
     | LUXC1 x: sem-default-ternop-ro-generic i x
     | LW x: sem-lw x
     | LWC1 x: sem-default-ternop-ro-generic i x
     | LWC2 x: sem-default-ternop-src-ro-generic i x
     | LWE x: sem-lw x
-    | LWL x: sem-foo
-    | LWLE x: sem-foo
-    | LWR x: sem-foo
-    | LWRE x: sem-foo
+    | LWL x: sem-lwl x
+    | LWLE x: sem-lwl x
+    | LWR x: sem-lwr x
+    | LWRE x: sem-lwr x
     | LWXC1 x: sem-default-ternop-ro-generic i x
     | MADD x: sem-madd x
     | MADD-fmt x: sem-default-ternop-fmt-ro-generic i x
@@ -1139,9 +1447,9 @@ val semantics i =
     | ORI x: sem-ori x
     | PLL-PS x: sem-default-ternop-ro-generic i x
     | PLU-PS x: sem-default-ternop-ro-generic i x
-    | PREF x: sem-foo
-    | PREFE x: sem-foo
-    | PREFX x: sem-foo
+    | PREF x: sem-default-ternop-src-ro-generic i x
+    | PREFE x: sem-default-ternop-src-ro-generic i x
+    | PREFX x: sem-default-ternop-src-ro-generic i x
     | PUL-PS x: sem-default-ternop-ro-generic i x
     | PUU-PS x: sem-default-ternop-ro-generic i x
     | RDHWR x: sem-foo
@@ -1154,9 +1462,9 @@ val semantics i =
     | RSQRT-fmt x: sem-default-binop-fmt-ro-generic i x
     | SB x: sem-sb x
     | SBE x: sem-sb x
-    | SC x: sem-foo
-    | SCE x: sem-foo
-    | SDBBP x: sem-foo
+    | SC x: sem-sc x
+    | SCE x: sem-sc x
+    | SDBBP x: sem-sdbbp x
     | SDC1 x: sem-default-ternop-src-ro-generic i x
     | SDC2 x: sem-default-ternop-src-ro-generic i x
     | SDXC1 x: sem-default-ternop-src-ro-generic i x
@@ -1183,14 +1491,14 @@ val semantics i =
     | SWC1 x: sem-default-ternop-src-ro-generic i x
     | SWC2 x: sem-default-ternop-src-ro-generic i x
     | SWE x: sem-sw x
-    | SWL x: sem-foo
-    | SWLE x: sem-foo
-    | SWR x: sem-foo
-    | SWRE x: sem-foo
+    | SWL x: sem-swl x
+    | SWLE x: sem-swl x
+    | SWR x: sem-swr x
+    | SWRE x: sem-swr x
     | SWXC1 x: sem-default-ternop-src-ro-generic i x
-    | SYNC x: sem-foo
-    | SYNCI x: sem-foo
-    | SYSCALL x: sem-foo
+    | SYNC x: sem-default-unop-src-ro-generic i x
+    | SYNCI x: sem-default-binop-src-ro-generic i x
+    | SYSCALL x: sem-syscall
     | TEQ x: sem-teq x
     | TEQI x: sem-teqi x
     | TGE x: sem-tge x
@@ -1211,9 +1519,9 @@ val semantics i =
     | TNEI x: sem-tnei x
     | TRUNC-L-fmt x: sem-default-binop-fmt-ro-generic i x
     | TRUNC-W-fmt x: sem-default-binop-fmt-ro-generic i x
-    | WAIT x: sem-foo
+    | WAIT x: sem-default-unop-src-ro-generic i x
     | WRPGPR x: sem-foo
-    | WSBH x: sem-foo
+    | WSBH x: sem-wsbh x
     | XOR x: sem-xor x
     | XORI x: sem-xori x
    end

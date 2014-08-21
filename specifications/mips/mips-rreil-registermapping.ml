@@ -1,6 +1,10 @@
 type sem_id =
    Sem_PC
  | Sem_SREG
+ | Sem_LLBIT
+ | Sem_DEBUG
+ | Sem_CONFIG1
+ | Sem_ISA_MODE
 
 type sem_id =
    Sem_ZERO
@@ -72,7 +76,13 @@ type sem_id =
  | Sem_F30
  | Sem_F31
 
+val fIE = sem-reg-offset (sreg-get) 0
 val fRE = sem-reg-offset (sreg-get) 25
+val fCA = sem-reg-offset (config1-get) 2
+val fDM = sem-reg-offset (debug-get) 0
+val fEXL = sem-reg-offset (sreg-get) 1
+val fERL = sem-reg-offset (sreg-get) 2
+val fKSU = sem-reg-offset (sreg-get) 3
 
 val sem-reg-offset r o = @{offset=r.offset + o}r
 
@@ -80,6 +90,10 @@ val ip-get = {id=Sem_PC,offset=0,size=32}
 val hi-get = {id=Sem_HI,offset=0,size=32}
 val lo-get = {id=Sem_LO,offset=0,size=32}
 val sreg-get = {id=Sem_SREG,offset=0,size=32}
+val llbit-get = {id=Sem_LLBIT,offset=0,size=1}
+val debug-get = {id=Sem_DEBUG,offset=0,size=32}
+val config1-get = {id=Sem_CONFIG1,offset=0,size=32}
+val isa-mode-get = {id=Sem_ISA_MODE,offset=0,size=1}
 
 val semantic-gpr-of r =
    case r of

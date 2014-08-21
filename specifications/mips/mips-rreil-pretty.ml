@@ -71,6 +71,10 @@ val arch-show-id r =
 	 | Sem_F30: "f30"
 	 | Sem_F31: "f31"
 	 | Sem_SREG: "SREG"
+	 | Sem_LLBIT: "LLBit"
+	 | Sem_DEBUG: "Debug"
+	 | Sem_CONFIG1: "Config1"
+	 | Sem_ISA_MODE: "ISA Mode"
    end
 
 val pretty-arch-id r = arch-show-id r
@@ -80,4 +84,8 @@ val pretty-arch-exception exception =
       SEM_EXC_OVERFLOW : "{Exception: Overflow}"
     | SEM_EXC_VADDR_ERROR : "{Exception: Virtual Address Error}"
     | SEM_EXC_TRAP : "{Exception: Trap}"
+    | SEM_EXC_SYSTEM_CALL : "{Exception: System Call}"
+    | SEM_EXC_BREAKPOINT : "{Exception: Breakpoint}"
+    | SEM_EXC_DEBUG_BREAKPOINT : "{Exception: Debug Breakpoint}"
+    | SEM_EXC_DEBUG_MODE_BREAKPOINT : "{Exception: Debug Mode Breakpoint}"
    end
