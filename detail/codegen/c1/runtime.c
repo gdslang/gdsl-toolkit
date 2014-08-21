@@ -7,7 +7,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <limits.h>
-#include <endian.h>
 
 /* generated declarations for records with fixed fields */
 @records@
@@ -24,6 +23,9 @@ struct state {
   size_t ip_base;     /* base address of code */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
+  char* buf_be;
+  char le;
+  char token_size;
   char* err_str;      /* a string describing the fatal error that occurred */
   jmp_buf err_tgt;    /* the position of the exception handler */
   FILE* handle;       /* the file that the puts primitve uses */
@@ -66,7 +68,7 @@ static void NO_INLINE_ATTR alloc_heap(state_t s, char* prev_page, size_t size) {
 };
 
 
-void 
+void
 @reset_heap@
 (state_t s) {
   char* heap = s->heap_base;
@@ -83,7 +85,7 @@ void
   memset(&s->state, 0, sizeof(s->state));
 };
 
-size_t 
+size_t
 @heap_residency@
 (state_t s) {
   char* heap = s->heap_base;
@@ -198,33 +200,53 @@ static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec)
 #define slice(vec_data,ofs,sz) ((vec_data >> ofs) & ((1ul << sz)-1))
 #define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}
 
-jmp_buf* 
+jmp_buf*
 @err_tgt@
 (state_t s) {
   return &(s->err_tgt);
 };
 
-char* 
+char*
 @get_error_message@
 (state_t s) {
   return s->err_str;
 };
 
-uint8_t htole8(uint8_t a) {
-  return a;
+
+static inline int_t consume(state_t s, char size) {
+  int_t result = 0;
+  while(size) {
+    char be_buf_left = -((unsigned char)s->buf_be) & (s->token_size - 1);
+    if(!be_buf_left) {
+      s->buf_be -= s->token_size;
+      int i;
+      for(i = 0; i < s->token_size; i++)
+        s->buf_be[i] = s->le ? s->ip[s->token_size - i - 1] : s->ip[i];
+      be_buf_left += s->token_size;
+    }
+    for(; be_buf_left && size; be_buf_left--) {
+      result |= *(s->buf_be++) << (--size);
+    }
+  }
+  return result;
 }
 
 #define GEN_CONSUME(size)                                 \
 static inline int_t consume ## size(state_t s) {          \
-  if (s->ip+( size >>3)>s->ip_limit) {                    \
-    s->err_str = "GDSL runtime: end of code input stream";\
-    longjmp(s->err_tgt,1);                                \
-  };                                                      \
-  uint ## size ## _t* ptr = (uint ## size ## _t*) s->ip;  \
-  int_t res = htole ## size ((unsigned) *ptr);            \
-  s->ip+= size >> 3;                                      \
-  return res;                                             \
+  return consume(s, (size) / 8);                          \
 }
+
+//#define GEN_CONSUME(size)                                 \
+//static inline int_t consume ## size(state_t s) {          \
+//  if (s->ip+( size >>3)>s->ip_limit) {                    \
+//    s->err_str = "GDSL runtime: end of code input stream";\
+//    longjmp(s->err_tgt,1);                                \
+//  };                                                      \
+//  uint ## size ## _t* ptr = (uint ## size ## _t*) s->ip;  \
+//  int_t res = (unsigned) *ptr;                            \
+//  s->ip+= size >> 3;                                      \
+//  return res;                                             \
+//}
 
 @consumes@
 
@@ -286,7 +308,7 @@ static string_t int_to_string(state_t s, int_t v) {
   }
 };
 
-void 
+void
 @set_code@
 (state_t s, char* buf, size_t buf_len, size_t base) {
   s->ip = buf;
@@ -295,13 +317,13 @@ void
   s->ip_base = base;
 }
 
-size_t 
+size_t
 @get_ip_offset@
 (state_t s) {
   return s->ip_base + (s->ip - s->ip_start);
 }
 
-int_t 
+int_t
 @seek@
 (state_t s, size_t i) {
   size_t size = (size_t)(s->ip_limit - s->ip_start);
@@ -326,7 +348,7 @@ string_t
   return buf;
 }
 
-void 
+void
 @destroy@
 (state_t s) {
 @reset_heap@
@@ -348,7 +370,7 @@ void
 @functions@
 
 
-state_t 
+state_t
 @init@
 () {
   state_t s = calloc(1,sizeof(struct state));
@@ -361,6 +383,12 @@ state_t
   s->heap_base = NULL;
   s->heap_limit = NULL;
   s->heap = NULL;
+
+  s->le = 1;
+  s->token_size = 4;
+  s->buf_be = (char*)malloc(2*sizeof(int_t));
+  s->buf_be = (char*)((size_t)s->buf_be | (sizeof(int_t) - 1)) + 1;
+
   return s;
 }
 
@@ -470,11 +498,11 @@ int main (int argc, char** argv) {
        }
        blob[i] = c & 0xff;
     }
-  }  
+  }
   /* initialize the GDSL program */
   gdsl_set_code(s, blob, buf_size, base_address);
   gdsl_seek(s, start_address);
-  
+
   int_t alloc_size = 0;
   int_t alloc_no = 0;
   int_t alloc_max = 0;
@@ -521,7 +549,7 @@ int main (int argc, char** argv) {
   }
   fprintf(stderr, "heap: no: %lli mem: %lli max: %lli\n", alloc_no, alloc_size, alloc_max);
   gdsl_destroy(s);
-  return 0; 
+  return 0;
 }
 
 #endif
