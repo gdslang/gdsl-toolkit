@@ -117,7 +117,6 @@ val show/register r =
     | F29: "f29"
     | F30: "f30"
     | F31: "f31"
-    | F x: "f" +++ show-int x
     | FIR: "fir"
     | FCCR: "fccr"
     | FEXR: "fexr"

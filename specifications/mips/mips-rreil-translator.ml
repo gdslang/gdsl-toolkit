@@ -902,6 +902,25 @@ end
 val sem-movn x = sem-movn-movz /neq x
 val sem-movz x = sem-movn-movz /eq x
 
+val sem-movf-movt x i = do
+	rs <- rval Signed x.source1;
+	cc <- (rval Signed x.source2);
+	cc_int <- return (lin-to-int cc);
+	fcsr <- return (semantic-fpr-of FCSR);
+
+	bit <- return
+		(if cc_int === 0 then
+			23 + cc_int
+		else
+			24 + cc_int);
+	
+	_if (/eq 1 (var (at-offset fcsr bit)) (imm i)) _then
+		write x.destination rs
+end
+
+val sem-movf x = sem-movf-movt x 0
+val sem-movt x = sem-movf-movt x 1
+
 val sem-mult-multu ext_op x = do
 	rs <- rval Signed x.source1;
 	rt <- rval Signed x.source2;
@@ -1355,7 +1374,7 @@ val semantics i =
     | CLO x: sem-cl 1 x
     | CLZ x: sem-cl 0 x
     | COP2 x: sem-default-unop-src-ro-generic i x
-    | CTC1 x: sem-default-binop-ro-generic i x
+    | CTC1 x: sem-default-binop-src-ro-generic i x
     | CTC2 x: sem-default-binop-src-ro-generic i x
     | CVT-D-fmt x: sem-default-binop-fmt-ro-generic i x
     | CVT-L-fmt x: sem-default-binop-fmt-ro-generic i x
@@ -1417,11 +1436,11 @@ val semantics i =
     | MFHI x: sem-mfhi x
     | MFLO x: sem-mflo x
     | MOV-fmt x: sem-default-binop-fmt-ro-generic i x
-    | MOVF x: sem-foo
+    | MOVF x: sem-movf x
     | MOVF-fmt x: sem-default-ternop-fmt-ro-generic i x
     | MOVN x: sem-movn x
     | MOVN-fmt x: sem-default-ternop-fmt-ro-generic i x
-    | MOVT x: sem-foo
+    | MOVT x: sem-movt x
     | MOVT-fmt x: sem-default-ternop-fmt-ro-generic i x
     | MOVZ x: sem-movz x
     | MOVZ-fmt x: sem-default-ternop-fmt-ro-generic i x
@@ -1439,7 +1458,7 @@ val semantics i =
     | MUL-fmt x: sem-default-ternop-fmt-ro-generic i x
     | MULT x: sem-mult x
     | MULTU x: sem-multu x
-    | NEG-fmt x: sem-foo
+    | NEG-fmt x: sem-default-binop-fmt-ro-generic i x
     | NMADD-fmt x: sem-default-quadop-fmt-ro-generic i x
     | NMSUB-fmt x: sem-default-quadop-fmt-ro-generic i x
     | NOR x: sem-nor x

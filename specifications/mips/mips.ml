@@ -33,7 +33,6 @@ type imm =
 type lvalue =
    GPR of register
  | FPR of register
- | FPC of register
 
 type rvalue =
    LVALUE of lvalue
@@ -248,7 +247,7 @@ val / ['010010 1 /cofun'] = unop-src COP2 cofun
 
 ### CTC1
 ###  - Move Control Word to Floating Point
-val / ['010001 00110 /rt /fs 00000000000'] = binop CTC1 fs/ctrl (right rt) 
+val / ['010001 00110 /rt /fs 00000000000'] = binop-src CTC1 fs/ctrl (right rt) 
 
 ### CTC2
 ###  - Move Control Word to Coprocessor 2
@@ -996,7 +995,7 @@ end
 val fs/ctrl = do
   fs <- query $fs;
   update @{fs=''};
-  return (FPC (fpc-from-bits fs))
+  return (IMM (IMM5 fs))
 end
 
 val immediate = do
@@ -1304,7 +1303,7 @@ type instruction =
  | CLO of ternop
  | CLZ of ternop
  | COP2 of unop-src
- | CTC1 of binop
+ | CTC1 of binop-src
  | CTC2 of binop-src
  | CVT-D-fmt of binop-fmt
  | CVT-L-fmt of binop-fmt
@@ -1550,7 +1549,6 @@ type register =
  | F29
  | F30
  | F31
- | F of int
  | FIR
  | FCCR
  | FEXR
@@ -1637,5 +1635,3 @@ val format-from-bits bits =
   | '10101': L
   | '10110': PS
  end
-
-val fpc-from-bits bits = (F (zx bits))

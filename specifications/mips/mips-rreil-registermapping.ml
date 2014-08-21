@@ -75,6 +75,12 @@ type sem_id =
  | Sem_F29
  | Sem_F30
  | Sem_F31
+ | Sem_FIR
+ | Sem_FCCR
+ | Sem_FEXR
+ | Sem_FENR
+ | Sem_FCSR
+
 
 val fIE = sem-reg-offset (sreg-get) 0
 val fRE = sem-reg-offset (sreg-get) 25
@@ -165,4 +171,9 @@ val semantic-fpr-of f =
     | F29  : {id=Sem_F29 ,offset=0,size=32}
     | F30  : {id=Sem_F30 ,offset=0,size=32}
     | F31  : {id=Sem_F31 ,offset=0,size=32}
+    | FIR  : {id=Sem_FIR ,offset=0,size=32}
+    | FCCR  : {id=Sem_FCCR ,offset=0,size=32}
+    | FEXR  : {id=Sem_FEXR ,offset=0,size=32}
+    | FENR  : {id=Sem_FENR ,offset=0,size=32}
+    | FCSR  : {id=Sem_FCSR ,offset=0,size=32}
    end
