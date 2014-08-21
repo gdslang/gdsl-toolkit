@@ -817,15 +817,15 @@ structure C1 = struct
       in
          foldl recAdd recStripped fs
       end
-     | emitExp s (UPDATEexp (rs,t as RECORDvtype (boxed,fsTys),fs,IDexp sym)) =
+     | emitExp s (UPDATEexp (rs,t as RECORDvtype (boxed,fsTys),fs,e)) =
 	 let
 		fun genFieldExpr (f,ty) = case List.find (fn (fid,_) => SymbolTable.eq_symid (f,fid)) fs of
-		   NONE => (f,SELECTexp (rs,RECORDvtype (boxed,fsTys),f,IDexp sym))
+		   NONE => (f,SELECTexp (rs,RECORDvtype (boxed,fsTys),f,e))
 	     | SOME (_,e) => (f,e)
 	 in
 		 emitExp s (RECORDexp (rs,t,List.map genFieldExpr fsTys))
 	 end
-	 | emitExp s (UPDATEexp (rs,_,fs,e)) = raise CodeGenBug (* we can't copy a C struct and set a field as a C expression *)
+	  | emitExp s (UPDATEexp (rs,_,fs,e)) = raise CodeGenBug
      | emitExp s (LITexp (t,VEClit pat)) =
       let
          fun genNum (c,acc) = IntInf.fromInt 2*acc+(if c= #"1" then 1 else 0)

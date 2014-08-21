@@ -546,6 +546,11 @@ structure Simplify = struct
       stmtsRef : stmt list ref
    }
 
+   fun canDuplicate (IDexp _) = true
+     | canDuplicate (PRIexp (GETSTATEprim,_,[])) = true
+     | canDuplicate (SELECTexp (_,_,_,e)) = canDuplicate e
+     | canDuplicate _ = false
+     
    fun visitStmt s (ASSIGNstmt (NONE, PRIexp (GET_CON_ARGprim,_,[_,e]))) = visitStmt s (ASSIGNstmt (NONE, e))
      | visitStmt s (ASSIGNstmt (res,exp)) = (case visitExp s exp of
          PRIexp (RAISEprim,t,es) => ASSIGNstmt (NONE, PRIexp (RAISEprim,t,es))
@@ -721,10 +726,11 @@ structure Simplify = struct
             IDexp sym => SymbolTable.eq_symid (arg,sym)
           | _ => false) (ListPair.zip (args,map #2 fs @ [recArg]))) orelse
          not (List.length es=List.length args) orelse
+         not (canDuplicate (List.last es)) orelse
          not (SymbolTable.eq_symid (res,symRes)) then NONE else
       let
          val tab = !SymbolTables.varTable
-         val (tab, symDum) = SymbolTable.fresh (tab, Atom.atom "dummy_select")
+         val (tab, symDum) = SymbolTable.fresh (tab, Atom.atom "dummy_update")
          val _ = SymbolTables.varTable := tab
       in
          SOME (UPDATEexp (symDum, t, ListPair.zip (map #1 fs, es), List.last es))
