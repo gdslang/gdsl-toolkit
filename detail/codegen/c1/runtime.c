@@ -23,7 +23,7 @@ struct state {
   size_t ip_base;     /* base address of code */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
-  char* buf_be;
+  unsigned char* buf_be;
   char le;
   char token_size;
   char* err_str;      /* a string describing the fatal error that occurred */
@@ -215,7 +215,8 @@ char*
 
 static inline int_t consume(state_t s, char size) {
   int_t result = 0;
-  while(size) {
+  char size_left = size;
+  while(size_left) {
     char be_buf_left = -((unsigned char)s->buf_be) & (s->token_size - 1);
     if(!be_buf_left) {
       s->buf_be -= s->token_size;
@@ -224,10 +225,11 @@ static inline int_t consume(state_t s, char size) {
         s->buf_be[i] = s->le ? s->ip[s->token_size - i - 1] : s->ip[i];
       be_buf_left += s->token_size;
     }
-    for(; be_buf_left && size; be_buf_left--) {
-      result |= *(s->buf_be++) << (--size);
+    for(; be_buf_left && size_left; be_buf_left--) {
+      result |= *(s->buf_be++) << (--size_left*8);
     }
   }
+  s->ip += size;
   return result;
 }
 
@@ -385,9 +387,9 @@ state_t
   s->heap = NULL;
 
   s->le = 1;
-  s->token_size = 4;
-  s->buf_be = (char*)malloc(2*sizeof(int_t));
-  s->buf_be = (char*)((size_t)s->buf_be | (sizeof(int_t) - 1)) + 1;
+  s->token_size = 2;
+  s->buf_be = (unsigned char*)malloc(2*sizeof(int_t));
+  s->buf_be = (unsigned char*)((size_t)s->buf_be | (sizeof(int_t) - 1)) + 1;
 
   return s;
 }
