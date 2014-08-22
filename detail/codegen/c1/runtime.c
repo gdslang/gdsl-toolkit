@@ -259,6 +259,12 @@ static inline void unconsume(state_t s, char size) {
   }
 }
 
+void
+@endianness@
+(state_t s, int_t kind, int_t size) {
+
+}
+
 static int_t vec_to_signed(state_t s, vec_t v) {
   unsigned int bit_size = sizeof(int_t)*8;
   if (v.size>bit_size) {
