@@ -869,9 +869,9 @@ structure C1 = struct
      | emitPrim s (CONSUME8prim, [],_) = (addConsume s 8; str "consume8(s)")
      | emitPrim s (CONSUME16prim, [],_) = (addConsume s 16; str "consume16(s)")
      | emitPrim s (CONSUME32prim, [],_) = (addConsume s 32; str "consume32(s)")
-     | emitPrim s (UNCONSUME8prim, [],_) = str "s->ip-=1"
-     | emitPrim s (UNCONSUME16prim, [],_) = str "s->ip-=2"
-     | emitPrim s (UNCONSUME32prim, [],_) = str "s->ip-=4"
+     | emitPrim s (UNCONSUME8prim, [],_) = str "unconsume(s, 1)"
+     | emitPrim s (UNCONSUME16prim, [],_) = str "unconsume(s, 1)"
+     | emitPrim s (UNCONSUME32prim, [],_) = str "unconsume(s, 1)"
      | emitPrim s (PRINTLNprim, [e],_) = seq [str "fputs(", emitExp s e, str ", s->handle)"]
      | emitPrim s (RAISEprim, [e],_) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0)"]
      | emitPrim s (ANDprim, [e1,e2],_) = seq [str "(", emitExp s e1, str ") & (", emitExp s e2, str ")"]

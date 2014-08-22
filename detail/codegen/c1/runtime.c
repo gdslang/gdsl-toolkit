@@ -217,7 +217,7 @@ static inline int_t consume(state_t s, char size) {
   int_t result = 0;
   char size_left = size;
   while(size_left) {
-    char be_buf_left = -((unsigned char)s->buf_be) & (s->token_size - 1);
+    char be_buf_left = -((size_t)s->buf_be) & (s->token_size - 1);
     if(!be_buf_left) {
       s->buf_be -= s->token_size;
       int i;
@@ -227,10 +227,32 @@ static inline int_t consume(state_t s, char size) {
     }
     for(; be_buf_left && size_left; be_buf_left--) {
       result |= *(s->buf_be++) << (--size_left*8);
+      s->ip++;
     }
   }
-  s->ip += size;
   return result;
+}
+
+static inline void unconsume(state_t s, char size) {
+  char be_buf_consumed = ((size_t)s->buf_be) & (s->token_size - 1);
+  if(size < be_buf_consumed) {
+    s->buf_be -= size;
+    s->ip -= size;
+  } else if(size == be_buf_consumed) {
+    s->buf_be += (s->token_size - size);
+    s->ip -= size;
+  } else {
+    char be_buf_left = -((size_t)s->buf_be) & (s->token_size - 1);
+    s->buf_be += be_buf_left;
+    char size_left = size - be_buf_consumed;
+    s->ip -= be_buf_consumed;
+
+    char tokens = size_left / s->token_size;
+    s->ip -= (tokens + 1) * s->token_size;
+
+    char inner_token = size_left % s->token_size;
+    consume(s, s->token_size - inner_token);
+  }
 }
 
 #define GEN_CONSUME(size)                                 \
@@ -388,8 +410,10 @@ state_t
 
   s->le = 1;
   s->token_size = 2;
-  s->buf_be = (unsigned char*)malloc(2*sizeof(int_t));
-  s->buf_be = (unsigned char*)((size_t)s->buf_be | (sizeof(int_t) - 1)) + 1;
+  /*
+   * Todo: Handle alignment error
+   */
+  s->buf_be = (unsigned char*)malloc(s->token_size);
 
   return s;
 }
