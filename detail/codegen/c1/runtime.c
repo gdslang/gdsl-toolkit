@@ -19,10 +19,10 @@ struct state {
   char* heap;         /* current top of the heap */
 @state_type@
 ;      /* the current monadic state */
-  char* ip_start;     /* beginning of code buffer */
+  unsigned char* ip_start;     /* beginning of code buffer */
   size_t ip_base;     /* base address of code */
-  char* ip_limit;     /* first byte beyond the code buffer */
-  char* ip;           /* current pointer into the buffer */
+  unsigned char* ip_limit;     /* first byte beyond the code buffer */
+  unsigned char* ip;           /* current pointer into the buffer */
   size_t token_addr_inv;
   char* err_str;      /* a string describing the fatal error that occurred */
   jmp_buf err_tgt;    /* the position of the exception handler */
@@ -217,10 +217,8 @@ static inline int_t consume(state_t s, char size) {
     longjmp(s->err_tgt, 1);
   };
   int_t result = 0;
-  while(size) {
-    unsigned char *ptr = (unsigned char*)(((size_t)s->ip++) ^ s->token_addr_inv);
-    result |= *ptr << (--size*8);
-  }
+  while(size)
+    result |= s->ip_start[(s->ip++ - s->ip_start) ^ s->token_addr_inv] << (--size*8);
   return result;
 }
 
@@ -302,9 +300,12 @@ static string_t int_to_string(state_t s, int_t v) {
 void
 @set_code@
 (state_t s, char* buf, size_t buf_len, size_t base) {
-  s->ip = buf;
-  s->ip_limit = buf+buf_len;
-  s->ip_start = buf;
+  /*
+   * Todo: fix signedness
+   */
+  s->ip = (unsigned char*)buf;
+  s->ip_limit = (unsigned char*)buf+buf_len;
+  s->ip_start = (unsigned char*)buf;
   s->ip_base = base;
 }
 
