@@ -895,7 +895,7 @@ structure C1 = struct
      | emitPrim s (GET_CON_ARGprim, [_,e],[FUNvtype (_,_,[t]),_]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->payload"]
      | emitPrim s (VOIDprim, [],_) = str "0 /* void value */"
      | emitPrim s (MERGE_ROPEprim, [e],_) = seq [str (#prefix s ^ "merge_rope"), fArgs [emitExp s e]] 
-     | emitPrim s (SET_ENDIANESSprim, es,_) = seq [str (#prefix s ^ "set_endianess"), fArgs (map (emitExp s) es)] 
+     | emitPrim s (SET_ENDIANNESSprim, es,_) = seq [str (#prefix s ^ "set_endianness"), fArgs (map (emitExp s) es)] 
      | emitPrim s _ = raise CodeGenBug
    
    and addConsume s n = #consumeSizes s := IntListSet.add (!(#consumeSizes s),n)
@@ -1250,7 +1250,7 @@ structure C1 = struct
                C1Templates.mkHook ("reset_heap", str (prefix ^ "reset_heap")),
                C1Templates.mkHook ("heap_residency", str (prefix ^ "heap_residency")),
                C1Templates.mkHook ("merge_rope", str (prefix ^ "merge_rope")),
-               C1Templates.mkHook ("endianess", str (prefix ^ "endianess")),
+               C1Templates.mkHook ("endianness", str (prefix ^ "endianness")),
                C1Templates.mkHook ("rope_to_string", str (prefix ^ "rope_to_string")),
                C1Templates.mkHook ("rope_length", str (prefix ^ "rope_length")),
                C1Templates.mkHook ("destroy", str (prefix ^ "destroy")),

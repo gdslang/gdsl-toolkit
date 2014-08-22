@@ -528,7 +528,7 @@ val sem-lb-lbu ext_op x = do
 	re <- return (fRE);
 	movsx 2 bigendian_cpu 1 (var re);
 
-	# get depending on the endianess the correct byte out of the word
+	# get depending on the endianness the correct byte out of the word
 	byte <- mktemp;
 	mov 30 (at-offset byte 2) (imm 0);
 	xorb 2 byte (var vaddr) (var bigendian_cpu);
@@ -561,7 +561,7 @@ val sem-lh-lhu ext_op x = do
 	mov 1 bigendian_cpu (var fRE);
 	shl 2 bigendian_cpu (var bigendian_cpu) (imm 1);
 
-	# get depending on the endianess the correct halfword out of the word
+	# get depending on the endianness the correct halfword out of the word
 	byte <- mktemp;
 	mov 30 (at-offset byte 2) (imm 0);
 	xorb 2 byte (var vaddr) (var bigendian_cpu);

@@ -199,16 +199,16 @@ val conf data short long = CONF
 # the native interface
 type obj = OBJ
 
-# Set the endianess of the input.
-type endianess =
+# Set the endianness of the input.
+type endianness =
     BIG_ENDIAN
   | LITTLE_ENDIAN
    
-val set-endianess kind size = let
+val set-endianness kind size = let
   val e = case kind of
       BIG_ENDIAN : 0
     | LITTLE_ENDIAN : 1
   end
 in
-  return (endianess e size)
+  return (endianness e size)
 end

@@ -245,7 +245,7 @@ structure Primitives = struct
                 BD.meetVarImpliesVar (bvar content'', bvar content')},
        {name="void", ty=UNIT, flow = noFlow},
        {name="merge-rope", ty=FUN([ropeVar],STRING), flow = noFlow},
-       {name="endianess", ty=FUN([ZENO,ZENO],UNIT), flow = noFlow}
+       {name="endianness", ty=FUN([ZENO,ZENO],UNIT), flow = noFlow}
        ]
 
    val primitiveSizeConstraints =
@@ -374,7 +374,7 @@ structure Primitives = struct
             [e] => action e
           | _ => raise ImpPrimTranslationBug))),
          ("merge-rope", (t 0, fn args => pr (MERGE_ROPEprim,os,args))),
-         ("endianess", (t 0, fn args => pr (SET_ENDIANESSprim,iiv,unboxI args)))
+         ("endianness", (t 0, fn args => pr (SET_ENDIANNESSprim,iiv,unboxI args)))
          ]
       end
 
