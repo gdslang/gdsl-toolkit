@@ -214,10 +214,14 @@ char*
 
 
 static inline int_t consume(state_t s, char size) {
+  if(s->ip + size > s->ip_limit) {
+    s->err_str = "GDSL runtime: end of code input stream";
+    longjmp(s->err_tgt, 1);
+  };
   int_t result = 0;
   char size_left = size;
   while(size_left) {
-    char be_buf_left = -((size_t)s->buf_be) & (s->token_size - 1);
+    char be_buf_left = -((size_t) s->buf_be) & (s->token_size - 1);
     if(!be_buf_left) {
       s->buf_be -= s->token_size;
       int i;
@@ -226,7 +230,7 @@ static inline int_t consume(state_t s, char size) {
       be_buf_left += s->token_size;
     }
     for(; be_buf_left && size_left; be_buf_left--) {
-      result |= *(s->buf_be++) << (--size_left*8);
+      result |= *(s->buf_be++) << (--size_left * 8);
       s->ip++;
     }
   }
@@ -234,7 +238,7 @@ static inline int_t consume(state_t s, char size) {
 }
 
 static inline void unconsume(state_t s, char size) {
-  char be_buf_consumed = ((size_t)s->buf_be) & (s->token_size - 1);
+  char be_buf_consumed = ((size_t) s->buf_be) & (s->token_size - 1);
   if(size < be_buf_consumed) {
     s->buf_be -= size;
     s->ip -= size;
@@ -242,7 +246,7 @@ static inline void unconsume(state_t s, char size) {
     s->buf_be += (s->token_size - size);
     s->ip -= size;
   } else {
-    char be_buf_left = -((size_t)s->buf_be) & (s->token_size - 1);
+    char be_buf_left = -((size_t) s->buf_be) & (s->token_size - 1);
     s->buf_be += be_buf_left;
     char size_left = size - be_buf_consumed;
     s->ip -= be_buf_consumed;
@@ -254,26 +258,6 @@ static inline void unconsume(state_t s, char size) {
     consume(s, s->token_size - inner_token);
   }
 }
-
-#define GEN_CONSUME(size)                                 \
-static inline int_t consume ## size(state_t s) {          \
-  return consume(s, (size) / 8);                          \
-}
-
-//#define GEN_CONSUME(size)                                 \
-//static inline int_t consume ## size(state_t s) {          \
-//  if (s->ip+( size >>3)>s->ip_limit) {                    \
-//    s->err_str = "GDSL runtime: end of code input stream";\
-//    longjmp(s->err_tgt,1);                                \
-//  };                                                      \
-//  uint ## size ## _t* ptr = (uint ## size ## _t*) s->ip;  \
-//  int_t res = (unsigned) *ptr;                            \
-//  s->ip+= size >> 3;                                      \
-//  return res;                                             \
-//}
-
-@consumes@
-
 
 static int_t vec_to_signed(state_t s, vec_t v) {
   unsigned int bit_size = sizeof(int_t)*8;
@@ -339,6 +323,8 @@ void
   s->ip_limit = buf+buf_len;
   s->ip_start = buf;
   s->ip_base = base;
+  char be_buf_left = -((size_t)s->buf_be) & (s->token_size - 1);
+  s->buf_be += be_buf_left;
 }
 
 size_t
@@ -385,6 +371,8 @@ void
     free (heap);
     heap = prev;
   }
+  s->buf_be = (unsigned char*)(((size_t)s->buf_be | (s->token_size - 1)) - s->token_size + 1);
+  free(s->buf_be);
   free(s);
 }
 
@@ -414,6 +402,7 @@ state_t
    * Todo: Handle alignment error
    */
   s->buf_be = (unsigned char*)malloc(s->token_size);
+  s->buf_be += s->token_size;
 
   return s;
 }

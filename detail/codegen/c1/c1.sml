@@ -818,14 +818,14 @@ structure C1 = struct
          foldl recAdd recStripped fs
       end
      | emitExp s (UPDATEexp (rs,t as RECORDvtype (boxed,fsTys),fs,e)) =
-	 let
-		fun genFieldExpr (f,ty) = case List.find (fn (fid,_) => SymbolTable.eq_symid (f,fid)) fs of
-		   NONE => (f,SELECTexp (rs,RECORDvtype (boxed,fsTys),f,e))
-	     | SOME (_,e) => (f,e)
-	 in
-		 emitExp s (RECORDexp (rs,t,List.map genFieldExpr fsTys))
-	 end
-	  | emitExp s (UPDATEexp (rs,_,fs,e)) = raise CodeGenBug
+   let
+    fun genFieldExpr (f,ty) = case List.find (fn (fid,_) => SymbolTable.eq_symid (f,fid)) fs of
+       NONE => (f,SELECTexp (rs,RECORDvtype (boxed,fsTys),f,e))
+       | SOME (_,e) => (f,e)
+   in
+     emitExp s (RECORDexp (rs,t,List.map genFieldExpr fsTys))
+   end
+    | emitExp s (UPDATEexp (rs,_,fs,e)) = raise CodeGenBug
      | emitExp s (LITexp (t,VEClit pat)) =
       let
          fun genNum (c,acc) = IntInf.fromInt 2*acc+(if c= #"1" then 1 else 0)
@@ -866,12 +866,12 @@ structure C1 = struct
      (*| emitPrim s (RSEEKprim, [e],_) = seq [str "gdsl_rseek(s, ", emitExp s e, str ")"]*)
      | emitPrim s (DIVprim, [e1, e2],_) = seq [str "(", emitExp s e1, str ")/(", emitExp s e2, str ")"]
      | emitPrim s (IPGETprim, [],_) = str "gdsl_get_ip_offset(s)"
-     | emitPrim s (CONSUME8prim, [],_) = (addConsume s 8; str "consume8(s)")
-     | emitPrim s (CONSUME16prim, [],_) = (addConsume s 16; str "consume16(s)")
-     | emitPrim s (CONSUME32prim, [],_) = (addConsume s 32; str "consume32(s)")
+     | emitPrim s (CONSUME8prim, [],_) = (addConsume s 8; str "consume(s, 1)")
+     | emitPrim s (CONSUME16prim, [],_) = (addConsume s 16; str "consume(s, 2)")
+     | emitPrim s (CONSUME32prim, [],_) = (addConsume s 32; str "consume(s, 4)")
      | emitPrim s (UNCONSUME8prim, [],_) = str "unconsume(s, 1)"
-     | emitPrim s (UNCONSUME16prim, [],_) = str "unconsume(s, 1)"
-     | emitPrim s (UNCONSUME32prim, [],_) = str "unconsume(s, 1)"
+     | emitPrim s (UNCONSUME16prim, [],_) = str "unconsume(s, 2)"
+     | emitPrim s (UNCONSUME32prim, [],_) = str "unconsume(s, 4)"
      | emitPrim s (PRINTLNprim, [e],_) = seq [str "fputs(", emitExp s e, str ", s->handle)"]
      | emitPrim s (RAISEprim, [e],_) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0)"]
      | emitPrim s (ANDprim, [e1,e2],_) = seq [str "(", emitExp s e1, str ") & (", emitExp s e2, str ")"]
@@ -1249,6 +1249,7 @@ structure C1 = struct
                C1Templates.mkHook ("reset_heap", str (prefix ^ "reset_heap")),
                C1Templates.mkHook ("heap_residency", str (prefix ^ "heap_residency")),
                C1Templates.mkHook ("merge_rope", str (prefix ^ "merge_rope")),
+               C1Templates.mkHook ("endianess", str (prefix ^ "endianess")),
                C1Templates.mkHook ("rope_to_string", str (prefix ^ "rope_to_string")),
                C1Templates.mkHook ("rope_length", str (prefix ^ "rope_length")),
                C1Templates.mkHook ("destroy", str (prefix ^ "destroy")),
