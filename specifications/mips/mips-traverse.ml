@@ -10,6 +10,11 @@ in
   traverse f insn
 end
 
+val traverse-others f insn =
+   case insn of
+      PAUSE x: f "PAUSE" (TERNOP x)
+   end
+
 # -> sftl
 type uarity =
    NULLOP
@@ -241,6 +246,7 @@ val traverse f insn =
     | WSBH x: f "WSBH" (BINOP x)
     | XOR x: f "XOR" (TERNOP x)
     | XORI x: f "XORI" (TERNOP x)
+    | _: traverse-others f insn
    end
 
 

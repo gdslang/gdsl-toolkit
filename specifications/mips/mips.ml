@@ -50,10 +50,20 @@ val right lvalue = do
   return (LVALUE lvalue)
 end
 
+
+val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101')
+
+###
+# SLL not script handled yet
+#val / ['000000 00000 /rt /rd /sa 000000']
+# | pause? = ternop PAUSE rd (right rt) sa
+# | otherwise = ternop SLL rd (right rt) sa
+###
+
 # -> sftl
 
 val decode config = do
-  update@{rs='',rt='',rd='',fr='',fs='',ft='',fd='',immediate='',offset='',sel='',impl='',code10='',code19='',code20='',stype='',msb='',msbd='',lsb='',sa='',instr_index='',cofun='',cc='',cond='',op='',hint='',fmt=''};
+  update@{rs='',rt='00000',rd='00000',fr='',fs='',ft='',fd='',immediate='',offset='',sel='',impl='',code10='',code19='',code20='',stype='',msb='',msbd='',lsb='',sa='00000',instr_index='',cofun='',cc='',cond='',op='',hint='',fmt=''};
   idx-before <- idxget;
   insn <- /;
   idx-after <- idxget;
@@ -727,9 +737,8 @@ val / ['011111 /rs /rt /offset9 0 011101'] = ternop-src SHE (right rs) (right rt
 
 ### SLL
 ###  - Shift Word Left Logical
-val pause? s = ($rt s == '00000') and ($rd s == '00000') and ($sa s == '00101')
 val / ['000000 00000 /rt /rd /sa 000000']
- | pause? = ternop SLT rd (right rt) sa
+ | pause? = nullop DERET
  | otherwise = ternop SLL rd (right rt) sa
 
 ### SLLV
@@ -949,25 +958,25 @@ end
 
 val rt = do
   rt <- query $rt;
-  update @{rt=''};
+  update @{rt='00000'};
   return (GPR (gpr-from-bits rt))
 end
 
 val rd = do
   rd <- query $rd;
-  update @{rd=''};
+  update @{rd='00000'};
   return (GPR (gpr-from-bits rd))
 end
 
 val rd/imm = do
   rd <- query $rd;
-  update @{rd=''};
+  update @{rd='00000'};
   return (IMM (IMM5 rd))
 end
 
 val rt/imm = do
   rt <- query $rt;
-  update @{rt=''};
+  update @{rt='00000'};
   return (IMM (IMM5 rt))
 end
 
@@ -1075,7 +1084,7 @@ end
 
 val sa = do
   sa <- query $sa;
-  update @{sa=''};
+  update @{sa='00000'};
   return (IMM (IMM5 sa))
 end
 
@@ -1478,6 +1487,8 @@ type instruction =
 
 # <- sutl
 
+type instruction = 
+   PAUSE of ternop
 
 type register =
    ZERO

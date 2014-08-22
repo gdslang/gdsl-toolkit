@@ -1065,6 +1065,8 @@ val sem-nor x = do
 	write x.destination (var res)
 end
 
+val sem-pause x = return void
+
 val hwr-reg-of x =
    case x of
       0: (semantic-reg-of Sem_CPUNUM)
@@ -1581,6 +1583,7 @@ val semantics i =
     | NOR x: sem-nor x
     | OR x: sem-or x
     | ORI x: sem-ori x
+    | PAUSE x: sem-pause x
     | PLL-PS x: sem-default-ternop-ro-generic i x
     | PLU-PS x: sem-default-ternop-ro-generic i x
     | PREF x: sem-default-ternop-src-ro-generic i x
