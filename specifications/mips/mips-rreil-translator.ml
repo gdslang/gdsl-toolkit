@@ -51,7 +51,15 @@ val rval sn x = let
       end
 in
    case x of
-      LVALUE lv: lval sn lv
+      LVALUE lv:
+         case lv of
+            GPR r:
+               case r of
+                  ZERO: return (SEM_LIN_IMM {const=0})
+                | _: lval sn lv
+               end
+          | _: lval sn lv 
+         end
     | IMM i: return (from-imm sn i)
    end
 end
@@ -267,12 +275,11 @@ type sem_exception =
  | SEM_EXC_BREAKPOINT
  | SEM_EXC_DEBUG_BREAKPOINT
  | SEM_EXC_DEBUG_MODE_BREAKPOINT
+ | SEM_EXC_RESERVED_INSTRUCTION
 
 ###########
 ### semantics of instructions
 ###########
-
-val sem-foo = return void
 
 val overflow-add-addi size res rs rt = do
 	t1 <- mktemp;
@@ -1058,6 +1065,31 @@ val sem-nor x = do
 	write x.destination (var res)
 end
 
+val hwr-reg-of x =
+   case x of
+      0: (semantic-reg-of Sem_CPUNUM)
+    | 1: (semantic-reg-of Sem_SYNCI_STEP)
+    | 2: (semantic-reg-of Sem_CC)
+    | 3: (semantic-reg-of Sem_CCRES)
+    | 29: (semantic-reg-of Sem_ULR)
+   end
+
+val sem-rdhwr x = do
+	rd <- rval Unsigned x.source;
+	i <- return (lin-to-int rd);
+
+	if (i >= 4) then
+		if (i === 29) then do
+			reg <- return (hwr-reg-of i);
+			write x.destination (var reg)		
+		end else
+			throw-exception SEM_EXC_RESERVED_INSTRUCTION
+	else do
+		reg <- return (hwr-reg-of i);
+		write x.destination (var reg)
+	end
+end
+
 val sem-rotr x = do
 	rt <- rval Signed x.source1;
 	sa <- rval Unsigned x.source2;
@@ -1556,8 +1588,8 @@ val semantics i =
     | PREFX x: sem-default-ternop-src-ro-generic i x
     | PUL-PS x: sem-default-ternop-ro-generic i x
     | PUU-PS x: sem-default-ternop-ro-generic i x
-    | RDHWR x: sem-foo
-    | RDPGPR x: sem-foo
+    | RDHWR x: sem-rdhwr x
+    | RDPGPR x: sem-default-binop-ro-generic i x
     | RECIP-fmt x: sem-default-binop-fmt-ro-generic i x
     | ROTR x: sem-rotr x
     | ROTRV x: sem-rotrv x
@@ -1624,7 +1656,7 @@ val semantics i =
     | TRUNC-L-fmt x: sem-default-binop-fmt-ro-generic i x
     | TRUNC-W-fmt x: sem-default-binop-fmt-ro-generic i x
     | WAIT x: sem-default-unop-src-ro-generic i x
-    | WRPGPR x: sem-foo
+    | WRPGPR x: sem-default-binop-src-ro-generic i x
     | WSBH x: sem-wsbh x
     | XOR x: sem-xor x
     | XORI x: sem-xori x

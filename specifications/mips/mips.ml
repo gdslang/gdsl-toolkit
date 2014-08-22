@@ -67,8 +67,8 @@ val / ['010001 /fmt5sdps 00000 /fs /fd 000101'] = binop-fmt ABS-fmt fmt fd (righ
 
 ### ADD
 ###  - Add Word
-val / ['000000 /rs /rt /rd 00000 100000'] = ternop ADD rd (right rs) (right rt) 
-
+val / ['000000 /rs /rt /rd 00000 100000'] = ternop ADD rd (right rs) (right rt)
+ 
 ### ADD-fmt
 ###  - Floating Point Add
 val / ['010001 /fmt5sdps /ft /fs /fd 000000'] = ternop-fmt ADD-fmt fmt fd (right ft) (right fs) 
@@ -647,7 +647,7 @@ val / ['010001 10110 /ft /fs /fd 101111'] = ternop PUU-PS fd (right ft) (right f
 
 ### RDHWR
 ###  - Read Hardware Register
-val / ['011111 00000 /rt /rd 00000 111011'] = binop RDHWR rt (right rd) 
+val / ['011111 00000 /rt /rd 00000 111011'] = binop RDHWR rt rd/imm 
 
 ### RDPGPR
 ###  - Read GRP from Previous Shadow Set
@@ -727,7 +727,10 @@ val / ['011111 /rs /rt /offset9 0 011101'] = ternop-src SHE (right rs) (right rt
 
 ### SLL
 ###  - Shift Word Left Logical
-val / ['000000 00000 /rt /rd /sa 000000'] = ternop SLL rd (right rt) sa 
+val pause? s = ($rt s == '00000') and ($rd s == '00000') and ($sa s == '00101')
+val / ['000000 00000 /rt /rd /sa 000000']
+ | pause? = ternop SLT rd (right rt) sa
+ | otherwise = ternop SLL rd (right rt) sa
 
 ### SLLV
 ###  - Shift Word Left Logical Variable

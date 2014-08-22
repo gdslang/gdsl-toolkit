@@ -86,6 +86,12 @@ type sem_id =
  | Sem_FENR
  | Sem_FCSR
 
+type sem_id =
+   Sem_CPUNUM
+ | Sem_SYNCI_STEP
+ | Sem_CC
+ | Sem_CCRES
+ | Sem_ULR
 
 val fIE = sem-reg-offset (semantic-reg-of Sem_SREG) 0
 val fRE = sem-reg-offset (semantic-reg-of Sem_SREG) 25
@@ -119,6 +125,11 @@ val semantic-reg-of x =
     | Sem_EPC		: {id=Sem_EPC,offset=0,size=32}
     | Sem_ERROR_EPC	: {id=Sem_ERROR_EPC,offset=0,size=32}
     | Sem_DEPC		: {id=Sem_DEPC,offset=0,size=32}
+    | Sem_CPUNUM	: {id=Sem_CPUNUM,offset=0,size=32}
+    | Sem_SYNCI_STEP	: {id=Sem_SYNCI_STEP,offset=0,size=32}
+    | Sem_CC		: {id=Sem_CC,offset=0,size=32}
+    | Sem_CCRES		: {id=Sem_CCRES,offset=0,size=32}
+    | Sem_ULR		: {id=Sem_ULR,offset=0,size=32}
    end
 
 val semantic-gpr-of r =

@@ -85,6 +85,11 @@ val arch-show-id r =
 	 | Sem_EPC: "EPC"
 	 | Sem_ERROR_EPC: "ErrorEPC"
 	 | Sem_DEPC: "DEPC"
+	 | Sem_CPUNUM: "CPUNum"
+	 | Sem_SYNCI_STEP: "SYNCI Step Size"
+	 | Sem_CC: "CC"
+	 | Sem_CCRES: "CCRes"
+	 | Sem_ULR: "ULR"
    end
 
 val pretty-arch-id r = arch-show-id r
@@ -98,4 +103,5 @@ val pretty-arch-exception exception =
     | SEM_EXC_BREAKPOINT : "{Exception: Breakpoint}"
     | SEM_EXC_DEBUG_BREAKPOINT : "{Exception: Debug Breakpoint}"
     | SEM_EXC_DEBUG_MODE_BREAKPOINT : "{Exception: Debug Mode Breakpoint}"
+    | SEM_EXC_RESERVED_INSTRUCTION : "{Exception: Reserved Instruction}"
    end
