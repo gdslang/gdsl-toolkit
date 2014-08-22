@@ -2,6 +2,8 @@ export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
 val exceptions_on = '1'
 val bigendian_mem = '1'
+val isMIPS16Implemented = '1'
+val architectureRevision = 5
 
 type signedness =
    Signed
@@ -379,7 +381,7 @@ val sem-xor x = sem-bitwise xorb x
 val sem-xori x = sem-bitwise-imm xorb x
 
 val cbranch-rel cond offset = do
-	pc <- return (ip-get);
+	pc <- return (semantic-reg-of Sem_PC);
 	
 	new_pc <- mktemp;
 	add pc.size new_pc (var pc) offset;
@@ -411,7 +413,7 @@ val sem-bz cmp_op x = do
 end
 
 val sem-bz-link cmp_op x = do
-	pc <- return (ip-get);
+	pc <- return (semantic-reg-of Sem_PC);
 	ra <- return (semantic-gpr-of RA);
 
 	# 4 instead of 8 since pc got incremented already
@@ -464,10 +466,36 @@ val sem-cl bit x = do
 	write x.destination (var amount)
 end
 
-val sem-deret = return void	#TODO: SEMANTICS
+val sem-deret = do
+	dm <- return fDM;
+	iexi <- return fIEXI;
+	mov 1 dm (imm 0);
+	mov 1 iexi (imm 0);
+
+	depc <- return (semantic-reg-of Sem_DEPC);
+	pc <- return (semantic-reg-of Sem_PC);
+	if (isMIPS16Implemented == '1') then do
+		isa_mode <- return (semantic-reg-of Sem_ISA_MODE);
+	
+		mov 1 isa_mode (var depc);
+		mov pc.size pc (var depc);
+		mov 1 pc (imm 0)
+	end
+	else do
+		c3_isa <- return fISA;
+		_if (/gts 2 (var c3_isa) (imm 0)) _then do
+			isa_mode <- return (semantic-reg-of Sem_ISA_MODE);
+	
+			mov 1 isa_mode (var depc);
+			mov pc.size pc (var depc);
+			mov 1 pc (imm 0)
+		end _else
+			mov pc.size pc (var depc)
+	end
+end
 
 val sem-di x = do
-	sreg <- return (sreg-get);
+	sreg <- return (semantic-reg-of Sem_SREG);
 	
 	temp <- mktemp;
 	mov sreg.size temp (var sreg);
@@ -483,8 +511,8 @@ val sem-div-divu div_op mod_op x = do
 	denom <- rval Signed x.source2;
 	size <- return (sizeof-rval x.source1);
 
-	hi <- return (hi-get);
-	lo <- return (lo-get);
+	hi <- return (semantic-reg-of Sem_HI);
+	lo <- return (semantic-reg-of Sem_LO);
 
 	div_op size lo num denom;
 	mod_op size hi num denom
@@ -494,7 +522,7 @@ val sem-div x = sem-div-divu div mod x
 val sem-divu x = sem-div-divu divs mods x
 
 val sem-ei x = do
-	sreg <- return (sreg-get);
+	sreg <- return (semantic-reg-of Sem_SREG);
 	
 	temp <- mktemp;
 	mov sreg.size temp (var sreg);
@@ -505,7 +533,63 @@ val sem-ei x = do
 	write x.destination (var temp)
 end
 
-val sem-eret = return void	#TODO: SEMANTICS
+val sem-eret = do
+	erl <- return fERL;
+	temp <- mktemp;
+
+	_if (/eq 1 (var erl) (imm 1)) _then do
+		err_epc <- return (semantic-reg-of Sem_ERROR_EPC);
+		mov err_epc.size temp (var err_epc);
+		mov 1 erl (imm 0)
+	end _else do
+		epc <- return (semantic-reg-of Sem_EPC);
+		exl <- return fEXL;
+		mov epc.size temp (var epc);
+		mov 1 exl (imm 0);
+
+		if (architectureRevision >= 2) then do
+			hss <- return fHSS;
+			bev <- return fBEV;
+			cond1 <- /gts 4 (var hss) (imm 0);
+			cond2 <- /eq 1 (var bev) (imm 0);
+			cond <- mktemp;
+			andb 1 cond cond1 cond2;
+			
+			_if (/eq 1 (var cond) (imm 1)) _then do
+				pss <- return fPSS;
+				css <- return fCSS;
+				mov 4 css (var pss)
+			end
+		end
+		else
+			return void
+	end
+	;
+	
+	pc <- return (semantic-reg-of Sem_PC);
+	if (isMIPS16Implemented == '1') then do
+		isa_mode <- return (semantic-reg-of Sem_ISA_MODE);
+	
+		mov 1 isa_mode (var temp);
+		mov pc.size pc (var temp);
+		mov 1 pc (imm 0)
+	end
+	else do
+		c3_isa <- return fISA;
+		_if (/gts 2 (var c3_isa) (imm 0)) _then do
+			isa_mode <- return (semantic-reg-of Sem_ISA_MODE);
+	
+			mov 1 isa_mode (var temp);
+			mov pc.size pc (var temp);
+			mov 1 pc (imm 0)
+		end _else
+			mov pc.size pc (var temp)
+	end
+	;
+
+	llbit <- return (semantic-reg-of Sem_LLBIT);
+	mov 1 llbit (imm 0)	
+end
 
 val sem-ext x = do
 	rs <- rval Unsigned x.source1;
@@ -551,7 +635,7 @@ val sem-j x = do
 	size <- return (sizeof-rval x.source);
 	index_ext <- return (scale 4 index);
 
-	pc <- return (ip-get);
+	pc <- return (semantic-reg-of Sem_PC);
 
 	addr <- mktemp;
 	mov 32 addr (var pc);
@@ -561,7 +645,7 @@ val sem-j x = do
 end
 
 val sem-jal x = do
-	pc <- return (ip-get);
+	pc <- return (semantic-reg-of Sem_PC);
 	ra <- return (semantic-gpr-of RA);
 
 	# 4 instead of 8 since pc got incremented already
@@ -571,7 +655,7 @@ val sem-jal x = do
 end
 
 val sem-jalr x =  do
-	pc <- return (ip-get);
+	pc <- return (semantic-reg-of Sem_PC);
 	size <- return (sizeof-lval x.destination);
 
 	# 4 instead of 8 since pc got incremented already
@@ -585,7 +669,7 @@ end
 val sem-jalr-hb x = sem-jalr x
 
 val sem-jalx x = do
-	isamode <- return (isa-mode-get);
+	isamode <- return (semantic-reg-of Sem_ISA_MODE);
 
 	xorb 1 isamode (var isamode) (imm 1);
 
@@ -595,7 +679,7 @@ end
 val sem-jr x = do
 	rs <- rval Signed x.source1;
 	size <- return (sizeof-rval x.source1);
-	pc <- return (ip-get);
+	pc <- return (semantic-reg-of Sem_SREG);
 
 	pc_true <- mktemp;
 	mov size pc_true rs; 
@@ -607,7 +691,7 @@ val sem-jr x = do
 	config1CA <- return (fCA);
 	cond <- /eq 1 (var config1CA) (imm 0);
 
-	isamode <- return (isa-mode-get);
+	isamode <- return (semantic-reg-of Sem_ISA_MODE);
 	_if (/neq 1 (var config1CA) (imm 0)) _then
 		mov isamode.size isamode rs;
 	
@@ -670,14 +754,14 @@ val sem-lb-lbu ext_op x = do
 	memword <- mktemp;
 	load 32 memword size (var vaddr);
 
-	bigendian_cpu <- mktemp;
-	re <- return (fRE);
-	movsx 2 bigendian_cpu 1 (var re);
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	movsx 2 bcpu2 1 bcpu;
 
 	# get depending on the endianess the correct byte out of the word
 	byte <- mktemp;
 	mov 30 (at-offset byte 2) (imm 0);
-	xorb 2 byte (var vaddr) (var bigendian_cpu);
+	xorb 2 byte (var vaddr) (var bcpu2);
 	shl 32 byte (var byte) (imm 3);
 	shr 32 memword (var memword) (var byte);
 
@@ -704,14 +788,14 @@ val sem-lh-lhu ext_op x = do
 	memword <- mktemp;
 	load 32 memword size (var vaddr);
 
-	bigendian_cpu <- mktemp;
-	mov 1 bigendian_cpu (var fRE);
-	shl 2 bigendian_cpu (var bigendian_cpu) (imm 1);
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	shl 2 bcpu2 bcpu (imm 1);
 
 	# get depending on the endianess the correct halfword out of the word
 	byte <- mktemp;
 	mov 30 (at-offset byte 2) (imm 0);
-	xorb 2 byte (var vaddr) (var bigendian_cpu);
+	xorb 2 byte (var vaddr) (var bcpu2);
 	shl 32 byte (var byte) (imm 3);
 	shr 32 memword (var memword) (var byte);
 
@@ -742,7 +826,7 @@ val sem-lw x = do
 end
 
 val sem-ll x = do
-	llbit <- return (llbit-get);
+	llbit <- return (semantic-reg-of Sem_LLBIT);
 	mov 1 llbit (imm 1);
 
 	sem-lw x
@@ -846,8 +930,8 @@ val sem-madd-maddu-msub-msubu ext_op add_sub_op x = do
 	res <- mktemp;
 	mul (size*2) res (var rs_ext) (var rt_ext);
 
-	hi <- return (hi-get);
-	lo <- return (lo-get);
+	hi <- return (semantic-reg-of Sem_HI);
+	lo <- return (semantic-reg-of Sem_LO);
 
 	hilo <- mktemp;
 	movzx (size*2) hilo size (var lo);
@@ -865,27 +949,27 @@ val sem-msub x = sem-madd-maddu-msub-msubu movzx sub x
 val sem-msubu x = sem-madd-maddu-msub-msubu movzx sub x 
 
 val sem-mfhi x = do
-	hi <- return (hi-get);
+	hi <- return (semantic-reg-of Sem_HI);
 	
 	write x.destination (var hi)
 end
 
 val sem-mflo x = do
-	lo <- return (lo-get);
+	lo <- return (semantic-reg-of Sem_LO);
 	
 	write x.destination (var lo)
 end
 
 val sem-mthi x = do
 	rs <- rval Signed x.source;
-	hi <- return (hi-get);
+	hi <- return (semantic-reg-of Sem_HI);
 
 	mov hi.size hi rs
 end
 
 val sem-mtlo x = do
 	rs <- rval Signed x.source;
-	lo <- return (lo-get);
+	lo <- return (semantic-reg-of Sem_LO);
 
 	mov lo.size lo rs
 end
@@ -935,8 +1019,8 @@ val sem-mult-multu ext_op x = do
 	res <- mktemp;
 	mul (size*2) res (var rs_ext) (var rt_ext);
 
-	hi <- return (hi-get);
-	lo <- return (lo-get);
+	hi <- return (semantic-reg-of Sem_HI);
+	lo <- return (semantic-reg-of Sem_LO);
 	
 	mov size lo (var res);
 	mov size hi (var (at-offset res size))
@@ -1087,13 +1171,13 @@ val sem-sb x = do
 	vaddr <- mktemp;
 	add size vaddr base off;
 
-	bigendian_cpu <- mktemp;
-	re <- return (fRE);
-	movsx 2 bigendian_cpu 1 (var re);
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	movsx 2 bcpu2 1 bcpu;
 
 	byte <- mktemp;
 	mov 30 (at-offset byte 2) (imm 0);
-	xorb 2 byte (var vaddr) (var bigendian_cpu);
+	xorb 2 byte (var vaddr) (var bcpu2);
 	shl 32 byte (var byte) (imm 3);
 
 	memword <- mktemp;
@@ -1114,12 +1198,13 @@ val sem-sh x = do
 	_if (/neq 1 (var vaddr) (imm 0)) _then
 		throw-exception SEM_EXC_VADDR_ERROR;
 
-	bigendian_cpu <- mktemp;
-	shl 2 bigendian_cpu (var fRE) (imm 1);
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	shl 2 bcpu2 bcpu (imm 1);
 
 	byte <- mktemp;
 	mov 30 (at-offset byte 2) (imm 0);
-	xorb 2 byte (var vaddr) (var bigendian_cpu);
+	xorb 2 byte (var vaddr) (var bcpu2);
 	shl 32 byte (var byte) (imm 3);
 
 	memword <- mktemp;
@@ -1159,7 +1244,7 @@ val sem-sc-sw x = do
 end
 
 val sem-sc x = do
-	llbit <- return (llbit-get);
+	llbit <- return (semantic-reg-of Sem_LLBIT);
 	size <- return (sizeof-lval x.destination);
 
 	_if (/eq llbit.size (var llbit) (imm 1)) _then

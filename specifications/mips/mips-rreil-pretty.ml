@@ -80,6 +80,11 @@ val arch-show-id r =
 	 | Sem_DEBUG: "Debug"
 	 | Sem_CONFIG1: "Config1"
 	 | Sem_ISA_MODE: "ISA Mode"
+	 | Sem_SRSCTL: "SRSCtl"
+	 | Sem_CONFIG3: "Config3"
+	 | Sem_EPC: "EPC"
+	 | Sem_ERROR_EPC: "ErrorEPC"
+	 | Sem_DEPC: "DEPC"
    end
 
 val pretty-arch-id r = arch-show-id r

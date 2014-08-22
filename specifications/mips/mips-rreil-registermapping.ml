@@ -4,7 +4,12 @@ type sem_id =
  | Sem_LLBIT
  | Sem_DEBUG
  | Sem_CONFIG1
+ | Sem_CONFIG3
  | Sem_ISA_MODE
+ | Sem_SRSCTL
+ | Sem_EPC
+ | Sem_ERROR_EPC
+ | Sem_DEPC
 
 type sem_id =
    Sem_ZERO
@@ -82,24 +87,39 @@ type sem_id =
  | Sem_FCSR
 
 
-val fIE = sem-reg-offset (sreg-get) 0
-val fRE = sem-reg-offset (sreg-get) 25
-val fCA = sem-reg-offset (config1-get) 2
-val fDM = sem-reg-offset (debug-get) 0
-val fEXL = sem-reg-offset (sreg-get) 1
-val fERL = sem-reg-offset (sreg-get) 2
-val fKSU = sem-reg-offset (sreg-get) 3
+val fIE = sem-reg-offset (semantic-reg-of Sem_SREG) 0
+val fRE = sem-reg-offset (semantic-reg-of Sem_SREG) 25
+val fCA = sem-reg-offset (semantic-reg-of Sem_CONFIG1) 2
+val fISA = sem-reg-offset (semantic-reg-of Sem_CONFIG3) 14
+val fDM = sem-reg-offset (semantic-reg-of Sem_DEBUG) 0
+val fIEXI = sem-reg-offset (semantic-reg-of Sem_DEBUG) 1
+val fEXL = sem-reg-offset (semantic-reg-of Sem_SREG) 1
+val fERL = sem-reg-offset (semantic-reg-of Sem_SREG) 2
+val fKSU = sem-reg-offset (semantic-reg-of Sem_SREG) 3
+val fBEV = sem-reg-offset (semantic-reg-of Sem_SREG) 22
+val fCSS = sem-reg-offset (semantic-reg-of Sem_SRSCTL) 0
+val fPSS = sem-reg-offset (semantic-reg-of Sem_SRSCTL) 6
+val fESS = sem-reg-offset (semantic-reg-of Sem_SRSCTL) 12
+val fHSS = sem-reg-offset (semantic-reg-of Sem_SRSCTL) 26
 
 val sem-reg-offset r o = @{offset=r.offset + o}r
 
-val ip-get = {id=Sem_PC,offset=0,size=32}
-val hi-get = {id=Sem_HI,offset=0,size=32}
-val lo-get = {id=Sem_LO,offset=0,size=32}
-val sreg-get = {id=Sem_SREG,offset=0,size=32}
-val llbit-get = {id=Sem_LLBIT,offset=0,size=1}
-val debug-get = {id=Sem_DEBUG,offset=0,size=32}
-val config1-get = {id=Sem_CONFIG1,offset=0,size=32}
-val isa-mode-get = {id=Sem_ISA_MODE,offset=0,size=1}
+val semantic-reg-of x = 
+   case x of
+      Sem_PC		: {id=Sem_PC,offset=0,size=32}
+    | Sem_HI		: {id=Sem_HI,offset=0,size=32}
+    | Sem_LO		: {id=Sem_LO,offset=0,size=32}
+    | Sem_SREG		: {id=Sem_SREG,offset=0,size=32}
+    | Sem_LLBIT 	: {id=Sem_LLBIT,offset=0,size=1}
+    | Sem_DEBUG		: {id=Sem_DEBUG,offset=0,size=32}
+    | Sem_CONFIG1	: {id=Sem_CONFIG1,offset=0,size=32}
+    | Sem_CONFIG3	: {id=Sem_CONFIG3,offset=0,size=32}
+    | Sem_ISA_MODE	: {id=Sem_ISA_MODE,offset=0,size=1}
+    | Sem_SRSCTL	: {id=Sem_SRSCTL,offset=0,size=32}
+    | Sem_EPC		: {id=Sem_EPC,offset=0,size=32}
+    | Sem_ERROR_EPC	: {id=Sem_ERROR_EPC,offset=0,size=32}
+    | Sem_DEPC		: {id=Sem_DEPC,offset=0,size=32}
+   end
 
 val semantic-gpr-of r =
    case r of
