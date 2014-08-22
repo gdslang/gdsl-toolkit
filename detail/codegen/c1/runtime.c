@@ -219,8 +219,12 @@ static inline int_t consume(state_t s, char size) {
     longjmp(s->err_tgt, 1);
   };
   int_t result = 0;
-  char size_left = size;
-  while(size_left) {
+  if(!s->buf_be) {
+    while(size)
+      result |= *(s->ip++) << (--size * 8);
+    return result;
+  }
+  while(size) {
     char be_buf_left = -((size_t) s->buf_be) & (s->token_size - 1);
     if(!be_buf_left) {
       s->buf_be -= s->token_size;
@@ -229,8 +233,8 @@ static inline int_t consume(state_t s, char size) {
         s->buf_be[i] = s->le ? s->ip[s->token_size - i - 1] : s->ip[i];
       be_buf_left += s->token_size;
     }
-    for(; be_buf_left && size_left; be_buf_left--) {
-      result |= *(s->buf_be++) << (--size_left * 8);
+    for(; be_buf_left && size; be_buf_left--) {
+      result |= *(s->buf_be++) << (--size * 8);
       s->ip++;
     }
   }
@@ -238,6 +242,10 @@ static inline int_t consume(state_t s, char size) {
 }
 
 static inline void unconsume(state_t s, char size) {
+  if(!s->buf_be) {
+    s->ip -= size;
+    return;
+  }
   char be_buf_consumed = ((size_t) s->buf_be) & (s->token_size - 1);
   if(size < be_buf_consumed) {
     s->buf_be -= size;
@@ -261,8 +269,34 @@ static inline void unconsume(state_t s, char size) {
 
 void
 @endianness@
-(state_t s, int_t kind, int_t size) {
-
+(state_t s, int_t le, int_t size) {
+  if (size != 1 && size != 2 && size != 4 && size != 8) {
+    s->err_str = "GDSL runtime: endianness(); invalid token size";
+    longjmp(s->err_tgt, 100);
+  };
+  char be_buf_consumed = ((size_t) s->buf_be) & (s->token_size - 1);
+  if (be_buf_consumed) {
+    s->err_str = "GDSL runtime: endianness(); unable to change endianness settings within a token";
+    longjmp(s->err_tgt, 101);
+  };
+  if(size == 1 || !le) {
+    if(s->buf_be) {
+      s->buf_be = (unsigned char*)(((size_t)s->buf_be | (s->token_size - 1)) - s->token_size + 1);
+      free(s->buf_be);
+      s->buf_be = 0;
+    }
+  } else {
+    if(!s->buf_be)
+      s->buf_be = (unsigned char*)malloc(size);
+    else {
+      s->buf_be -= s->token_size;
+      if(size > s->token_size)
+        s->buf_be = (unsigned char*)realloc(s->buf_be, size);
+    }
+    s->buf_be += size;
+  }
+  s->token_size = size;
+  s->le = (char)le;
 }
 
 static int_t vec_to_signed(state_t s, vec_t v) {
@@ -377,8 +411,11 @@ void
     free (heap);
     heap = prev;
   }
-  s->buf_be = (unsigned char*)(((size_t)s->buf_be | (s->token_size - 1)) - s->token_size + 1);
-  free(s->buf_be);
+  if(s->buf_be) {
+    char be_buf_left = -((size_t) s->buf_be) & (s->token_size - 1);
+    s->buf_be += be_buf_left - s->token_size;
+    free(s->buf_be);
+  }
   free(s);
 }
 
@@ -407,8 +444,8 @@ state_t
   /*
    * Todo: Handle alignment error
    */
-  s->buf_be = (unsigned char*)malloc(s->token_size);
-  s->buf_be += s->token_size;
+  @endianness@
+  (s, 0, 1);
 
   return s;
 }

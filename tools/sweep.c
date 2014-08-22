@@ -85,6 +85,8 @@ int main(int argc, char** argv) {
   char *buffer = (char*) malloc(buffer_size);
   size_t buffer_length = fread(buffer, 1, buffer_size, f);
 
+  fclose(f);
+
   state_t state = gdsl_init();
   gdsl_set_code(state, buffer, buffer_length, 0);
 
@@ -151,6 +153,7 @@ int main(int argc, char** argv) {
   long time = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
 
   gdsl_destroy(state);
+  free(buffer);
 
   fprintf(stderr, "---------------------------\n");
   fprintf(stderr, "Statistics\n");
