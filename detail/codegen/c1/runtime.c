@@ -23,9 +23,7 @@ struct state {
   size_t ip_base;     /* base address of code */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
-  unsigned char* buf_be;
-  char le;
-  char token_size;
+  size_t token_addr_inv;
   char* err_str;      /* a string describing the fatal error that occurred */
   jmp_buf err_tgt;    /* the position of the exception handler */
   FILE* handle;       /* the file that the puts primitve uses */
@@ -219,52 +217,15 @@ static inline int_t consume(state_t s, char size) {
     longjmp(s->err_tgt, 1);
   };
   int_t result = 0;
-  if(!s->buf_be) {
-    while(size)
-      result |= *(s->ip++) << (--size * 8);
-    return result;
-  }
   while(size) {
-    char be_buf_left = -((size_t) s->buf_be) & (s->token_size - 1);
-    if(!be_buf_left) {
-      s->buf_be -= s->token_size;
-      int i;
-      for(i = 0; i < s->token_size; i++)
-        s->buf_be[i] = s->le ? s->ip[s->token_size - i - 1] : s->ip[i];
-      be_buf_left += s->token_size;
-    }
-    for(; be_buf_left && size; be_buf_left--) {
-      result |= *(s->buf_be++) << (--size * 8);
-      s->ip++;
-    }
+    unsigned char *ptr = (unsigned char*)(((size_t)s->ip++) ^ s->token_addr_inv);
+    result |= *ptr << (--size*8);
   }
   return result;
 }
 
 static inline void unconsume(state_t s, char size) {
-  if(!s->buf_be) {
-    s->ip -= size;
-    return;
-  }
-  char be_buf_consumed = ((size_t) s->buf_be) & (s->token_size - 1);
-  if(size < be_buf_consumed) {
-    s->buf_be -= size;
-    s->ip -= size;
-  } else if(size == be_buf_consumed) {
-    s->buf_be += (s->token_size - size);
-    s->ip -= size;
-  } else {
-    char be_buf_left = -((size_t) s->buf_be) & (s->token_size - 1);
-    s->buf_be += be_buf_left;
-    char size_left = size - be_buf_consumed;
-    s->ip -= be_buf_consumed;
-
-    char tokens = size_left / s->token_size;
-    s->ip -= (tokens + 1) * s->token_size;
-
-    char inner_token = size_left % s->token_size;
-    consume(s, s->token_size - inner_token);
-  }
+  s->ip -= size;
 }
 
 void
@@ -274,29 +235,11 @@ void
     s->err_str = "GDSL runtime: endianness(); invalid token size";
     longjmp(s->err_tgt, 100);
   };
-  char be_buf_consumed = ((size_t) s->buf_be) & (s->token_size - 1);
-  if (be_buf_consumed) {
-    s->err_str = "GDSL runtime: endianness(); unable to change endianness settings within a token";
+  if (le != 0 && le != 1) {
+    s->err_str = "GDSL runtime: endianness(); invalid kind";
     longjmp(s->err_tgt, 101);
   };
-  if(size == 1 || !le) {
-    if(s->buf_be) {
-      s->buf_be = (unsigned char*)(((size_t)s->buf_be | (s->token_size - 1)) - s->token_size + 1);
-      free(s->buf_be);
-      s->buf_be = 0;
-    }
-  } else {
-    if(!s->buf_be)
-      s->buf_be = (unsigned char*)malloc(size);
-    else {
-      s->buf_be -= s->token_size;
-      if(size > s->token_size)
-        s->buf_be = (unsigned char*)realloc(s->buf_be, size);
-    }
-    s->buf_be += size;
-  }
-  s->token_size = size;
-  s->le = (char)le;
+  s->token_addr_inv = le * (size - 1);
 }
 
 static int_t vec_to_signed(state_t s, vec_t v) {
@@ -363,8 +306,6 @@ void
   s->ip_limit = buf+buf_len;
   s->ip_start = buf;
   s->ip_base = base;
-  char be_buf_left = -((size_t)s->buf_be) & (s->token_size - 1);
-  s->buf_be += be_buf_left;
 }
 
 size_t
@@ -411,11 +352,6 @@ void
     free (heap);
     heap = prev;
   }
-  if(s->buf_be) {
-    char be_buf_left = -((size_t) s->buf_be) & (s->token_size - 1);
-    s->buf_be += be_buf_left - s->token_size;
-    free(s->buf_be);
-  }
   free(s);
 }
 
@@ -439,11 +375,6 @@ state_t
   s->heap_limit = NULL;
   s->heap = NULL;
 
-  s->le = 1;
-  s->token_size = 2;
-  /*
-   * Todo: Handle alignment error
-   */
   @endianness@
   (s, 0, 1);
 
