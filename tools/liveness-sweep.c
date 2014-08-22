@@ -53,7 +53,7 @@ static char args_parse(int argc, char **argv, struct options *options) {
       OPTION_OFFSET}, {"children",
   no_argument, NULL, OPTION_CHILDREN}, {"single", no_argument, NULL, OPTION_SINGLE}, {"file", required_argument,
   NULL, OPTION_FILE}, {"cleanup", no_argument, NULL, OPTION_CLEANUP}, {"latex", no_argument,
-  NULL, OPTION_LATEX}, {NULL, 0, NULL, 0}, };
+  NULL, OPTION_LATEX}, {NULL, 0, NULL, 0}};
 
   while(1) {
     int result = getopt_long(argc, argv, "", long_options, NULL);
