@@ -12,7 +12,7 @@ end
 
 val traverse-others f insn =
    case insn of
-      PAUSE x: f "PAUSE" (TERNOP x)
+      PAUSE: f "PAUSE" (NULLOP)
    end
 
 # -> sftl

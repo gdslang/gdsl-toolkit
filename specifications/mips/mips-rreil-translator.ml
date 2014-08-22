@@ -1065,7 +1065,20 @@ val sem-nor x = do
 	write x.destination (var res)
 end
 
-val sem-pause x = return void
+val sem-pause = do
+	llbit <- return (semantic-reg-of Sem_LLBIT);
+
+	_while (/eq 1 (var llbit) (imm 0)) __ do
+		return void
+	end
+	;
+
+	epc <- return (semantic-reg-of Sem_EPC);
+	pc <- return (semantic-reg-of Sem_PC);
+
+	# 0 instead of 4 since pc got incremented already
+	add pc.size epc (var pc) (imm 0)
+end
 
 val hwr-reg-of x =
    case x of
@@ -1583,7 +1596,7 @@ val semantics i =
     | NOR x: sem-nor x
     | OR x: sem-or x
     | ORI x: sem-ori x
-    | PAUSE x: sem-pause x
+    | PAUSE: sem-pause
     | PLL-PS x: sem-default-ternop-ro-generic i x
     | PLU-PS x: sem-default-ternop-ro-generic i x
     | PREF x: sem-default-ternop-src-ro-generic i x
