@@ -92,6 +92,7 @@ structure Imp = struct
        | GET_CON_ARGprim
        | VOIDprim
        | MERGE_ROPEprim
+       | SET_ENDIANESSprim
 
    (* information on how to print primitives, the name is the C name
       and the priority is the operator precedence, 0 if not infix *)
@@ -130,6 +131,7 @@ structure Imp = struct
      | prim_info GET_CON_ARGprim = { name = "__get_con_arg", prio = 0 }
      | prim_info VOIDprim = { name = "void", prio = 0 }
      | prim_info MERGE_ROPEprim = { name = "merge-rope", prio = 0 }
+     | prim_info SET_ENDIANESSprim = { name = "endianess", prio = 0 }
 
    (*
    * fun f x =

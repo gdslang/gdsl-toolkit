@@ -195,18 +195,20 @@ val conf data short long = CONF
     confData = data,
     confNext = END }
 
-val forceConfType x =
-   let
-     val c = conf '01' "foo" "foo"
-     val r1 = has-conf c
-     val r2 = conf-short c
-     val r3 = conf-long c
-     val r4 = conf-data c
-     val r5 = conf-next c
-   in
-     x
-   end
-
 # Type for the representation of user-defined data structures exchanged through
 # the native interface
 type obj = OBJ
+
+# Set the endianess of the input.
+type endianess =
+    BIG_ENDIAN
+  | LITTLE_ENDIAN
+   
+val set-endianess kind size = let
+  val e = case kind of
+      BIG_ENDIAN : 0
+    | LITTLE_ENDIAN : 1
+  end
+in
+  return (endianess e size)
+end
