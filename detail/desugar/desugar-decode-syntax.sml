@@ -78,12 +78,13 @@ structure DesugarDecode = struct
           | _ => SymbolTable.noSpan
         
       fun buildEquiv (i, (toks, _, _), map) =
-         StringMap.insert
-            (map,
+         StringMap.unionWith (fn ((sp1,rules1),(sp2,rules2)) => (sp1,Set.union (rules1,rules2)))
+            (map, StringMap.singleton (
              if VS.length toks = 0
                then "" (* as placeholder for the real wildcard pattern "_" *)
              else toWildcardPattern (VS.sub (toks, 0)),
              (getSpan toks, Set.singleton i))
+            )
    in
       VS.foldli buildEquiv StringMap.empty decls
    end

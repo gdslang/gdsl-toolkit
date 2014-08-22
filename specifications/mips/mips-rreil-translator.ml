@@ -765,7 +765,7 @@ val sem-lb-lbu ext_op x = do
 	bcpu2 <- mktemp;
 	movsx 2 bcpu2 1 bcpu;
 
-	# get depending on the endianess the correct byte out of the word
+	# get depending on the endianness the correct byte out of the word
 	byte <- mktemp;
 	mov 30 (at-offset byte 2) (imm 0);
 	xorb 2 byte (var vaddr) (var bcpu2);
@@ -799,7 +799,7 @@ val sem-lh-lhu ext_op x = do
 	bcpu2 <- mktemp;
 	shl 2 bcpu2 bcpu (imm 1);
 
-	# get depending on the endianess the correct halfword out of the word
+	# get depending on the endianness the correct halfword out of the word
 	byte <- mktemp;
 	mov 30 (at-offset byte 2) (imm 0);
 	xorb 2 byte (var vaddr) (var bcpu2);
