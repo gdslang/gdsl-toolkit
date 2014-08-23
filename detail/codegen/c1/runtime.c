@@ -393,7 +393,7 @@ state_t
 #endif
 
 #define BUF_SIZE 32*1024*1024
-static char blob[BUF_SIZE];
+static unsigned char blob[BUF_SIZE];
 
 int main (int argc, char** argv) {
   uint64_t buf_size = BUF_SIZE;
