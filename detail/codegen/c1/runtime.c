@@ -299,13 +299,13 @@ static string_t int_to_string(state_t s, int_t v) {
 
 void
 @set_code@
-(state_t s, char* buf, size_t buf_len, size_t base) {
+(state_t s, unsigned char* buf, size_t buf_len, size_t base) {
   /*
    * Todo: fix signedness
    */
-  s->ip = (unsigned char*)buf;
-  s->ip_limit = (unsigned char*)buf+buf_len;
-  s->ip_start = (unsigned char*)buf;
+  s->ip = buf;
+  s->ip_limit = buf+buf_len;
+  s->ip_start = buf;
   s->ip_base = base;
 }
 

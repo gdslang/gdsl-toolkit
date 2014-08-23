@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <readhex.h>
@@ -46,7 +47,7 @@ int main(int argc, char** argv) {
   uint8_t *buffer;
   size_t size = readhex_hex_read(stdin, &buffer);
 
-  gdsl_set_code(state, (char*) buffer, size, 0);
+  gdsl_set_code(state, buffer, size, 0);
 
   if(setjmp(*gdsl_err_tgt(state))) {
     fprintf(stderr, "decode failed: %s\n", gdsl_get_error_message(state));

@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
   fseek(f, options.offset, SEEK_SET);
 
   size_t buffer_size = options.length + 15;
-  char *buffer = (char*) malloc(buffer_size);
+  unsigned char *buffer = (unsigned char*) malloc(buffer_size);
   size_t buffer_length = fread(buffer, 1, buffer_size, f);
 
   fclose(f);
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {
     size_t decoded = gdsl_get_ip_offset(state) - last_offset;
     for(size_t i = 0; i < decoded; ++i) {
       if(i) printf(" ");
-      printf("%02x", ((uint8_t*) buffer)[last_offset + i]);
+      printf("%02x", buffer[last_offset + i]);
     }
     printf("] ");
 

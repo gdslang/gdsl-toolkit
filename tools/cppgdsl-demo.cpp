@@ -45,7 +45,7 @@ struct example_visitor : public statement_visitor {
 
 void demo_single(gdsl::gdsl &g) {
   uint16_t buffer = 0x0000;
-  g.set_code((char*)&buffer, sizeof(buffer), 0);
+  g.set_code((unsigned char*)&buffer, sizeof(buffer), 0);
 
   gdsl::instruction insn = g.decode();
 
@@ -130,7 +130,7 @@ void demo_single(gdsl::gdsl &g) {
 
 void demo_block(gdsl::gdsl &g) {
   uint8_t buffer[] = {0x00, 0x00, 0x00, 0x00, 0xc3};
-  g.set_code((char*)buffer, sizeof(buffer), 0);
+  g.set_code(buffer, sizeof(buffer), 0);
 
   block b = g.decode_translate_block(gdsl::preservation::BLOCK, LONG_MAX);
 

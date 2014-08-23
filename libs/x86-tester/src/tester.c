@@ -343,7 +343,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 	result.type = TESTER_RTYPE_SUCCESS;
 
 	state_t state = gdsl_init();
-	gdsl_set_code(state, (char*)data, data_size, 0);
+	gdsl_set_code(state, data, data_size, 0);
 
 	obj_t insn;
 	int_t features;

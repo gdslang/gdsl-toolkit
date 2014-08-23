@@ -296,7 +296,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
     exit(1);
   }
 
-  gdsl_set_code(state, (char*)buffer, buffer_length, 0);
+  gdsl_set_code(state, buffer, buffer_length, 0);
 
   context->memory_cum = 0;
   context->memory_max = 0;

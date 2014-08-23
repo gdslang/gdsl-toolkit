@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   }
 
   state_t state = frontend.generic.init();
-  frontend.generic.set_code(state, (char*)buffer, size, 0);
+  frontend.generic.set_code(state, buffer, size, 0);
 
   if(setjmp(*frontend.generic.err_tgt(state))) {
     fprintf(stderr, "decode failed: %s\n", frontend.generic.get_error_message(state));
