@@ -20,7 +20,5 @@ class CompareExpression : Sexpr {
 }
 
 unittest {
-  import gdsl.rreil.linear.immediate;
-  Linear l = new Linear(new Immediate(99));
-  assert(l.toString() == "99");
+//  CompareExpression ce = new CompareExpression(new expr_cmp.CompareExpression(
 }

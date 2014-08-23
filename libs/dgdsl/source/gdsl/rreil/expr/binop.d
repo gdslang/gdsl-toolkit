@@ -40,7 +40,7 @@ class Binop : Expression {
   }
   
   public override string toString() {
-    return _opnd1.toString ~ " " ~ cast(string)_type ~ " " ~ _opnd2.toString();
+    return _opnd1.toString() ~ " " ~ cast(string)_type ~ " " ~ _opnd2.toString();
   }
 }
 

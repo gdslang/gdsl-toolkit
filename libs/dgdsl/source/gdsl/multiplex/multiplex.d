@@ -12,7 +12,7 @@ struct frontend_desc {
 
 struct _generic {
   state_t function () init;
-  void function (state_t, uchar*, ulong, ulong) set_code;
+  void function (state_t, ubyte*, ulong, ulong) set_code;
   char function (state_t, int_t) seek;
   jmp_buf* function (state_t) err_tgt;
   string_t function (state_t, obj_t) merge_rope;
