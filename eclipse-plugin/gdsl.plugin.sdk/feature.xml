@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<feature id="gdsl.plugin.sdk"
-	label="GDSL SDK Feature "
-	version="1.0.0.qualifier">
-	<plugin
-			id="gdsl.plugin"
-			download-size="0"
-			install-size="0"
-			version="0.0.0"
-			unpack="false"/>
-	<plugin
-			id="gdsl.plugin.ui"
-			download-size="0"
-			install-size="0"
-			version="0.0.0"
-			unpack="false"/>
+<feature
+      id="gdsl.plugin.sdk"
+      label="GDSL Development Environment"
+      version="1.0.0.qualifier">
+
+   <plugin
+         id="gdsl.plugin"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gdsl.plugin.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>

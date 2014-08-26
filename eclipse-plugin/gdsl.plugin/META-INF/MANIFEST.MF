@@ -1,7 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: gdsl.plugin
-Bundle-Vendor: My Company
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: gdsl.plugin; singleton:=true
 Bundle-ActivationPolicy: lazy

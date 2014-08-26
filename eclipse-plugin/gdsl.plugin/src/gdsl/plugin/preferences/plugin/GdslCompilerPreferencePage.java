@@ -36,7 +36,6 @@ public class GdslCompilerPreferencePage extends PreferencePage implements IWorkb
 	private Label lblIterations;
 	private Spinner spinnerIterations;
 
-	@Override
 	public void init(final IWorkbench workbench) {
 	}
 

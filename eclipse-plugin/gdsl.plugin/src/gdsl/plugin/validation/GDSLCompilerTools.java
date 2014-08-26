@@ -217,7 +217,9 @@ public class GDSLCompilerTools {
 					}
 				}
 				return result;
-			} catch (CoreException | BadLocationException e) {
+			} catch (final CoreException e) {
+				return new int[] { 0, 0, 0 };
+			} catch (final BadLocationException e) {
 				return new int[] { 0, 0, 0 };
 			}
 		}
