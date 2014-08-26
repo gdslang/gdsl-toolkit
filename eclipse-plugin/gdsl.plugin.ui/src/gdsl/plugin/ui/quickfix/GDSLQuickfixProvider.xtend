@@ -38,16 +38,16 @@ class GDSLQuickfixProvider extends DefaultQuickfixProvider {
 //	}
 
 	@Fix(GDSLValidator::UPPERCASE_CONS)
-	def capitalizeCons(Issue issue, IssueResolutionAcceptor acceptor){
+	def capitalizeCons(Issue issue, IssueResolutionAcceptor acceptor) {
 		acceptor.accept(issue,
 			'Capitalize constructor',
 			'Capitalize first letter of "' + issue.data.get(0) + '".',
 			'',
-			[context |
-			val xtextDocument = context.xtextDocument
-			val firstLetter = xtextDocument.get(issue.offset, 1)
-			xtextDocument.replace(issue.offset, 1, firstLetter.toUpperCase)
-		])
+			[ context |
+				val xtextDocument = context.xtextDocument
+				val firstLetter = xtextDocument.get(issue.offset, 1)
+				xtextDocument.replace(issue.offset, 1, firstLetter.toUpperCase)
+			])
 	}
 	
 	@Fix(GDSLValidator::PATTERN_MISPLACEMENT)

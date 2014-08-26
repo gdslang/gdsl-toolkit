@@ -76,7 +76,7 @@ public class GDSLValidator extends AbstractGDSLValidator {
     }
   }
   
-  public String text(final PAT pat) {
+  private String text(final PAT pat) {
     String _uscore = pat.getUscore();
     boolean _notEquals = (!Objects.equal(null, _uscore));
     if (_notEquals) {
@@ -114,16 +114,15 @@ public class GDSLValidator extends AbstractGDSLValidator {
     final IWorkspaceRoot workspaceRoot = _workspace.getRoot();
     boolean _compilerEnablement = GDSLPluginPreferences.getCompilerEnablement();
     if (_compilerEnablement) {
-      StringBuilder commandBuilder = new StringBuilder();
+      final StringBuilder commandBuilder = new StringBuilder();
       String _compilerInvocation = GDSLPluginPreferences.getCompilerInvocation();
       commandBuilder.append(_compilerInvocation);
-      commandBuilder.append(" -o");
       String _outputName = GDSLPluginPreferences.getOutputName(resource);
-      String _plus = (" " + _outputName);
+      String _plus = (" -o " + _outputName);
       commandBuilder.append(_plus);
-      commandBuilder.append(" --runtime=");
       String _runtimeTemplates = GDSLPluginPreferences.getRuntimeTemplates(resource);
-      commandBuilder.append(_runtimeTemplates);
+      String _plus_1 = (" --runtime=" + _runtimeTemplates);
+      commandBuilder.append(_plus_1);
       final String prefix = GDSLPluginPreferences.getPrefix(resource);
       boolean _notEquals = (!Objects.equal(null, prefix));
       if (_notEquals) {
@@ -132,8 +131,8 @@ public class GDSLValidator extends AbstractGDSLValidator {
       boolean _isTypeCheckerEnabled = GDSLPluginPreferences.isTypeCheckerEnabled();
       if (_isTypeCheckerEnabled) {
         int _typeCheckerIteration = GDSLPluginPreferences.getTypeCheckerIteration();
-        String _plus_1 = (" --maxIter=" + Integer.valueOf(_typeCheckerIteration));
-        commandBuilder.append(_plus_1);
+        String _plus_2 = (" --maxIter=" + Integer.valueOf(_typeCheckerIteration));
+        commandBuilder.append(_plus_2);
       } else {
         commandBuilder.append(" -t");
       }

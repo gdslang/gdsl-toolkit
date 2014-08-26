@@ -71,7 +71,7 @@ class GDSLValidator extends AbstractGDSLValidator {
 		}
 	}
 	
-	def String text(PAT pat){
+	private def String text(PAT pat){
 		if(null != pat.uscore) return pat.uscore
 		if(null != pat.int) return pat.int
 		if(null != pat.id) return pat.id
@@ -83,43 +83,40 @@ class GDSLValidator extends AbstractGDSLValidator {
 	 */
 	@Check
 	def checkExternalCompiler(Model model){
-		val resource = model.eResource;
-		val projectPath = GDSLPluginPreferences.obtainProject(resource).location;
-		val workspaceRoot = ResourcesPlugin.workspace.root;
+		val resource = model.eResource
+		val projectPath = GDSLPluginPreferences.obtainProject(resource).location
+		val workspaceRoot = ResourcesPlugin.workspace.root
 		
 		if(GDSLPluginPreferences.compilerEnablement){
-			var commandBuilder = new StringBuilder()
+			val commandBuilder = new StringBuilder()
 			
 			//Compiler invocation
-			commandBuilder.append(GDSLPluginPreferences.compilerInvocation);
+			commandBuilder.append(GDSLPluginPreferences.compilerInvocation)
 			
 			//Output name
-			commandBuilder.append(" -o");
-			commandBuilder.append(" " + GDSLPluginPreferences.getOutputName(resource));
+			commandBuilder.append(" -o " + GDSLPluginPreferences.getOutputName(resource))
 			
 			//Runtime templates
-			commandBuilder.append(" --runtime=");
-			commandBuilder.append(GDSLPluginPreferences.getRuntimeTemplates(resource));
+			commandBuilder.append(" --runtime=" + GDSLPluginPreferences.getRuntimeTemplates(resource))
 			
 			//Prefix
-			val prefix = GDSLPluginPreferences.getPrefix(resource); 
+			val prefix = GDSLPluginPreferences.getPrefix(resource)
 			if(null != prefix){
-				commandBuilder.append(" --prefix=" + prefix);		
+				commandBuilder.append(" --prefix=" + prefix)
 			}
 			
 			//Typechecker
 			if(GDSLPluginPreferences.typeCheckerEnabled){
-				commandBuilder.append(" --maxIter=" + GDSLPluginPreferences.typeCheckerIteration);		
-			}
-			else{
-				commandBuilder.append(" -t");
+				commandBuilder.append(" --maxIter=" + GDSLPluginPreferences.typeCheckerIteration)
+			} else {
+				commandBuilder.append(" -t")
 			}
 			
 			//Files
-			commandBuilder.append(recursiveGetMLFiles(projectPath, workspaceRoot));
+			commandBuilder.append(recursiveGetMLFiles(projectPath, workspaceRoot))
 	
 			//Call the compiler and set markers for the returned errors
-			GDSLCompilerTools.compileAndSetMarkers(commandBuilder.toString, projectPath);
+			GDSLCompilerTools.compileAndSetMarkers(commandBuilder.toString, projectPath)
 		} else {
 			//Clear possible set markers
 			GDSLCompilerTools.clearMarkers(projectPath)
