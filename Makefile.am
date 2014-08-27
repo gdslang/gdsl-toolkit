@@ -549,16 +549,12 @@ clean-local:
 if INSTALL_AUXLIBS
 if HAVE_GDSL_MULTIPLEX
 if HAVE_RREIL
-if SINGLE
 lib_LTLIBRARIES += libgdsl-multiplex.la
-endif
 endif
 endif
 if HAVE_JGDSL
 if HAVE_RREIL
-if SINGLE
 lib_LTLIBRARIES += libjgdsl.la
-endif
 endif
 endif
 if HAVE_MEMSTREAM
@@ -569,16 +565,12 @@ endif
 if BUILD_AUXLIBS
 if HAVE_GDSL_MULTIPLEX
 if HAVE_RREIL
-if SINGLE
 noinst_LTLIBRARIES += libgdsl-multiplex.la
-endif
 endif
 endif
 if HAVE_JGDSL
 if HAVE_RREIL
-if SINGLE
 noinst_LTLIBRARIES += libjgdsl.la
-endif
 endif
 endif
 if HAVE_MEMSTREAM

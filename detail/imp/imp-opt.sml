@@ -546,6 +546,11 @@ structure Simplify = struct
       stmtsRef : stmt list ref
    }
 
+   fun canDuplicate (IDexp _) = true
+     | canDuplicate (PRIexp (GETSTATEprim,_,[])) = true
+     | canDuplicate (SELECTexp (_,_,_,e)) = canDuplicate e
+     | canDuplicate _ = false
+     
    fun visitStmt s (ASSIGNstmt (NONE, PRIexp (GET_CON_ARGprim,_,[_,e]))) = visitStmt s (ASSIGNstmt (NONE, e))
      | visitStmt s (ASSIGNstmt (res,exp)) = (case visitExp s exp of
          PRIexp (RAISEprim,t,es) => ASSIGNstmt (NONE, PRIexp (RAISEprim,t,es))
@@ -600,11 +605,23 @@ structure Simplify = struct
          BASICblock (decls,stmts)
       end
    
-   and visitExp s (PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs1), LITexp (INTvtype, INTlit size1)])) =
+   and visitExp s (PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs), LITexp (INTvtype, INTlit size)])) =
       (case visitExp s e of
-         VEC2INTexp (_,PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs2), LITexp (INTvtype, INTlit size2)])) =>
-            PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit (ofs1+ofs2)), LITexp (INTvtype, INTlit size1)])
-       | e => PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs1), LITexp (INTvtype, INTlit size1)])
+         VEC2INTexp (_,PRIexp (SLICEprim,_,[e,LITexp (INTvtype, INTlit ofs2), LITexp (INTvtype, INTlit size2)])) =>
+            PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit (ofs+ofs2)), LITexp (INTvtype, INTlit size)])
+       | e as VEC2INTexp (_,PRIexp (CONCAT_VECprim,_,[
+            vec1 as PRIexp (SLICEprim,t1,[e1,LITexp (INTvtype, INTlit ofs1), LITexp (INTvtype, INTlit size1)]),
+            vec2 as PRIexp (SLICEprim,t2,[e2,LITexp (INTvtype, INTlit ofs2), LITexp (INTvtype, INTlit size2)])
+          ])) => if ofs>=size2 then visitExp s (
+            PRIexp (SLICEprim,t,[
+               VEC2INTexp (SOME (IntInf.toInt size1), vec1),
+               LITexp (INTvtype, INTlit (ofs-size2)), LITexp (INTvtype, INTlit size)]))
+         else if ofs+size<=size2 then visitExp s (
+            PRIexp (SLICEprim,t,[
+               VEC2INTexp (SOME (IntInf.toInt size2), vec2),
+               LITexp (INTvtype, INTlit ofs), LITexp (INTvtype, INTlit size)]))
+         else PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs), LITexp (INTvtype, INTlit size)])
+       | e => PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs), LITexp (INTvtype, INTlit size)])
       )
      | visitExp s (PRIexp (SETSTATEprim,_,[PRIexp (GETSTATEprim,_,[])])) = PRIexp (VOIDprim,VOIDvtype,[])
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
@@ -646,14 +663,17 @@ structure Simplify = struct
           | e => BOXexp (t, e)
         )
      | visitExp s (UNBOXexp (t,e)) =  (case visitExp s e of
-            BOXexp (t2,e) => e
+            BOXexp (t,e) => e
           | e => UNBOXexp (t, e)
         )
      | visitExp s (VEC2INTexp (sz,e)) = (case visitExp s e of
             INT2VECexp (sz,e) => e
           | e => VEC2INTexp (sz, e)
         )
-     | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
+     | visitExp s (INT2VECexp (sz,e)) = (case visitExp s e of
+            VEC2INTexp (sz,e) => e
+          | e => INT2VECexp (sz, e)
+        )
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
      | visitExp s (STATEexp (b,t,e)) =
          let
@@ -706,10 +726,11 @@ structure Simplify = struct
             IDexp sym => SymbolTable.eq_symid (arg,sym)
           | _ => false) (ListPair.zip (args,map #2 fs @ [recArg]))) orelse
          not (List.length es=List.length args) orelse
+         not (canDuplicate (List.last es)) orelse
          not (SymbolTable.eq_symid (res,symRes)) then NONE else
       let
          val tab = !SymbolTables.varTable
-         val (tab, symDum) = SymbolTable.fresh (tab, Atom.atom "dummy_select")
+         val (tab, symDum) = SymbolTable.fresh (tab, Atom.atom "dummy_update")
          val _ = SymbolTables.varTable := tab
       in
          SOME (UPDATEexp (symDum, t, ListPair.zip (map #1 fs, es), List.last es))

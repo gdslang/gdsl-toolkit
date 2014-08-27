@@ -49,10 +49,9 @@ int_t gdsl::gdsl::get_ip_offset() {
   return frontend->native().generic.get_ip_offset(gdsl_state);
 }
 
-void gdsl::gdsl::set_code(char *buffer, uint64_t size, uint64_t base) {
+void gdsl::gdsl::set_code(unsigned char *buffer, uint64_t size, uint64_t base) {
   if(setjmp(*frontend->native().generic.err_tgt(gdsl_state)))
     throw gdsl_exception("set_code() failed", string(frontend->native().generic.get_error_message(gdsl_state)));
-
   frontend->native().generic.set_code(gdsl_state, buffer, size, base);
 }
 

@@ -244,7 +244,8 @@ structure Primitives = struct
                 BD.meetVarImpliesVar (bvar content'''', bvar content''') o
                 BD.meetVarImpliesVar (bvar content'', bvar content')},
        {name="void", ty=UNIT, flow = noFlow},
-       {name="merge-rope", ty=FUN([ropeVar],STRING), flow = noFlow}
+       {name="merge-rope", ty=FUN([ropeVar],STRING), flow = noFlow},
+       {name="endianness", ty=FUN([ZENO,ZENO],UNIT), flow = noFlow}
        ]
 
    val primitiveSizeConstraints =
@@ -314,6 +315,7 @@ structure Primitives = struct
          val ssis = ftype [STRINGvtype, STRINGvtype, INTvtype] STRINGvtype
          val si =  ftype [STRINGvtype] INTvtype
          val i = ftype [] INTvtype
+         val iiv = ftype [INTvtype, INTvtype] VOIDvtype
          val v = ftype [] VOIDvtype
          val fMv = ftype [ftype [OBJvtype] OBJvtype] (MONADvtype VOIDvtype)
          (* Generate type of the returned expression. The value that this
@@ -371,7 +373,8 @@ structure Primitives = struct
          ("return", (t ~1, fn args => (case args of
             [e] => action e
           | _ => raise ImpPrimTranslationBug))),
-         ("merge-rope", (t 0, fn args => pr (MERGE_ROPEprim,os,args)))
+         ("merge-rope", (t 0, fn args => pr (MERGE_ROPEprim,os,args))),
+         ("endianness", (t 0, fn args => pr (SET_ENDIANNESSprim,iiv,unboxI args)))
          ]
       end
 

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-gdsl::rreil::ite::ite(sexpr *cond, statement *then_branch, statement *else_branch) {
+gdsl::rreil::ite::ite(sexpr *cond, std::vector<statement*> *then_branch, std::vector<statement*> *else_branch) {
   this->cond = cond;
   this->then_branch = then_branch;
   this->else_branch = else_branch;
@@ -18,8 +18,12 @@ gdsl::rreil::ite::ite(sexpr *cond, statement *then_branch, statement *else_branc
 
 gdsl::rreil::ite::~ite() {
   delete this->cond;
-  delete this->then_branch;
-  delete this->else_branch;
+  for(auto stmt : *then_branch)
+    delete stmt;
+  delete then_branch;
+  for(auto stmt : *else_branch)
+    delete stmt;
+  delete else_branch;
 }
 
 void gdsl::rreil::ite::accept(statement_visitor &v) {
@@ -28,7 +32,10 @@ void gdsl::rreil::ite::accept(statement_visitor &v) {
 
 void gdsl::rreil::ite::put(std::ostream &out) {
   out << "if(" << *cond << ") {\n";
-  out << *then_branch << "\n}{\n";
-  out << *else_branch;
-  out << "\n}";
+  for(auto stmt : *then_branch)
+    out << *stmt << "\n";
+  out << "}{\n";
+  for(auto stmt : *else_branch)
+    out << *stmt << "\n";
+  out << "}";
 }

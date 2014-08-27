@@ -33,7 +33,6 @@ type imm =
 type lvalue =
    GPR of register
  | FPR of register
- | FPC of register
 
 type rvalue =
    LVALUE of lvalue
@@ -51,10 +50,21 @@ val right lvalue = do
   return (LVALUE lvalue)
 end
 
+
+val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101')
+
+###
+# SLL not script handled yet
+#val / ['000000 00000 /rt /rd /sa 000000']
+# | pause? = nullop PAUSE
+# | otherwise = ternop SLL rd (right rt) sa
+###
+
 # -> sftl
 
 val decode config = do
-  update@{rs='',rt='',rd='',fr='',fs='',ft='',fd='',immediate='',offset='',sel='',impl='',code10='',code19='',code20='',stype='',msb='',msbd='',lsb='',sa='',instr_index='',cofun='',cc='',cond='',op='',hint='',fmt=''};
+  set-endianness BIG_ENDIAN 4;
+  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',sel='000',impl='0000000000000000',code10='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
   idx-before <- idxget;
   insn <- /;
   idx-after <- idxget;
@@ -248,7 +258,7 @@ val / ['010010 1 /cofun'] = unop-src COP2 cofun
 
 ### CTC1
 ###  - Move Control Word to Floating Point
-val / ['010001 00110 /rt /fs 00000000000'] = binop CTC1 fs/ctrl (right rt) 
+val / ['010001 00110 /rt /fs 00000000000'] = binop-src CTC1 (right rt) fs/ctrl 
 
 ### CTC2
 ###  - Move Control Word to Coprocessor 2
@@ -648,7 +658,7 @@ val / ['010001 10110 /ft /fs /fd 101111'] = ternop PUU-PS fd (right ft) (right f
 
 ### RDHWR
 ###  - Read Hardware Register
-val / ['011111 00000 /rt /rd 00000 111011'] = binop RDHWR rt (right rd) 
+val / ['011111 00000 /rt /rd 00000 111011'] = binop RDHWR rt rd/imm 
 
 ### RDPGPR
 ###  - Read GRP from Previous Shadow Set
@@ -728,7 +738,9 @@ val / ['011111 /rs /rt /offset9 0 011101'] = ternop-src SHE (right rs) (right rt
 
 ### SLL
 ###  - Shift Word Left Logical
-val / ['000000 00000 /rt /rd /sa 000000'] = ternop SLL rd (right rt) sa 
+val / ['000000 00000 /rt /rd /sa 000000']
+ | pause? = nullop PAUSE
+ | otherwise = ternop SLL rd (right rt) sa
 
 ### SLLV
 ###  - Shift Word Left Logical Variable
@@ -941,181 +953,181 @@ val / ['001110 /rs /rt /immediate'] = ternop XORI rt (right rs) immediate
 
 val rs = do
   rs <- query $rs;
-  update @{rs=''};
+  update @{rs='00000'};
   return (GPR (gpr-from-bits rs))
 end
 
 val rt = do
   rt <- query $rt;
-  update @{rt=''};
+  update @{rt='00000'};
   return (GPR (gpr-from-bits rt))
 end
 
 val rd = do
   rd <- query $rd;
-  update @{rd=''};
+  update @{rd='00000'};
   return (GPR (gpr-from-bits rd))
 end
 
 val rd/imm = do
   rd <- query $rd;
-  update @{rd=''};
+  update @{rd='00000'};
   return (IMM (IMM5 rd))
 end
 
 val rt/imm = do
   rt <- query $rt;
-  update @{rt=''};
+  update @{rt='00000'};
   return (IMM (IMM5 rt))
 end
 
 val fr = do
   fr <- query $fr;
-  update @{fr=''};
+  update @{fr='00000'};
   return (FPR (fpr-from-bits fr))
 end
 
 val fs = do
   fs <- query $fs;
-  update @{fs=''};
+  update @{fs='00000'};
   return (FPR (fpr-from-bits fs))
 end
 
 val ft = do
   ft <- query $ft;
-  update @{ft=''};
+  update @{ft='00000'};
   return (FPR (fpr-from-bits ft))
 end
 
 val fd = do
   fd <- query $fd;
-  update @{fd=''};
+  update @{fd='00000'};
   return (FPR (fpr-from-bits fd))
 end
 
 val fs/ctrl = do
   fs <- query $fs;
-  update @{fs=''};
-  return (FPC (fpc-from-bits fs))
+  update @{fs='00000'};
+  return (IMM (IMM5 fs))
 end
 
 val immediate = do
   immediate <- query $immediate;
-  update @{immediate=''};
+  update @{immediate='0000000000000000'};
   return (IMM (IMM16 immediate))
 end
 
 val offset16 = do
-  offset <- query $offset;
-  update @{offset=''};
-  return (IMM (OFFSET16 offset))
+  offset16 <- query $offset16;
+  update @{offset16='0000000000000000'};
+  return (IMM (OFFSET16 offset16))
 end
 
 val offset9 = do
-  offset <- query $offset;
-  update @{offset=''};
-  return (IMM (OFFSET9 offset))
+  offset9 <- query $offset9;
+  update @{offset9='000000000'};
+  return (IMM (OFFSET9 offset9))
 end
 
 val sel = do
   sel <- query $sel;
-  update @{sel=''};
+  update @{sel='000'};
   return (IMM (SEL sel))
 end
 
 val impl = do
   impl <- query $impl;
-  update @{impl=''};
+  update @{impl='0000000000000000'};
   return (IMM (IMPL impl))
 end
 
 val code10 = do
   code10 <- query $code10;
-  update @{code10=''};
+  update @{code10='0000000000'};
   return (IMM (CODE10 code10))
 end
 
 val code19 = do
   code19 <- query $code19;
-  update @{code19=''};
+  update @{code19='0000000000000000000'};
   return (IMM (CODE19 code19))
 end
 
 val code20 = do
   code20 <- query $code20;
-  update @{code20=''};
+  update @{code20='00000000000000000000'};
   return (IMM (CODE20 code20))
 end
 
 val stype = do
   stype <- query $stype;
-  update @{stype=''};
+  update @{stype='00000'};
   return (IMM (STYPE stype))
 end
 
 val msb = do
   msb <- query $msb;
-  update @{msb=''};
+  update @{msb='00000'};
   return (IMM (POSSIZE msb))
 end
 
 val msbd = do
   msbd <- query $msbd;
-  update @{msbd=''};
+  update @{msbd='00000'};
   return (IMM (SIZE msbd))
 end
 
 val lsb = do
   lsb <- query $lsb;
-  update @{lsb=''};
+  update @{lsb='00000'};
   return (IMM (POS lsb))
 end
 
 val sa = do
   sa <- query $sa;
-  update @{sa=''};
+  update @{sa='00000'};
   return (IMM (IMM5 sa))
 end
 
 val instr_index = do
   instr_index <- query $instr_index;
-  update @{instr_index=''};
+  update @{instr_index='00000000000000000000000000'};
   return (IMM (INSTRINDEX instr_index))
 end
 
 val cofun = do
   cofun <- query $cofun;
-  update @{cofun=''};
+  update @{cofun='0000000000000000000000000'};
   return (IMM (COFUN cofun))
 end
 
 val cc = do
   cc <- query $cc;
-  update @{cc=''};
+  update @{cc='000'};
   return (IMM (CC cc))
 end
 
 val cond = do
   cond <- query $cond;
-  update @{cond=''};
+  update @{cond='0000'};
   return (IMM (COND cond))
 end
 
 val op = do
   op <- query $op;
-  update @{op=''};
+  update @{op='00000'};
   return (IMM (OP op))
 end
 
 val hint5 = do
   hint <- query $hint;
-  update @{hint=''};
+  update @{hint='00000'};
   return (IMM (HINT hint))
 end
 
 val fmt = do
   fmt <- query $fmt;
-  update @{fmt=''};
+  update @{fmt='00000'};
   return (format-from-bits (fmt))
 end
 
@@ -1128,8 +1140,8 @@ val /fs ['fs:5'] = update@{fs=fs}
 val /ft ['ft:5'] = update@{ft=ft}
 val /fd ['fd:5'] = update@{fd=fd}
 val /immediate ['immediate:16'] = update@{immediate=immediate}
-val /offset16 ['offset:16'] = update@{offset=offset}
-val /offset9 ['offset:9'] = update@{offset=offset}
+val /offset16 ['offset16:16'] = update@{offset16=offset16}
+val /offset9 ['offset9:9'] = update@{offset9=offset9}
 val /sel ['sel:3'] = update@{sel=sel}
 val /impl ['impl:16'] = update@{impl=impl}
 val /code10 ['code10:10'] = update@{code10=code10}
@@ -1304,7 +1316,7 @@ type instruction =
  | CLO of ternop
  | CLZ of ternop
  | COP2 of unop-src
- | CTC1 of binop
+ | CTC1 of binop-src
  | CTC2 of binop-src
  | CVT-D-fmt of binop-fmt
  | CVT-L-fmt of binop-fmt
@@ -1476,6 +1488,8 @@ type instruction =
 
 # <- sutl
 
+type instruction = 
+   PAUSE
 
 type register =
    ZERO
@@ -1550,7 +1564,6 @@ type register =
  | F29
  | F30
  | F31
- | F of int
  | FIR
  | FCCR
  | FEXR
@@ -1637,5 +1650,3 @@ val format-from-bits bits =
   | '10101': L
   | '10110': PS
  end
-
-val fpc-from-bits bits = (F (zx bits))

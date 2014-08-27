@@ -70,9 +70,38 @@ val arch-show-id r =
 	 | Sem_F29: "f29"
 	 | Sem_F30: "f30"
 	 | Sem_F31: "f31"
+	 | Sem_FIR: "FIR"
+	 | Sem_FCCR: "FCCR"
+	 | Sem_FEXR: "FEXR"
+	 | Sem_FENR: "FENR"
+	 | Sem_FCSR: "FCSR"
 	 | Sem_SREG: "SREG"
+	 | Sem_LLBIT: "LLBit"
+	 | Sem_DEBUG: "Debug"
+	 | Sem_CONFIG1: "Config1"
+	 | Sem_ISA_MODE: "ISA Mode"
+	 | Sem_SRSCTL: "SRSCtl"
+	 | Sem_CONFIG3: "Config3"
+	 | Sem_EPC: "EPC"
+	 | Sem_ERROR_EPC: "ErrorEPC"
+	 | Sem_DEPC: "DEPC"
+	 | Sem_CPUNUM: "CPUNum"
+	 | Sem_SYNCI_STEP: "SYNCI Step Size"
+	 | Sem_CC: "CC"
+	 | Sem_CCRES: "CCRes"
+	 | Sem_ULR: "ULR"
    end
 
 val pretty-arch-id r = arch-show-id r
 
-val pretty-arch-exception exception = ""
+val pretty-arch-exception exception =
+   case exception of
+      SEM_EXC_OVERFLOW : "{Exception: Overflow}"
+    | SEM_EXC_VADDR_ERROR : "{Exception: Virtual Address Error}"
+    | SEM_EXC_TRAP : "{Exception: Trap}"
+    | SEM_EXC_SYSTEM_CALL : "{Exception: System Call}"
+    | SEM_EXC_BREAKPOINT : "{Exception: Breakpoint}"
+    | SEM_EXC_DEBUG_BREAKPOINT : "{Exception: Debug Breakpoint}"
+    | SEM_EXC_DEBUG_MODE_BREAKPOINT : "{Exception: Debug Mode Breakpoint}"
+    | SEM_EXC_RESERVED_INSTRUCTION : "{Exception: Reserved Instruction}"
+   end

@@ -81,7 +81,7 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode(JNIEnv *env, jobject this, jlong f
 	if(setjmp(*frontend->generic.err_tgt(state)))
 	THROW_GDSL_ERROR()
 
-	frontend->generic.set_code(state, (char*)(buffer + offset), (uint64_t)(size - offset), (uint64_t)base);
+	frontend->generic.set_code(state, (unsigned char*)(buffer + offset), (uint64_t)(size - offset), (uint64_t)base);
 }
 
 static obj_t decode_one(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr, int_t decode_config) {

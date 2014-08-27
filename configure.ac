@@ -143,7 +143,7 @@ AM_CONDITIONAL([AVR],[test x$with_frontend = xavr -o x$with_frontend = xall])
 AM_CONDITIONAL([MIPS_RREIL],[test x$with_frontend = xmips-rreil -o x$with_frontend = xall])
 AM_CONDITIONAL([MIPS],[test x$with_frontend = xmips -o x$with_frontend = xall])
 AM_CONDITIONAL([ARM7],[test x$with_frontend = xarm7 -o x$with_frontend = xall])
-AM_CONDITIONAL([HAVE_RREIL],[test x$has_rreil = xyes])
+AM_CONDITIONAL([HAVE_RREIL],[test x$has_rreil = xyes -o x$with_frontend = xall])
 AM_CONDITIONAL([SINGLE],[test x$with_frontend != xall])
 #AM_CONDITIONAL([HAVE_X86], [test x$has_x86 = xyes])
 #AM_CONDITIONAL([HAVE_GNU_C11], [echo "int main(void) { return 0; }" | gcc -std=gnu11 -xc - -o /dev/null])
@@ -213,6 +213,11 @@ AC_CONFIG_FILES([
   Makefile
 ])
 
+AM_COND_IF([HAVE_GDSL_MULTIPLEX], libjgdsl_msg=yes, libjgdsl_msg=no)
+AM_COND_IF([HAVE_RREIL], libjgdsl_msg=$libjgdsl_msg, libjgdsl_msg="no; translator API missing")
+AM_COND_IF([HAVE_GDSL_MULTIPLEX], libgdsl_multiplex_msg=yes, libgdsl_multiplex_msg=no)
+AM_COND_IF([HAVE_RREIL], libgdsl_multiplex_msg=$libgdsl_multiplex_msg, libgdsl_multiplex_msg="no; translator API missing")
+
 AC_OUTPUT()
 cat <<EOF
 
@@ -227,8 +232,8 @@ GDSL toolkit configuration:
   version:                      $VERSION
 EOF
 echo Libraries:
-AS_ECHO_N "  libgdsl-multiplex:            "; AM_COND_IF([HAVE_GDSL_MULTIPLEX], echo yes \(if building a single frontend\), echo no)
-AS_ECHO_N "  libjgdsl:                     "; AM_COND_IF([HAVE_JGDSL], echo yes \(if building a single frontend\), echo no)
+AS_ECHO_N "  libgdsl-multiplex:            "; echo $libjgdsl_msg
+AS_ECHO_N "  libjgdsl:                     "; echo $libgdsl_multiplex_msg
 AS_ECHO_N "  libmemstream:                 "; AM_COND_IF([HAVE_MEMSTREAM], echo yes, echo no)
 echo
 

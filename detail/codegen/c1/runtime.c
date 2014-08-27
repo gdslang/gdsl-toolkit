@@ -19,10 +19,11 @@ struct state {
   char* heap;         /* current top of the heap */
 @state_type@
 ;      /* the current monadic state */
-  char* ip_start;     /* beginning of code buffer */
+  unsigned char* ip_start;     /* beginning of code buffer */
   size_t ip_base;     /* base address of code */
-  char* ip_limit;     /* first byte beyond the code buffer */
-  char* ip;           /* current pointer into the buffer */
+  unsigned char* ip_limit;     /* first byte beyond the code buffer */
+  unsigned char* ip;           /* current pointer into the buffer */
+  size_t token_addr_inv;
   char* err_str;      /* a string describing the fatal error that occurred */
   jmp_buf err_tgt;    /* the position of the exception handler */
   FILE* handle;       /* the file that the puts primitve uses */
@@ -65,7 +66,7 @@ static void NO_INLINE_ATTR alloc_heap(state_t s, char* prev_page, size_t size) {
 };
 
 
-void 
+void
 @reset_heap@
 (state_t s) {
   char* heap = s->heap_base;
@@ -82,7 +83,7 @@ void
   memset(&s->state, 0, sizeof(s->state));
 };
 
-size_t 
+size_t
 @heap_residency@
 (state_t s) {
   char* heap = s->heap_base;
@@ -197,32 +198,47 @@ static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec)
 #define slice(vec_data,ofs,sz) ((vec_data >> ofs) & ((1ul << sz)-1))
 #define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}
 
-jmp_buf* 
+jmp_buf*
 @err_tgt@
 (state_t s) {
   return &(s->err_tgt);
 };
 
-char* 
+char*
 @get_error_message@
 (state_t s) {
   return s->err_str;
 };
 
-#define GEN_CONSUME(size)                                 \
-static inline int_t consume ## size(state_t s) {          \
-  if (s->ip+( size >>3)>s->ip_limit) {                    \
-    s->err_str = "GDSL runtime: end of code input stream";\
-    longjmp(s->err_tgt,1);                                \
-  };                                                      \
-  uint ## size ## _t* ptr = (uint ## size ## _t*) s->ip;  \
-  int_t res = (unsigned) *ptr;                            \
-  s->ip+= size >> 3;                                      \
-  return res;                                             \
+
+static inline int_t consume(state_t s, char size) {
+  if(s->ip + size > s->ip_limit) {
+    s->err_str = "GDSL runtime: end of code input stream";
+    longjmp(s->err_tgt, 1);
+  };
+  int_t result = 0;
+  while(size)
+    result |= s->ip_start[(s->ip++ - s->ip_start) ^ s->token_addr_inv] << (--size*8);
+  return result;
 }
 
-@consumes@
+static inline void unconsume(state_t s, char size) {
+  s->ip -= size;
+}
 
+void
+@endianness@
+(state_t s, int_t le, int_t size) {
+  if (size != 1 && size != 2 && size != 4 && size != 8) {
+    s->err_str = "GDSL runtime: endianness(); invalid token size";
+    longjmp(s->err_tgt, 100);
+  };
+  if (le != 0 && le != 1) {
+    s->err_str = "GDSL runtime: endianness(); invalid kind";
+    longjmp(s->err_tgt, 101);
+  };
+  s->token_addr_inv = le * (size - 1);
+}
 
 static int_t vec_to_signed(state_t s, vec_t v) {
   unsigned int bit_size = sizeof(int_t)*8;
@@ -281,30 +297,33 @@ static string_t int_to_string(state_t s, int_t v) {
   }
 };
 
-void 
+void
 @set_code@
-(state_t s, char* buf, size_t buf_len, size_t base) {
+(state_t s, unsigned char* buf, size_t buf_len, size_t base) {
+  /*
+   * Todo: fix signedness
+   */
   s->ip = buf;
   s->ip_limit = buf+buf_len;
   s->ip_start = buf;
   s->ip_base = base;
 }
 
-size_t 
+size_t
 @get_ip_offset@
 (state_t s) {
   return s->ip_base + (s->ip - s->ip_start);
 }
 
-int_t 
+int_t
 @seek@
 (state_t s, size_t i) {
   size_t size = (size_t)(s->ip_limit - s->ip_start);
   size_t start_offset = i - s->ip_base;
-	if(start_offset >= size)
-	  return 1;
-	s->ip = s->ip_start + start_offset;
-	return 0;
+  if(start_offset >= size)
+    return 1;
+  s->ip = s->ip_start + start_offset;
+  return 0;
 }
 
 string_t
@@ -321,7 +340,7 @@ string_t
   return buf;
 }
 
-void 
+void
 @destroy@
 (state_t s) {
 @reset_heap@
@@ -343,7 +362,7 @@ void
 @functions@
 
 
-state_t 
+state_t
 @init@
 () {
   state_t s = calloc(1,sizeof(struct state));
@@ -356,6 +375,10 @@ state_t
   s->heap_base = NULL;
   s->heap_limit = NULL;
   s->heap = NULL;
+
+  @endianness@
+  (s, 0, 1);
+
   return s;
 }
 
@@ -370,12 +393,17 @@ state_t
 #endif
 
 #define BUF_SIZE 32*1024*1024
-static char blob[BUF_SIZE];
+static unsigned char blob[BUF_SIZE];
 
 int main (int argc, char** argv) {
   uint64_t buf_size = BUF_SIZE;
   FILE* file = NULL;
-  int_t decode_options = 0;
+  int_t decode_options =
+#if defined(gdsl_default_config)
+    gdsl_default_config;
+#else
+    0;
+#endif
   int_t run_translate = 0;
   int_t translate_options = 0;
   int_t base_address = 0;
@@ -395,21 +423,26 @@ int main (int argc, char** argv) {
       }
     } else {
       arg+=2;
+      int negated = 0;
+      if (strcmp(arg,"no-")==0) { negated = 1; arg+=3; };
 #if defined(gdsl_decoder_config)
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
         if (strcmp(arg,gdsl_conf_short(s,config))==0) {
-          decode_options |= gdsl_conf_data(s,config);
+          if (negated)
+            decode_options &= ~gdsl_conf_data(s,config);
+          else
+            decode_options |= gdsl_conf_data(s,config);
           break;
         }
       if (gdsl_has_conf(s,config)) continue;
 #endif
       if (strncmp(arg,"base=",5)==0) {
-        scanf(arg+5,"%lli",&base_address);
+        sscanf(arg+5,"%lli",&base_address);
         continue;
       }
       if (strncmp(arg,"start=",6)==0) {
-        scanf(arg+6,"%lli",&start_address);
+        sscanf(arg+6,"%lli",&start_address);
         continue;
       }
       if (strcmp(arg,"trans")==0) {
@@ -418,15 +451,20 @@ int main (int argc, char** argv) {
       }
       fprintf(stderr,
         "usage: %s [options] filename\nwhere\n"
-        "  --trans          translate to semantics\n"
-        "  --base=addr      print addresses relative to addr\n"
-        "  --start=addr     decode starting from addr\n", argv[0]);
+        "  --trans               translate to semantics\n"
+        "  --base=addr           print addresses relative to addr\n"
+        "  --start=addr          decode starting from addr\n", argv[0]);
 #if defined(gdsl_decoder_config)
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
-        fprintf(stderr,"  --%s\t\t%s\n",
-          gdsl_conf_short(s,config), gdsl_conf_long(s,config));
+        fprintf(stderr,"  --%s\t\t%s%s\n  --no-%s%s\t\tnegated option\n",
+          gdsl_conf_short(s,config),
+          gdsl_conf_data(s,config) & decode_options ? "*" : "",
+          gdsl_conf_long(s,config),
+          gdsl_conf_short(s,config),
+          gdsl_conf_data(s,config) & decode_options ? "" : "*");
 #endif
+      fprintf(stderr,"The default is denoted by *.\n");
       return 1;
     }
   }
@@ -450,11 +488,11 @@ int main (int argc, char** argv) {
        }
        blob[i] = c & 0xff;
     }
-  }  
+  }
   /* initialize the GDSL program */
   gdsl_set_code(s, blob, buf_size, base_address);
   gdsl_seek(s, start_address);
-  
+
   int_t alloc_size = 0;
   int_t alloc_no = 0;
   int_t alloc_max = 0;
@@ -470,7 +508,7 @@ int main (int argc, char** argv) {
           2);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
-        printf("%llx:\n",address);
+        printf("0x%llx:\n",address);
         fputs(str,stdout);
 #else
         fputs("GDSL modules contain no semantic translation\n",stdout);
@@ -488,9 +526,9 @@ int main (int argc, char** argv) {
 #endif
       }
     } else {
-      fputs("exception: ",stdout);
-      fputs(gdsl_get_error_message(s),stdout);
-      if (gdsl_seek(s,gdsl_get_ip_offset(s)+1)) break;
+      int_t address = gdsl_get_ip_offset(s);
+      fprintf(stdout,"exception at address 0x%llx: %s\n", address, gdsl_get_error_message(s));
+      return 1;
     }
     fputs("\n",stdout);
     int_t size = gdsl_heap_residency(s);
@@ -501,7 +539,7 @@ int main (int argc, char** argv) {
   }
   fprintf(stderr, "heap: no: %lli mem: %lli max: %lli\n", alloc_no, alloc_size, alloc_max);
   gdsl_destroy(s);
-  return 0; 
+  return 0;
 }
 
 #endif

@@ -21,8 +21,9 @@ val config-default-opnd-sz-32 = '10'
 val test-opt opt config = if (zx (opt and config)) > 0 then '1' else '0'
 
 val decode config = do
-   update @{tab=void};
-   main config
+  set-endianness LITTLE_ENDIAN 1;
+  update @{tab=void};
+  main config
 end
 
 val main config = do
