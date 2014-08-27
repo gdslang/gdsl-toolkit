@@ -13,9 +13,9 @@ import org.eclipse.emf.common.util.EList;
  * The following features are supported:
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.Type#getName <em>Name</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Type#getTyVars <em>Ty Vars</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.Type#getConDecl <em>Con Decl</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.Type#getValue <em>Value</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.Type#getTyVars <em>Ty Vars</em>}</li>
  * </ul>
  * </p>
  *
@@ -50,6 +50,32 @@ public interface Type extends Decl
    * @generated
    */
   void setName(String value);
+
+  /**
+   * Returns the value of the '<em><b>Ty Vars</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <p>
+   * If the meaning of the '<em>Ty Vars</em>' containment reference isn't clear,
+   * there really should be more of a description here...
+   * </p>
+   * <!-- end-user-doc -->
+   * @return the value of the '<em>Ty Vars</em>' containment reference.
+   * @see #setTyVars(TyVars)
+   * @see gdsl.plugin.gDSL.GDSLPackage#getType_TyVars()
+   * @model containment="true"
+   * @generated
+   */
+  TyVars getTyVars();
+
+  /**
+   * Sets the value of the '{@link gdsl.plugin.gDSL.Type#getTyVars <em>Ty Vars</em>}' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @param value the new value of the '<em>Ty Vars</em>' containment reference.
+   * @see #getTyVars()
+   * @generated
+   */
+  void setTyVars(TyVars value);
 
   /**
    * Returns the value of the '<em><b>Con Decl</b></em>' containment reference list.
@@ -92,31 +118,5 @@ public interface Type extends Decl
    * @generated
    */
   void setValue(Ty value);
-
-  /**
-   * Returns the value of the '<em><b>Ty Vars</b></em>' containment reference.
-   * <!-- begin-user-doc -->
-   * <p>
-   * If the meaning of the '<em>Ty Vars</em>' containment reference isn't clear,
-   * there really should be more of a description here...
-   * </p>
-   * <!-- end-user-doc -->
-   * @return the value of the '<em>Ty Vars</em>' containment reference.
-   * @see #setTyVars(TyVars)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getType_TyVars()
-   * @model containment="true"
-   * @generated
-   */
-  TyVars getTyVars();
-
-  /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.Type#getTyVars <em>Ty Vars</em>}' containment reference.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Ty Vars</em>' containment reference.
-   * @see #getTyVars()
-   * @generated
-   */
-  void setTyVars(TyVars value);
 
 } // Type

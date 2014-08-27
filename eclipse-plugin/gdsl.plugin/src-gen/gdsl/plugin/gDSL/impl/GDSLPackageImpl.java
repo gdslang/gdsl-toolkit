@@ -5,6 +5,7 @@ package gdsl.plugin.gDSL.impl;
 import gdsl.plugin.gDSL.AExp;
 import gdsl.plugin.gDSL.AndAlsoExp;
 import gdsl.plugin.gDSL.ApplyExp;
+import gdsl.plugin.gDSL.Args;
 import gdsl.plugin.gDSL.AtomicExp;
 import gdsl.plugin.gDSL.CaseExp;
 import gdsl.plugin.gDSL.ClosedExp;
@@ -190,6 +191,13 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * @generated
    */
   private EClass applyExpEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass argsEClass = null;
 
   /**
    * <!-- begin-user-doc -->
@@ -384,7 +392,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EReference getType_ConDecl()
+  public EReference getType_TyVars()
   {
     return (EReference)typeEClass.getEStructuralFeatures().get(1);
   }
@@ -394,7 +402,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EReference getType_Value()
+  public EReference getType_ConDecl()
   {
     return (EReference)typeEClass.getEStructuralFeatures().get(2);
   }
@@ -404,7 +412,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EReference getType_TyVars()
+  public EReference getType_Value()
   {
     return (EReference)typeEClass.getEStructuralFeatures().get(3);
   }
@@ -1034,6 +1042,36 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
+  public EReference getApplyExp_Args()
+  {
+    return (EReference)applyExpEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getArgs()
+  {
+    return argsEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getArgs_Args()
+  {
+    return (EReference)argsEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public EClass getAtomicExp()
   {
     return atomicExpEClass;
@@ -1281,9 +1319,9 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
 
     typeEClass = createEClass(TYPE);
     createEAttribute(typeEClass, TYPE__NAME);
+    createEReference(typeEClass, TYPE__TY_VARS);
     createEReference(typeEClass, TYPE__CON_DECL);
     createEReference(typeEClass, TYPE__VALUE);
-    createEReference(typeEClass, TYPE__TY_VARS);
 
     valEClass = createEClass(VAL);
     createEAttribute(valEClass, VAL__NAME);
@@ -1363,6 +1401,10 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
 
     applyExpEClass = createEClass(APPLY_EXP);
     createEReference(applyExpEClass, APPLY_EXP__ATOMIC_EXP);
+    createEReference(applyExpEClass, APPLY_EXP__ARGS);
+
+    argsEClass = createEClass(ARGS);
+    createEReference(argsEClass, ARGS__ARGS);
 
     atomicExpEClass = createEClass(ATOMIC_EXP);
     createEAttribute(atomicExpEClass, ATOMIC_EXP__ID);
@@ -1446,9 +1488,9 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
 
     initEClass(typeEClass, Type.class, "Type", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getType_Name(), ecorePackage.getEString(), "name", null, 0, 1, Type.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getType_TyVars(), this.getTyVars(), null, "tyVars", null, 0, 1, Type.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getType_ConDecl(), this.getConDecl(), null, "conDecl", null, 0, -1, Type.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getType_Value(), this.getTy(), null, "value", null, 0, 1, Type.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-    initEReference(getType_TyVars(), this.getTyVars(), null, "tyVars", null, 0, 1, Type.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(valEClass, Val.class, "Val", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getVal_Name(), ecorePackage.getEString(), "name", null, 0, 1, Val.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -1527,7 +1569,11 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEReference(getSelectExp_Applyexps(), this.getApplyExp(), null, "applyexps", null, 0, -1, SelectExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(applyExpEClass, ApplyExp.class, "ApplyExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-    initEReference(getApplyExp_AtomicExp(), this.getAtomicExp(), null, "atomicExp", null, 0, -1, ApplyExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getApplyExp_AtomicExp(), this.getAtomicExp(), null, "atomicExp", null, 0, 1, ApplyExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getApplyExp_Args(), this.getArgs(), null, "args", null, 0, 1, ApplyExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(argsEClass, Args.class, "Args", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEReference(getArgs_Args(), this.getAtomicExp(), null, "args", null, 0, -1, Args.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(atomicExpEClass, AtomicExp.class, "AtomicExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getAtomicExp_Id(), ecorePackage.getEString(), "id", null, 0, -1, AtomicExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

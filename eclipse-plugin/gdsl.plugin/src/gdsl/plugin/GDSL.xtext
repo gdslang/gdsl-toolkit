@@ -17,11 +17,10 @@ DeclExport:
 ;
 
 DeclType returns Type:
-	'type' name=(ID | S)
-	(
-		('=' (=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) | value=Ty))
-		| (tyVars=TyVars '=' (conDecl+=ConDecl ('|' conDecl+=ConDecl)*))
-	)
+	'type' name=(ID | S) (tyVars=TyVars)? '=' 
+		(=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) 
+			| value=Ty
+		)
 ;
 
 DeclVal returns Val:
@@ -44,12 +43,13 @@ ConDecl:
 ;
 
 Ty:
-	value=INTEGER |
+	value=(INTEGER|BINS) |
 	'|' value=INTEGER '|' |
+	'|' typeRef=[Type] '|' |
 	(typeRef=[Type] | type=('int'|'string'|'unit')) ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
 	{Ty} '{' (elements+=TyElement (',' elements+=TyElement)*)? '}' |
 	'(' param+=Ty (',' param+=Ty)* ')' '->' resType=Ty |
-	{Ty} '()' |
+	{Ty} '()' ('->' resType=Ty)? |
 	S r=Ty LESS in=Ty '=>' out=Ty GREATER
 ;
 
@@ -107,7 +107,15 @@ SelectExp:
 
 ApplyExp:
 	'~' AtomicExp |
-	=>(atomicExp+=AtomicExp)+
+//	=>(atomicExp+=AtomicExp)+
+	atomicExp=AtomicExp args=Args
+;
+
+Args:
+	{Args} (
+		args+=AtomicExp* 
+		| '()'
+	)
 ;
 
 AtomicExp:

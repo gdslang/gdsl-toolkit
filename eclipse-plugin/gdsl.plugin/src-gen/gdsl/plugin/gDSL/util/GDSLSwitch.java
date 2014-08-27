@@ -258,6 +258,13 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
+      case GDSLPackage.ARGS:
+      {
+        Args args = (Args)theEObject;
+        T result = caseArgs(args);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
       case GDSLPackage.ATOMIC_EXP:
       {
         AtomicExp atomicExp = (AtomicExp)theEObject;
@@ -638,6 +645,22 @@ public class GDSLSwitch<T> extends Switch<T>
    * @generated
    */
   public T caseApplyExp(ApplyExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Args</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Args</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseArgs(Args object)
   {
     return null;
   }

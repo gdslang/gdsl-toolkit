@@ -3,20 +3,17 @@
 package gdsl.plugin.gDSL.impl;
 
 import gdsl.plugin.gDSL.ApplyExp;
+import gdsl.plugin.gDSL.Args;
 import gdsl.plugin.gDSL.AtomicExp;
 import gdsl.plugin.gDSL.GDSLPackage;
 
-import java.util.Collection;
-
+import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
-
-import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
-import org.eclipse.emf.ecore.util.EObjectContainmentEList;
-import org.eclipse.emf.ecore.util.InternalEList;
+import org.eclipse.emf.ecore.impl.ENotificationImpl;
 
 /**
  * <!-- begin-user-doc -->
@@ -26,6 +23,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
  * The following features are implemented:
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.impl.ApplyExpImpl#getAtomicExp <em>Atomic Exp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.ApplyExpImpl#getArgs <em>Args</em>}</li>
  * </ul>
  * </p>
  *
@@ -34,14 +32,24 @@ import org.eclipse.emf.ecore.util.InternalEList;
 public class ApplyExpImpl extends SelectExpImpl implements ApplyExp
 {
   /**
-   * The cached value of the '{@link #getAtomicExp() <em>Atomic Exp</em>}' containment reference list.
+   * The cached value of the '{@link #getAtomicExp() <em>Atomic Exp</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @see #getAtomicExp()
    * @generated
    * @ordered
    */
-  protected EList<AtomicExp> atomicExp;
+  protected AtomicExp atomicExp;
+
+  /**
+   * The cached value of the '{@link #getArgs() <em>Args</em>}' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getArgs()
+   * @generated
+   * @ordered
+   */
+  protected Args args;
 
   /**
    * <!-- begin-user-doc -->
@@ -69,13 +77,95 @@ public class ApplyExpImpl extends SelectExpImpl implements ApplyExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<AtomicExp> getAtomicExp()
+  public AtomicExp getAtomicExp()
   {
-    if (atomicExp == null)
-    {
-      atomicExp = new EObjectContainmentEList<AtomicExp>(AtomicExp.class, this, GDSLPackage.APPLY_EXP__ATOMIC_EXP);
-    }
     return atomicExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public NotificationChain basicSetAtomicExp(AtomicExp newAtomicExp, NotificationChain msgs)
+  {
+    AtomicExp oldAtomicExp = atomicExp;
+    atomicExp = newAtomicExp;
+    if (eNotificationRequired())
+    {
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.APPLY_EXP__ATOMIC_EXP, oldAtomicExp, newAtomicExp);
+      if (msgs == null) msgs = notification; else msgs.add(notification);
+    }
+    return msgs;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setAtomicExp(AtomicExp newAtomicExp)
+  {
+    if (newAtomicExp != atomicExp)
+    {
+      NotificationChain msgs = null;
+      if (atomicExp != null)
+        msgs = ((InternalEObject)atomicExp).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.APPLY_EXP__ATOMIC_EXP, null, msgs);
+      if (newAtomicExp != null)
+        msgs = ((InternalEObject)newAtomicExp).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.APPLY_EXP__ATOMIC_EXP, null, msgs);
+      msgs = basicSetAtomicExp(newAtomicExp, msgs);
+      if (msgs != null) msgs.dispatch();
+    }
+    else if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.APPLY_EXP__ATOMIC_EXP, newAtomicExp, newAtomicExp));
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Args getArgs()
+  {
+    return args;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public NotificationChain basicSetArgs(Args newArgs, NotificationChain msgs)
+  {
+    Args oldArgs = args;
+    args = newArgs;
+    if (eNotificationRequired())
+    {
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.APPLY_EXP__ARGS, oldArgs, newArgs);
+      if (msgs == null) msgs = notification; else msgs.add(notification);
+    }
+    return msgs;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setArgs(Args newArgs)
+  {
+    if (newArgs != args)
+    {
+      NotificationChain msgs = null;
+      if (args != null)
+        msgs = ((InternalEObject)args).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.APPLY_EXP__ARGS, null, msgs);
+      if (newArgs != null)
+        msgs = ((InternalEObject)newArgs).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.APPLY_EXP__ARGS, null, msgs);
+      msgs = basicSetArgs(newArgs, msgs);
+      if (msgs != null) msgs.dispatch();
+    }
+    else if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.APPLY_EXP__ARGS, newArgs, newArgs));
   }
 
   /**
@@ -89,7 +179,9 @@ public class ApplyExpImpl extends SelectExpImpl implements ApplyExp
     switch (featureID)
     {
       case GDSLPackage.APPLY_EXP__ATOMIC_EXP:
-        return ((InternalEList<?>)getAtomicExp()).basicRemove(otherEnd, msgs);
+        return basicSetAtomicExp(null, msgs);
+      case GDSLPackage.APPLY_EXP__ARGS:
+        return basicSetArgs(null, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
   }
@@ -106,6 +198,8 @@ public class ApplyExpImpl extends SelectExpImpl implements ApplyExp
     {
       case GDSLPackage.APPLY_EXP__ATOMIC_EXP:
         return getAtomicExp();
+      case GDSLPackage.APPLY_EXP__ARGS:
+        return getArgs();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -115,15 +209,16 @@ public class ApplyExpImpl extends SelectExpImpl implements ApplyExp
    * <!-- end-user-doc -->
    * @generated
    */
-  @SuppressWarnings("unchecked")
   @Override
   public void eSet(int featureID, Object newValue)
   {
     switch (featureID)
     {
       case GDSLPackage.APPLY_EXP__ATOMIC_EXP:
-        getAtomicExp().clear();
-        getAtomicExp().addAll((Collection<? extends AtomicExp>)newValue);
+        setAtomicExp((AtomicExp)newValue);
+        return;
+      case GDSLPackage.APPLY_EXP__ARGS:
+        setArgs((Args)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -140,7 +235,10 @@ public class ApplyExpImpl extends SelectExpImpl implements ApplyExp
     switch (featureID)
     {
       case GDSLPackage.APPLY_EXP__ATOMIC_EXP:
-        getAtomicExp().clear();
+        setAtomicExp((AtomicExp)null);
+        return;
+      case GDSLPackage.APPLY_EXP__ARGS:
+        setArgs((Args)null);
         return;
     }
     super.eUnset(featureID);
@@ -157,7 +255,9 @@ public class ApplyExpImpl extends SelectExpImpl implements ApplyExp
     switch (featureID)
     {
       case GDSLPackage.APPLY_EXP__ATOMIC_EXP:
-        return atomicExp != null && !atomicExp.isEmpty();
+        return atomicExp != null;
+      case GDSLPackage.APPLY_EXP__ARGS:
+        return args != null;
     }
     return super.eIsSet(featureID);
   }

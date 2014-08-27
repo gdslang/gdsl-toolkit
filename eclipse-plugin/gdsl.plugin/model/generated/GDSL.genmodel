@@ -18,9 +18,9 @@
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//Type">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Type/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/tyVars"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/conDecl"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/value"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/tyVars"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//Val">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Val/name"/>
@@ -98,6 +98,10 @@
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//ApplyExp">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ApplyExp/atomicExp"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ApplyExp/args"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//Args">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Args/args"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//AtomicExp">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//AtomicExp/id"/>

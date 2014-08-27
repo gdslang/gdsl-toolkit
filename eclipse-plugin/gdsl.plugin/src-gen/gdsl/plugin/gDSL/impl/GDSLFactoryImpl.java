@@ -85,6 +85,7 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.MEXP: return createMExp();
       case GDSLPackage.SELECT_EXP: return createSelectExp();
       case GDSLPackage.APPLY_EXP: return createApplyExp();
+      case GDSLPackage.ARGS: return createArgs();
       case GDSLPackage.ATOMIC_EXP: return createAtomicExp();
       case GDSLPackage.FIELD: return createField();
       case GDSLPackage.VALUE_DECL: return createValueDecl();
@@ -324,6 +325,17 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     ApplyExpImpl applyExp = new ApplyExpImpl();
     return applyExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Args createArgs()
+  {
+    ArgsImpl args = new ArgsImpl();
+    return args;
   }
 
   /**

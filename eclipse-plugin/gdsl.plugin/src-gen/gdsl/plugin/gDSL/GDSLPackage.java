@@ -169,13 +169,22 @@ public interface GDSLPackage extends EPackage
   int TYPE__NAME = DECL_FEATURE_COUNT + 0;
 
   /**
+   * The feature id for the '<em><b>Ty Vars</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TYPE__TY_VARS = DECL_FEATURE_COUNT + 1;
+
+  /**
    * The feature id for the '<em><b>Con Decl</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int TYPE__CON_DECL = DECL_FEATURE_COUNT + 1;
+  int TYPE__CON_DECL = DECL_FEATURE_COUNT + 2;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' containment reference.
@@ -184,16 +193,7 @@ public interface GDSLPackage extends EPackage
    * @generated
    * @ordered
    */
-  int TYPE__VALUE = DECL_FEATURE_COUNT + 2;
-
-  /**
-   * The feature id for the '<em><b>Ty Vars</b></em>' containment reference.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   * @ordered
-   */
-  int TYPE__TY_VARS = DECL_FEATURE_COUNT + 3;
+  int TYPE__VALUE = DECL_FEATURE_COUNT + 3;
 
   /**
    * The number of structural features of the '<em>Type</em>' class.
@@ -1671,7 +1671,7 @@ public interface GDSLPackage extends EPackage
   int APPLY_EXP__APPLYEXPS = SELECT_EXP__APPLYEXPS;
 
   /**
-   * The feature id for the '<em><b>Atomic Exp</b></em>' containment reference list.
+   * The feature id for the '<em><b>Atomic Exp</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -1680,13 +1680,50 @@ public interface GDSLPackage extends EPackage
   int APPLY_EXP__ATOMIC_EXP = SELECT_EXP_FEATURE_COUNT + 0;
 
   /**
+   * The feature id for the '<em><b>Args</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int APPLY_EXP__ARGS = SELECT_EXP_FEATURE_COUNT + 1;
+
+  /**
    * The number of structural features of the '<em>Apply Exp</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int APPLY_EXP_FEATURE_COUNT = SELECT_EXP_FEATURE_COUNT + 1;
+  int APPLY_EXP_FEATURE_COUNT = SELECT_EXP_FEATURE_COUNT + 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ArgsImpl <em>Args</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.ArgsImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getArgs()
+   * @generated
+   */
+  int ARGS = 21;
+
+  /**
+   * The feature id for the '<em><b>Args</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ARGS__ARGS = 0;
+
+  /**
+   * The number of structural features of the '<em>Args</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ARGS_FEATURE_COUNT = 1;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.AtomicExpImpl <em>Atomic Exp</em>}' class.
@@ -1696,7 +1733,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAtomicExp()
    * @generated
    */
-  int ATOMIC_EXP = 21;
+  int ATOMIC_EXP = 22;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1843,13 +1880,22 @@ public interface GDSLPackage extends EPackage
   int ATOMIC_EXP__APPLYEXPS = APPLY_EXP__APPLYEXPS;
 
   /**
-   * The feature id for the '<em><b>Atomic Exp</b></em>' containment reference list.
+   * The feature id for the '<em><b>Atomic Exp</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
   int ATOMIC_EXP__ATOMIC_EXP = APPLY_EXP__ATOMIC_EXP;
+
+  /**
+   * The feature id for the '<em><b>Args</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ATOMIC_EXP__ARGS = APPLY_EXP__ARGS;
 
   /**
    * The feature id for the '<em><b>Id</b></em>' attribute list.
@@ -1913,7 +1959,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getField()
    * @generated
    */
-  int FIELD = 22;
+  int FIELD = 23;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1950,7 +1996,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getValueDecl()
    * @generated
    */
-  int VALUE_DECL = 23;
+  int VALUE_DECL = 24;
 
   /**
    * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -1996,7 +2042,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getPAT()
    * @generated
    */
-  int PAT = 24;
+  int PAT = 25;
 
   /**
    * The feature id for the '<em><b>Uscore</b></em>' attribute.
@@ -2060,7 +2106,7 @@ public interface GDSLPackage extends EPackage
    * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCONS()
    * @generated
    */
-  int CONS = 25;
+  int CONS = 26;
 
   /**
    * The feature id for the '<em><b>Con Name</b></em>' attribute.
@@ -2177,6 +2223,17 @@ public interface GDSLPackage extends EPackage
   EAttribute getType_Name();
 
   /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Type#getTyVars <em>Ty Vars</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Ty Vars</em>'.
+   * @see gdsl.plugin.gDSL.Type#getTyVars()
+   * @see #getType()
+   * @generated
+   */
+  EReference getType_TyVars();
+
+  /**
    * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Type#getConDecl <em>Con Decl</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -2197,17 +2254,6 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EReference getType_Value();
-
-  /**
-   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Type#getTyVars <em>Ty Vars</em>}'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the meta object for the containment reference '<em>Ty Vars</em>'.
-   * @see gdsl.plugin.gDSL.Type#getTyVars()
-   * @see #getType()
-   * @generated
-   */
-  EReference getType_TyVars();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.Val <em>Val</em>}'.
@@ -2864,15 +2910,47 @@ public interface GDSLPackage extends EPackage
   EClass getApplyExp();
 
   /**
-   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.ApplyExp#getAtomicExp <em>Atomic Exp</em>}'.
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ApplyExp#getAtomicExp <em>Atomic Exp</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the containment reference list '<em>Atomic Exp</em>'.
+   * @return the meta object for the containment reference '<em>Atomic Exp</em>'.
    * @see gdsl.plugin.gDSL.ApplyExp#getAtomicExp()
    * @see #getApplyExp()
    * @generated
    */
   EReference getApplyExp_AtomicExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ApplyExp#getArgs <em>Args</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Args</em>'.
+   * @see gdsl.plugin.gDSL.ApplyExp#getArgs()
+   * @see #getApplyExp()
+   * @generated
+   */
+  EReference getApplyExp_Args();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.Args <em>Args</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Args</em>'.
+   * @see gdsl.plugin.gDSL.Args
+   * @generated
+   */
+  EClass getArgs();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Args#getArgs <em>Args</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Args</em>'.
+   * @see gdsl.plugin.gDSL.Args#getArgs()
+   * @see #getArgs()
+   * @generated
+   */
+  EReference getArgs_Args();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.AtomicExp <em>Atomic Exp</em>}'.
@@ -3204,6 +3282,14 @@ public interface GDSLPackage extends EPackage
     EAttribute TYPE__NAME = eINSTANCE.getType_Name();
 
     /**
+     * The meta object literal for the '<em><b>Ty Vars</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TYPE__TY_VARS = eINSTANCE.getType_TyVars();
+
+    /**
      * The meta object literal for the '<em><b>Con Decl</b></em>' containment reference list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -3218,14 +3304,6 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EReference TYPE__VALUE = eINSTANCE.getType_Value();
-
-    /**
-     * The meta object literal for the '<em><b>Ty Vars</b></em>' containment reference feature.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    EReference TYPE__TY_VARS = eINSTANCE.getType_TyVars();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ValImpl <em>Val</em>}' class.
@@ -3750,12 +3828,38 @@ public interface GDSLPackage extends EPackage
     EClass APPLY_EXP = eINSTANCE.getApplyExp();
 
     /**
-     * The meta object literal for the '<em><b>Atomic Exp</b></em>' containment reference list feature.
+     * The meta object literal for the '<em><b>Atomic Exp</b></em>' containment reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
     EReference APPLY_EXP__ATOMIC_EXP = eINSTANCE.getApplyExp_AtomicExp();
+
+    /**
+     * The meta object literal for the '<em><b>Args</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference APPLY_EXP__ARGS = eINSTANCE.getApplyExp_Args();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ArgsImpl <em>Args</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.ArgsImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getArgs()
+     * @generated
+     */
+    EClass ARGS = eINSTANCE.getArgs();
+
+    /**
+     * The meta object literal for the '<em><b>Args</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference ARGS__ARGS = eINSTANCE.getArgs_Args();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.AtomicExpImpl <em>Atomic Exp</em>}' class.

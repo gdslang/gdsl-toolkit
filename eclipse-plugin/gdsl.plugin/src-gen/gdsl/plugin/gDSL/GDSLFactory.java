@@ -212,6 +212,15 @@ public interface GDSLFactory extends EFactory
   ApplyExp createApplyExp();
 
   /**
+   * Returns a new object of class '<em>Args</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Args</em>'.
+   * @generated
+   */
+  Args createArgs();
+
+  /**
    * Returns a new object of class '<em>Atomic Exp</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->

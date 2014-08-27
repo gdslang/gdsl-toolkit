@@ -180,6 +180,11 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createApplyExpAdapter();
       }
       @Override
+      public Adapter caseArgs(Args object)
+      {
+        return createArgsAdapter();
+      }
+      @Override
       public Adapter caseAtomicExp(AtomicExp object)
       {
         return createAtomicExpAdapter();
@@ -537,6 +542,21 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createApplyExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Args <em>Args</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.Args
+   * @generated
+   */
+  public Adapter createArgsAdapter()
   {
     return null;
   }
