@@ -432,11 +432,7 @@ RULE_ID
 
 )
 )
-    |((
-(
-ruleSYM
-)
-)=>
+    |(
 (
 ruleSYM
 )
@@ -492,11 +488,7 @@ ruleExp
 
 )
 )
-    |((
-(
-ruleSYM
-)
-)=>
+    |(
 (
 		{ 
 	        newCompositeNode(grammarAccess.getDeclValAccess().getNameSYMParserRuleCall_1_0_0_0_1_0()); 
@@ -1986,11 +1978,7 @@ ruleMonadicExp returns [EObject current=null]
     @init { enterRule(); 
     }
     @after { leaveRule(); }:
-(((
-(
-ruleExp
-)
-)=>
+((
 (
 		{ 
 	        newCompositeNode(grammarAccess.getMonadicExpAccess().getExpExpParserRuleCall_0_0()); 
@@ -3251,17 +3239,7 @@ ruleValueDecl returns [EObject current=null]
     {
     	newLeafNode(otherlv_0, grammarAccess.getValueDeclAccess().getValKeyword_0());
     }
-(((
-(
-(
-RULE_ID
-
-    |		RULE_S
-
-)
-
-)
-)=>
+((
 (
 (
 		lv_name_1_1=RULE_ID

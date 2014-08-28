@@ -17,15 +17,15 @@ DeclExport:
 ;
 
 DeclType returns Type:
-	'type' name=(ID | S) (tyVars=TyVars)? '=' 
-		(=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) 
+	'type' name=(ID | S) (tyVars=TyVars)? '=' (
+			=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) 
 			| value=Ty
 		)
 ;
 
 DeclVal returns Val:
 	'val'
-	(=>((name=(ID | S) | =>name=SYM) (attr += (ID | S))* '=' exp=Exp) |
+	(=>((name=(ID | S) | name=SYM) (attr += (ID | S))* '=' exp=Exp) |
 	((mid+=MID attr+=(ID | S))* '=' exp=Exp) |
 	( name=(ID | S) '[' decPat+=DECODEPAT* ']' (('=' exp=Exp) | ('|' exps+=Exp '=' exps+=Exp)+) ) )
 ;
@@ -77,7 +77,7 @@ ClosedExp:
 ;
 
 MonadicExp:
-	=>exp=Exp |
+	exp=Exp |
 	name=(ID | S) '<-' exp=Exp
 ;
 
@@ -136,7 +136,7 @@ Field:
 ;
 
 ValueDecl:
-	'val' (=>name=(ID | S) | name=SYM) ids+=(ID | S)* '=' exp=Exp
+	'val' (name=(ID | S) | name=SYM) ids+=(ID | S)* '=' exp=Exp
 ;
 
 PAT: uscore=USCORE | 

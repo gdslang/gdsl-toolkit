@@ -268,28 +268,28 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cExpsExpParserRuleCall_1_2_4_1_3_0 = (RuleCall)cExpsAssignment_1_2_4_1_3.eContents().get(0);
 		
 		//DeclVal returns Val:
-		//	"val" (=> ((name=(ID | S) | => name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp |
-		//	name=(ID | S) "[" decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+));
+		//	"val" (=> ((name=(ID | S) | name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp | name=(ID
+		//	| S) "[" decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+));
 		public ParserRule getRule() { return rule; }
 
-		//"val" (=> ((name=(ID | S) | => name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp |
-		//name=(ID | S) "[" decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+))
+		//"val" (=> ((name=(ID | S) | name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp | name=(ID |
+		//S) "[" decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+))
 		public Group getGroup() { return cGroup; }
 
 		//"val"
 		public Keyword getValKeyword_0() { return cValKeyword_0; }
 
-		//=> ((name=(ID | S) | => name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp | name=(ID | S)
-		//"[" decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+)
+		//=> ((name=(ID | S) | name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp | name=(ID | S) "["
+		//decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+)
 		public Alternatives getAlternatives_1() { return cAlternatives_1; }
 
-		//=> ((name=(ID | S) | => name=SYM) attr+=(ID | S)* "=" exp=Exp)
+		//=> ((name=(ID | S) | name=SYM) attr+=(ID | S)* "=" exp=Exp)
 		public Group getGroup_1_0() { return cGroup_1_0; }
 
-		//(name=(ID | S) | => name=SYM) attr+=(ID | S)* "=" exp=Exp
+		//(name=(ID | S) | name=SYM) attr+=(ID | S)* "=" exp=Exp
 		public Group getGroup_1_0_0() { return cGroup_1_0_0; }
 
-		//name=(ID | S) | => name=SYM
+		//name=(ID | S) | name=SYM
 		public Alternatives getAlternatives_1_0_0_0() { return cAlternatives_1_0_0_0; }
 
 		//name=(ID | S)
@@ -304,7 +304,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		//S
 		public RuleCall getNameSTerminalRuleCall_1_0_0_0_0_0_1() { return cNameSTerminalRuleCall_1_0_0_0_0_0_1; }
 
-		//=> name=SYM
+		//name=SYM
 		public Assignment getNameAssignment_1_0_0_0_1() { return cNameAssignment_1_0_0_0_1; }
 
 		//SYM
@@ -1187,13 +1187,13 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cExpExpParserRuleCall_1_2_0 = (RuleCall)cExpAssignment_1_2.eContents().get(0);
 		
 		//MonadicExp:
-		//	=> exp=Exp | name=(ID | S) "<-" exp=Exp;
+		//	exp=Exp | name=(ID | S) "<-" exp=Exp;
 		public ParserRule getRule() { return rule; }
 
-		//=> exp=Exp | name=(ID | S) "<-" exp=Exp
+		//exp=Exp | name=(ID | S) "<-" exp=Exp
 		public Alternatives getAlternatives() { return cAlternatives; }
 
-		//=> exp=Exp
+		//exp=Exp
 		public Assignment getExpAssignment_0() { return cExpAssignment_0; }
 
 		//Exp
@@ -1940,19 +1940,19 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cExpExpParserRuleCall_4_0 = (RuleCall)cExpAssignment_4.eContents().get(0);
 		
 		//ValueDecl:
-		//	"val" (=> name=(ID | S) | name=SYM) ids+=(ID | S)* "=" exp=Exp;
+		//	"val" (name=(ID | S) | name=SYM) ids+=(ID | S)* "=" exp=Exp;
 		public ParserRule getRule() { return rule; }
 
-		//"val" (=> name=(ID | S) | name=SYM) ids+=(ID | S)* "=" exp=Exp
+		//"val" (name=(ID | S) | name=SYM) ids+=(ID | S)* "=" exp=Exp
 		public Group getGroup() { return cGroup; }
 
 		//"val"
 		public Keyword getValKeyword_0() { return cValKeyword_0; }
 
-		//=> name=(ID | S) | name=SYM
+		//name=(ID | S) | name=SYM
 		public Alternatives getAlternatives_1() { return cAlternatives_1; }
 
-		//=> name=(ID | S)
+		//name=(ID | S)
 		public Assignment getNameAssignment_1_0() { return cNameAssignment_1_0; }
 
 		//ID | S
@@ -2529,8 +2529,8 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//DeclVal returns Val:
-	//	"val" (=> ((name=(ID | S) | => name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp |
-	//	name=(ID | S) "[" decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+));
+	//	"val" (=> ((name=(ID | S) | name=SYM) attr+=(ID | S)* "=" exp=Exp) | (mid+=MID attr+=(ID | S))* "=" exp=Exp | name=(ID
+	//	| S) "[" decPat+=DECODEPAT* "]" ("=" exp=Exp | ("|" exps+=Exp "=" exps+=Exp)+));
 	public DeclValElements getDeclValAccess() {
 		return (pDeclVal != null) ? pDeclVal : (pDeclVal = new DeclValElements());
 	}
@@ -2634,7 +2634,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//MonadicExp:
-	//	=> exp=Exp | name=(ID | S) "<-" exp=Exp;
+	//	exp=Exp | name=(ID | S) "<-" exp=Exp;
 	public MonadicExpElements getMonadicExpAccess() {
 		return (pMonadicExp != null) ? pMonadicExp : (pMonadicExp = new MonadicExpElements());
 	}
@@ -2748,7 +2748,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//ValueDecl:
-	//	"val" (=> name=(ID | S) | name=SYM) ids+=(ID | S)* "=" exp=Exp;
+	//	"val" (name=(ID | S) | name=SYM) ids+=(ID | S)* "=" exp=Exp;
 	public ValueDeclElements getValueDeclAccess() {
 		return (pValueDecl != null) ? pValueDecl : (pValueDecl = new ValueDeclElements());
 	}
