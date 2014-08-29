@@ -1,4 +1,4 @@
-grammar gdsl.plugin.GDSL hidden(WS, ML_COMMENT, SL_COMMENT)//with org.eclipse.xtext.common.Terminals
+grammar gdsl.plugin.GDSL hidden(WS, ML_COMMENT, SL_COMMENT)
 
 generate gDSL "http://www.plugin.gdsl/GDSL"
 
@@ -107,7 +107,6 @@ SelectExp:
 
 ApplyExp:
 	'~' AtomicExp |
-//	=>(atomicExp+=AtomicExp)+
 	atomicExp=AtomicExp args=Args
 ;
 
@@ -121,7 +120,6 @@ Args:
 AtomicExp:
 	name=LIT |
 	name=STRING |
-//	=>(cons=CONS) |
 	name=(ID | S) (=>DOT id+=(ID | S))* |
 	name='@' '{' fields+=Field (',' fields+=Field)* '}' |
 	'$' name=(ID | S) |
@@ -141,18 +139,16 @@ ValueDecl:
 
 PAT: uscore=USCORE | 
 	=>(int=INTEGER) | 
-//	=>(cons=CONS pat=PAT?) | 
 	=>(id=(ID | S) pat=PAT?) | 
 	"'"bitpat=BITPAT"'"
 ;
-CONS: conName=(ID | S);//S | CONS_WO_S;
+CONS: conName=(ID | S);
 
 DECODEPAT: "'"BITPAT+"'" | TOKPAT;
 TOKPAT: HEXINT | (ID | S);
 BITPAT: BINARY | ((ID | S) (BITPATORINT)?);
 BITPATORINT: (':' POSINT) | ('@' BINARY);
 LIT: INTEGER | "'"BINARY?"'";
-//ID: CONS | ID_WO_CONS;
 MID: MIXID | USCORE;
 SYM: USCORE | BS | DOT | LESS | GREATER | SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER;
 INTEGER: POSINT | HEXINT | NEGINT;
@@ -160,14 +156,12 @@ POSINT: POSINT_WO_DUALS | DUALS;
 BINARY: DUALS | BINS | BS | DOT;
 
 terminal USCORE:'_';
-//terminal SLASH:'/';
 terminal BS:'\\';
 terminal DOT:'.';
 terminal S: 'S';
 terminal LESS: '<';
 terminal GREATER: '>';
 terminal MIXID:'_'(USCORE|IDCHAR)*;
-//terminal CONS_WO_S:('A'..'Z') (USCORE|IDCHAR)*;
 terminal ID:('A'..'Z'|'a'..'z'|'/') (USCORE|IDCHAR)*;
 terminal SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER: (CHARSYM|OTHERSYM)+;
 terminal STRING:'"' ( '\\'('b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\') | !('\\'|'"') )* '"';

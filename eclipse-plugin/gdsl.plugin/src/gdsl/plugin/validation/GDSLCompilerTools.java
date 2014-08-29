@@ -38,7 +38,6 @@ public class GDSLCompilerTools {
 	 *            The path to the current project
 	 */
 	public static void compileAndSetMarkers(final String command, final IPath projectPath) {
-		// System.out.println("Run compiler: " + command); // delete line
 		final String[] compilerResult = compile(command);
 		final GDSLError[] errors = parseErrors(compilerResult);
 		Assert.isNotNull(errors);
@@ -90,7 +89,6 @@ public class GDSLCompilerTools {
 						result.add(new GDSLError(sPart));
 					}
 				}
-				// System.out.println(s); // delete line
 			}
 		}
 		return result.toArray(new GDSLError[] {});

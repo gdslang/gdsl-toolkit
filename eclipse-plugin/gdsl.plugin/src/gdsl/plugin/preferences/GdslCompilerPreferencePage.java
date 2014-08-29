@@ -1,6 +1,4 @@
-package gdsl.plugin.preferences.plugin;
-
-import gdsl.plugin.preferences.GDSLPluginPreferences;
+package gdsl.plugin.preferences;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.preference.PreferencePage;
@@ -144,6 +142,15 @@ public class GdslCompilerPreferencePage extends PreferencePage implements IWorkb
 			store.flush();
 		} catch (final BackingStoreException e) {
 		}
+	}
+
+	@Override
+	protected void performDefaults() {
+		btnEnableCompilerValidation.setSelection(GDSLPluginPreferences.D_ENABLE_COMPILER);
+		txtCompilerInvocation.setText(GDSLPluginPreferences.D_COMPILER_INVOCATION);
+		btnEnableTypechecker.setSelection(GDSLPluginPreferences.D_USE_TYPECHECKER);
+		spinnerIterations.setSelection(GDSLPluginPreferences.D_ITERATION_TYPECHEKCER);
+		setEnablements();
 	}
 
 	/**

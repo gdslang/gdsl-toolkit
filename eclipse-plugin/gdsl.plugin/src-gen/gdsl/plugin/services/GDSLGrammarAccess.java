@@ -1473,12 +1473,10 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cArgsArgsParserRuleCall_1_1_0 = (RuleCall)cArgsAssignment_1_1.eContents().get(0);
 		
 		//ApplyExp:
-		//	"~" AtomicExp | //	=>(atomicExp+=AtomicExp)+
-		//	atomicExp=AtomicExp args=Args;
+		//	"~" AtomicExp | atomicExp=AtomicExp args=Args;
 		public ParserRule getRule() { return rule; }
 
-		//"~" AtomicExp | //	=>(atomicExp+=AtomicExp)+
-		//atomicExp=AtomicExp args=Args
+		//"~" AtomicExp | atomicExp=AtomicExp args=Args
 		public Alternatives getAlternatives() { return cAlternatives; }
 
 		//"~" AtomicExp
@@ -1490,11 +1488,9 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		//AtomicExp
 		public RuleCall getAtomicExpParserRuleCall_0_1() { return cAtomicExpParserRuleCall_0_1; }
 
-		////	=>(atomicExp+=AtomicExp)+
 		//atomicExp=AtomicExp args=Args
 		public Group getGroup_1() { return cGroup_1; }
 
-		////	=>(atomicExp+=AtomicExp)+
 		//atomicExp=AtomicExp
 		public Assignment getAtomicExpAssignment_1_0() { return cAtomicExpAssignment_1_0; }
 
@@ -1618,16 +1614,14 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final Keyword cEndKeyword_7_4 = (Keyword)cGroup_7.eContents().get(4);
 		
 		//AtomicExp:
-		//	name=LIT | name=STRING | //	=>(cons=CONS) |
-		//	name=(ID | S) (DOT id+=(ID | S))* | name="@" "{" fields+=Field ("," fields+=Field)* "}" | "$" name=(ID | S) | "("
-		//	expr=Exp ")" (DOT id+=(ID | S))* | {AtomicExp} "{" (id+=(ID | S) "=" exps+=Exp ("," id+=(ID | S) "=" exps+=Exp)*)? "}"
-		//	| name="let" valDecl+=ValueDecl+ "in" expr=Exp "end";
+		//	name=LIT | name=STRING | name=(ID | S) (DOT id+=(ID | S))* | name="@" "{" fields+=Field ("," fields+=Field)* "}" | "$"
+		//	name=(ID | S) | "(" expr=Exp ")" (DOT id+=(ID | S))* | {AtomicExp} "{" (id+=(ID | S) "=" exps+=Exp ("," id+=(ID | S)
+		//	"=" exps+=Exp)*)? "}" | name="let" valDecl+=ValueDecl+ "in" expr=Exp "end";
 		public ParserRule getRule() { return rule; }
 
-		//name=LIT | name=STRING | //	=>(cons=CONS) |
-		//name=(ID | S) (DOT id+=(ID | S))* | name="@" "{" fields+=Field ("," fields+=Field)* "}" | "$" name=(ID | S) | "("
-		//expr=Exp ")" (DOT id+=(ID | S))* | {AtomicExp} "{" (id+=(ID | S) "=" exps+=Exp ("," id+=(ID | S) "=" exps+=Exp)*)? "}"
-		//| name="let" valDecl+=ValueDecl+ "in" expr=Exp "end"
+		//name=LIT | name=STRING | name=(ID | S) (DOT id+=(ID | S))* | name="@" "{" fields+=Field ("," fields+=Field)* "}" | "$"
+		//name=(ID | S) | "(" expr=Exp ")" (DOT id+=(ID | S))* | {AtomicExp} "{" (id+=(ID | S) "=" exps+=Exp ("," id+=(ID | S)
+		//"=" exps+=Exp)*)? "}" | name="let" valDecl+=ValueDecl+ "in" expr=Exp "end"
 		public Alternatives getAlternatives() { return cAlternatives; }
 
 		//name=LIT
@@ -1642,11 +1636,9 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		//STRING
 		public RuleCall getNameSTRINGTerminalRuleCall_1_0() { return cNameSTRINGTerminalRuleCall_1_0; }
 
-		////	=>(cons=CONS) |
 		//name=(ID | S) (DOT id+=(ID | S))*
 		public Group getGroup_2() { return cGroup_2; }
 
-		////	=>(cons=CONS) |
 		//name=(ID | S)
 		public Assignment getNameAssignment_2_0() { return cNameAssignment_2_0; }
 
@@ -2015,12 +2007,10 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final Keyword cApostropheKeyword_3_2 = (Keyword)cGroup_3.eContents().get(2);
 		
 		//PAT:
-		//	uscore=USCORE | => (int=INTEGER) | //	=>(cons=CONS pat=PAT?) | 
-		//	=> (id=(ID | S) pat=PAT?) | "\'" bitpat=BITPAT "\'";
+		//	uscore=USCORE | => (int=INTEGER) | => (id=(ID | S) pat=PAT?) | "\'" bitpat=BITPAT "\'";
 		public ParserRule getRule() { return rule; }
 
-		//uscore=USCORE | => (int=INTEGER) | //	=>(cons=CONS pat=PAT?) | 
-		//=> (id=(ID | S) pat=PAT?) | "\'" bitpat=BITPAT "\'"
+		//uscore=USCORE | => (int=INTEGER) | => (id=(ID | S) pat=PAT?) | "\'" bitpat=BITPAT "\'"
 		public Alternatives getAlternatives() { return cAlternatives; }
 
 		//uscore=USCORE
@@ -2038,7 +2028,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		//INTEGER
 		public RuleCall getIntINTEGERParserRuleCall_1_0_0() { return cIntINTEGERParserRuleCall_1_0_0; }
 
-		////	=>(cons=CONS pat=PAT?) | 
 		//=> (id=(ID | S) pat=PAT?)
 		public Group getGroup_2() { return cGroup_2; }
 
@@ -2086,7 +2075,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cConNameIDTerminalRuleCall_0_0 = (RuleCall)cConNameAlternatives_0.eContents().get(0);
 		private final RuleCall cConNameSTerminalRuleCall_0_1 = (RuleCall)cConNameAlternatives_0.eContents().get(1);
 		
-		////S | CONS_WO_S;
 		//CONS:
 		//	conName=(ID | S);
 		public ParserRule getRule() { return rule; }
@@ -2274,7 +2262,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cMIXIDTerminalRuleCall_0 = (RuleCall)cAlternatives.eContents().get(0);
 		private final RuleCall cUSCORETerminalRuleCall_1 = (RuleCall)cAlternatives.eContents().get(1);
 		
-		////ID: CONS | ID_WO_CONS;
 		//MID:
 		//	MIXID | USCORE;
 		public ParserRule getRule() { return rule; }
@@ -2704,8 +2691,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//ApplyExp:
-	//	"~" AtomicExp | //	=>(atomicExp+=AtomicExp)+
-	//	atomicExp=AtomicExp args=Args;
+	//	"~" AtomicExp | atomicExp=AtomicExp args=Args;
 	public ApplyExpElements getApplyExpAccess() {
 		return (pApplyExp != null) ? pApplyExp : (pApplyExp = new ApplyExpElements());
 	}
@@ -2725,10 +2711,9 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//AtomicExp:
-	//	name=LIT | name=STRING | //	=>(cons=CONS) |
-	//	name=(ID | S) (DOT id+=(ID | S))* | name="@" "{" fields+=Field ("," fields+=Field)* "}" | "$" name=(ID | S) | "("
-	//	expr=Exp ")" (DOT id+=(ID | S))* | {AtomicExp} "{" (id+=(ID | S) "=" exps+=Exp ("," id+=(ID | S) "=" exps+=Exp)*)? "}"
-	//	| name="let" valDecl+=ValueDecl+ "in" expr=Exp "end";
+	//	name=LIT | name=STRING | name=(ID | S) (DOT id+=(ID | S))* | name="@" "{" fields+=Field ("," fields+=Field)* "}" | "$"
+	//	name=(ID | S) | "(" expr=Exp ")" (DOT id+=(ID | S))* | {AtomicExp} "{" (id+=(ID | S) "=" exps+=Exp ("," id+=(ID | S)
+	//	"=" exps+=Exp)*)? "}" | name="let" valDecl+=ValueDecl+ "in" expr=Exp "end";
 	public AtomicExpElements getAtomicExpAccess() {
 		return (pAtomicExp != null) ? pAtomicExp : (pAtomicExp = new AtomicExpElements());
 	}
@@ -2758,8 +2743,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//PAT:
-	//	uscore=USCORE | => (int=INTEGER) | //	=>(cons=CONS pat=PAT?) | 
-	//	=> (id=(ID | S) pat=PAT?) | "\'" bitpat=BITPAT "\'";
+	//	uscore=USCORE | => (int=INTEGER) | => (id=(ID | S) pat=PAT?) | "\'" bitpat=BITPAT "\'";
 	public PATElements getPATAccess() {
 		return (pPAT != null) ? pPAT : (pPAT = new PATElements());
 	}
@@ -2768,7 +2752,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getPATAccess().getRule();
 	}
 
-	////S | CONS_WO_S;
 	//CONS:
 	//	conName=(ID | S);
 	public CONSElements getCONSAccess() {
@@ -2829,7 +2812,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getLITAccess().getRule();
 	}
 
-	////ID: CONS | ID_WO_CONS;
 	//MID:
 	//	MIXID | USCORE;
 	public MIDElements getMIDAccess() {
@@ -2886,7 +2868,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return (tUSCORE != null) ? tUSCORE : (tUSCORE = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "USCORE"));
 	} 
 
-	////terminal SLASH:'/';
 	//terminal BS:
 	//	"\\";
 	public TerminalRule getBSRule() {
@@ -2923,7 +2904,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return (tMIXID != null) ? tMIXID : (tMIXID = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "MIXID"));
 	} 
 
-	////terminal CONS_WO_S:('A'..'Z') (USCORE|IDCHAR)*;
 	//terminal ID:
 	//	("A".."Z" | "a".."z" | "/") (USCORE | IDCHAR)*;
 	public TerminalRule getIDRule() {

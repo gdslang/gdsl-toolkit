@@ -114,7 +114,7 @@ public class GDSLSyntacticSequencer extends AbstractSyntacticSequencer {
 	
 	/**
 	 * Syntax:
-	 *     '()' | ('{' '}')
+	 *     ('{' '}') | '()'
 	 */
 	protected void emit_Ty_LeftParenthesisRightParenthesisKeyword_6_1_or___LeftCurlyBracketKeyword_4_1_RightCurlyBracketKeyword_4_3__(EObject semanticObject, ISynNavigable transition, List<INode> nodes) {
 		acceptNodes(transition, nodes);

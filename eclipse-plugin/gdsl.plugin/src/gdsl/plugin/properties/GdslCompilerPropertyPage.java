@@ -1,4 +1,4 @@
-package gdsl.plugin.preferences.project;
+package gdsl.plugin.properties;
 
 import gdsl.plugin.preferences.GDSLPluginPreferences;
 
@@ -29,7 +29,7 @@ import org.osgi.service.prefs.BackingStoreException;
  * @author Daniel Endress
  * 
  */
-public class GdslPropertyPage extends PropertyPage implements IWorkbenchPropertyPage {
+public class GdslCompilerPropertyPage extends PropertyPage implements IWorkbenchPropertyPage {
 
 	private Text txtOutputName;
 	private Button btnCheckPrefix;
@@ -109,10 +109,10 @@ public class GdslPropertyPage extends PropertyPage implements IWorkbenchProperty
 	private void initializeElements() {
 		final IEclipsePreferences projectNode = getProjectNode();
 		if (null != projectNode) {
-			txtOutputName.setText(projectNode.get(GDSLPluginPreferences.P_OUTPUT_NAME, GDSLPluginPreferences.D_OUTPUT_NAME));
-			btnCheckPrefix.setSelection(projectNode.getBoolean(GDSLPluginPreferences.P_HAS_PREFIX, GDSLPluginPreferences.D_HAS_PREFIX));
-			txtPrefix.setText(projectNode.get(GDSLPluginPreferences.P_PREFIX, GDSLPluginPreferences.D_PREFIX));
-			txtRuntimePath.setText(projectNode.get(GDSLPluginPreferences.P_RUNTIME_TEMPLATES, GDSLPluginPreferences.D_RUNTIME_TEMPLATES));
+			txtOutputName.setText(projectNode.get(GDSLProjectProperties.P_OUTPUT_NAME, GDSLProjectProperties.D_OUTPUT_NAME));
+			btnCheckPrefix.setSelection(projectNode.getBoolean(GDSLProjectProperties.P_HAS_PREFIX, GDSLProjectProperties.D_HAS_PREFIX));
+			txtPrefix.setText(projectNode.get(GDSLProjectProperties.P_PREFIX, GDSLProjectProperties.D_PREFIX));
+			txtRuntimePath.setText(projectNode.get(GDSLProjectProperties.P_RUNTIME_TEMPLATES, GDSLProjectProperties.D_RUNTIME_TEMPLATES));
 		}
 		setEnablements();
 	}
@@ -138,16 +138,25 @@ public class GdslPropertyPage extends PropertyPage implements IWorkbenchProperty
 	protected void performApply() {
 		final IEclipsePreferences projectNode = getProjectNode();
 		if (projectNode != null) {
-			projectNode.put(GDSLPluginPreferences.P_OUTPUT_NAME, txtOutputName.getText());
-			projectNode.putBoolean(GDSLPluginPreferences.P_HAS_PREFIX, btnCheckPrefix.getSelection());
-			projectNode.put(GDSLPluginPreferences.P_PREFIX, txtPrefix.getText());
-			projectNode.put(GDSLPluginPreferences.P_RUNTIME_TEMPLATES, txtRuntimePath.getText());
+			projectNode.put(GDSLProjectProperties.P_OUTPUT_NAME, txtOutputName.getText());
+			projectNode.putBoolean(GDSLProjectProperties.P_HAS_PREFIX, btnCheckPrefix.getSelection());
+			projectNode.put(GDSLProjectProperties.P_PREFIX, txtPrefix.getText());
+			projectNode.put(GDSLProjectProperties.P_RUNTIME_TEMPLATES, txtRuntimePath.getText());
 		}
 
 		try {
 			projectNode.flush();
 		} catch (final BackingStoreException e) {
 		}
+	}
+
+	@Override
+	protected void performDefaults() {
+		txtOutputName.setText(GDSLProjectProperties.D_OUTPUT_NAME);
+		btnCheckPrefix.setSelection(GDSLProjectProperties.D_HAS_PREFIX);
+		txtPrefix.setText(GDSLProjectProperties.D_PREFIX);
+		txtRuntimePath.setText(GDSLProjectProperties.D_RUNTIME_TEMPLATES);
+		setEnablements();
 	}
 
 	/**
