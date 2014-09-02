@@ -69,6 +69,14 @@ class GDSLValidator extends AbstractGDSLValidator {
 	@Check
 	def checkExternalCompiler(Model model){
 		val resource = model.eResource
+		if(!resource.trackingModification){
+			// Set tracking modification to track whether the file has been modified
+			resource.setTrackingModification(true)
+		}
+		if(resource.modified){
+			return //Do not validate if changes not saved
+		}
+		
 		val projectPath = GDSLProjectProperties.obtainProject(resource).location
 		val workspaceRoot = ResourcesPlugin.workspace.root
 		

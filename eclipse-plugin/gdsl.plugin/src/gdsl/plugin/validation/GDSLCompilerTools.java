@@ -124,9 +124,8 @@ public class GDSLCompilerTools {
 	private static void setMarkers(final GDSLError[] errors) {
 		for (final GDSLError e : errors) {
 			final IResource resource = e.resource;
-			IMarker marker;
 			try {
-				marker = resource.createMarker(IMarker.PROBLEM);
+				final IMarker marker = resource.createMarker(IMarker.PROBLEM);
 				marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 				marker.setAttribute(IMarker.LINE_NUMBER, e.line);
 				marker.setAttribute(IMarker.CHAR_START, e.charStart);

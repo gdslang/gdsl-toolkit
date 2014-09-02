@@ -106,6 +106,15 @@ public class GDSLValidator extends AbstractGDSLValidator {
   @Check
   public void checkExternalCompiler(final Model model) {
     final Resource resource = model.eResource();
+    boolean _isTrackingModification = resource.isTrackingModification();
+    boolean _not = (!_isTrackingModification);
+    if (_not) {
+      resource.setTrackingModification(true);
+    }
+    boolean _isModified = resource.isModified();
+    if (_isModified) {
+      return;
+    }
     IProject _obtainProject = GDSLProjectProperties.obtainProject(resource);
     final IPath projectPath = _obtainProject.getLocation();
     IWorkspace _workspace = ResourcesPlugin.getWorkspace();

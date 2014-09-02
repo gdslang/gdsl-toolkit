@@ -19,7 +19,7 @@ public class GDSLPluginPreferences {
 	public static final boolean D_ENABLE_COMPILER = false;
 	public static final String D_COMPILER_INVOCATION = "./build/gdslc";
 	public static final boolean D_USE_TYPECHECKER = true;
-	public static final int D_ITERATION_TYPECHEKCER = 10;
+	public static final int D_ITERATION_TYPECHEKCER = 8;
 
 	public static boolean getCompilerEnablement() {
 		return getPreferenceStore().getBoolean(P_ENABLE_COMPILER, D_ENABLE_COMPILER);

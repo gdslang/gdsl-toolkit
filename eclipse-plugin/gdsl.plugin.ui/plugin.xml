@@ -253,6 +253,9 @@
             class="gdsl.plugin.ui.GDSLExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant">
       </participant>
    </extension>
+   <!--
+   Commented out to remove compiler pages.
+   These specify settings for code generation.
    <extension
             point="org.eclipse.ui.preferencePages">
         <page
@@ -277,6 +280,7 @@
 	        <filter name="projectNature" value="org.eclipse.xtext.ui.shared.xtextNature"/>
         </page>
     </extension>
+    -->
 
 	<!-- Quick Outline -->
 	<extension
