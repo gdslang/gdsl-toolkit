@@ -549,7 +549,9 @@ structure C1 = struct
          | EQUAL => (f,v) :: addUndefFields (fTys, fs)
          | GREATER => raise CodeGenBug
       )
-     | addUndefFields (_, fs) = fs
+     | addUndefFields ((fTy,ty) :: fTys, []) =
+      (fTy,PRIexp (VOIDprim,VOIDvtype,[]))  :: addUndefFields (fTys, [])
+     | addUndefFields ([], fs) = fs
 
    fun emitAlloc (s : state) ty = emitMacro (s,ty,"alloc_","GEN_ALLOC(")
    fun emitUnboxedAlloc (s : state) ty = emitMacro (s,ty,"alloc_unboxed_","GEN_ALLOC(unboxed_")

@@ -210,7 +210,11 @@ static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec)
 @alloc_funcs@
 
 #define slice(vec_data,ofs,sz) ((vec_data >> ofs) & ((1ul << sz)-1))
-#define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}
+
+static INLINE_ATTR vec_t gen_vec(unsigned int vec_sz,vec_data_t vec_data) {
+  vec_t res = {vec_sz, vec_data};
+  return res;
+}
 
 jmp_buf*
 @err_tgt@
