@@ -110,8 +110,9 @@ structure C1 = struct
          List.concat (List.map genSeq (List.rev order))
       end
 
-   type state = { prefix : string,
-                  names : AtomSet.set,
+   type state = { names : AtomSet.set,
+                  prefix : string,
+                  emitStructCons : bool,
                   symbols : Atom.atom SymMap.map,
                   fieldTypes : vtype SymMap.map,
                   ret : SymbolTable.symid,
@@ -255,6 +256,7 @@ structure C1 = struct
       in
          { names = names,
            prefix = #prefix s,
+           emitStructCons = #emitStructCons s,
            symbols = symbols,
            fieldTypes = #fieldTypes s,
            ret = #ret s,
@@ -275,6 +277,7 @@ structure C1 = struct
    fun setRet (sym,s : state) =
       { names = #names s,
         prefix = #prefix s,
+        emitStructCons = #emitStructCons s,
         symbols = #symbols s,
         fieldTypes = #fieldTypes s,
         ret = sym,
@@ -292,6 +295,7 @@ structure C1 = struct
    fun setSym (sym, atom, s : state) =
       { names = #names s,
         prefix = #prefix s,
+        emitStructCons = #emitStructCons s,
         symbols = SymMap.insert (#symbols s,sym,atom),
         fieldTypes = #fieldTypes s,
         ret = #ret s,
@@ -349,34 +353,45 @@ structure C1 = struct
    type recordInfo = {
       riExport : bool,
       riTypeName : string,
-      riFieldDecls : Layout.t list,
+      riFieldDecls : (FieldInfo.symid * Imp.vtype) list,
       riSequenceNo : int,
       riBoxed : bool
    }
 
    val recordTypeMap = ref (AtomMap.empty : recordInfo AtomMap.map)
 
-   fun genRecordDecl s onlyPublic =
+   fun recFieldSort fs =
       let
-         fun showDecl (riInfo as { riBoxed = false, ... } : recordInfo) =
-            align [
-               str "typedef struct {",
-               indent 2 (align (#riFieldDecls riInfo)),
-               seq [str "}", space, str (#riTypeName riInfo), str "_t;"]]
-           | showDecl (riInfo as { riBoxed = true, ... }: recordInfo) =
-            align [
-               str "typedef struct {",
-               indent 2 (align (#riFieldDecls riInfo)),
-               seq [str "}", space, str ("unboxed_" ^ #riTypeName riInfo), str "_t;"],
-               seq [str "typedef ", str ("unboxed_" ^ #riTypeName riInfo), str "_t* ", str (#riTypeName riInfo), str "_t;"]]
+         fun fieldCmp ((f1,_),(f2,_)) =
+            String.compare (
+               SymbolTable.getString(!SymbolTables.fieldTable, f1),
+               SymbolTable.getString(!SymbolTables.fieldTable, f2))
       in
-         map showDecl
-            (List.filter (fn r => (#riExport r)=onlyPublic)
-               (ListMergeSort.sort (fn (r1,r2) => (#riSequenceNo r1)>(#riSequenceNo r2))
-                  (AtomMap.listItems (!recordTypeMap))))
+         ListMergeSort.uniqueSort fieldCmp fs
       end
+         
+   fun genRecordDecl (s : state) onlyPublic =
+      let
+         fun showField (f,t) = seq [emitTypeDecl s ([emitFieldSym s f], t), str ";"]
+         fun showDecl ({ riBoxed = false, riFieldDecls = args, riTypeName = tyName, ... } : recordInfo) =
+            align [
+               str "typedef struct {",
+               indent 2 (align (map showField args)),
+               seq [str "}", space, str tyName, str "_t;"]]
+           | showDecl ({ riBoxed = true, riFieldDecls = args, riTypeName = tyName, ... }: recordInfo) =
+            align [
+               str "typedef struct {",
+               indent 2 (align (map showField args)),
+               seq [str "}", space, str ("unboxed_" ^ tyName), str "_t;"],
+               seq [str "typedef ", str ("unboxed_" ^ tyName), str "_t* ", str tyName, str "_t;"]]
 
-   fun getRecordTag (s : state) (boxed, fs) =
+         val recs = (ListMergeSort.sort (fn (r1,r2) => (#riSequenceNo r1)>(#riSequenceNo r2))
+                     (AtomMap.listItems (!recordTypeMap)))
+      in
+         map showDecl (List.filter (fn r => (#riExport r)=onlyPublic) recs)
+      end
+   
+   and getRecordTag (s : state) (boxed, fs) =
       let
          val rSig = genRecSignature fs
       in
@@ -384,14 +399,12 @@ structure C1 = struct
             SOME riInfo => #riTypeName riInfo
           | NONE =>
             let
-               fun showField (f,t) = seq [emitTypeDecl s ([emitFieldSym s f], t), str ";"]
+               (* recursively call getRecordTag on record fields of this record
+                  in order to ensure that we do not emit a record before its
+                  field members *)
+               val _ = map (fn (f,t) => emitTypeDecl s ([],t)) fs
                (* emit the fields in alphabetical order since C structs are nominal *)
-               fun fieldCmp ((f1,_),(f2,_)) =
-                  String.compare (
-                     SymbolTable.getString(!SymbolTables.fieldTable, f1),
-                     SymbolTable.getString(!SymbolTables.fieldTable, f2))
-               val fs = ListMergeSort.uniqueSort fieldCmp fs
-               val emittedFields = map showField fs
+               val fs = recFieldSort fs
                val idx = AtomMap.numItems (!recordTypeMap)+1
                val tyName = case AtomMap.find (#recordMapping s,rSig) of
                      SOME name => mangleName (Atom.toString name)
@@ -399,7 +412,7 @@ structure C1 = struct
                val riInfo = {
                   riExport = false,
                   riTypeName = tyName,
-                  riFieldDecls = emittedFields,
+                  riFieldDecls = fs,
                   riSequenceNo = idx,
                   riBoxed = boxed
                }
@@ -410,7 +423,7 @@ structure C1 = struct
             end
       end
 
-   and emitTypeDecl s (decl, t) =
+   and emitTypeDecl (s : state) (decl, t) =
       let
          fun addSpace [] = []
            | addSpace xs = space :: xs
@@ -530,6 +543,14 @@ structure C1 = struct
          VOIDvtype => true
        | _ => false
 
+   fun addUndefFields ((fTy,ty) :: fTys, (f,v) :: fs) =
+      (case SymbolTable.compare_symid (fTy,f) of
+           LESS => (fTy,PRIexp (VOIDprim,VOIDvtype,[]))  :: addUndefFields (fTys, (f,v) :: fs)
+         | EQUAL => (f,v) :: addUndefFields (fTys, fs)
+         | GREATER => raise CodeGenBug
+      )
+     | addUndefFields (_, fs) = fs
+
    fun emitAlloc (s : state) ty = emitMacro (s,ty,"alloc_","GEN_ALLOC(")
    fun emitUnboxedAlloc (s : state) ty = emitMacro (s,ty,"alloc_unboxed_","GEN_ALLOC(unboxed_")
    fun emitAllocCon (s : state) ty = 
@@ -541,6 +562,33 @@ structure C1 = struct
    fun emitSelect (s : state) f =
       (emitMacro (s,SymMap.lookup (#fieldTypes s,f),"","GEN_REC_STRUCT(")
       ;emitMacro (s,SymMap.lookup (#fieldTypes s,f),"select_","GEN_SELECT_FIELD("))
+
+   fun genRecordCons (s : state) =
+      let
+         val recs = (ListMergeSort.sort (fn (r1,r2) => (#riSequenceNo r1)>(#riSequenceNo r2))
+                     (AtomMap.listItems (!recordTypeMap)))
+         fun genStructCon ({ riBoxed = boxed, riFieldDecls = args, riTypeName = tyName, ... } : recordInfo) =
+            align [
+               seq [str "static INLINE_ATTR",  space, str tyName, str "_t", space,
+                  str "__", str tyName, par (seq (separate (str "state_t s" ::
+                     map (fn (f,t) => emitTypeDecl s ([emitFieldSym s f],t)) args, ", "))),
+                     space, str "{"],
+               indent 2 (align [
+                  seq [str (if boxed then "unboxed_" else ""), str tyName, str "_t res = {",
+                     seq (separate (map (emitFieldSym s o #1) args, ", ")),
+                     str "};"],
+                  if boxed then
+                     seq [str "return ", par (seq [str tyName, str "_t"]), space,
+                        emitUnboxedAlloc s (RECORDvtype (boxed,args)), str "(s,res);"]
+                  else
+                     seq [str "return res;"]
+               ]),
+               str "}"
+            ]
+         val recCon = if #emitStructCons s then List.map genStructCon recs else []
+      in
+         recCon
+      end
 
 
    fun emitPat s (VECpat []) = str "default:"
@@ -620,11 +668,20 @@ structure C1 = struct
                val _ = genClosureSet := AtomSet.add(!genClosureSet, closureNameAtom)
                val (structName, args) = emitClosureStruct s (retTy,argTys)
                val clArgs = (ty,"closure_fun")::args
-               val gen = [
-                  seq [str "static inline ", emitStringFunType s (OBJvtype,closureName,clArgs), str " {"],
+               val gen = if #emitStructCons s then [
+                  seq [str "static INLINE_ATTR ", emitStringFunType s (OBJvtype,closureName,clArgs), str " {"],
                   indent 2 (align [
-                     seq [str structName, str "* closure = alloc(s, sizeof(", str structName, str "));"],
-                     seq [str "*closure = (", str structName, str "){", seq (separate (map (str o #2) clArgs, ", ")), str "};"],
+                     seq [str structName, str " content = {", seq (separate (map (str o #2) clArgs, ", ")), str "};"],
+                     seq [str structName, str "* closure = (", str structName, str "*) alloc(s, sizeof(", str structName, str "));"],
+                     seq [str "*closure = content;"],
+                     str "return (obj_t) closure;"
+                  ]),
+                  str "}"
+               ] else [
+                  seq [str "static INLINE_ATTR ", emitStringFunType s (OBJvtype,closureName,clArgs), str " {"],
+                  indent 2 (align [
+                     seq [str structName, str "* closure = (", str structName, str "*) alloc(s, sizeof(", str structName, str "));"],
+                     seq ([str "*closure = (", str structName, str "){", seq (separate (map (str o #2) clArgs, ", ")), str "};"]),
                      str "return (obj_t) closure;"
                   ]),
                   str "}"
@@ -655,7 +712,7 @@ structure C1 = struct
                      (ty, "arg" ^ Int.toString idx) :: genArgs (tys,idx+1)
                val args = genArgs (argTys,1)
                val f = [
-                  seq [str "static inline ", emitStringFunType s (retTy,funName,(OBJvtype,"closure") :: args), str " {"],
+                  seq [str "static INLINE_ATTR ", emitStringFunType s (retTy,funName,(OBJvtype,"closure") :: args), str " {"],
                   indent 2 (seq [
                      if isVOIDvtype retTy then seq [] else str "return ",
                      str "((", str structName, str "*) closure)->func",
@@ -752,7 +809,7 @@ structure C1 = struct
          val _ = #stateType s := t
          fun setField (f,e) =
             seq [
-               str "s->state", str (if boxed then "->" else "."),
+               str "s->mon_state", str (if boxed then "->" else "."),
                emitFieldSym s f, str " = ", emitExp s e, str ";"]
       in
          align (map setField fs)
@@ -772,7 +829,11 @@ structure C1 = struct
      | emitExp s (INVOKEexp (t,e,es)) =
          seq [emitInvokeClosure s t, fArgs (emitExp s e :: map (emitExp s) es)]
      | emitExp s (RECORDexp (rs,t as RECORDvtype (boxed,fsTys),fs)) =
-      if boxed then
+      if #emitStructCons s then
+         seq [str "__", str (getRecordTag s (boxed,fsTys)),
+            fArgs (map (emitExp s o #2)
+               (recFieldSort (addUndefFields (fsTys, fs))))]
+      else if boxed then
          seq [emitUnboxedAlloc s t,
             fArgs [seq (
               par (str ("unboxed_" ^ getRecordTag s (boxed,fsTys) ^ "_t")) ::  
@@ -817,15 +878,15 @@ structure C1 = struct
       in
          foldl recAdd recStripped fs
       end
-     | emitExp s (UPDATEexp (rs,t as RECORDvtype (boxed,fsTys),fs,e)) =
-   let
-    fun genFieldExpr (f,ty) = case List.find (fn (fid,_) => SymbolTable.eq_symid (f,fid)) fs of
-       NONE => (f,SELECTexp (rs,RECORDvtype (boxed,fsTys),f,e))
-       | SOME (_,e) => (f,e)
-   in
-     emitExp s (RECORDexp (rs,t,List.map genFieldExpr fsTys))
-   end
-    | emitExp s (UPDATEexp (rs,_,fs,e)) = raise CodeGenBug
+     | emitExp s (UPDATEexp (rs,t as RECORDvtype (boxed,fsTys),fs,IDexp sym)) =
+	 let
+		fun genFieldExpr (f,ty) = case List.find (fn (fid,_) => SymbolTable.eq_symid (f,fid)) fs of
+		   NONE => (f,SELECTexp (rs,RECORDvtype (boxed,fsTys),f,IDexp sym))
+	     | SOME (_,e) => (f,e)
+	 in
+		 emitExp s (RECORDexp (rs,t,List.map genFieldExpr fsTys))
+	 end
+	 | emitExp s (UPDATEexp (rs,_,fs,e)) = raise CodeGenBug (* we can't copy a C struct and set a field as a C expression *)
      | emitExp s (LITexp (t,VEClit pat)) =
       let
          fun genNum (c,acc) = IntInf.fromInt 2*acc+(if c= #"1" then 1 else 0)
@@ -860,8 +921,8 @@ structure C1 = struct
 
    and emitInitializer s (sym,e) = seq [str ".", emitFieldSym s sym, str "=", emitExp s e]
      
-   and emitPrim s (GETSTATEprim, [],_) = str "s->state"
-     | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->state = ", emitExp s e]
+   and emitPrim s (GETSTATEprim, [],_) = str "s->mon_state"
+     | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->mon_state = ", emitExp s e]
      | emitPrim s (SEEKprim, [e],_) = seq [str "gdsl_seek(s, ", emitExp s e, str ")"]
      (*| emitPrim s (RSEEKprim, [e],_) = seq [str "gdsl_rseek(s, ", emitExp s e, str ")"]*)
      | emitPrim s (DIVprim, [e1, e2],_) = seq [str "(", emitExp s e1, str ")/(", emitExp s e2, str ")"]
@@ -895,8 +956,8 @@ structure C1 = struct
      | emitPrim s (GET_CON_ARGprim, [_,e],[FUNvtype (_,_,[t]),_]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->payload"]
      | emitPrim s (VOIDprim, [],_) = str "0 /* void value */"
      | emitPrim s (MERGE_ROPEprim, [e],_) = seq [str (#prefix s ^ "merge_rope"), fArgs [emitExp s e]] 
-     | emitPrim s (SET_ENDIANNESSprim, es,_) = seq [str (#prefix s ^ "endianness"), fArgs (map (emitExp s) es)] 
-     | emitPrim s _ = raise CodeGenBug
+     | emitPrim s (SET_ENDIANNESSprim, es,_) = seq [str (#prefix s ^ "endianness"), fArgs (map (emitExp s) es)]
+     | emitPrim s (p,_,_) = (TextIO.print ("cannot emit code for primitive " ^ #name (Imp.prim_info p) ^ "\n"); raise CodeGenBug)
    
    and addConsume s n = #consumeSizes s := IntListSet.add (!(#consumeSizes s),n)
 
@@ -981,10 +1042,13 @@ structure C1 = struct
          in
             align (
                preDecl @ [
-               seq [str "static inline", space, fTy, space, str "{"],
-               seq [str "  return ", emitAllocCon s argTy,
-                    fArgs [seq [str "(", emitConType s argTy, str "){",
-                                str (getConTag s tag), str ", ", emitSym s argName, str "}"]], str ";"],
+               seq [str "static INLINE_ATTR", space, fTy, space, str "{"],
+               indent 2 (align [
+                  seq [emitConType s argTy, space, str "adt;"],
+                  seq [str "adt.tag = ", str (getConTag s tag), str ";"],
+                  seq [str "adt.payload = ", emitSym s argName, str ";"],
+                  seq [str "return (obj_t) ", emitAllocCon s argTy, fArgs [str "adt"], str ";"]
+               ]),
                str "}"
          ])
          end
@@ -1114,12 +1178,15 @@ structure C1 = struct
          val { decls = ds, fdecls = fs, exports = _, typealias = ta, datatypes,
                monad = mt, errs } = Spec.get #declarations spec
          val ds = sortTopologically ds
-         
+
+         val emitStructCons = case Controls.get BasicControl.targetLanguage of
+            BasicControl.C89 => true | _ => false
+
          val recordMapping = case mt of
             RECORDvtype (_,fs) => AtomMap.singleton (genRecSignature fs, Atom.atom "monad")
           | _ => AtomMap.empty
          val recordMapping = SymMap.foldli (genRecordMapping ta) recordMapping ta
-         
+
          val closureToFunMap = foldl (fn (d,m) => case d of
                   (_,CLOSUREdecl {
                     closureName = clName,
@@ -1152,6 +1219,7 @@ structure C1 = struct
          val s = {
                names = reservedNames,
                prefix = prefix,
+               emitStructCons = emitStructCons,
                symbols = SymMap.empty,
                fieldTypes = fs,
                ret = genericSym,
@@ -1174,6 +1242,7 @@ structure C1 = struct
          val s = {
                names = #names s,
                prefix = #prefix s,
+               emitStructCons = #emitStructCons s,
                symbols = #symbols s,
                fieldTypes = #fieldTypes s,
                ret = #ret s,
@@ -1206,11 +1275,13 @@ structure C1 = struct
             (List.filter (fn (_,d) => not (SymSet.member(exports, getDeclName d))) ds)
          val constructors = map emitConDefine (SymMap.listItemsi conMap)
          (* generate a list of macros in the order in which they were added *)
+         val structAllocFuncs = genRecordCons s
          val recAllocFuncs =
             map (str o Atom.toString o #1) 
                (ListMergeSort.sort (fn ((_,i1),(_,i2)) => i1>i2)
                   (AtomMap.listItemsi (!(#allocFuncs s))))
-         val state = emitType s (SOME "state", !(#stateType s))
+
+         val state = emitType s (SOME "mon_state", !(#stateType s))
          val path = Controls.get BasicControl.runtimePath
          val consumes =  List.map
              (fn i => seq [str "GEN_CONSUME(", PP.I i, str ");"])
@@ -1254,7 +1325,7 @@ structure C1 = struct
                C1Templates.mkHook ("rope_to_string", str (prefix ^ "rope_to_string")),
                C1Templates.mkHook ("rope_length", str (prefix ^ "rope_length")),
                C1Templates.mkHook ("destroy", str (prefix ^ "destroy")),
-               C1Templates.mkHook ("alloc_funcs", align recAllocFuncs),
+               C1Templates.mkHook ("alloc_funcs", align (recAllocFuncs @ structAllocFuncs)),
                C1Templates.mkHook ("records", align (genRecordDecl s false)),
                C1Templates.mkHook ("state_type", indent 2 state),
                C1Templates.mkHook ("gdsl_constants", align const_decl),

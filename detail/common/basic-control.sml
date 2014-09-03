@@ -47,6 +47,13 @@ structure BasicControl :  sig
   (* the number of fields in a fixed record after which it is allocated
       on the heap rather than passed by value *)
     val boxThreshold : int Controls.control
+
+  datatype target_lang
+      = C99
+      | C89
+
+  (* language of the emitted code *)
+    val targetLanguage : target_lang Controls.control
     
   (* wrap a 'pre -> 'post pass with a tracing diagnostic, controled by the
    * "verbose" control.
@@ -205,6 +212,19 @@ structure BasicControl :  sig
 	    obscurity = 0,
 	    help = "no of fields in a record before it is boxed",
 	    default = 100
+    }
+
+  datatype target_lang
+      = C99
+      | C89
+
+  (* language of the emitted code *)
+    val targetLanguage : target_lang Controls.control = Controls.genControl {
+	    name = "target",
+	    pri = [0],
+	    obscurity = 0,
+	    help = "language of the emitted code (C89,C99)",
+	    default = C99
     }
 
     

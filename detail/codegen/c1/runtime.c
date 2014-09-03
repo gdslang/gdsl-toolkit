@@ -7,6 +7,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <limits.h>
+#ifdef _MSC_VER
+  #include <crtdefs.h>
+#endif
 
 /* generated declarations for records with fixed fields */
 @records@
@@ -38,6 +41,16 @@ struct state {
 #define CHUNK_SIZE (4*1024)
 
 #ifdef __CLANG__
+#define INLINE_ATTR inline
+#elif __GNUC__
+#define INLINE_ATTR inline
+#elif _MSC_VER
+#define INLINE_ATTR __inline
+#else
+#define INLINE_ATTR inline
+#endif
+
+#ifdef __CLANG__
 #define NO_INLINE_ATTR __attribute__((noinline))
 #elif __GNUC__
 #define NO_INLINE_ATTR __attribute__((noinline))
@@ -56,7 +69,7 @@ struct state {
 
 static void NO_INLINE_ATTR alloc_heap(state_t s, char* prev_page, size_t size) {
   if (size<CHUNK_SIZE) size = CHUNK_SIZE; else size = CHUNK_SIZE*((size/CHUNK_SIZE)+1);
-  s->heap_base = malloc(size);
+  s->heap_base = (char*) malloc(size);
   if (s->heap_base==NULL) {
     s->err_str = "GDSL runtime: out of memory";
     longjmp(s->err_tgt,2);
@@ -82,15 +95,16 @@ void
   s->heap_base = heap;
   s->heap = heap+sizeof(char*);
   s->heap_limit = heap+CHUNK_SIZE;
-  memset(&s->state, 0, sizeof(s->state));
+  memset(&(s->mon_state), 0, sizeof(s->mon_state));
 };
 
 size_t
 @heap_residency@
 (state_t s) {
   char* heap = s->heap_base;
+  size_t res;
   if (heap==NULL) return 0;
-  size_t res = s->heap - s->heap_base;
+  res = s->heap - s->heap_base;
   while (1) {
     char* prev = *((char**) heap);
     if (prev==NULL) break;
@@ -100,7 +114,7 @@ size_t
   return res;
 };
 
-static inline void* MALLOC_ATTR alloc(state_t s, size_t bytes) {
+static INLINE_ATTR void* MALLOC_ATTR alloc(state_t s, size_t bytes) {
   bytes = ((bytes+7)>>3)<<3;    /* align to multiple of 8 */
   if (s->heap+bytes >= s->heap_limit) alloc_heap(s, s->heap_base, bytes);
   char* res = s->heap;
@@ -109,8 +123,8 @@ static inline void* MALLOC_ATTR alloc(state_t s, size_t bytes) {
 };
 
 #define GEN_ALLOC(type) \
-static inline type ## _t* alloc_ ## type (state_t s, type ## _t v) { \
-  type ## _t* res = alloc(s, sizeof(type ## _t));\
+static INLINE_ATTR type ## _t* alloc_ ## type (state_t s, type ## _t v) { \
+  type ## _t* res = (type ## _t*) alloc(s, sizeof(type ## _t));\
   *res = v;\
   return res;\
 }
@@ -140,7 +154,7 @@ typedef struct field_ ## type  field_ ## type ## _t
 #define GEN_ADD_FIELD(type)                               \
 static obj_t add_field_ ## type                           \
 (state_t s,field_tag_t tag, type ## _t v, obj_t rec) {    \
-  field_ ## type ## _t* res =                             \
+  field_ ## type ## _t* res = (field_ ## type ## _t*)     \
     alloc(s, sizeof(field_ ## type ## _t));               \
   res->tag = tag;                                         \
   res->size = sizeof(field_ ## type ## _t);               \
@@ -155,7 +169,7 @@ static type ## _t select_  ## type                        \
   field_ ## type ## _t* v = (field_ ## type ## _t*) rec;  \
   while (v) {                                             \
     if (v->tag==field) return v->payload;                 \
-    v = v->next;                                          \
+    v = (field_ ## type ## _t*) v->next;                                          \
   };                                                      \
   s->err_str = "GDSL runtime: field not found in record"; \
   longjmp(s->err_tgt,1);                                  \
@@ -170,7 +184,7 @@ GEN_REC_STRUCT(obj);
   reached.
 */
 static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec) {
-  field_obj_t* current = rec;
+  field_obj_t* current = (field_obj_t*) rec;
   int idx;
   obj_t res = NULL;
   obj_t* last_next = &res;
@@ -182,12 +196,12 @@ static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec)
       tags[idx]=tags[--tags_size];
     } else {
       /* this field is not supposed to be deleted, copy it */
-      field_obj_t* copy = alloc(s, current->size);
+      field_obj_t* copy = (field_obj_t*) alloc(s, current->size);
       memcpy(copy,current,current->size);
       *last_next = copy;
       last_next = &copy->next;
     };
-    current = current->next;
+    current = (field_obj_t*) current->next;
   };
   *last_next = current;
   return res;
@@ -284,24 +298,30 @@ static int_t vec_to_unsigned(state_t s, vec_t v) {
   return (int_t) v.data;
 }
 
-static inline vec_t vec_not(state_t s, vec_t v) {
+static INLINE_ATTR vec_t vec_not(state_t s, vec_t v) {
   vec_data_t mask = (1<<((vec_data_t) v.size))-1;
-  return (vec_t){ v.size, v.data ^ mask };
+  vec_t res;
+  res.size = v.size;
+  res.data = v.data ^ mask;
+  return res;
 }
 
-static inline vec_data_t vec_eq(state_t s, vec_data_t d1, vec_data_t d2) {
+static INLINE_ATTR vec_data_t vec_eq(state_t s, vec_data_t d1, vec_data_t d2) {
   return (d1==d2 ? 1 : 0);
 }
 
-static inline vec_t vec_concat(state_t s, vec_t v1, vec_t v2) {
-  return (vec_t){ v1.size+v2.size, v1.data << v2.size | v2.data };
+static INLINE_ATTR vec_t vec_concat(state_t s, vec_t v1, vec_t v2) {
+  vec_t res;
+  res.size = v1.size+v2.size;
+  res.data = v1.data << v2.size | v2.data;
+  return res;
 }
 
 static string_t int_to_string(state_t s, int_t v) {
   if(v == LLONG_MIN)
     return "(-9223372036854775807)";
   else {
-    char *str = alloc(s, 23)+22;
+    char *str = (char*) alloc(s, 23)+22;
     int negate = v<0;
     int_t r;
     *str = 0;
@@ -329,8 +349,6 @@ void
   s->ip_limit = buf+buf_len;
   s->ip_start = buf;
   s->ip_base = base;
-  char be_buf_left = -((size_t)s->buf_be) & (s->token_size - 1);
-  s->buf_be += be_buf_left;
 }
 
 size_t
@@ -353,11 +371,13 @@ int_t
 string_t
 @merge_rope@
 (state_t s, obj_t rope) {
+  string_t buf,end;
   int_t len =
 @rope_length@
 (s,rope);
-  string_t buf = alloc(s,len);
-  string_t end =
+  if (len<0) return ""; /* make MSVC happy */
+  buf = (string_t) alloc(s,(size_t) len);
+  end =
 @rope_to_string@
 (s,rope,buf);
   *end = 0;
@@ -369,16 +389,15 @@ void
 (state_t s) {
 @reset_heap@
 (s);
+  char* heap;
   free(s->heap_base);
   /* free heap of GDSL constants */
-  char* heap = s->const_heap_base;
+  heap = s->const_heap_base;
   while (heap!=NULL) {
     char* prev = *((char**) heap);
     free (heap);
     heap = prev;
   }
-  s->buf_be = (unsigned char*)(((size_t)s->buf_be | (s->token_size - 1)) - s->token_size + 1);
-  free(s->buf_be);
   free(s);
 }
 
@@ -401,15 +420,6 @@ state_t
   s->heap_base = NULL;
   s->heap_limit = NULL;
   s->heap = NULL;
-
-  s->le = 1;
-  s->token_size = 2;
-  /*
-   * Todo: Handle alignment error
-   */
-  s->buf_be = (unsigned char*)malloc(s->token_size);
-  s->buf_be += s->token_size;
-
   return s;
 }
 
@@ -442,7 +452,8 @@ int main (int argc, char** argv) {
   unsigned int i,c;
   obj_t config;
   state_t s = gdsl_init();
-
+  long long alloc_size,alloc_no,alloc_max;
+  
   /* read command line parameters */
   for(i=1; i<argc; i++) {
     char* arg = argv[i];
@@ -453,8 +464,8 @@ int main (int argc, char** argv) {
         return 1;
       }
     } else {
-      arg+=2;
       int negated = 0;
+      arg+=2;
       if (strcmp(arg,"no-")==0) { negated = 1; arg+=3; };
 #if defined(gdsl_decoder_config)
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
@@ -519,16 +530,17 @@ int main (int argc, char** argv) {
        }
        blob[i] = c & 0xff;
     }
-  }
+  }  
   /* initialize the GDSL program */
   gdsl_set_code(s, blob, buf_size, base_address);
   gdsl_seek(s, start_address);
 
-  int_t alloc_size = 0;
-  int_t alloc_no = 0;
-  int_t alloc_max = 0;
+  alloc_size = 0;
+  alloc_no = 0;
+  alloc_max = 0;
 
   while (gdsl_get_ip_offset(s)<buf_size) {
+    int_t size;
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (run_translate) {
 #ifdef HAVE_TRANS
@@ -562,7 +574,7 @@ int main (int argc, char** argv) {
       return 1;
     }
     fputs("\n",stdout);
-    int_t size = gdsl_heap_residency(s);
+    size = gdsl_heap_residency(s);
     alloc_size += size;
     alloc_no++;
     if (size>alloc_max) alloc_max = size;

@@ -73,7 +73,7 @@ structure Main = struct
 \    -t               do not run the type checker\n\
 \    --maxIter=n      restrict fixpoint in type checker to n iterations\n\
 \    --boxTheshold=n  box fixed records with more than n fields\n\
-\    -verbose         verbose mode\n\
+\    --target=lang    language of output, one of C99,C89\n\
 \"
 
    fun processControl arg = let
@@ -119,6 +119,12 @@ structure Main = struct
       SOME num => Controls.set (BasicControl.boxThreshold, num)
     | NONE => bad ("!* expected number for --boxThreshold\n")
     
+   and processTargetLanguage arg =
+      case String.implode (List.map Char.toUpper (String.explode arg)) of
+      "C99" => Controls.set (BasicControl.targetLanguage, BasicControl.C99)
+    | "C89" => Controls.set (BasicControl.targetLanguage, BasicControl.C89)
+    | _ => bad ("!* expected a language for --target\n")
+    
    and processArgs args =
       case args of
          arg :: args =>
@@ -150,6 +156,9 @@ structure Main = struct
       else
       if String.isPrefix "--boxThreshold=" arg
          then (processBoxThreshold (String.extract (arg,15,NONE)); processArgs args)
+      else
+      if String.isPrefix "--target=" arg
+         then (processTargetLanguage (String.extract (arg,9,NONE)); processArgs args)
       else
          case arg of
             "-h" => usage ()

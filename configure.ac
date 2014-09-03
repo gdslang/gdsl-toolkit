@@ -6,8 +6,12 @@ AM_INIT_AUTOMAKE([no-dependencies -Wall foreign no-define subdir-objects])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([LICENSE])
 
+dnl the AM_PROG_AR macro only exists starting from 1.11.2
+am_version=`automake --version | head -n 1 | sed -e 's/[[^0-9]*\([0-9][0-9.]*\)]/\1/g'`
+m4_pattern_allow([AM_PROG_AR])
+AS_VERSION_COMPARE([$am_version],[1.11.2],[],[AM_PROG_AR],[AM_PROG_AR])
+
 AM_PROG_CC_C_O()
-AM_PROG_AR()
 AC_PROG_LN_S()
 AC_PROG_LIBTOOL()
 AC_PROG_INSTALL()

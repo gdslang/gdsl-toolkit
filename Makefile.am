@@ -130,7 +130,7 @@ GDSLC_SML_FILES = \
 JAR=jgdsl.jar
 
 GDSLC_DEP = detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
-GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
+GDSLFLAGS = --runtime=$(srcdir)/detail/codegen --target=C89
 
 if HAVE_MLTON
 
