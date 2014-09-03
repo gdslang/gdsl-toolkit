@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
   }
 
   size_t buffer_size = options.length + 15;
-  char *buffer = (char*)malloc(buffer_size);
+  unsigned char *buffer = (unsigned char*)malloc(buffer_size);
   size_t buffer_length = fread(buffer, 1, buffer_size, f);
 
   fclose(f);

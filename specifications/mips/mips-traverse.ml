@@ -10,6 +10,11 @@ in
   traverse f insn
 end
 
+val traverse-others f insn =
+   case insn of
+      PAUSE: f "PAUSE" (NULLOP)
+   end
+
 # -> sftl
 type uarity =
    NULLOP
@@ -72,7 +77,7 @@ val traverse f insn =
     | CLO x: f "CLO" (TERNOP x)
     | CLZ x: f "CLZ" (TERNOP x)
     | COP2 x: f "COP2" (UNOP_SRC x)
-    | CTC1 x: f "CTC1" (BINOP x)
+    | CTC1 x: f "CTC1" (BINOP_SRC x)
     | CTC2 x: f "CTC2" (BINOP_SRC x)
     | CVT-D-fmt x: f "CVT.D.fmt" (BINOP_FMT x)
     | CVT-L-fmt x: f "CVT.L.fmt" (BINOP_FMT x)
@@ -241,6 +246,7 @@ val traverse f insn =
     | WSBH x: f "WSBH" (BINOP x)
     | XOR x: f "XOR" (TERNOP x)
     | XORI x: f "XORI" (TERNOP x)
+    | _: traverse-others f insn
    end
 
 

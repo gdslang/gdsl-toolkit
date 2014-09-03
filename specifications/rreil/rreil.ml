@@ -357,6 +357,14 @@ val /or a b = do
   return (var t)
 end
 
+val /xor a b = do
+  a <- a;
+  b <- b;
+  t <- mktemp;
+  xorb 1 t a b;
+  return (var t)
+end
+
 val /not a = do
   t <- mktemp;
   xorb 1 t a (imm 1);

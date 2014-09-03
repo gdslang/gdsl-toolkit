@@ -1,6 +1,15 @@
 type sem_id =
    Sem_PC
  | Sem_SREG
+ | Sem_LLBIT
+ | Sem_DEBUG
+ | Sem_CONFIG1
+ | Sem_CONFIG3
+ | Sem_ISA_MODE
+ | Sem_SRSCTL
+ | Sem_EPC
+ | Sem_ERROR_EPC
+ | Sem_DEPC
 
 type sem_id =
    Sem_ZERO
@@ -71,15 +80,57 @@ type sem_id =
  | Sem_F29
  | Sem_F30
  | Sem_F31
+ | Sem_FIR
+ | Sem_FCCR
+ | Sem_FEXR
+ | Sem_FENR
+ | Sem_FCSR
 
-val fRE = sem-reg-offset (sreg-get) 25
+type sem_id =
+   Sem_CPUNUM
+ | Sem_SYNCI_STEP
+ | Sem_CC
+ | Sem_CCRES
+ | Sem_ULR
+
+val fIE = sem-reg-offset (semantic-reg-of Sem_SREG) 0
+val fRE = sem-reg-offset (semantic-reg-of Sem_SREG) 25
+val fCA = sem-reg-offset (semantic-reg-of Sem_CONFIG1) 2
+val fISA = sem-reg-offset (semantic-reg-of Sem_CONFIG3) 14
+val fDM = sem-reg-offset (semantic-reg-of Sem_DEBUG) 0
+val fIEXI = sem-reg-offset (semantic-reg-of Sem_DEBUG) 1
+val fEXL = sem-reg-offset (semantic-reg-of Sem_SREG) 1
+val fERL = sem-reg-offset (semantic-reg-of Sem_SREG) 2
+val fKSU = sem-reg-offset (semantic-reg-of Sem_SREG) 3
+val fBEV = sem-reg-offset (semantic-reg-of Sem_SREG) 22
+val fCSS = sem-reg-offset (semantic-reg-of Sem_SRSCTL) 0
+val fPSS = sem-reg-offset (semantic-reg-of Sem_SRSCTL) 6
+val fESS = sem-reg-offset (semantic-reg-of Sem_SRSCTL) 12
+val fHSS = sem-reg-offset (semantic-reg-of Sem_SRSCTL) 26
 
 val sem-reg-offset r o = @{offset=r.offset + o}r
 
-val ip-get = {id=Sem_PC,offset=0,size=32}
-val hi-get = {id=Sem_HI,offset=0,size=32}
-val lo-get = {id=Sem_LO,offset=0,size=32}
-val sreg-get = {id=Sem_SREG,offset=0,size=32}
+val semantic-reg-of x = 
+   case x of
+      Sem_PC		: {id=Sem_PC,offset=0,size=32}
+    | Sem_HI		: {id=Sem_HI,offset=0,size=32}
+    | Sem_LO		: {id=Sem_LO,offset=0,size=32}
+    | Sem_SREG		: {id=Sem_SREG,offset=0,size=32}
+    | Sem_LLBIT 	: {id=Sem_LLBIT,offset=0,size=1}
+    | Sem_DEBUG		: {id=Sem_DEBUG,offset=0,size=32}
+    | Sem_CONFIG1	: {id=Sem_CONFIG1,offset=0,size=32}
+    | Sem_CONFIG3	: {id=Sem_CONFIG3,offset=0,size=32}
+    | Sem_ISA_MODE	: {id=Sem_ISA_MODE,offset=0,size=1}
+    | Sem_SRSCTL	: {id=Sem_SRSCTL,offset=0,size=32}
+    | Sem_EPC		: {id=Sem_EPC,offset=0,size=32}
+    | Sem_ERROR_EPC	: {id=Sem_ERROR_EPC,offset=0,size=32}
+    | Sem_DEPC		: {id=Sem_DEPC,offset=0,size=32}
+    | Sem_CPUNUM	: {id=Sem_CPUNUM,offset=0,size=32}
+    | Sem_SYNCI_STEP	: {id=Sem_SYNCI_STEP,offset=0,size=32}
+    | Sem_CC		: {id=Sem_CC,offset=0,size=32}
+    | Sem_CCRES		: {id=Sem_CCRES,offset=0,size=32}
+    | Sem_ULR		: {id=Sem_ULR,offset=0,size=32}
+   end
 
 val semantic-gpr-of r =
    case r of
@@ -151,4 +202,9 @@ val semantic-fpr-of f =
     | F29  : {id=Sem_F29 ,offset=0,size=32}
     | F30  : {id=Sem_F30 ,offset=0,size=32}
     | F31  : {id=Sem_F31 ,offset=0,size=32}
+    | FIR  : {id=Sem_FIR ,offset=0,size=32}
+    | FCCR  : {id=Sem_FCCR ,offset=0,size=32}
+    | FEXR  : {id=Sem_FEXR ,offset=0,size=32}
+    | FENR  : {id=Sem_FENR ,offset=0,size=32}
+    | FCSR  : {id=Sem_FCSR ,offset=0,size=32}
    end

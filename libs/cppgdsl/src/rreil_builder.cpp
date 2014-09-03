@@ -500,10 +500,6 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 
   callbacks_heap->callbacks = callbacks;
 
-  //    config.callbacks.sem_stmts.sem_cons = &sem_cons;
-  //    config.callbacks.sem_stmts.sem_nil = &sem_nil;
-  //    config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_RECURSIVE;
-
   return &callbacks_heap->callbacks;
 }
 
@@ -525,24 +521,4 @@ std::vector<gdsl::rreil::statement*>* gdsl::rreil_builder::convert(obj_t rreil) 
 
   return v;
 }
-//std::vector<statement*> *gdsl::rreil_builder::translate() {
-//  char err = gdsl_multiplex_frontend_get_by_lib_name(&frontend, "x86");
-//  if(err != GDSL_MULTIPLEX_ERROR_NONE) throw "blah";
-//
-//  uint16_t buffer = 0;
-//  state_t s = frontend.generic.init();
-//  frontend.generic.set_code(s, (char*)&buffer, 2, 0);
-//
-//  obj_t insn = frontend.decoder.decode(s, frontend.decoder.config_default(s));
-//  obj_t rreil = frontend.translator.translate(s, insn);
-//
-//  callbacks_t cbs = rreil_gdrr_builder_callbacks_get(s);
-//
-//  auto v = (std::vector<statement*> *)frontend.translator.rreil_convert_sem_stmts(s, cbs, rreil);
-//
-//  for (statement *stmt : *v) {
-//    printf("%s\n", stmt->to_string().c_str());
-//  }
-//
-//  return NULL;
-//}
+

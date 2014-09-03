@@ -760,7 +760,7 @@ int main(int argc, char** argv) {
   size_t size = readhex_hex_read(stdin, &buffer);
 
   state_t state = gdsl_init();
-  gdsl_set_code(state, (char*)buffer, size, 0);
+  gdsl_set_code(state, buffer, size, 0);
 
   obj_t insn = gdsl_decode(state, gdsl_config_default(state));
 //	__obj state = __createState(blob, i, 0, 0);

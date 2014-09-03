@@ -22,13 +22,11 @@ struct state {
   char* heap;         /* current top of the heap */
 @state_type@
 ;      /* the current monadic state */
-  char* ip_start;     /* beginning of code buffer */
+  unsigned char* ip_start;     /* beginning of code buffer */
   size_t ip_base;     /* base address of code */
-  char* ip_limit;     /* first byte beyond the code buffer */
-  char* ip;           /* current pointer into the buffer */
-  unsigned char* buf_be;
-  char le;
-  char token_size;
+  unsigned char* ip_limit;     /* first byte beyond the code buffer */
+  unsigned char* ip;           /* current pointer into the buffer */
+  size_t token_addr_inv;
   char* err_str;      /* a string describing the fatal error that occurred */
   jmp_buf err_tgt;    /* the position of the exception handler */
   FILE* handle;       /* the file that the puts primitve uses */
@@ -233,50 +231,27 @@ static inline int_t consume(state_t s, char size) {
     longjmp(s->err_tgt, 1);
   };
   int_t result = 0;
-  char size_left = size;
-  while(size_left) {
-    char be_buf_left = -((size_t) s->buf_be) & (s->token_size - 1);
-    if(!be_buf_left) {
-      s->buf_be -= s->token_size;
-      int i;
-      for(i = 0; i < s->token_size; i++)
-        s->buf_be[i] = s->le ? s->ip[s->token_size - i - 1] : s->ip[i];
-      be_buf_left += s->token_size;
-    }
-    for(; be_buf_left && size_left; be_buf_left--) {
-      result |= *(s->buf_be++) << (--size_left * 8);
-      s->ip++;
-    }
-  }
+  while(size)
+    result |= s->ip_start[(s->ip++ - s->ip_start) ^ s->token_addr_inv] << (--size*8);
   return result;
 }
 
 static inline void unconsume(state_t s, char size) {
-  char be_buf_consumed = ((size_t) s->buf_be) & (s->token_size - 1);
-  if(size < be_buf_consumed) {
-    s->buf_be -= size;
-    s->ip -= size;
-  } else if(size == be_buf_consumed) {
-    s->buf_be += (s->token_size - size);
-    s->ip -= size;
-  } else {
-    char be_buf_left = -((size_t) s->buf_be) & (s->token_size - 1);
-    s->buf_be += be_buf_left;
-    char size_left = size - be_buf_consumed;
-    s->ip -= be_buf_consumed;
-
-    char tokens = size_left / s->token_size;
-    s->ip -= (tokens + 1) * s->token_size;
-
-    char inner_token = size_left % s->token_size;
-    consume(s, s->token_size - inner_token);
-  }
+  s->ip -= size;
 }
 
 void
 @endianness@
-(state_t s, int_t kind, int_t size) {
-
+(state_t s, int_t le, int_t size) {
+  if (size != 1 && size != 2 && size != 4 && size != 8) {
+    s->err_str = "GDSL runtime: endianness(); invalid token size";
+    longjmp(s->err_tgt, 100);
+  };
+  if (le != 0 && le != 1) {
+    s->err_str = "GDSL runtime: endianness(); invalid kind";
+    longjmp(s->err_tgt, 101);
+  };
+  s->token_addr_inv = le * (size - 1);
 }
 
 static int_t vec_to_signed(state_t s, vec_t v) {
@@ -344,7 +319,10 @@ static string_t int_to_string(state_t s, int_t v) {
 
 void
 @set_code@
-(state_t s, char* buf, size_t buf_len, size_t base) {
+(state_t s, unsigned char* buf, size_t buf_len, size_t base) {
+  /*
+   * Todo: fix signedness
+   */
   s->ip = buf;
   s->ip_limit = buf+buf_len;
   s->ip_start = buf;
@@ -420,6 +398,10 @@ state_t
   s->heap_base = NULL;
   s->heap_limit = NULL;
   s->heap = NULL;
+
+  @endianness@
+  (s, 0, 1);
+
   return s;
 }
 
@@ -434,7 +416,7 @@ state_t
 #endif
 
 #define BUF_SIZE 32*1024*1024
-static char blob[BUF_SIZE];
+static unsigned char blob[BUF_SIZE];
 
 int main (int argc, char** argv) {
   uint64_t buf_size = BUF_SIZE;
