@@ -18,18 +18,18 @@ structure C1Templates = struct
             "#include \"" ^ basename  ^ ".h\"\n"))
          ]
       end
-
-   fun expandHeader path basename hooks =
+                       
+   fun expandHeader path fName hooks =
       ExpandFile.expandTemplate
          {src=ExpandFile.mkTemplateFromFile (path ^ "/c1/runtime.h"),
-          dst=basename ^ ".h",
-          hooks=stdHooks basename @ hooks}
+          dst=fName ^ ".h",
+          hooks=stdHooks fName @ hooks}
 
-   fun expandRuntime path basename hooks =
+   fun expandRuntime path fName hooks =
       ExpandFile.expandTemplate
          {src=ExpandFile.mkTemplateFromFile (path ^ "/c1/runtime.c"),
-          dst=basename ^ ".c",
-          hooks=stdHooks basename @ hooks}
+          dst=fName ^ ".c",
+          hooks=stdHooks fName @ hooks}     
 
    fun mkPrint f os = Pretty.prettyTo(os, f())
    fun mkHook (name,d) = (name, mkPrint (fn () => d))
@@ -125,7 +125,8 @@ structure C1 = struct
                   constSymbols : SymSet.set,
                   preDeclEmit : Layout.t list ref,
                   stateType : Imp.vtype ref,
-                  consumeSizes : IntListSet.set ref }
+                  consumeSizes : IntListSet.set ref,
+                  fieldDeletes : string AtomMap.map ref }
 
    fun isVOIDvtype VOIDvtype = true
      | isVOIDvtype _ = false
@@ -269,7 +270,8 @@ structure C1 = struct
            recordMapping = #recordMapping s,
            preDeclEmit = #preDeclEmit s,
            stateType = #stateType s,
-           consumeSizes = #consumeSizes s } : state
+           consumeSizes = #consumeSizes s,
+           fieldDeletes = #fieldDeletes s } : state
       end
    fun registerSymbol (sym,s : state) = regSym (sym, !SymbolTables.varTable, s)
    fun registerFSymbol (sym,s : state) = regSym (sym, !SymbolTables.fieldTable, s)
@@ -290,7 +292,8 @@ structure C1 = struct
         recordMapping = #recordMapping s,
         preDeclEmit = #preDeclEmit s,
         stateType = #stateType s,
-        consumeSizes = #consumeSizes s } : state
+        consumeSizes = #consumeSizes s,
+        fieldDeletes = #fieldDeletes s } : state
 
    fun setSym (sym, atom, s : state) =
       { names = #names s,
@@ -308,7 +311,8 @@ structure C1 = struct
         recordMapping = #recordMapping s,
         preDeclEmit = #preDeclEmit s,
         stateType = #stateType s,
-        consumeSizes = #consumeSizes s } : state
+        consumeSizes = #consumeSizes s,
+        fieldDeletes = #fieldDeletes s } : state
 
    fun par arg = seq [str "(", arg, str ")"]
    fun list (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
@@ -434,15 +438,12 @@ structure C1 = struct
            | eT (decl, OBJvtype) = seq (str "obj_t" :: addSpace decl)
            | eT (decl, MONADvtype retTy) = eT (str "(*" :: decl @ [str ")()"], retTy)
            | eT (decl, RECORDvtype bfs) = seq (str (getRecordTag s bfs ^ "_t") :: addSpace decl)
-           | eT (decl, FUNvtype (retTy,_,[VOIDvtype])) = (* do not emit arguments *)
-               eT (str "(*" :: decl @ [str ")()"], retTy)
-           | eT (decl, FUNvtype (retTy,isCl,argTys)) = 
+           | eT (decl, FUNvtype (retTy,true,argTys)) = seq (str "obj_t" :: addSpace decl)
+           | eT (decl, FUNvtype (retTy,false,argTys)) = 
                eT (str "(*" ::
                   decl @ [
                      str ")",
-                     par (seq (separate (str "state_t" ::
-                               (fn args => if isCl then str "obj_t" :: args else args)
-                               (map (fn t => eT ([],t)) argTys), ",")))],
+                     par (seq (separate (str "state_t" :: map (fn t => eT ([],t)) argTys, ",")))],
                   retTy)
       in
          eT (decl,t)
@@ -575,16 +576,16 @@ structure C1 = struct
                   str "__", str tyName, par (seq (separate (str "state_t s" ::
                      map (fn (f,t) => emitTypeDecl s ([emitFieldSym s f],t)) args, ", "))),
                      space, str "{"],
-               indent 2 (align [
-                  seq [str (if boxed then "unboxed_" else ""), str tyName, str "_t res = {",
-                     seq (separate (map (emitFieldSym s o #1) args, ", ")),
-                     str "};"],
-                  if boxed then
+               indent 2 (align (
+                  seq [str (if boxed then "unboxed_" else ""), str tyName, str "_t res;"] ::
+                  (List.map (fn (f,_) => seq [str "res.", emitFieldSym s f, str " = ", emitFieldSym s f, str ";"]) args) @
+                  [if boxed then
                      seq [str "return ", par (seq [str tyName, str "_t"]), space,
                         emitUnboxedAlloc s (RECORDvtype (boxed,args)), str "(s,res);"]
                   else
                      seq [str "return res;"]
-               ]),
+                  ]
+               )),
                str "}"
             ]
          val recCon = if #emitStructCons s then List.map genStructCon recs else []
@@ -620,16 +621,18 @@ structure C1 = struct
    val genClosureSet = ref AtomSet.empty
    val invokeClosureSet = ref AtomSet.empty
    
-   fun emitClosureStruct (s : state) (retTy,argTys) =
+   fun emitClosureStruct (s : state) (retTy,clArgTys,invArgTys) =
       let
          val structName = "closure" ^
-                           foldl (fn (t,str) => str ^ getTypeSuffix s t) "" (retTy::argTys) ^
+                           foldl (fn (t,str) => str ^ "_" ^ getTypeSuffix s t) "" (retTy::clArgTys) ^
+                           "_" ^
+                           foldl (fn (t,str) => str ^ "_" ^ getTypeSuffix s t) "" invArgTys ^
                           "_t"
          val structNameAtom = Atom.atom structName
          fun genArgs ([],idx) = []
            | genArgs (ty::tys,idx) =
                (ty, "arg" ^ Int.toString idx) :: genArgs (tys,idx+1)
-         val args = genArgs (argTys,1)
+         val args = genArgs (clArgTys,1)
       in
         if AtomSet.member(!closureStructs, structNameAtom) then (structName, args) else
             let
@@ -637,7 +640,7 @@ structure C1 = struct
                val st = [
                   seq [str "typedef struct {"],
                   indent 2 (align (
-                     seq [emitStringFunType s (retTy,"(*func)",(OBJvtype, "closure")::args), str ";"] ::
+                     seq [emitTypeDecl s ([str "func"],FUNvtype (retTy,false,OBJvtype::invArgTys)), str ";"] ::
                      map (fn (ty,name) => seq [emitType s (SOME name, ty), str ";"]) args
                      )
                   ),
@@ -645,7 +648,7 @@ structure C1 = struct
                ]
                val _ = (#preDeclEmit s) := !(#preDeclEmit s) @ st
             in
-               (structName, args)
+               (structName, args)               
             end
       end
 
@@ -655,25 +658,31 @@ structure C1 = struct
                (FUNvtype (ty,_,argTys)) => (ty,argTys)
              | (MONADvtype ty) => (ty,[])
              | _ => (OBJvtype, List.tabulate (argLen, fn _ => OBJvtype))
-         val ty = removeArgs ty
-         val retTy = case ty of
-               FUNvtype (retTy,_,_) => retTy
-             | (MONADvtype retTy) => retTy
-             | _ => OBJvtype
+         val (retTy,invArgTys) = case ty of
+               FUNvtype (retTy,_,invArgTys) => (retTy, invArgTys)
+             | (MONADvtype retTy) => (retTy, [])
+             | _ => (OBJvtype, [])
          val closureName = "gen" ^
-                           foldl (fn (t,str) => str ^ getTypeSuffix s t) "" (retTy::argTys) ^
+                           foldl (fn (t,str) => str ^ "_" ^ getTypeSuffix s t) "" (retTy::argTys) ^
+                           "_" ^
+                           foldl (fn (t,str) => str ^ "_" ^ getTypeSuffix s t) "" invArgTys ^
                            "_closure"
          val closureNameAtom = Atom.atom closureName
       in
         if AtomSet.member(!genClosureSet, closureNameAtom) then str closureName else
             let
                val _ = genClosureSet := AtomSet.add(!genClosureSet, closureNameAtom)
-               val (structName, args) = emitClosureStruct s (retTy,argTys)
-               val clArgs = (ty,"closure_fun")::args
+               val (structName, args) = emitClosureStruct s (retTy,argTys,invArgTys)
+               val clArgs = (FUNvtype (retTy,false,OBJvtype::invArgTys),"func")::args
                val gen = if #emitStructCons s then [
                   seq [str "static INLINE_ATTR ", emitStringFunType s (OBJvtype,closureName,clArgs), str " {"],
                   indent 2 (align [
-                     seq [str structName, str " content = {", seq (separate (map (str o #2) clArgs, ", ")), str "};"],
+                     if #emitStructCons s then
+                        align (seq [str structName, str " content;"] ::
+                           List.map (fn (_,name) => seq [str "content.", str name, str " = ", str name, str ";"]) clArgs
+                        )
+                     else
+                        seq [str structName, str " content = {", seq (separate (map (str o #2) clArgs, ", ")), str "};"],
                      seq [str structName, str "* closure = (", str structName, str "*) alloc(s, sizeof(", str structName, str "));"],
                      seq [str "*closure = content;"],
                      str "return (obj_t) closure;"
@@ -700,14 +709,13 @@ structure C1 = struct
                (FUNvtype (retTy,_,argTys)) => (retTy,argTys)
              | (MONADvtype retTy) => (retTy,[])
              | _ =>  raise CodeGenBug
-         (*val retTy = removeArgs retTy*)
          val funName = "invoke" ^
-                        foldl (fn (t,str) => str ^ getTypeSuffix s t) "_closure" (retTy::argTys)
+                        foldl (fn (t,str) => str ^ "_" ^ getTypeSuffix s t) "" (retTy::argTys) ^
+                        "_closure"
          val funNameAtom = Atom.atom funName
       in
         if AtomSet.member(!invokeClosureSet, funNameAtom) then str funName else
             let
-               val (structName, args) = emitClosureStruct s (retTy,argTys)
                val _ = invokeClosureSet := AtomSet.add(!invokeClosureSet, funNameAtom)
                fun genArgs ([],idx) = []
                  | genArgs (ty::tys,idx) =
@@ -717,7 +725,7 @@ structure C1 = struct
                   seq [str "static INLINE_ATTR ", emitStringFunType s (retTy,funName,(OBJvtype,"closure") :: args), str " {"],
                   indent 2 (seq [
                      if isVOIDvtype retTy then seq [] else str "return ",
-                     str "((", str structName, str "*) closure)->func",
+                     str "((", emitTypeDecl s ([],FUNvtype (retTy,false,OBJvtype::argTys)), str ") closure)",
                      fArgs (str "closure" :: map (str o #2) args), str ";"
                   ]),
                   str "}"
@@ -870,7 +878,7 @@ structure C1 = struct
             seq [
                str "del_fields",
                fArgs [
-                  seq (str "(field_tag_t[])" :: list ("{",str o Int.toString o SymbolTable.toInt o #1, fs, "}")),
+                  getFieldDeletes s fs,
                   str (Int.toString (length fs)),
                   emitExp s e]]
          fun recAdd ((f,e),layout) = if fieldIsVoid (s,f) then layout else
@@ -962,6 +970,22 @@ structure C1 = struct
      | emitPrim s (p,_,_) = (TextIO.print ("cannot emit code for primitive " ^ #name (Imp.prim_info p) ^ "\n"); raise CodeGenBug)
    
    and addConsume s n = #consumeSizes s := IntListSet.add (!(#consumeSizes s),n)
+   
+   and getFieldDeletes (s : state) fs =
+      if not (#emitStructCons s) then
+         seq (str "(field_tag_t[])" :: list ("{",str o Int.toString o SymbolTable.toInt o #1, fs, "}"))
+      else
+      let
+         val fd = #fieldDeletes s
+         val numStrs = map (Int.toString o SymbolTable.toInt o #1) fs
+         val arrayString = foldl (fn (f,str) => str ^ "_" ^ f) "field_array" numStrs
+         val arrayName = Atom.atom arrayString
+         val _ = if AtomMap.inDomain (!fd,arrayName) then () else
+            fd := AtomMap.insert (!fd,arrayName, "static field_tag_t " ^ arrayString ^ "[] = { " ^
+            #1 (foldl (fn (f,(str,sep)) => (str ^ sep ^ f, ", ")) ("","") numStrs) ^ " };")
+      in
+         str arrayString
+      end
 
    fun emitDecl s (inSCC,FUNCdecl {
         funcIsConst = true,
@@ -1084,7 +1108,7 @@ structure C1 = struct
                seq []
          else
          let
-            val (structName, closureArgs) = emitClosureStruct s (retTy, clTys)
+            val (structName, closureArgs) = emitClosureStruct s (retTy, clTys, map #1 delArgs)
             fun prependC arg = "c->" ^ arg
             fun emitC rem = if null closureArgs then rem else 
                   seq [str structName, str "* c = (", str structName, str "*)", space,
@@ -1234,7 +1258,8 @@ structure C1 = struct
                recordMapping = recordMapping,
                preDeclEmit = ref [],
                stateType = ref OBJvtype,
-               consumeSizes = ref IntListSet.empty
+               consumeSizes = ref IntListSet.empty,
+               fieldDeletes = ref AtomMap.empty
             } : state
 
          val s = foldl registerSymbol s (map (getDeclName o #2) ds)
@@ -1257,7 +1282,8 @@ structure C1 = struct
                recordMapping = #recordMapping s,
                preDeclEmit = #preDeclEmit s,
                stateType = #stateType s,
-               consumeSizes = #consumeSizes s
+               consumeSizes = #consumeSizes s,
+               fieldDeletes = #fieldDeletes s
             } : state
          val funDeclsPublic = map (emitDecl s) 
             (List.filter (fn (_,d) => SymSet.member(exports, getDeclName d)) ds)
@@ -1329,6 +1355,7 @@ structure C1 = struct
                C1Templates.mkHook ("destroy", str (prefix ^ "destroy")),
                C1Templates.mkHook ("alloc_funcs", align (recAllocFuncs @ structAllocFuncs)),
                C1Templates.mkHook ("records", align (genRecordDecl s false)),
+               C1Templates.mkHook ("field_delete_arrays", align (map str (AtomMap.listItems (!(#fieldDeletes s))))),
                C1Templates.mkHook ("state_type", indent 2 state),
                C1Templates.mkHook ("gdsl_constants", align const_decl),
                C1Templates.mkHook ("gdsl_init_constants", align const_init),

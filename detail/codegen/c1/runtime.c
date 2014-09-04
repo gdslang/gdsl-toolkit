@@ -36,6 +36,11 @@ struct state {
 
 };
 
+typedef unsigned int field_tag_t;
+
+@field_delete_arrays@
+
+
 #define CHUNK_SIZE (4*1024)
 
 #ifdef __CLANG__
@@ -137,8 +142,6 @@ struct con_ ## type {         \
                               \
 typedef struct con_ ## type  con_ ## type ## _t
 
-typedef unsigned int field_tag_t;
-
 #define GEN_REC_STRUCT(type)  \
 struct field_ ## type {       \
   field_tag_t tag;            \
@@ -229,7 +232,7 @@ char*
 };
 
 
-static inline int_t consume(state_t s, char size) {
+static INLINE_ATTR int_t consume(state_t s, char size) {
   if(s->ip + size > s->ip_limit) {
     s->err_str = "GDSL runtime: end of code input stream";
     longjmp(s->err_tgt, 1);
@@ -240,7 +243,7 @@ static inline int_t consume(state_t s, char size) {
   return result;
 }
 
-static inline void unconsume(state_t s, char size) {
+static INLINE_ATTR void unconsume(state_t s, char size) {
   s->ip -= size;
 }
 
