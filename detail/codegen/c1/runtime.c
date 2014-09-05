@@ -57,6 +57,8 @@ typedef unsigned int field_tag_t;
 #define NO_INLINE_ATTR __attribute__((noinline))
 #elif __GNUC__
 #define NO_INLINE_ATTR __attribute__((noinline))
+#elif _MSC_VER
+#define NO_INLINE_ATTR __declspec(noinline)
 #else
 #define NO_INLINE_ATTR
 #endif
@@ -65,6 +67,8 @@ typedef unsigned int field_tag_t;
 #define MALLOC_ATTR __attribute__((malloc))
 #elif __GNUC__
 #define MALLOC_ATTR __attribute__((malloc))
+#elif _MSC_VER
+#define MALLOC_ATTR __declspec(restrict)
 #else
 #define MALLOC_ATTR
 #endif
@@ -300,28 +304,19 @@ static INLINE_ATTR vec_t vec_concat(state_t s, vec_t v1, vec_t v2) {
 }
 
 static string_t int_to_string(state_t s, int_t v) {
-  if(v == LLONG_MIN)
-    return "(-9223372036854775807)";
-  else {
-    char *str = (char*) alloc(s, 23)+22;
-    int negate = v<0;
-    int_t r;
-    *str = 0;
-    if (negate) {
-      v = -v;
-      *--str = ')';
-    };
-    do {
-      r = v % 10;
-      v = v / 10;
-      *--str = '0'+(unsigned char) r;
-    } while (v!=0);
-    if (negate) {
-      *--str = '-';
-      *--str = '(';
-    }
-    return alloc_string(s,str);
+  char *str = (char*) alloc(s, 23)+22;
+  int negate = v<0;
+  int r;
+  *str = 0;
+  do {
+    r = v % 10;
+    v = v / 10;
+    *--str = "9876543210123456789"[r+9];
+  } while (v!=0);
+  if (negate) {
+    *--str = '-';
   }
+  return alloc_string(s,str);
 };
 
 void
@@ -438,6 +433,7 @@ int main (int argc, char** argv) {
   int_t translate_options = 0;
   int_t base_address = 0;
   int_t start_address = 0;
+  int print_addr = 0;
   unsigned int i,c;
   obj_t config;
   state_t s = gdsl_init();
@@ -470,6 +466,7 @@ int main (int argc, char** argv) {
 #endif
       if (strncmp(arg,"base=",5)==0) {
         sscanf(arg+5,"%lli",&base_address);
+        print_addr=1;
         continue;
       }
       if (strncmp(arg,"start=",6)==0) {
@@ -513,7 +510,7 @@ int main (int argc, char** argv) {
             buf_size = i;
           }; break;
           case 0: {
-             fprintf(stderr, "invalid input; should be in hex form: '0f 0b ..'");
+             fprintf(stderr, "invalid input; should be in hex form: '0f 0b ..'.\n");
              return 1;
           }
        }
@@ -530,17 +527,18 @@ int main (int argc, char** argv) {
 
   while (gdsl_get_ip_offset(s)<buf_size) {
     int_t size;
+    int_t address=0;
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (run_translate) {
 #ifdef HAVE_TRANS
-        int_t address = gdsl_get_ip_offset(s);
+        address = gdsl_get_ip_offset(s);
         obj_t rreil = gdsl_decode_translate_block_optimized(s,
           decode_options,
           gdsl_int_max(s),
           2);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
-        printf("0x%llx:\n",address);
+        if (print_addr) printf("0x%016llx:\n",address);
         fputs(str,stdout);
 #else
         fputs("GDSL modules contain no semantic translation\n",stdout);
@@ -548,9 +546,11 @@ int main (int argc, char** argv) {
 #endif
       } else {
 #ifdef HAVE_DECODE
+        address = gdsl_get_ip_offset(s);
         obj_t instr = gdsl_decode(s, decode_options);
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
+        if (print_addr) printf("%016llx ",address);
         fputs(str,stdout);
 #else
         fputs("GDSL modules contain no decoder function\n",stdout);
@@ -558,9 +558,8 @@ int main (int argc, char** argv) {
 #endif
       }
     } else {
-      int_t address = gdsl_get_ip_offset(s);
-      fprintf(stdout,"exception at address 0x%llx: %s\n", address, gdsl_get_error_message(s));
-      return 1;
+      fprintf(stdout,"exception at address 0x%llx: %s", address, gdsl_get_error_message(s));
+      gdsl_seek(s,address+abs(s->token_addr_inv)+1);
     }
     fputs("\n",stdout);
     size = gdsl_heap_residency(s);

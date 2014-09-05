@@ -571,6 +571,7 @@ structure C1 = struct
          val recs = (ListMergeSort.sort (fn (r1,r2) => (#riSequenceNo r1)>(#riSequenceNo r2))
                      (AtomMap.listItems (!recordTypeMap)))
          fun genStructCon ({ riBoxed = boxed, riFieldDecls = args, riTypeName = tyName, ... } : recordInfo) =
+            if tyName="monad" then seq [] else
             align [
                seq [str "static INLINE_ATTR",  space, str tyName, str "_t", space,
                   str "__", str tyName, par (seq (separate (str "state_t s" ::
@@ -725,7 +726,7 @@ structure C1 = struct
                   seq [str "static INLINE_ATTR ", emitStringFunType s (retTy,funName,(OBJvtype,"closure") :: args), str " {"],
                   indent 2 (seq [
                      if isVOIDvtype retTy then seq [] else str "return ",
-                     str "((", emitTypeDecl s ([],FUNvtype (retTy,false,OBJvtype::argTys)), str ") closure)",
+                     str "((struct {", emitTypeDecl s ([str "func"],FUNvtype (retTy,false,OBJvtype::argTys)), str ";}*) closure)->func",
                      fArgs (str "closure" :: map (str o #2) args), str ";"
                   ]),
                   str "}"
@@ -1066,6 +1067,7 @@ structure C1 = struct
             val preDecl = !(#preDeclEmit s)
             val _ = (#preDeclEmit s) := []
          in
+            if #emitStructCons s then
             align (
                preDecl @ [
                seq [str "static INLINE_ATTR", space, fTy, space, str "{"],
@@ -1076,7 +1078,16 @@ structure C1 = struct
                   seq [str "return (obj_t) ", emitAllocCon s argTy, fArgs [str "adt"], str ";"]
                ]),
                str "}"
-         ])
+            ])
+            else
+            align (
+               preDecl @ [
+               seq [str "static INLINE_ATTR", space, fTy, space, str "{"],
+               seq [str "  return ", emitAllocCon s argTy,
+                    fArgs [seq [str "(", emitConType s argTy, str "){",
+                                str (getConTag s tag), str ", ", emitSym s argName, str "}"]], str ";"],
+               str "}"
+            ])
          end
       end
      | emitDecl s (inSCC,CLOSUREdecl {

@@ -16,13 +16,20 @@ AC_PROG_LN_S()
 AC_PROG_LIBTOOL()
 AC_PROG_INSTALL()
 
+dnl check if the compiler understand C99
+AC_PROG_CC_C99()
+AC_ARG_VAR(EXTRA_GDSL_FLAGS)
+if test [x$ac_cv_prog_cc_c99 == "xno"]; then
+  EXTRA_GDSL_FLAGS="--target=C89";
+fi
+
 AC_ARG_VAR(SMLNJ)
 AC_PATH_PROG(SMLNJ, sml, ["not-found"])
 
 AC_ARG_VAR(MLTON)
 AC_PATH_PROG(MLTON, mlton, ["not-found"])
 
-if test [$SMLNJ == "not-found" -a $MLTON == "not-found"]; then
+if test [x$SMLNJ == "xnot-found" -a x$MLTON == "xnot-found"]; then
     echo "You must install either SML/NJ or mlton."
     exit 1
 fi
