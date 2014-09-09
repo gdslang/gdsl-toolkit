@@ -934,8 +934,7 @@ structure C1 = struct
      
    and emitPrim s (GETSTATEprim, [],_) = str "s->mon_state"
      | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->mon_state = ", emitExp s e]
-     | emitPrim s (SEEKprim, [e],_) = seq [str "gdsl_seek(s, ", emitExp s e, str ")"]
-     (*| emitPrim s (RSEEKprim, [e],_) = seq [str "gdsl_rseek(s, ", emitExp s e, str ")"]*)
+     | emitPrim s (SEEKprim, [e],_) = seq [str "gdsl_seek(s, (size_t) (", emitExp s e, str "))"]
      | emitPrim s (DIVprim, [e1, e2],_) = seq [str "(", emitExp s e1, str ")/(", emitExp s e2, str ")"]
      | emitPrim s (IPGETprim, [],_) = str "gdsl_get_ip_offset(s)"
      | emitPrim s (CONSUME8prim, [],_) = (addConsume s 8; str "consume(s, 1)")
@@ -961,7 +960,7 @@ structure C1 = struct
      | emitPrim s (CONCAT_VECprim, [e1,e2],_) = seq [str "vec_concat", fArgs [emitExp s e1, emitExp s e2]] 
      | emitPrim s (INT_TO_STRINGprim, [e],_) = seq [str "int_to_string", fArgs [emitExp s e]]
      | emitPrim s (STRLENprim, [e],_) = seq [str "strlen(", emitExp s e, str ")"]
-     | emitPrim s (CONCAT_STRINGprim, [e1,e2,sz],_) = seq [str "(string_t) memcpy(", emitExp s e1, str ",", emitExp s e2, str ",", emitExp s sz, str ")+", emitExp s sz]
+     | emitPrim s (CONCAT_STRINGprim, [e1,e2,sz],_) = seq [str "(string_t) memcpy(", emitExp s e1, str ",", emitExp s e2, str ", (size_t) ", emitExp s sz, str ")+", emitExp s sz]
      | emitPrim s (SLICEprim, [vec,ofs,sz],_) = seq (str "gen_vec(" :: emitExp s sz :: str ", slice" :: list ("(", emitExp s, [vec,ofs,sz], "))"))
      | emitPrim s (GET_CON_IDXprim, [e],[t]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->tag"]
      | emitPrim s (GET_CON_ARGprim, [_,e],[FUNvtype (_,_,[t]),_]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->payload"]

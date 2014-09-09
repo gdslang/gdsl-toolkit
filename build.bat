@@ -49,25 +49,22 @@ shift
 
 SET DECODERS=x86 x86-rreil avr avr-rreil mips mips-rreil arm7
 
-echo on
-if "%1"=="all" for %%d in (%DECODERS%) do build.bat %ARGS% %%d
-echo off
+if "%1"=="" for %%d in (%DECODERS%) do build.bat %ARGS% %%d
 
 for %%d IN (%DECODERS%) DO if "%1"=="%%d" set DECODER=%%d& goto Build
 
 :Usage
-echo Usage: build.bat [/odir "output-directory"] [/cl "cl-path"] [/sdklib "sdklib-path"] "decoder"
+echo Usage: build.bat [/odir "output-directory"] [/cl "cl-path"]
+echo                  [/sdklib "sdklib-path"] ["decoder"]
 echo where "cl-path" is the path to the Visual C compiler (ending in cl.exe)
 echo and"sdklib-path" is the path to the \lib directory of the Windows SDK
-echo and "decoder" is either "all" or one of the following:
-SET RREIL=NO
-for %%d IN (%DECODERS%) DO (
-if %RREIL%==NO (
-echo	%%d			the %%d decoder and pretty printer
-set RREIL=yes
+echo and "decoder" may be omitted to build all or is one of the following:
+
+for %%a in (%DECODERS%) do for /f "tokens=1,2 delims=-" %%d in ("%%a") do (
+if "%%e"=="" (
+echo	%%d		the %%d decoder and pretty printer
 ) ELSE (
-echo	%%d		the decoder, pretty printer and translation to RREIL
-set RREIL=NO
+echo	%%d-%%e	the %%d decoder, pretty printer and translation to %%e
 )
 )
 
@@ -177,7 +174,7 @@ set SPEC=%GDSL_BASIS% %GDSL_ARM7%
 set OUT=gdsl-arm7
 :NOT_arm7
 
-echo on
+echo Generating C code for %DECODER%.
 gdslc.exe --target=C89 -o %OUT% %SPEC%
 rem @echo off
 
@@ -190,17 +187,6 @@ rem Find out where to get kernel32.lib and friends. It's somewhere under "Window
 rem which resides in "Program Files (x86)". This will probably break occasionally, but
 rem it works for my machine. I couldn't find a reliably registry key. Feedback welcome.
 for /f "usebackq tokens=*" %%d in (`dir /ad /b /s "C:\Program Files (x86)\Windows Kits" ^| find "\x86" ^| find /i "lib"`) do set SDKLIBPATH=%%d
-
-for /f "usebackq tokens=*" %%d in (`dir /ad /b /s "C:\Program Files (x86)\Windows Kits" ^| find "\x86" ^| find /i "include"`) do set SDKINCPATH=%%d
-
-rem set SDKREGKEYS=
-rem set SDKREGKEYS=%SDKREGKEYS% "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows"
-rem set SDKREGKEYS=%SDKREGKEYS%  "HKLM\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows"
-rem if  "%SDKPATH%"=="" for %%k in (%SDKREGKEYS%) do (
-rem for /f "usebackq tokens=*" %%r in (`reg query %%k 2^>nul`) do (
-rem for /f "usebackq tokens=2 delims=_" %%s in (`reg query "%%r" /v InstallationFolder 2^>nul`) do set SDKPATH=%%s
-rem )
-rem )
 
 if NOT defined SDKLIBPATH (
 	echo Cannot find SDK library directory. Use /sdklib switch to specify.

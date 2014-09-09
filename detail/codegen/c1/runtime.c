@@ -26,7 +26,7 @@ struct state {
   size_t ip_base;     /* base address of code */
   unsigned char* ip_limit;     /* first byte beyond the code buffer */
   unsigned char* ip;           /* current pointer into the buffer */
-  size_t token_addr_inv;
+  int_t token_addr_inv;
   char* err_str;      /* a string describing the fatal error that occurred */
   jmp_buf err_tgt;    /* the position of the exception handler */
   FILE* handle;       /* the file that the puts primitve uses */
@@ -43,31 +43,31 @@ typedef unsigned int field_tag_t;
 
 #define CHUNK_SIZE (4*1024)
 
-#ifdef __CLANG__
+#if defined(__CLANG__)
 #define INLINE_ATTR inline
-#elif __GNUC__
+#elif defined(__GNUC__)
 #define INLINE_ATTR inline
-#elif _MSC_VER
+#elif defined(_MSC_VER)
 #define INLINE_ATTR __inline
 #else
 #define INLINE_ATTR inline
 #endif
 
-#ifdef __CLANG__
+#if defined(__CLANG__)
 #define NO_INLINE_ATTR __attribute__((noinline))
-#elif __GNUC__
+#elif defined(__GNUC__)
 #define NO_INLINE_ATTR __attribute__((noinline))
-#elif _MSC_VER
+#elif defined(_MSC_VER)
 #define NO_INLINE_ATTR __declspec(noinline)
 #else
 #define NO_INLINE_ATTR
 #endif
 
-#ifdef __CLANG__
+#if defined(__CLANG__)
 #define MALLOC_ATTR __attribute__((malloc))
-#elif __GNUC__
+#elif defined(__GNUC__)
 #define MALLOC_ATTR __attribute__((malloc))
-#elif _MSC_VER
+#elif defined(_MSC_VER)
 #define MALLOC_ATTR __declspec(restrict)
 #else
 #define MALLOC_ATTR
@@ -238,29 +238,29 @@ char*
 };
 
 
-static INLINE_ATTR int_t consume(state_t s, char size) {
+static INLINE_ATTR int_t consume(state_t s, int_t size) {
   if(s->ip + size > s->ip_limit) {
     s->err_str = "GDSL runtime: end of code input stream";
     longjmp(s->err_tgt, 1);
   };
   int_t result = 0;
-  while(size)
+  while (size)
     result |= s->ip_start[(s->ip++ - s->ip_start) ^ s->token_addr_inv] << (--size*8);
   return result;
 }
 
-static INLINE_ATTR void unconsume(state_t s, char size) {
+static INLINE_ATTR void unconsume(state_t s, int_t size) {
   s->ip -= size;
 }
 
 void
 @endianness@
 (state_t s, int_t le, int_t size) {
-  if (size != 1 && size != 2 && size != 4 && size != 8) {
+  if ((size != 1) && (size != 2) && (size != 4) && (size != 8)) {
     s->err_str = "GDSL runtime: endianness(); invalid token size";
     longjmp(s->err_tgt, 100);
   };
-  if (le != 0 && le != 1) {
+  if ((le != 0) && (le != 1)) {
     s->err_str = "GDSL runtime: endianness(); invalid kind";
     longjmp(s->err_tgt, 101);
   };
@@ -324,9 +324,6 @@ static string_t int_to_string(state_t s, int_t v) {
 void
 @set_code@
 (state_t s, unsigned char* buf, size_t buf_len, size_t base) {
-  /*
-   * Todo: fix signedness
-   */
   s->ip = buf;
   s->ip_limit = buf+buf_len;
   s->ip_start = buf;
@@ -391,7 +388,7 @@ void
 
 state_t
 @init@
-() {
+(void) {
   state_t s = calloc(1,sizeof(struct state));
   s->handle = stdout;
   /* compute all constant expressions */
@@ -422,8 +419,23 @@ state_t
 #define BUF_SIZE 32*1024*1024
 static unsigned char blob[BUF_SIZE];
 
+int readNum(char* str, size_t* res) {
+  size_t mult = 10;
+  *res = 0;
+  while (*str) {
+    char c = *str;
+    if (c=='x') mult=16; else
+      if ((c>='0') && (c<='9')) *res=*res*mult+(size_t) (c-'0'); else
+        if ((c>='a') && (c<='f')) *res=*res*mult+10+(size_t) (c-'a'); else
+          if ((c>='A') && (c<='F')) *res=*res*mult+10+(size_t) (c-'A'); else
+            return 1;
+    str++;
+  }
+  return 0;
+}
+
 int main (int argc, char** argv) {
-  uint64_t buf_size = BUF_SIZE;
+  size_t buf_size = BUF_SIZE;
   FILE* file = NULL;
   int_t decode_options =
 #if defined(gdsl_default_config)
@@ -433,19 +445,23 @@ int main (int argc, char** argv) {
 #endif
   int_t run_translate = 0;
   int_t translate_options = 0;
-  int_t base_address = 0;
-  int_t start_address = 0;
+  size_t base_address = 0;
+  size_t start_address = 0;
   int print_addr = 0;
-  unsigned int i,c;
   obj_t config;
   state_t s = gdsl_init();
   long long alloc_size,alloc_no,alloc_max;
   
   /* read command line parameters */
+  int i;
   for(i=1; i<argc; i++) {
     char* arg = argv[i];
     if (strncmp(arg,"--",2)) {
+#ifdef _MSC_VER
+      fopen_s(&file,arg,"r");
+#else
       file = fopen(arg,"r");
+#endif
       if (file==NULL) {
         printf("file '%s' not found, please run %s --help for usage\n", arg, argv[0]);
         return 1;
@@ -467,13 +483,13 @@ int main (int argc, char** argv) {
       if (gdsl_has_conf(s,config)) continue;
 #endif
       if (strncmp(arg,"base=",5)==0) {
-        sscanf(arg+5,"%lli",&base_address);
+        int res=readNum(arg+5,&base_address);
         print_addr=1;
-        continue;
+        if (res==0) continue;
       }
       if (strncmp(arg,"start=",6)==0) {
-        sscanf(arg+6,"%lli",&start_address);
-        continue;
+        int res=readNum(arg+6,&start_address);
+        if (res==0) continue;
       }
       if (strcmp(arg,"trans")==0) {
         run_translate = 1;
@@ -505,18 +521,20 @@ int main (int argc, char** argv) {
     if (bytes_read == 0) return 1;
     buf_size = bytes_read;
   } else {
-    for (i=0;i<buf_size;i++) {
-       int x = fscanf(stdin,"%x",&c);
-       switch (x) {
-          case EOF: {
-            buf_size = i;
-          }; break;
-          case 0: {
-             fprintf(stderr, "invalid input; should be in hex form: '0f 0b ..'.\n");
-             return 1;
-          }
-       }
-       blob[i] = c & 0xff;
+    size_t i=0;
+    int num=0;
+    int digit=0;
+    while (i<buf_size) {
+      int x = getchar();
+      if (x==EOF) buf_size = i; else
+      if ((x>='0') && (x<='9')) { num=num*16+(x-'0'); digit++; } else
+      if ((x>='a') && (x<='f')) { num=num*16+(10+x-'a'); digit++; } else
+      if ((x>='A') && (x<='F')) { num=num*16+(10+x-'A'); digit++; } else
+      if (x>' ') {
+        fprintf(stderr, "invalid input; should be in hex form: '0f 0b ..'.\n");
+        return 1;
+      }
+      if (digit==2) { blob[i] = num & 0xff; i+=1; digit=0; };
     }
   }  
   /* initialize the GDSL program */
@@ -528,8 +546,8 @@ int main (int argc, char** argv) {
   alloc_max = 0;
 
   while (gdsl_get_ip_offset(s)<buf_size) {
-    int_t size;
-    int_t address=0;
+    size_t size;
+    size_t address=0;
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (run_translate) {
 #ifdef HAVE_TRANS
@@ -540,7 +558,7 @@ int main (int argc, char** argv) {
           2);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
-        if (print_addr) printf("0x%016llx:\n",address);
+        if (print_addr) printf("0x%016lx:\n",address);
         fputs(str,stdout);
 #else
         fputs("GDSL modules contain no semantic translation\n",stdout);
@@ -552,7 +570,7 @@ int main (int argc, char** argv) {
         obj_t instr = gdsl_decode(s, decode_options);
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
-        if (print_addr) printf("%016llx ",address);
+        if (print_addr) printf("%016lx ",address);
         fputs(str,stdout);
 #else
         fputs("GDSL modules contain no decoder function\n",stdout);
@@ -560,8 +578,9 @@ int main (int argc, char** argv) {
 #endif
       }
     } else {
-      fprintf(stdout,"exception at address 0x%llx: %s", address, gdsl_get_error_message(s));
-      gdsl_seek(s,address+abs(s->token_addr_inv)+1);
+      fprintf(stdout,"exception at address 0x%lx: %s", address, gdsl_get_error_message(s));
+      size_t step = (s->token_addr_inv>0 ? (size_t) s->token_addr_inv+1 : 1u);
+      gdsl_seek(s,address+step);
     }
     fputs("\n",stdout);
     size = gdsl_heap_residency(s);
