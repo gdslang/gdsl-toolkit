@@ -18,8 +18,9 @@ AC_PROG_INSTALL()
 
 dnl check if the compiler understand C99
 AC_PROG_CC_C99()
+AC_ARG_ENABLE(msvc,[AS_HELP_STRING([--enable-msvc], [emit code for Microsoft Visual C compiler])])
 AC_ARG_VAR(EXTRA_GDSL_FLAGS)
-if test [x$ac_cv_prog_cc_c99 == "xno"]; then
+if test [x$ac_cv_prog_cc_c99 == "xno" -o x$enable_msvc == "xyes"]; then
   EXTRA_GDSL_FLAGS="--target=C89";
 fi
 
@@ -70,7 +71,7 @@ FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil arm7";
 AC_ARG_WITH([frontend],
   [AS_HELP_STRING(
     [--with-frontend=frontend],
-    [one of: ]$FRONTENDS)],
+    [one of: x86 x86-rreil avr avr-rreil mips mips-rreil arm7])],
   [], [with_frontend=all])
 
 case $with_frontend in

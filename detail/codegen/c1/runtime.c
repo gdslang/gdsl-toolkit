@@ -74,7 +74,7 @@ typedef unsigned int field_tag_t;
 #endif
 
 
-static void NO_INLINE_ATTR alloc_heap(state_t s, char* prev_page, size_t size) {
+static NO_INLINE_ATTR void alloc_heap(state_t s, char* prev_page, size_t size) {
   if (size<CHUNK_SIZE) size = CHUNK_SIZE; else size = CHUNK_SIZE*((size/CHUNK_SIZE)+1);
   s->heap_base = (char*) malloc(size);
   if (s->heap_base==NULL) {
@@ -121,7 +121,7 @@ size_t
   return res;
 };
 
-static INLINE_ATTR void* MALLOC_ATTR alloc(state_t s, size_t bytes) {
+static INLINE_ATTR MALLOC_ATTR void* alloc(state_t s, size_t bytes) {
   bytes = ((bytes+7)>>3)<<3;    /* align to multiple of 8 */
   if (s->heap+bytes >= s->heap_limit) alloc_heap(s, s->heap_base, bytes);
   char* res = s->heap;
@@ -219,7 +219,9 @@ static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec)
 #define slice(vec_data,ofs,sz) ((vec_data >> ofs) & ((1ul << sz)-1))
 
 static INLINE_ATTR vec_t gen_vec(unsigned int vec_sz,vec_data_t vec_data) {
-  vec_t res = {vec_sz, vec_data};
+  vec_t res;
+  res.size=vec_sz;
+  res.data=vec_data;
   return res;
 }
 
