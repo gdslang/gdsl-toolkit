@@ -18,6 +18,8 @@ import org.eclipse.xtext.xbase.lib.Procedures.Procedure1;
 /**
  * Customization of the default outline structure.
  * 
+ * @author Daniel Endress
+ * 
  * see http://www.eclipse.org/Xtext/documentation.html#outline
  */
 @SuppressWarnings("all")
@@ -39,6 +41,9 @@ public class GDSLOutlineTreeProvider extends DefaultOutlineTreeProvider {
     return (!Objects.equal(_value, null));
   }
   
+  /**
+   * Skip the top level node
+   */
   public void _createChildren(final DocumentRootNode outlineNode, final Model model) {
     EList<Decl> _decl = model.getDecl();
     final Procedure1<Decl> _function = new Procedure1<Decl>() {
@@ -49,6 +54,9 @@ public class GDSLOutlineTreeProvider extends DefaultOutlineTreeProvider {
     IterableExtensions.<Decl>forEach(_decl, _function);
   }
   
+  /**
+   * Create constructors as the children nodes of type elements
+   */
   public void _createChildren(final IOutlineNode parent, final Type type) {
     EList<ConDecl> _conDecl = type.getConDecl();
     final Procedure1<ConDecl> _function = new Procedure1<ConDecl>() {

@@ -8,11 +8,16 @@ import org.eclipse.xtext.validation.Issue
 
 /**
  * Custom quickfixes.
+ * 
+ * @author Daniel Endress
  *
  * see http://www.eclipse.org/Xtext/documentation.html#quickfixes
  */
 class GDSLQuickfixProvider extends DefaultQuickfixProvider {
 
+	/**
+	 * Capitalize a constructor
+	 */
 	@Fix(GDSLValidator::UPPERCASE_CONS)
 	def capitalizeCons(Issue issue, IssueResolutionAcceptor acceptor) {
 		acceptor.accept(issue,
@@ -26,6 +31,9 @@ class GDSLQuickfixProvider extends DefaultQuickfixProvider {
 			])
 	}
 	
+	/**
+	 * Capitalize a constructor or remove the pattern
+	 */
 	@Fix(GDSLValidator::PATTERN_MISPLACEMENT)
 	def patternMisplacement(Issue issue, IssueResolutionAcceptor acceptor){
 		acceptor.accept(issue,

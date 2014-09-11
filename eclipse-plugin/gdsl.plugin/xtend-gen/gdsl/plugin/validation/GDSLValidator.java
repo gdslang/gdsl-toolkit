@@ -26,6 +26,8 @@ import org.eclipse.xtext.xbase.lib.Exceptions;
 /**
  * Custom validation rules.
  * 
+ * @author Daniel Endress
+ * 
  * see http://www.eclipse.org/Xtext/documentation.html#validation
  */
 @SuppressWarnings("all")

@@ -16,6 +16,8 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
 /**
  * Provides labels for a EObjects.
  * 
+ * @author Daniel Endress
+ * 
  * see http://www.eclipse.org/Xtext/documentation.html#labelProvider
  */
 class GDSLLabelProvider extends DefaultEObjectLabelProvider {

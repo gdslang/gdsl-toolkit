@@ -12,10 +12,15 @@ import org.eclipse.xtext.validation.Issue;
 /**
  * Custom quickfixes.
  * 
+ * @author Daniel Endress
+ * 
  * see http://www.eclipse.org/Xtext/documentation.html#quickfixes
  */
 @SuppressWarnings("all")
 public class GDSLQuickfixProvider extends DefaultQuickfixProvider {
+  /**
+   * Capitalize a constructor
+   */
   @Fix(GDSLValidator.UPPERCASE_CONS)
   public void capitalizeCons(final Issue issue, final IssueResolutionAcceptor acceptor) {
     String[] _data = issue.getData();
@@ -37,6 +42,9 @@ public class GDSLQuickfixProvider extends DefaultQuickfixProvider {
       "", _function);
   }
   
+  /**
+   * Capitalize a constructor or remove the pattern
+   */
   @Fix(GDSLValidator.PATTERN_MISPLACEMENT)
   public void patternMisplacement(final Issue issue, final IssueResolutionAcceptor acceptor) {
     String[] _data = issue.getData();

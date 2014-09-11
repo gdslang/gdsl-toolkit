@@ -22,6 +22,8 @@ import org.eclipse.xtext.xbase.lib.Conversions;
 /**
  * Provides labels for a EObjects.
  * 
+ * @author Daniel Endress
+ * 
  * see http://www.eclipse.org/Xtext/documentation.html#labelProvider
  */
 @SuppressWarnings("all")

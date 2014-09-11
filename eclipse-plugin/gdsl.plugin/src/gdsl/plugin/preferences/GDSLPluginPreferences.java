@@ -5,6 +5,8 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 
 /**
  * Constant definitions for plug-in preferences
+ * 
+ * @author Daniel Endress
  */
 public class GDSLPluginPreferences {
 	public static final String PLUGIN_SCOPE = "gdsl.plugin";

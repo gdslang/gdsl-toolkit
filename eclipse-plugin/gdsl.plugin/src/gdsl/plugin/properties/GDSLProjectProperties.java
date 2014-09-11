@@ -11,6 +11,8 @@ import org.eclipse.emf.ecore.resource.Resource;
 
 /**
  * Constant definitions for plug-in preferences
+ * 
+ * @author Daniel Endress
  */
 public class GDSLProjectProperties {
 	public static final String PLUGIN_SCOPE = "gdsl.plugin";

@@ -17,6 +17,8 @@ import static extension java.lang.Character.*
 
 /**
  * Custom validation rules. 
+ * 
+ * @author Daniel Endress
  *
  * see http://www.eclipse.org/Xtext/documentation.html#validation
  */

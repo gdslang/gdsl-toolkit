@@ -1,3 +1,9 @@
+/**
+ * Grammar for the GDSL language
+ * 
+ * @author Daniel Endress
+ */
+
 grammar gdsl.plugin.GDSL hidden(WS, ML_COMMENT, SL_COMMENT)
 
 generate gDSL "http://www.plugin.gdsl/GDSL"
