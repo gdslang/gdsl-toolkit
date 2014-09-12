@@ -38,20 +38,9 @@ fi
 AM_CONDITIONAL([HAVE_MLTON],[test x$MLTON != "xnot-found"])
 
 AC_ARG_VAR(MLULEX)
-AC_PATH_PROG(MLULEX, ml-ulex, ["not-found"])
-
-if test [$MLULEX == "not-found"]; then
-    echo "You must install SML/NJ (to get ml-ulex)."
-    exit 1
-fi
-
+AC_PATH_PROG(MLULEX, ml-ulex, ["ml-ulex not-found"])
 AC_ARG_VAR(MLANTLR)
-AC_PATH_PROG(MLANTLR, ml-antlr, ["not-found"])
-
-if test [$MLANTLR == "not-found"]; then
-    echo "You must install SML/NJ (to get ml-antlr)."
-    exit 1
-fi
+AC_PATH_PROG(MLANTLR, ml-antlr, ["ml-antlr not-found"])
 
 dnl define a variable that helps us to only build Linux-specific stuff on Linux
 case "$host_os" in
