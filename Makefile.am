@@ -622,6 +622,7 @@ WINDOWS_DISTFILES = $(GDSLC) LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDS
 # distribution .tgz file for Windows
 .PHONY: windows-distdir windows-dist
 
+# this ugly stuff is copied from what automake generates
 windows-distdir: $(WINDOWS_DISTFILES)
 	$(am__remove_distdir)
 	test -d "$(distdir)" || mkdir "$(distdir)"
@@ -664,5 +665,5 @@ windows-distdir: $(WINDOWS_DISTFILES)
 
 
 windows-dist : windows-distdir
-	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).tar.gz
+	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >win-$(distdir).tar.gz
 	$(am__remove_distdir)
