@@ -238,10 +238,10 @@ nodist_include_HEADERS += gdsl-x86-rreil.h
 #semantics_opt_LDADD += libgdsl-x86-rreil.la
 CLEANFILES += gdsl-x86-rreil.c gdsl-x86-rreil.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl_x86_rreil_demo
+bin_PROGRAMS += gdsl-x86-rreil-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl_x86_rreil_demo
+noinst_PROGRAMS += gdsl-x86-rreil-demo
 endif
 endif
 libgdsl_x86_rreil_la_SOURCES =
@@ -260,10 +260,10 @@ lib_LTLIBRARIES += libgdsl-x86.la
 nodist_include_HEADERS += gdsl-x86.h
 CLEANFILES += gdsl-x86.c gdsl-x86.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl_x86_demo
+bin_PROGRAMS += gdsl-x86-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl_x86_demo
+noinst_PROGRAMS += gdsl-x86-demo
 endif
 endif
 libgdsl_x86_la_SOURCES =
@@ -283,10 +283,10 @@ lib_LTLIBRARIES += libgdsl-avr-rreil.la
 nodist_include_HEADERS += gdsl-avr-rreil.h
 CLEANFILES += gdsl-avr-rreil.c gdsl-avr-rreil.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl_avr_rreil_demo
+bin_PROGRAMS += gdsl-avr-rreil-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl_avr_rreil_demo
+noinst_PROGRAMS += gdsl-avr-rreil-demo
 endif
 endif
 libgdsl_avr_rreil_la_SOURCES =
@@ -305,10 +305,10 @@ lib_LTLIBRARIES += libgdsl-avr.la
 nodist_include_HEADERS += gdsl-avr.h
 CLEANFILES += gdsl-avr.c gdsl-avr.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl_avr_demo
+bin_PROGRAMS += gdsl-avr-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl_avr_demo
+noinst_PROGRAMS += gdsl-avr-demo
 endif
 endif
 libgdsl_avr_la_SOURCES =
@@ -328,10 +328,10 @@ lib_LTLIBRARIES += libgdsl-mips-rreil.la
 nodist_include_HEADERS += gdsl-mips-rreil.h
 CLEANFILES += gdsl-mips-rreil.c gdsl-mips-rreil.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl_mips_rreil_demo
+bin_PROGRAMS += gdsl-mips-rreil-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl_mips_rreil_demo
+noinst_PROGRAMS += gdsl-mips-rreil-demo
 endif
 endif
 libgdsl_mips_rreil_la_SOURCES =
@@ -350,10 +350,10 @@ lib_LTLIBRARIES += libgdsl-mips.la
 nodist_include_HEADERS += gdsl-mips.h
 CLEANFILES += gdsl-mips.c gdsl-mips.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl_mips_demo
+bin_PROGRAMS += gdsl-mips-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl_mips_demo
+noinst_PROGRAMS += gdsl-mips-demo
 endif
 endif
 libgdsl_mips_la_SOURCES =
@@ -371,10 +371,10 @@ lib_LTLIBRARIES += libgdsl-arm7.la
 nodist_include_HEADERS += gdsl-arm7.h
 CLEANFILES += gdsl-arm7.c gdsl-arm7.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl_arm7_demo
+bin_PROGRAMS += gdsl-arm7-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl_arm7_demo
+noinst_PROGRAMS += gdsl-arm7-demo
 endif
 endif
 libgdsl_arm7_la_SOURCES =
