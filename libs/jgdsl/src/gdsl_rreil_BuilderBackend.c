@@ -20,19 +20,19 @@ static obj_t shared(state_t state, int_t con) {
        * Todo: Throw exception in default case
        */
   }
-  return (obj_t)ret;
+  return (obj_t) ret;
 }
 
 static obj_t virt_t(state_t state, int_t t) {
-  jobject ret = java_method_call(state, "virt_t", 1, java_long_create(state, (long int)t));
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "virt_t", 1, java_long_create(state, (long int) t));
+  return (obj_t) ret;
 }
 
 static obj_t arch(state_t state, string_t eid) {
   jstring id_str = java_string_create(state, eid);
-  jobject ret = java_method_call(state, "arch", 1, (jobject)id_str);
+  jobject ret = java_method_call(state, "arch", 1, (jobject) id_str);
 
-  return (obj_t)ret;
+  return (obj_t) ret;
 }
 
 // sem_exception
@@ -44,165 +44,165 @@ static obj_t exception_shared(state_t state, int_t con) {
       break;
     }
   }
-  return (obj_t)ret;
+  return (obj_t) ret;
 }
 static obj_t exception_arch(state_t state, string_t ex) {
   jstring id_str = java_string_create(state, ex);
-  jobject ret = java_method_call(state, "exception_arch", 1, (jobject)id_str);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "exception_arch", 1, (jobject) id_str);
+  return (obj_t) ret;
 }
 
 // sem_address
 static obj_t sem_address(state_t state, int_t size, obj_t address) {
-  jobject ret = java_method_call(state, "sem_address", 2, java_long_create(state, (long int)size), (jobject)address);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_address", 2, java_long_create(state, (long int) size), (jobject) address);
+  return (obj_t) ret;
 }
 
 // sem_var
 static obj_t sem_var(state_t state, obj_t id, int_t offset) {
-  jobject ret = java_method_call(state, "sem_var", 2, (jobject)id, java_long_create(state, (long int)offset));
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_var", 2, (jobject) id, java_long_create(state, (long int) offset));
+  return (obj_t) ret;
 }
 
 // sem_linear
 static obj_t sem_lin_var(state_t state, obj_t this) {
-  jobject ret = java_method_call(state, "sem_lin_var", 1, (jobject)this);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_lin_var", 1, (jobject) this);
+  return (obj_t) ret;
 }
 static obj_t sem_lin_imm(state_t state, int_t imm) {
-  jobject ret = java_method_call(state, "sem_lin_imm", 1, java_long_create(state, (long int)imm));
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_lin_imm", 1, java_long_create(state, (long int) imm));
+  return (obj_t) ret;
 }
 static obj_t sem_lin_add(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_lin_add", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_lin_add", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_lin_sub(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_lin_sub", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_lin_sub", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_lin_scale(state_t state, int_t imm, obj_t opnd) {
-  jobject ret = java_method_call(state, "sem_lin_scale", 2, java_long_create(state, (long int)imm), (jobject)opnd);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_lin_scale", 2, java_long_create(state, (long int) imm), (jobject) opnd);
+  return (obj_t) ret;
 }
 
 // sem_sexpr
 static obj_t sem_sexpr_lin(state_t state, obj_t this) {
-  jobject ret = java_method_call(state, "sem_sexpr_lin", 1, (jobject)this);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_sexpr_lin", 1, (jobject) this);
+  return (obj_t) ret;
 }
 static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
-  jobject ret = java_method_call(state, "sem_sexpr_cmp", 1, (jobject)this);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_sexpr_cmp", 1, (jobject) this);
+  return (obj_t) ret;
 }
 static obj_t sem_sexpr_arb(state_t state) {
   jobject ret = java_method_call(state, "sem_sexpr_arb", 0);
-  return (obj_t)ret;
+  return (obj_t) ret;
 }
 
 // sem_expr_cmp
 static obj_t sem_cmpeq(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_cmpeq", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_cmpeq", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_cmpneq(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_cmpneq", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_cmpneq", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_cmples(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_cmples", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_cmples", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_cmpleu(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_cmpleu", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_cmpleu", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_cmplts(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_cmplts", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_cmplts", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_cmpltu(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_cmpltu", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_cmpltu", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 
 // sem_expr
 static obj_t sem_sexpr(state_t state, obj_t opnd1) {
-  jobject ret = java_method_call(state, "sem_sexpr", 1, (jobject)opnd1);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_sexpr", 1, (jobject) opnd1);
+  return (obj_t) ret;
 }
 static obj_t sem_mul(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_mul", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_mul", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_div(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_div", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_div", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_divs(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_divs", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_divs", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_mod(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_mod", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_mod", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_mods(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_mod", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_mod", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_shl(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_shl", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_shl", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_shr(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_shr", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_shr", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_shrs(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_shrs", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_shrs", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_and(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_and", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_and", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_or(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_or", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_or", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_xor(state_t state, obj_t opnd1, obj_t opnd2) {
-  jobject ret = java_method_call(state, "sem_xor", 2, (jobject)opnd1, (jobject)opnd2);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_xor", 2, (jobject) opnd1, (jobject) opnd2);
+  return (obj_t) ret;
 }
 static obj_t sem_sx(state_t state, int_t fromsize, obj_t opnd1) {
-  jobject ret = java_method_call(state, "sem_sx", 2, java_long_create(state, (long int)fromsize), (jobject)opnd1);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_sx", 2, java_long_create(state, (long int) fromsize), (jobject) opnd1);
+  return (obj_t) ret;
 }
 static obj_t sem_zx(state_t state, int_t fromsize, obj_t opnd1) {
-  jobject ret = java_method_call(state, "sem_zx", 2, java_long_create(state, (long int)fromsize), (jobject)opnd1);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_zx", 2, java_long_create(state, (long int) fromsize), (jobject) opnd1);
+  return (obj_t) ret;
 }
 static obj_t sem_throw(state_t state, obj_t exception) {
-  jobject ret = java_method_call(state, "sem_throw", 1, (jobject)exception);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_throw", 1, (jobject) exception);
+  return (obj_t) ret;
 }
 
 // sem_varl
 static obj_t sem_varl(state_t state, obj_t id, int_t offset, int_t size) {
-  jobject ret = java_method_call(state, "sem_varl", 3, (jobject)id, java_long_create(state, (long int)offset),
-      java_long_create(state, (long int)size));
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_varl", 3, (jobject) id, java_long_create(state, (long int) offset),
+      java_long_create(state, (long int) size));
+  return (obj_t) ret;
 }
 
 // sem_varls
 static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
-  jobject ret = java_method_call(state, "sem_varls_next", 2, (jobject)next, (jobject)list);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_varls_next", 2, (jobject) next, (jobject) list);
+  return (obj_t) ret;
 }
 static obj_t sem_varls_init(state_t state) {
   jobject ret = java_method_call(state, "sem_varls_init", 0);
-  return (obj_t)ret;
+  return (obj_t) ret;
 }
 
 // sem_flop
@@ -222,49 +222,50 @@ static obj_t sem_flop(state_t state, int_t con) {
       break;
     }
   }
-  return (obj_t)ret;
+  return (obj_t) ret;
 }
 
 // sem_stmt
 static obj_t sem_assign(state_t state, int_t size, obj_t lhs, obj_t rhs) {
-  jobject ret = java_method_call(state, "sem_assign", 3, java_long_create(state, (long)size), (jobject)lhs,
-      (jobject)rhs);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_assign", 3, java_long_create(state, (long) size), (jobject) lhs,
+      (jobject) rhs);
+  return (obj_t) ret;
 }
 static obj_t sem_load(state_t state, int_t size, obj_t lhs, obj_t address) {
-  jobject ret = java_method_call(state, "sem_load", 3, java_long_create(state, (long)size), (jobject)lhs,
-      (jobject)address);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_load", 3, java_long_create(state, (long) size), (jobject) lhs,
+      (jobject) address);
+  return (obj_t) ret;
 }
 static obj_t sem_store(state_t state, int_t size, obj_t address, obj_t rhs) {
-  jobject ret = java_method_call(state, "sem_store", 3, java_long_create(state, (long)size), (jobject)address,
-      (jobject)rhs);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_store", 3, java_long_create(state, (long) size), (jobject) address,
+      (jobject) rhs);
+  return (obj_t) ret;
 }
 static obj_t sem_ite(state_t state, obj_t cond, obj_t then_branch, obj_t else_branch) {
-  jobject ret = java_method_call(state, "sem_ite", 3, (jobject)cond, (jobject)then_branch, (jobject)else_branch);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_ite", 3, (jobject) cond, (jobject) then_branch, (jobject) else_branch);
+  return (obj_t) ret;
 }
 static obj_t sem_while(state_t state, obj_t cond, obj_t body) {
-  jobject ret = java_method_call(state, "sem_while", 2, (jobject)cond, (jobject)body);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_while", 2, (jobject) cond, (jobject) body);
+  return (obj_t) ret;
 }
 static obj_t sem_cbranch(state_t state, obj_t cond, obj_t target_true, obj_t target_false) {
-  jobject ret = java_method_call(state, "sem_cbranch", 3, (jobject)cond, (jobject)target_true, (jobject)target_false);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_cbranch", 3, (jobject) cond, (jobject) target_true,
+      (jobject) target_false);
+  return (obj_t) ret;
 }
 static obj_t sem_branch(state_t state, obj_t branch_hint, obj_t target) {
-  jobject ret = java_method_call(state, "sem_branch", 2, (jobject)branch_hint, (jobject)target);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_branch", 2, (jobject) branch_hint, (jobject) target);
+  return (obj_t) ret;
 }
 static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs, obj_t rhs) {
-  jobject ret = java_method_call(state, "sem_flop_stmt", 4, (jobject)op, (jobject)flags, (jobject)lhs, (jobject)rhs);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_flop_stmt", 4, (jobject) op, (jobject) flags, (jobject) lhs,
+      (jobject) rhs);
+  return (obj_t) ret;
 }
 static obj_t sem_prim(state_t state, string_t op, obj_t lhs, obj_t rhs) {
-  jobject ret = java_method_call(state, "sem_prim", 3, java_string_create(state, op), (jobject)lhs,
-      (jobject)rhs);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_prim", 3, java_string_create(state, op), (jobject) lhs, (jobject) rhs);
+  return (obj_t) ret;
 }
 
 // branch_hint
@@ -291,17 +292,17 @@ static obj_t branch_hint(state_t state, int_t con) {
     }
   }
   jobject ret = java_method_call(state, func_n, 0);
-  return (obj_t)ret;
+  return (obj_t) ret;
 }
 
 // sem_stmts
 static obj_t sem_stmts_next(state_t state, obj_t next, obj_t list) {
-  jobject ret = java_method_call(state, "sem_stmts_next", 2, (jobject)next, (jobject)list);
-  return (obj_t)ret;
+  jobject ret = java_method_call(state, "sem_stmts_next", 2, (jobject) next, (jobject) list);
+  return (obj_t) ret;
 }
 static obj_t sem_stmts_init(state_t state) {
   jobject ret = java_method_call(state, "sem_stmts_init", 0);
-  return (obj_t)ret;
+  return (obj_t) ret;
 }
 
 #define BUILD_CALLBACKS \
@@ -337,9 +338,9 @@ static obj_t sem_stmts_init(state_t state) {
 
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, jobject this, jlong frontendPtr,
     jlong gdslStatePtr, jlong insnPtr) {
-  struct frontend *frontend = (struct frontend*)frontendPtr;
-  state_t state = (state_t)gdslStatePtr;
-  obj_t insn = (obj_t)insnPtr;
+  struct frontend *frontend = (struct frontend*) frontendPtr;
+  state_t state = (state_t) gdslStatePtr;
+  obj_t insn = (obj_t) insnPtr;
 
 //	size_t length = (*env)->GetArrayLength(env, input);
 //	char *bytes = (char*)(*env)->GetByteArrayElements(env, input, 0);
@@ -384,10 +385,10 @@ struct insn_collection {
 };
 
 static obj_t insn_cb(state_t state, obj_t insns, obj_t insn) {
-  struct insn_collection *coll = (struct insn_collection*)insns;
+  struct insn_collection *coll = (struct insn_collection*) insns;
   if(coll->length + 1 > coll->size) {
     coll->size = coll->size ? coll->size * 2 : 8;
-    coll->insns = (obj_t*)realloc(coll->insns, coll->size * (sizeof(obj_t)));
+    coll->insns = (obj_t*) realloc(coll->insns, coll->size * (sizeof(obj_t)));
   }
   coll->insns[coll->length++] = insn;
   return insns;
@@ -395,8 +396,8 @@ static obj_t insn_cb(state_t state, obj_t insns, obj_t insn) {
 
 jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr,
     int_t config, jlong limit, jint preservation) {
-  struct frontend *frontend = (struct frontend*)frontendPtr;
-  state_t state = (state_t)gdslStatePtr;
+  struct frontend *frontend = (struct frontend*) frontendPtr;
+  state_t state = (state_t) gdslStatePtr;
 
   if(setjmp(*frontend->generic.err_tgt(state))) {
     jclass exp = (*env)->FindClass(env, "gdsl/GdslException");
@@ -410,11 +411,11 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
   coll.length = 0;
   coll.size = 0;
 
-  opt_result_t opt_result = frontend->translator.decode_translate_block_optimized_insncb(state, config, limit,
-      preservation, &coll, &insn_cb);
+  opt_result_t opt_result = frontend->translator.decode_translate_block_optimized(state, config, limit, preservation);
+  frontend->translator.traverse_insn_list(state, &coll, &insn_cb);
 
   jlongArray instructions = (*env)->NewLongArray(env, coll.length);
-  (*env)->SetLongArrayRegion(env, instructions, 0, coll.length, (jlong*)coll.insns);
+  (*env)->SetLongArrayRegion(env, instructions, 0, coll.length, (jlong*) coll.insns);
 
   free(coll.insns);
 
@@ -439,8 +440,8 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
 
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock(JNIEnv *env, jobject this,
     jlong frontendPtr, jlong gdslStatePtr, jlong limit, jint preservation) {
-  struct frontend *frontend = (struct frontend*)frontendPtr;
-  state_t state = (state_t)gdslStatePtr;
+  struct frontend *frontend = (struct frontend*) frontendPtr;
+  state_t state = (state_t) gdslStatePtr;
 
   return translate_block_optimized_with_config(env, this, frontendPtr, gdslStatePtr,
       frontend->decoder.config_default(state), limit, preservation);
