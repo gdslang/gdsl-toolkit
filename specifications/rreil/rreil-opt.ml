@@ -1,5 +1,5 @@
-export decode-translate-block-optimized: (decoder-configuration, int, int) -> S sem_stmt_list <{} => {}>
-export decode-translate-block-optimized-insncb: (decoder-configuration, int, int, insn_list_obj, (insn_list_obj, insndata) -> insn_list_obj) -> S opt-result <{} => {}>
+export decode-translate-block-optimized: (decoder-configuration, int, rreil-configuration) -> S sem_stmt_list <{} => {}>
+export decode-translate-block-optimized-insncb: (decoder-configuration, int, rreil-configuration, insn_list_obj, (insn_list_obj, insndata) -> insn_list_obj) -> S opt-result <{} => {}>
 
 type sem_preservation =
    SEM_PRESERVATION_EVERYWHERE
@@ -39,24 +39,21 @@ type opt-result = {
   rreil: sem_stmt_list
 }
 
-val decode-translate-block-optimized-insncb config limit pres insns-initv insn-append = do
-#  limit <- return (limit + 0);
-#  pres <- return (pres + 0);
-
+val decode-translate-block-optimized-insncb config limit rreil-config insns-initv insn-append = do
   update @{insns=insns-initv};
-  rreil <- case pres of
-     0: decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_EVERYWHERE insn-append
-   | 1: decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_BLOCK insn-append
-   | 2: decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_CONTEXT insn-append
+  rreil <- case rreil-config of
+     '00.': decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_EVERYWHERE insn-append
+   | '01.': decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_BLOCK insn-append
+   | '1..': decode-translate-block-optimized-insncb-inner config limit SEM_PRESERVATION_CONTEXT insn-append
   end;
   insns <- query $insns;
   return {rreil=rreil, insns=insns}
 end
 
-val decode-translate-block-optimized config limit pres = let
+val decode-translate-block-optimized config limit rreil-config = let
   val default-append a b = a
 in do
-  result <- decode-translate-block-optimized-insncb config limit pres INSN_LIST_OBJ default-append;
+  result <- decode-translate-block-optimized-insncb config limit rreil-config INSN_LIST_OBJ default-append;
   return result.rreil
 end end
 
