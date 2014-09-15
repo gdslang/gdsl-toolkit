@@ -243,12 +243,12 @@ val show/segment s =
         end
    end
 
-val show/scale s = 
+val show/scale s arg = 
    case s of
-      '00': ""
-    | '01': "2*"
-    | '10': "4*"
-    | '11': "8*"
+      '00': arg
+    | '01': "2*" +++ "(" +++ arg +++ ")"
+    | '10': "4*" +++ "(" +++ arg +++ ")"
+    | '11': "8*" +++ "(" +++ arg +++ ")"
    end
 
 val show/operand ext op =
@@ -263,20 +263,26 @@ val show/operand ext op =
     | IMM64 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
     | REG x: show/x86-register x
     | MEM x: show/memsz x.sz -++ show/segment x.segment +++ "[" +++ show/operand '1' x.opnd +++ "]" 
-    | X86_SUM x: show/operand ext x.a +++ "+" +++ show/operand ext x.b
-    | X86_SCALE x: show/scale x.imm +++ show/operand ext x.opnd
+    | X86_SUM x: show/operand ext x.a +++ (if ext then case x.b of
+          IMM8 c: (if sx c.imm<0 then "" else "+") +++ show/operand ext x.b
+        | IMM16 c: (if sx c.imm<0 then "" else "+") +++ show/operand ext x.b
+        | IMM32 c: (if sx c.imm<0 then "" else "+") +++ show/operand ext x.b
+        | IMM64 c: (if sx c.imm<0 then "" else "+") +++ show/operand ext x.b
+        | _ : "+" +++ show/operand ext x.b
+     end else "+" +++ show/operand ext x.b)
+    | X86_SCALE x: show/scale x.imm (show/operand ext x.opnd)
    end
 
 val show/flowoperand op =
    case op of
-      REL8 x: "(IP + " +++ show-int (sx x) +++ ")"
-    | REL16 x: "(IP + " +++ show-int (sx x) +++ ")"
-    | REL32 x: "(IP + " +++ show-int (sx x) +++ ")"
-    | REL64 x: "(IP + " +++ show-int (sx x) +++ ")"
+      REL8 x: "IP" +++ (if sx x<0 then "" else "+") +++ show-int (sx x)
+    | REL16 x: "IP" +++ (if sx x<0 then "" else "+") +++ show-int (sx x)
+    | REL32 x: "IP" +++ (if sx x<0 then "" else "+") +++ show-int (sx x)
+    | REL64 x: "IP" +++ (if sx x<0 then "" else "+") +++ show-int (sx x)
     | PTR16/16 x: "[16/16: " +++ show-int (sx x) +++ "]"
     | PTR16/32 x: "[16/32: " +++ show-int (sx x) +++ "]"
-    | NEARABS x: show/operand '1' x 
-    | FARABS x: show/operand '1' x
+    | NEARABS x: show/operand '0' x 
+    | FARABS x: show/operand '0' x
    end
 
 val show/instruction insn = let

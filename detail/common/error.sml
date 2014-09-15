@@ -127,7 +127,7 @@ structure Error :> sig
 		  | Repair.FailureAt tok => ["syntax error at ", tok2str tok]
 		(* end case *))
 	  in
-	    addErr (es, SOME{file=sourceMap es,span=(pos,pos)}, String.concat msg)
+	    addErr (es, SOME{file=sourceMap es,span=(pos,pos)}, String.concat msg ^ "\n")
 	  end
 
   (* add error messages to the error stream *)

@@ -6,11 +6,23 @@ AM_INIT_AUTOMAKE([no-dependencies -Wall foreign no-define subdir-objects])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([LICENSE])
 
+dnl the AM_PROG_AR macro only exists starting from 1.11.2
+am_version=`automake --version | head -n 1 | sed -e 's/[[^0-9]*\([0-9][0-9.]*\)]/\1/g'`
+m4_pattern_allow([AM_PROG_AR])
+AS_VERSION_COMPARE([$am_version],[1.11.2],[],[AM_PROG_AR],[AM_PROG_AR])
+
 AM_PROG_CC_C_O()
-AM_PROG_AR()
 AC_PROG_LN_S()
 AC_PROG_LIBTOOL()
 AC_PROG_INSTALL()
+
+dnl check if the compiler understand C99
+AC_PROG_CC_C99()
+AC_ARG_ENABLE(msvc,[AS_HELP_STRING([--enable-msvc], [emit code for Microsoft Visual C compiler])])
+AC_ARG_VAR(EXTRA_GDSL_FLAGS)
+if test [x$ac_cv_prog_cc_c99 == "xno" -o x$enable_msvc == "xyes"]; then
+  EXTRA_GDSL_FLAGS="--target=C89";
+fi
 
 AC_ARG_VAR(SMLNJ)
 AC_PATH_PROG(SMLNJ, sml, ["not-found"])
@@ -18,7 +30,7 @@ AC_PATH_PROG(SMLNJ, sml, ["not-found"])
 AC_ARG_VAR(MLTON)
 AC_PATH_PROG(MLTON, mlton, ["not-found"])
 
-if test [$SMLNJ == "not-found" -a $MLTON == "not-found"]; then
+if test [x$SMLNJ == "xnot-found" -a x$MLTON == "xnot-found"]; then
     echo "You must install either SML/NJ or mlton."
     exit 1
 fi
@@ -26,20 +38,9 @@ fi
 AM_CONDITIONAL([HAVE_MLTON],[test x$MLTON != "xnot-found"])
 
 AC_ARG_VAR(MLULEX)
-AC_PATH_PROG(MLULEX, ml-ulex, ["not-found"])
-
-if test [$MLULEX == "not-found"]; then
-    echo "You must install SML/NJ (to get ml-ulex)."
-    exit 1
-fi
-
+AC_PATH_PROG(MLULEX, ml-ulex, ["ml-ulex not-found"])
 AC_ARG_VAR(MLANTLR)
-AC_PATH_PROG(MLANTLR, ml-antlr, ["not-found"])
-
-if test [$MLANTLR == "not-found"]; then
-    echo "You must install SML/NJ (to get ml-antlr)."
-    exit 1
-fi
+AC_PATH_PROG(MLANTLR, ml-antlr, ["ml-antlr not-found"])
 
 dnl define a variable that helps us to only build Linux-specific stuff on Linux
 case "$host_os" in
@@ -59,7 +60,7 @@ FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil arm7";
 AC_ARG_WITH([frontend],
   [AS_HELP_STRING(
     [--with-frontend=frontend],
-    [one of: ]$FRONTENDS)],
+    [one of: x86 x86-rreil avr avr-rreil mips mips-rreil arm7])],
   [], [with_frontend=all])
 
 case $with_frontend in

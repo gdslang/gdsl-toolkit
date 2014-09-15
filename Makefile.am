@@ -19,8 +19,6 @@ nodist_include_HEADERS =
 #HAVE_X86 = 1
 #endif
 
-EXEEXT=
-
 # we need to add a dependency to the actual backend to this variable
 libjgdsl_la_LIBADD = 
 libgdsl_multiplex_la_LIBADD = 
@@ -130,15 +128,15 @@ GDSLC_SML_FILES = \
 JAR=jgdsl.jar
 
 GDSLC_DEP = detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
-GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
+GDSLFLAGS = --runtime=$(srcdir)/detail/codegen @EXTRA_GDSL_FLAGS@
 
 if HAVE_MLTON
 
-$(builddir)/gdslc: $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
-	$(MLTON) -output $(builddir)/gdslc $(srcdir)/gdslc.mlb
+$(builddir)/gdslc$(EXEEXT): $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
+	$(MLTON) -output $(builddir)/gdslc$(EXEEXT) $(srcdir)/gdslc.mlb
 
-GDSLC_DEP += $(builddir)/gdslc
-GDSLC = $(builddir)/gdslc
+GDSLC_DEP += $(builddir)/gdslc$(EXEEXT)
+GDSLC = $(builddir)/gdslc$(EXEEXT)
 
 else
 
@@ -617,4 +615,55 @@ endif
 private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 #endif
 
-EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm
+EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm build.bat
+
+WINDOWS_DISTFILES = $(GDSLC) LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(RUNTIME) build.bat
+
+# distribution .tgz file for Windows
+.PHONY: windows-distdir windows-dist
+
+# this ugly stuff is copied from what automake generates
+windows-distdir: $(WINDOWS_DISTFILES)
+	$(am__remove_distdir)
+	test -d "$(distdir)" || mkdir "$(distdir)"
+	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
+	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
+	list='$(WINDOWS_DISTFILES)'; \
+	  dist_files=`for file in $$list; do echo $$file; done | \
+	  sed -e "s|^$$srcdirstrip/||;t" \
+	      -e "s|^$$topsrcdirstrip/|$(top_builddir)/|;t"`; \
+	case $$dist_files in \
+	  */*) $(MKDIR_P) `echo "$$dist_files" | \
+			   sed '/\//!d;s|^|$(distdir)/|;s,/[^/]*$$,,' | \
+			   sort -u` ;; \
+	esac; \
+	for file in $$dist_files; do \
+	  if test -f $$file || test -d $$file; then d=.; else d=$(srcdir); fi; \
+	  if test -d $$d/$$file; then \
+	    dir=`echo "/$$file" | sed -e 's,/[^/]*$$,,'`; \
+	    if test -d "$(distdir)/$$file"; then \
+	      find "$(distdir)/$$file" -type d ! -perm -700 -exec chmod u+rwx {} \;; \
+	    fi; \
+	    if test -d $(srcdir)/$$file && test $$d != $(srcdir); then \
+	      cp -fpR $(srcdir)/$$file "$(distdir)$$dir" || exit 1; \
+	      find "$(distdir)/$$file" -type d ! -perm -700 -exec chmod u+rwx {} \;; \
+	    fi; \
+	    cp -fpR $$d/$$file "$(distdir)$$dir" || exit 1; \
+	  else \
+	    test -f "$(distdir)/$$file" \
+	    || cp -p $$d/$$file "$(distdir)/$$file" \
+	    || exit 1; \
+	  fi; \
+	done
+	-test -n "$(am__skip_mode_fix)" \
+	|| find "$(distdir)" -type d ! -perm -755 \
+		-exec chmod u+rwx,go+rx {} \; -o \
+	  ! -type d ! -perm -444 -links 1 -exec chmod a+r {} \; -o \
+	  ! -type d ! -perm -400 -exec chmod a+r {} \; -o \
+	  ! -type d ! -perm -444 -exec $(install_sh) -c -m a+r {} {} \; \
+	|| chmod -R a+r "$(distdir)"
+
+
+windows-dist : windows-distdir
+	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >win-$(distdir).tar.gz
+	$(am__remove_distdir)
