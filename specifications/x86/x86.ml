@@ -1,6 +1,6 @@
 export config-default : decoder-configuration
-export config-mode64  : decoder-configuration
-export config-default-opnd-sz-32 : decoder-configuration
+export config-mode32  : decoder-configuration
+export config-default-opnd-sz-16 : decoder-configuration
 export decode : (decoder-configuration) -> S insndata <{} => {}>
 export features-get : (insndata) -> int
 export typeof-opnd : (insndata,int) -> int
@@ -11,12 +11,12 @@ export operands : (insndata) -> int
 type decoder-configuration = |2|
 
 val decoder-config =
- conf '01' "mode64" "decode x86-64 instructions" &*
- conf '10' "opndsz32" "assume that default operand size is 32 bit"
+ conf '01' "mode32" "decode x86 instructions" &*
+ conf '10' "opndsz16" "assume that default operand size is 16 bit"
 
-val config-default            = '11'
-val config-mode64             = '01'
-val config-default-opnd-sz-32 = '10'
+val config-default            = '00'
+val config-mode32             = '01'
+val config-default-opnd-sz-16 = '10'
 
 val test-opt opt config = if (zx (opt and config)) > 0 then '1' else '0'
 
@@ -29,7 +29,7 @@ end
 val main config = do
   t <- query $tab;
   update @{
-    mode64=test-opt config-mode64 config,
+    mode64= if test-opt config-mode32 config then '0' else '1',
     repne='0',
     rep='0',
     rex='0',
@@ -41,7 +41,7 @@ val main config = do
     opndsz='0',
     lock='0',
     segment=SEG_NONE,
-    default-operand-size=if test-opt config-default-opnd-sz-32 config then 32 else 16,
+    default-operand-size=if test-opt config-default-opnd-sz-16 config then 16 else 32,
     ptrty=32, #TODO: check
     ~tab
   };

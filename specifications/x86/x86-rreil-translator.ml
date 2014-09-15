@@ -2278,7 +2278,7 @@ end
 
 val translate-x86 insn = do
 #  update@{mode64='1'};
-  update @{mode64=test-opt config-mode64 insn.config};
+  update @{mode64=if test-opt config-mode32 insn.config then '0' else '1'};
 
   ip-sz <- runtime-stack-address-size;
   ip <- ip-get;
