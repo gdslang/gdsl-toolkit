@@ -1,6 +1,0 @@
-- Pattern matching auf Bitvektoren, z.B.
-
-  val shift-left x =
-    case x of
-       'xs x:1': '0' ^ xs
-    end

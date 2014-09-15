@@ -1,3 +1,9 @@
+- Pattern matching auf Bitvektoren, z.B.
+
+  val shift-left x =
+    case x of
+       'xs x:1': '0' ^ xs
+    end
 - 3 Modi für x86: 32 Bit, Compatibility, 64 Bit
 - Generisches ASM: Eine ASM-Sprache, die für alle Architekturen gleich ist => AST-Übersetzung nach z.B. Java wie bei RReil
 - semantic-register-of über multiplex exportieren => Stringvergleich?
