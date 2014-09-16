@@ -443,7 +443,7 @@ int main (int argc, char** argv) {
 #else
     0;
 #endif
-  int_t rreil_options;
+  int_t optimization_options = 0;
   int_t run_translate = 0;
   int_t translate_options = 0;
   size_t base_address = 0;
@@ -468,32 +468,18 @@ int main (int argc, char** argv) {
         return 1;
       }
     } else {
-      int negated = 0;
       arg+=2;
-      if (strcmp(arg,"no-")==0) { negated = 1; arg+=3; };
 #if defined(gdsl_decoder_config)
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
-        if (strcmp(arg,gdsl_conf_short(s,config))==0) {
-          if (negated)
-            decode_options &= ~gdsl_conf_data(s,config);
-          else
-            decode_options |= gdsl_conf_data(s,config);
-          break;
-        }
-      if (gdsl_has_conf(s,config)) continue;
+        if (strcmp(arg,gdsl_conf_short(s,config))==0)
+          decode_options |= gdsl_conf_data(s,config);
 #endif
 #if defined(gdsl_rreil_config)
       for (config = gdsl_rreil_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
-        if (strcmp(arg,gdsl_conf_short(s,config))==0) {
-          if (negated)
-            rreil_options &= ~gdsl_conf_data(s,config);
-          else
-            rreil_options |= gdsl_conf_data(s,config);
-          break;
-        }
-      if (gdsl_has_conf(s,config)) continue;
+        if (strcmp(arg,gdsl_conf_short(s,config))==0)
+          optimization_options |= gdsl_conf_data(s,config);
 #endif
       if (strncmp(arg,"base=",5)==0) {
         int res=readNum(arg+5,&base_address);
@@ -516,24 +502,15 @@ int main (int argc, char** argv) {
 #if defined(gdsl_decoder_config)
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
-        fprintf(stderr,"  --%s\t\t%s%s\n  --no-%s%s\t\tnegated option\n",
-          gdsl_conf_short(s,config),
-          gdsl_conf_data(s,config) & decode_options ? "*" : "",
-          gdsl_conf_long(s,config),
-          gdsl_conf_short(s,config),
-          gdsl_conf_data(s,config) & decode_options ? "" : "*");
+        fprintf(stderr,"  --%s\t\t%s\n",
+          gdsl_conf_short(s,config), gdsl_conf_long(s,config));
 #endif
 #if defined(gdsl_rreil_config)
       for (config = gdsl_rreil_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
-        fprintf(stderr,"  --%s\t\t%s%s\n  --no-%s%s\t\tnegated option\n",
-          gdsl_conf_short(s,config),
-          gdsl_conf_data(s,config) & rreil_options ? "*" : "",
-          gdsl_conf_long(s,config),
-          gdsl_conf_short(s,config),
-          gdsl_conf_data(s,config) & rreil_options ? "" : "*");
+        fprintf(stderr,"  --%s\t\t%s\n",
+          gdsl_conf_short(s,config), gdsl_conf_long(s,config));
 #endif
-      fprintf(stderr,"The default is denoted by *.\n");
       return 1;
     }
   }
@@ -578,7 +555,7 @@ int main (int argc, char** argv) {
         obj_t rreil = gdsl_decode_translate_block_optimized(s,
           decode_options,
           gdsl_int_max(s),
-          rreil_options);
+          optimization_options);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
         if (print_addr) printf("0x%016lx:\n",address);
