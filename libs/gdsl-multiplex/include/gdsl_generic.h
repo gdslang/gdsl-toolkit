@@ -44,7 +44,7 @@ enum flop {
   FLOP_FMUL = 2
 };
 
-enum preservation {
+enum optimization_configuration {
   PRESERVATION_EVERYWHERE = 0,
   PRESERVATION_BLOCK = 1,
   PRESERVATION_CONTEXT = 2

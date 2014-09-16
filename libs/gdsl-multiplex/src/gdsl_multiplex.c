@@ -121,6 +121,7 @@ static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
   ADD_FUNCTION(translator, pretty_arch_id)
   ADD_FUNCTION(translator, pretty_arch_exception)
   ADD_FUNCTION(translator, rreil_convert_sem_stmt_list)
+  ADD_FUNCTION(translator, optimization_config)
   ADD_FUNCTION(translator, decode_translate_block_optimized)
   ADD_FUNCTION(translator, traverse_insn_list)
 

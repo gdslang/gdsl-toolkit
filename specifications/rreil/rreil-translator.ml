@@ -3,19 +3,11 @@ export decode-translate-single: (decoder-configuration) -> S sem_stmt_list <{ins
 export decode-translate-super-block: (decoder-configuration, int) -> S translate-result <{insns: insn_list} => {insns: insn_list}>
 export select_ins_count: S int <{ins_count: int} => {ins_count: int}>
 export succ-pretty: (stmts_option, string) -> rope
-export rreil-config : configuration[vec=rreil-configuration]
-
-type rreil-configuration = |3|
-
-val rreil-config =
-  conf '001' "block"    "translate a basic block at a time" &*
-  conf '010' "liveness" "remove dead assignments" &*
-  conf '100' "inter-bb" "perform inter-basic block liveness analysis"
-
 
 val decode-translate-block-headless config limit = do
   insn <- decode config;
   insns <- query $insns;
+	#Todo: Don't use state
   update @{insns=INSNS_CONS {insn=insn, tl=insns}};
   translate-block-single insn;
   jmp <- query $foundJump;

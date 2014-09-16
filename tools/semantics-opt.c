@@ -22,7 +22,7 @@
 #define NANOS 1000000000LL
 
 struct options {
-  enum preservation preservation;
+  enum optimization_configuration opt_config;
   char elf;
   char *file;
   size_t offset;
@@ -36,14 +36,14 @@ enum p_option {
 static char args_parse(int argc, char **argv, struct options *options) {
   options->elf = 0;
   options->file = NULL;
-  options->preservation = PRESERVATION_EVERYWHERE;
+  options->opt_config = PRESERVATION_EVERYWHERE;
   options->offset = 0;
   options->length = 0;
 
-  struct option long_options[] = {{"elf", no_argument, NULL, OPTION_ELF},
-      {"file", required_argument, NULL, OPTION_FILE}, {"offset", required_argument, NULL, OPTION_FILE}, {"length",
-      required_argument, NULL, OPTION_LENGTH}, {"preserve", required_argument, NULL, OPTION_PRESERVATION}, {NULL, 0,
-          NULL, 0}};
+  struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, { "file", required_argument, NULL,
+      OPTION_FILE }, { "offset", required_argument, NULL, OPTION_FILE }, { "length",
+  required_argument, NULL, OPTION_LENGTH }, { "preserve", required_argument, NULL, OPTION_PRESERVATION }, { NULL, 0,
+  NULL, 0 } };
 
   while(1) {
     int result = getopt_long(argc, argv, "", long_options, NULL);
@@ -67,15 +67,15 @@ static char args_parse(int argc, char **argv, struct options *options) {
       }
       case OPTION_PRESERVATION: {
         if(!strcmp("everywhere", optarg)) {
-          options->preservation = PRESERVATION_EVERYWHERE;
+          options->opt_config = PRESERVATION_EVERYWHERE;
           break;
         }
         if(!strcmp("block", optarg)) {
-          options->preservation = PRESERVATION_BLOCK;
+          options->opt_config = PRESERVATION_BLOCK;
           break;
         }
         if(!strcmp("context", optarg)) {
-          options->preservation = PRESERVATION_CONTEXT;
+          options->opt_config = PRESERVATION_CONTEXT;
           break;
         }
         return 2;
@@ -139,10 +139,10 @@ int main(int argc, char** argv) {
 
   size_t last_offset = 0;
   while(last_offset < options.length) {
-    obj_t rreil = gdsl_decode_translate_block_optimized(state, gdsl_config_default(state), gdsl_int_max(state),
-        options.preservation);
+    opt_result_t opt_result = gdsl_decode_translate_block_optimized(state, gdsl_config_default(state),
+        gdsl_int_max(state), options.opt_config);
 
-    string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
+    string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, opt_result->rreil));
     puts(fmt);
 
     gdsl_reset_heap(state);
