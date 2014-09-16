@@ -1,8 +1,6 @@
 /* vim:set ts=2:set sw=2:set expandtab: */
 @I-am-a-template-so-edit-me@
 
-#define GDSL_SPECIFIC
-
 @include-prefix@
 #include <string.h>
 #include <stdio.h>

@@ -9,17 +9,6 @@
 
 #include <stdint.h>
 
-struct state {
-  void *userdata; /* a pointer to arbitary data */
-};
-
-/* data types used in decoder programs */
-typedef void* obj_t;
-typedef struct state* state_t;
-typedef long long int int_t;
-typedef char* string_t;
-typedef uint64_t vec_data_t;
-
 /**
  * RReil defintions
  */
@@ -50,11 +39,23 @@ enum optimization_configuration {
   PRESERVATION_CONTEXT = 2
 };
 
+#ifndef __GDSL_RUNTIME_H
+
+struct state {
+  void *userdata; /* a pointer to arbitary data */
+};
+
+/* data types used in decoder programs */
+typedef void* obj_t;
+typedef struct state* state_t;
+typedef long long int int_t;
+typedef char* string_t;
+typedef uint64_t vec_data_t;
+
 /**
  * Interface data structures
  */
 
-#ifndef GDSL_SPECIFIC
 struct vec {
   unsigned int size;
   vec_data_t data;

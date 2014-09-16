@@ -3,8 +3,6 @@
 #ifndef __GDSL_RUNTIME_H
 #define __GDSL_RUNTIME_H
 
-#define GDSL_SPECIFIC
-
 #include <stdlib.h>
 #include <stdint.h>
 #include <setjmp.h>
