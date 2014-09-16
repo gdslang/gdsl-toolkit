@@ -129,7 +129,7 @@ structure Primitives = struct
         flow = BD.meetVarImpliesVar (bvar stateC', bvar stateC)},
        {name="raise", ty=MONAD (freshVar (),stateD, stateD'),
         flow = noFlow},
-       {name="idxget", ty=MONAD (ZENO, stateN, stateN'),
+       {name="get-ip", ty=MONAD (ZENO, stateN, stateN'),
         flow = BD.meetVarImpliesVar (bvar stateN', bvar stateN)},   
        {name="seek", ty=func (ZENO, MONAD (ZENO, stateO, stateO')),
         flow = BD.meetVarImpliesVar (bvar stateO', bvar stateO)},
@@ -231,8 +231,7 @@ structure Primitives = struct
        {name="%consume32", ty=UNIT, flow = noFlow},
        {name="%unconsume32", ty=UNIT, flow = noFlow},
        {name="%slice", ty=UNIT, flow = noFlow},
-       {name="%idxget", ty=UNIT, flow = noFlow},
-       (*{name="%rseek", ty=UNIT, flow = noFlow},*)
+       {name="%get-ip", ty=UNIT, flow = noFlow},
        {name="%seek", ty=UNIT, flow = noFlow},
        {name="%invoke", ty=UNIT, flow = noFlow},
        {name="%invoke_int", ty=UNIT, flow = noFlow},
@@ -359,7 +358,7 @@ structure Primitives = struct
                   INVOKEexp (oo, f,[PRIexp (GETSTATEprim, o_, [])]) 
                ]))
           | _ => raise ImpPrimTranslationBug))),
-         ("idxget", (t 0, fn args => action (boxI (PRIexp (IPGETprim,i,args))))),
+         ("get-ip", (t 0, fn args => action (boxI (PRIexp (IPGETprim,i,args))))),
          ("seek", (t 0, fn args => action (boxI (PRIexp (SEEKprim,ii,unboxI args))))),
          (*("rseek", (t 0, fn args => action (boxI (PRIexp (RSEEKprim,ii,unboxI args))))),*)
          ("/z", (t 2, fn args => boxI (pr (DIVprim,iii,unboxI args)))),

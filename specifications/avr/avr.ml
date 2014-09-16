@@ -528,9 +528,9 @@ val / ['1001001 d d d d d 0100'] = binop XCH /Z rd5
 val decode config = do
   set-endianness LITTLE_ENDIAN 2;
   update@{rd='',rr='',ck='',cs='',cb='',io='',dq='', config = config};
-  idx-before <- idxget;
+  idx-before <- get-ip;
   insn <- /;
-  idx-after <- idxget;
+  idx-after <- get-ip;
   return {length=(idx-after - idx-before), insn=insn}
 end
 
@@ -538,7 +538,7 @@ val isTiny s = zx (s.config and '1') > 0
 
 val genTinyInstr = do
   update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
-  index <- idxget;
+  index <- get-ip;
   seek (index - 4);
   /tiny
 end
@@ -1083,9 +1083,9 @@ val rr4h-rr4l = do
 end
 
 val sizeof-next = do
-  index <- idxget;
+  index <- get-ip;
   /;
-  new <- idxget;
+  new <- get-ip;
   seek index;
   return (IMM (IMMi (/z (new - index) 2)))
 end

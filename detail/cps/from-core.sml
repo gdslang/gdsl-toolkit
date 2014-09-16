@@ -47,7 +47,7 @@ end = struct
          val == = get "=="
          val not = get "not"
          val raisee = get "raise"
-         val idxget = get "idxget"
+         val get_ip = get "get-ip"
 (*         val rseek = get "rseek"*)
          val seek = get "seek"
          val index = get "index"
@@ -271,14 +271,14 @@ end = struct
                (raisee, [a], body)
             end
 
-         (* val idxget s = %idxget(s) *)
-         val idxget =
+         (* val get_ip s = %get-ip(s) *)
+         val get_ip =
             let
                val s = fresh "s"
-               val primidxget = get "%idxget"
-               val body = PRI (primidxget, [s])
+               val primget_ip = get "%get-ip"
+               val body = PRI (primget_ip, [s])
             in
-               (idxget, [s], body)
+               (get_ip, [s], body)
             end
 
          (* val rseek x s = %rseek(x, s)
@@ -412,8 +412,7 @@ end = struct
           ==,
           concat,
           raisee,
-          idxget,
-          (*rseek,*)
+          get_ip,
           seek,
           index,
 					puts,

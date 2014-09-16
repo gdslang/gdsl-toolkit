@@ -46,9 +46,9 @@ val main config = do
     ~tab
   };
   
-  idx-before <- idxget;
+  idx-before <- get-ip;
   instr <- p64;
-  idx-after <- idxget;
+  idx-after <- get-ip;
   
   update @{tab=t};
   return (@{length=(idx-after - idx-before), config=config} instr)
@@ -1741,7 +1741,7 @@ val ymm15 = return (REG YMM15)
 val st0 = return (REG ST0)
 
 val imm-build cons b size = do
-  ip <- idxget;
+  ip <- get-ip;
   return (cons {imm=b,address=(ip - size)})
 end
 

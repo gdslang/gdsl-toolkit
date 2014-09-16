@@ -139,7 +139,7 @@ __obj __zx (__obj x) {
 }
 
 /* FIXME */
-__obj __idxget (__obj s) {
+__obj __get-ip (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __LOCAL0(y);
     __INT_BEGIN(y);

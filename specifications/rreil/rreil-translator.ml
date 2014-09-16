@@ -11,7 +11,7 @@ val decode-translate-block-headless config limit = do
   update @{insns=INSNS_CONS {insn=insn, tl=insns}};
   translate-block-single insn;
   jmp <- query $foundJump;
-  idx <- idxget;
+  idx <- get-ip;
   if jmp or (idx >= limit) then
     query $stack
   else
@@ -87,8 +87,7 @@ type translate-result = {
 
 val decode-translate-super-block config limit = let
   val translate-block-at idx = do
-    current <- idxget;
-    #error <- rseek idx;
+    current <- get-ip;
     error <- seek (current + idx);
     result <- if error === 0 then do
       stmts <- decode-translate-block config int-max;

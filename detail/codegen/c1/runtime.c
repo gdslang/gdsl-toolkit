@@ -331,7 +331,7 @@ void
 }
 
 size_t
-@get_ip_offset@
+@get_ip@
 (state_t s) {
   return s->ip_base + (s->ip - s->ip_start);
 }
@@ -472,14 +472,20 @@ int main (int argc, char** argv) {
 #if defined(gdsl_decoder_config)
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
-        if (strcmp(arg,gdsl_conf_short(s,config))==0)
+        if (strcmp(arg,gdsl_conf_short(s,config))==0) {
           decode_options |= gdsl_conf_data(s,config);
+          break;
+        }
+      if (gdsl_has_conf(s,config)) continue;
 #endif
-#if defined(gdsl_rreil_config)
-      for (config = gdsl_rreil_config(s); gdsl_has_conf(s,config);
+#if defined(gdsl_optimization_config)
+      for (config = gdsl_optimization_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
-        if (strcmp(arg,gdsl_conf_short(s,config))==0)
+        if (strcmp(arg,gdsl_conf_short(s,config))==0) {
           optimization_options |= gdsl_conf_data(s,config);
+          break;
+        }
+      if (gdsl_has_conf(s,config)) continue;
 #endif
       if (strncmp(arg,"base=",5)==0) {
         int res=readNum(arg+5,&base_address);
@@ -495,18 +501,19 @@ int main (int argc, char** argv) {
         continue;
       }
       fprintf(stderr,
-        "usage: %s [options] filename\nwhere\n"
+        "Command line argument `%s' not recognized. Usage:\n"
+        "\t%s [options] filename\nwhere\n"
         "  --trans               translate to semantics\n"
         "  --base=addr           print addresses relative to addr\n"
-        "  --start=addr          decode starting from addr\n", argv[0]);
+        "  --start=addr          decode starting from addr\n", argv[i], argv[0]);
 #if defined(gdsl_decoder_config)
       for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
         fprintf(stderr,"  --%s\t\t%s\n",
           gdsl_conf_short(s,config), gdsl_conf_long(s,config));
 #endif
-#if defined(gdsl_rreil_config)
-      for (config = gdsl_rreil_config(s); gdsl_has_conf(s,config);
+#if defined(gdsl_optimization_config)
+      for (config = gdsl_optimization_config(s); gdsl_has_conf(s,config);
         config = gdsl_conf_next(s,config))
         fprintf(stderr,"  --%s\t\t%s\n",
           gdsl_conf_short(s,config), gdsl_conf_long(s,config));
@@ -545,18 +552,18 @@ int main (int argc, char** argv) {
   alloc_no = 0;
   alloc_max = 0;
 
-  while (gdsl_get_ip_offset(s)<buf_size) {
+  while (gdsl_get_ip(s)-base_address<buf_size) {
     size_t size;
     size_t address=0;
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (run_translate) {
 #ifdef HAVE_TRANS
-        address = gdsl_get_ip_offset(s);
-        obj_t rreil = gdsl_decode_translate_block_optimized(s,
+        address = gdsl_get_ip(s);
+        opt_result_t block = gdsl_decode_translate_block_optimized(s,
           decode_options,
           gdsl_int_max(s),
           optimization_options);
-        obj_t res = gdsl_rreil_pretty(s,rreil);
+        obj_t res = gdsl_rreil_pretty(s,block->rreil);
         string_t str = gdsl_merge_rope(s,res);
         if (print_addr) printf("0x%016lx:\n",address);
         fputs(str,stdout);
@@ -566,7 +573,7 @@ int main (int argc, char** argv) {
 #endif
       } else {
 #ifdef HAVE_DECODE
-        address = gdsl_get_ip_offset(s);
+        address = gdsl_get_ip(s);
         obj_t instr = gdsl_decode(s, decode_options);
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
