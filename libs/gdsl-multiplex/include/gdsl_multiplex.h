@@ -51,9 +51,9 @@ struct frontend {
     obj_t (*pretty_arch_id)(state_t state, obj_t id);
     obj_t (*pretty_arch_exception)(state_t state, obj_t id);
     obj_t (*rreil_convert_sem_stmt_list)(state_t s, callbacks_t cbs, obj_t stmts);
-    opt_result_t (*decode_translate_block_optimized)(state_t state, int_t config, int_t limit, int_t pres,
-        obj_t insns_init, obj_t (*insn_cb)(state_t, obj_t, obj_t));
-    obj_t (*traverse_insn_list)(state_t state, obj_t insns_init, obj_t (*insn_cb)(state_t, obj_t, obj_t));
+    opt_result_t (*decode_translate_block_optimized)(state_t state, int_t config, int_t limit, int_t pres);
+    obj_t (*traverse_insn_list)(state_t state, obj_t insn_list, obj_t insns_init,
+        obj_t (*insn_cb)(state_t, obj_t, obj_t));
   } translator;
 
   void *dl;

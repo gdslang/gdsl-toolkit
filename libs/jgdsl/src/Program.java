@@ -17,12 +17,12 @@ import java.nio.ByteBuffer;
 public class Program {
   /**
    * @param args
-   * @throws Throwable 
+   * @throws Throwable
    * @throws IOException
    */
   private static void sub (ByteBuffer buffer) throws Throwable {
     System.out.println("\nsub()\n");
-    
+
     Frontend[] frontends = Gdsl.getFrontends();
 
     for (Frontend frontend : frontends) {
@@ -32,7 +32,7 @@ public class Program {
     Gdsl gdsl = new Gdsl(frontends[0]);
 
     gdsl.setCode(buffer, 0, 0);
-    
+
     Translator t = new Translator(gdsl, new DefaultRReilBuilder());
 
     TranslatedBlock b = t.translateOptimizeBlock(buffer.limit(), SemPres.EVERYWHERE);
@@ -52,12 +52,14 @@ public class Program {
   }
 
   public static void main (String[] args) throws Throwable {
-    ByteBuffer buffer = ByteBuffer.allocateDirect(4);
+    ByteBuffer buffer = ByteBuffer.allocateDirect(5);
     buffer.put((byte) 0);
     buffer.put((byte) 0);
     buffer.put((byte) 0);
     buffer.put((byte) 0);
-//    buffer.put((byte) 0xc3);
+    buffer.put((byte) 0xc3);
+    
+    sub(buffer);
 //    
 //    buffer.put((byte) 0);
 //    buffer.put((byte) 0);
@@ -65,16 +67,16 @@ public class Program {
 //    buffer.put((byte)0x07);
 //    buffer.put((byte)0x96);
     
-    Frontend[] frontends = Gdsl.getFrontends();
-    Gdsl gdsl = new Gdsl(frontends[0]);
-    gdsl.setCode(buffer, 0, 0);
-    
-    Decoder d = new Decoder(gdsl);
-    NativeInstruction nI = d.decodeOne();
-    
-    System.out.println(nI.generalize());
-
-    System.out.println("+++++++++++++++++++++++++++++");
+//    Frontend[] frontends = Gdsl.getFrontends();
+//    Gdsl gdsl = new Gdsl(frontends[0]);
+//    gdsl.setCode(buffer, 0, 0);
+//    
+//    Decoder d = new Decoder(gdsl);
+//    NativeInstruction nI = d.decodeOne();
+//    
+//    System.out.println(nI.generalize());
+//
+//    System.out.println("+++++++++++++++++++++++++++++");
     
 //    for (long i = 0; i < 10000000; i++) {
 //      sub(buffer);
@@ -100,13 +102,13 @@ public class Program {
 //    }
 //    System.out.println("-----");
 //
-    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
-
-    IRReilCollection<IStatement> stmts = t.translate(nI);
+//    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
 //
-    for (int i = 0; i < stmts.size(); i++) {
-      System.out.println(stmts.get(i));
-    }
+//    IRReilCollection<IStatement> stmts = t.translate(nI);
+//
+//    for (int i = 0; i < stmts.size(); i++) {
+//      System.out.println(stmts.get(i));
+//    }
 //
 //    gdsl.resetHeap();
 //    gdsl.destroyFrontend();

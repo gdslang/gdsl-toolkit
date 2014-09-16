@@ -33,7 +33,7 @@ using gdsl::block;
 
 using namespace gdsl::rreil;
 
-struct example_visitor : public statement_visitor {
+struct example_visitor: public statement_visitor {
   void visit(assign *s) {
     printf("Size of assignment: %lld\n", s->get_size());
   }
@@ -45,7 +45,7 @@ struct example_visitor : public statement_visitor {
 
 void demo_single(gdsl::gdsl &g) {
   uint16_t buffer = 0x0000;
-  g.set_code((unsigned char*)&buffer, sizeof(buffer), 0);
+  g.set_code((unsigned char*) &buffer, sizeof(buffer), 0);
 
   gdsl::instruction insn = g.decode();
 
@@ -76,20 +76,20 @@ void demo_single(gdsl::gdsl &g) {
     v._([&](assign *a) {
       visitor *ev = new visitor();
       ((linear_visitor*)ev)->_([&](lin_binop *a) {
-        if(a->get_op() == BIN_LIN_ADD) {
-          linear_visitor lv;
-          lv._([&](lin_var *v) {
-            if(v->get_var()->get_id()->to_string() == "IP") {
-              ip = true;
+            if(a->get_op() == BIN_LIN_ADD) {
+              linear_visitor lv;
+              lv._([&](lin_var *v) {
+                    if(v->get_var()->get_id()->to_string() == "IP") {
+                      ip = true;
+                    }
+                  });
+              a->get_opnd1()->accept(lv);
+              lv._([&](lin_imm *i) {
+                    ip_offset = i->get_imm();
+                  });
+              a->get_opnd2()->accept(lv);
             }
           });
-          a->get_opnd1()->accept(lv);
-          lv._([&](lin_imm *i) {
-            ip_offset = i->get_imm();
-          });
-          a->get_opnd2()->accept(lv);
-        }
-       });
       a->accept(*ev);
       printf("Size of assignment: %lld\n", a->get_size());
 
@@ -109,7 +109,7 @@ void demo_single(gdsl::gdsl &g) {
   size_t vars = 0;
   for(statement *s : *rreil) {
     visitor *v = new visitor();
-    ((statement_visitor*)v)->_([&](assign *a) {
+    ((statement_visitor*) v)->_([&](assign *a) {
       printf("Assignment\n");
     });
 
@@ -129,7 +129,7 @@ void demo_single(gdsl::gdsl &g) {
 }
 
 void demo_block(gdsl::gdsl &g) {
-  uint8_t buffer[] = {0x00, 0x00, 0x00, 0x00, 0xc3};
+  uint8_t buffer[] = { 0x00, 0x00, 0x00, 0x00, 0xc3 };
   g.set_code(buffer, sizeof(buffer), 0);
 
   block b = g.decode_translate_block(gdsl::preservation::BLOCK, LONG_MAX);
@@ -151,6 +151,8 @@ void demo_block(gdsl::gdsl &g) {
     //printf("%s\n", s->to_string().c_str());
     std::cout << *s << std::endl;
 
+  std::cout << "<<<< RReil output complete" << std::endl;
+
   // Cleanup
   for(statement *s : *rreil)
     delete s;
@@ -168,8 +170,7 @@ int main(void) {
     printf("\n###############################\n\n");
 
     demo_block(g);
-  }
-  catch(std::string &s) {
+  } catch(std::string &s) {
     printf("Exception: %s\n", s.c_str());
   }
 }

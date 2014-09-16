@@ -412,14 +412,12 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
   coll.size = 0;
 
   opt_result_t opt_result = frontend->translator.decode_translate_block_optimized(state, config, limit, preservation);
-  frontend->translator.traverse_insn_list(state, &coll, &insn_cb);
+  frontend->translator.traverse_insn_list(state, opt_result->insns, &coll, &insn_cb);
 
   jlongArray instructions = (*env)->NewLongArray(env, coll.length);
   (*env)->SetLongArrayRegion(env, instructions, 0, coll.length, (jlong*) coll.insns);
 
   free(coll.insns);
-
-  obj_t rreil = opt_result->rreil;
 
   struct userdata ud;
   ud.env = env;
@@ -429,7 +427,7 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
   state->userdata = &ud;
 
   BUILD_CALLBACKS
-  jobject converted_rreil = frontend->translator.rreil_convert_sem_stmt_list(state, &callbacks, rreil);
+  jobject converted_rreil = frontend->translator.rreil_convert_sem_stmt_list(state, &callbacks, opt_result->rreil);
 
   jclass TranslatedBlock = (*env)->FindClass(env, "gdsl/translator/TranslatedBlockRaw");
   jmethodID TranslatedBlock_ctor = (*env)->GetMethodID(env, TranslatedBlock, "<init>",
