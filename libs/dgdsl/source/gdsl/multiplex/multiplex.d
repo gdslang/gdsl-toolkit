@@ -17,7 +17,7 @@ struct _generic {
   jmp_buf* function (state_t) err_tgt;
   string_t function (state_t, obj_t) merge_rope;
   char* function (state_t) get_error_message;
-  ulong function (state_t) get_ip_offset;
+  ulong function (state_t) get_ip;
   void function (state_t) reset_heap;
   void function (state_t) destroy;
 };

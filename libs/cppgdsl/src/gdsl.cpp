@@ -41,11 +41,11 @@ gdsl::gdsl::~gdsl() {
   if(gdsl_state) frontend->native().generic.destroy(gdsl_state);
 }
 
-int_t gdsl::gdsl::get_ip_offset() {
-  if(setjmp(*frontend->native().generic.err_tgt(gdsl_state))) throw gdsl_exception("get_ip_offset() failed",
+int_t gdsl::gdsl::get_ip() {
+  if(setjmp(*frontend->native().generic.err_tgt(gdsl_state))) throw gdsl_exception("get_ip() failed",
       string(frontend->native().generic.get_error_message(gdsl_state)));
 
-  return frontend->native().generic.get_ip_offset(gdsl_state);
+  return frontend->native().generic.get_ip(gdsl_state);
 }
 
 void gdsl::gdsl::set_code(unsigned char *buffer, uint64_t size, uint64_t base) {

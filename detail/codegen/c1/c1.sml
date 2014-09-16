@@ -1332,7 +1332,7 @@ structure C1 = struct
             C1Templates.expandHeader path outputName [
                C1Templates.mkHook ("init", str (prefix ^ "init")),
                C1Templates.mkHook ("set_code", str (prefix ^ "set_code")),
-               C1Templates.mkHook ("get_ip_offset", str (prefix ^ "get_ip_offset")),
+               C1Templates.mkHook ("get_ip", str (prefix ^ "get_ip")),
                C1Templates.mkHook ("seek", str (prefix ^ "seek")),
                (*C1Templates.mkHook ("rseek", str (prefix ^ "rseek")),*)
                C1Templates.mkHook ("err_tgt", str (prefix ^ "err_tgt")),

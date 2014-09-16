@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
 
     gdsl_reset_heap(state);
 
-    last_offset = gdsl_get_ip_offset(state);
+    last_offset = gdsl_get_ip(state);
   }
 
   gdsl_destroy(state);

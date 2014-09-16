@@ -80,7 +80,7 @@ void semantics_instr(char* input, unsigned int in_size, char** output, unsigned 
     obj_t insn = gdsl_decode(state, gdsl_config_default(state));
 #endif
 
-    gdsl_get_ip_offset(state);
+    gdsl_get_ip(state);
 
     string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn)); /* string_t is a typedef for char* */
 
@@ -162,7 +162,7 @@ void semantics_multi_opt(char* input, unsigned int in_size, char** output, unsig
         *out_size = *out_size + strlen(fmt);
         strncat(*output, fmt, strlen(fmt));
         gdsl_reset_heap(state);
-        last_offset = gdsl_get_ip_offset(state);
+        last_offset = gdsl_get_ip(state);
     }
 
     cleanup:
@@ -226,7 +226,7 @@ void semantics_multi(char* input, unsigned int in_size, char** output, unsigned 
         *out_size = *out_size + strlen(fmt);
         strncat(*output, fmt, strlen(fmt));
         gdsl_reset_heap(state);
-        last_offset = gdsl_get_ip_offset(state);
+        last_offset = gdsl_get_ip(state);
     }
 
     cleanup:

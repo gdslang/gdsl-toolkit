@@ -103,7 +103,7 @@ static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
   ADD_FUNCTION(generic, get_error_message)
   ADD_FUNCTION(generic, reset_heap)
   ADD_FUNCTION(generic, destroy)
-  ADD_FUNCTION(generic, get_ip_offset)
+  ADD_FUNCTION(generic, get_ip)
   ADD_FUNCTION(generic, merge_rope)
   ADD_FUNCTION(decoder, config_default)
   ADD_FUNCTION(decoder, decoder_config)

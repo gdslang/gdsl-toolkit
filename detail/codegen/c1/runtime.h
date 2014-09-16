@@ -44,7 +44,7 @@ void
 
 /* Query the offset of the current IP relative to base. */
 size_t
-@get_ip_offset@
+@get_ip@
 (state_t s);
 
 /* Set the current code position to this address. */
@@ -108,8 +108,8 @@ void
 #define gdsl_set_code \
 @set_code@
 
-#define gdsl_get_ip_offset \
-@get_ip_offset@
+#define gdsl_get_ip \
+@get_ip@
 
 #define gdsl_seek \
 @seek@

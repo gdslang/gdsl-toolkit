@@ -361,7 +361,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 	printf("\n");
 
 	fflush(stdout);
-	data_size = gdsl_get_ip_offset(state);
+	data_size = gdsl_get_ip(state);
 	features = gdsl_features_get(state, insn);
 
 	printf("[");

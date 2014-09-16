@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
     obj_t insn = gdsl_decode(state, gdsl_config_default(state));
 
     printf("[");
-    size_t decoded = gdsl_get_ip_offset(state) - last_offset;
+    size_t decoded = gdsl_get_ip(state) - last_offset;
     for(size_t i = 0; i < decoded; ++i) {
       if(i) printf(" ");
       printf("%02x", buffer[last_offset + i]);
@@ -206,7 +206,7 @@ int main(int argc, char** argv) {
     gdsl_reset_heap(state);
 
     instructions++;
-    last_offset = gdsl_get_ip_offset(state);
+    last_offset = gdsl_get_ip(state);
   }
 
   clock_gettime(CLOCK_REALTIME, &end);

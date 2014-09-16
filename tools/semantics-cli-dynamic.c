@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
   obj_t insn = frontend.decoder.decode(state, frontend.decoder.config_default(state));
 
   printf("[");
-  size_t decoded = frontend.generic.get_ip_offset(state);
+  size_t decoded = frontend.generic.get_ip(state);
   for(size_t i = 0; i < decoded; ++i) {
     if(i) printf(" ");
     printf("%02x", buffer[i]);

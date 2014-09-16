@@ -459,7 +459,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 //				context->lines_opt++;
 
     //consumed += __getBlobIndex(state) - consumed;
-    consumed = gdsl_get_ip_offset(state);
+    consumed = gdsl_get_ip(state);
 
     size_t residency = gdsl_heap_residency(state);
     context->memory_cum += residency;

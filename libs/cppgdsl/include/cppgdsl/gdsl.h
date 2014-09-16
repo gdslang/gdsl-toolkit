@@ -34,7 +34,7 @@ public:
   /*
    * generic
    */
-  int_t get_ip_offset();
+  int_t get_ip();
   void set_code(unsigned char *buffer, uint64_t size, uint64_t base);
   bool seek(int_t ip);
   void reset_heap();
