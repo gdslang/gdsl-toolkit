@@ -581,10 +581,10 @@ noinst_LTLIBRARIES += libmemstream.la
 endif
 endif
 
-libgdsl_multiplex_la_SOURCES = $(srcdir)/libs/gdsl-multiplex/src/gdsl_multiplex.c
+libgdsl_multiplex_la_SOURCES = libs/gdsl-multiplex/src/gdsl_multiplex.c
 libgdsl_multiplex_la_CFLAGS = -std=c99 -I$(srcdir)/libs/gdsl-multiplex/include
 libgdsl_multiplex_la_LDFLAGS = -ldl
-include_HEADERS += $(srcdir)/libs/gdsl-multiplex/include/gdsl_multiplex.h $(srcdir)/libs/gdsl-multiplex/include/gdsl_generic.h
+include_HEADERS += libs/gdsl-multiplex/include/gdsl_multiplex.h $(srcdir)/libs/gdsl-multiplex/include/gdsl_generic.h
 if HAVE_MEMSTREAM
 libgdsl_multiplex_la_CFLAGS += -include $(srcdir)/libs/memstream/include/memstream.h
 libgdsl_multiplex_la_LIBADD += libmemstream.la
@@ -597,7 +597,7 @@ libjgdsl_la_LIBADD += libgdsl-multiplex.la jgdsl.jar
 private_headers += $(srcdir)/libs/jgdsl/src/gdsl_asm_GeneralizerBackend.h $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_NativeInstruction.h $(srcdir)/libs/jgdsl/src/gdsl_Frontend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/util.h
 
 if HAVE_MEMSTREAM
-libmemstream_la_SOURCES = $(srcdir)/libs/memstream/src/memstream.c
+libmemstream_la_SOURCES = libs/memstream/src/memstream.c
 libmemstream_la_CFLAGS = -I$(srcdir)/libs/memstream/include
 include_HEADERS += $(srcdir)/libs/memstream/include/memstream.h
 endif
