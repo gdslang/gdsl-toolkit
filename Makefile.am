@@ -615,15 +615,15 @@ endif
 private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 #endif
 
-EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm build.bat
+EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(GDSL_ARM7) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm build.bat
 
-WINDOWS_DISTFILES = $(GDSLC) LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(RUNTIME) build.bat
+WINDOWS_DISTFILES = $(GDSLC) LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(GDSL_ARM7) $(RUNTIME) build.bat
 
 # distribution .tgz file for Windows
-.PHONY: windows-distdir windows-dist
+.PHONY: win-distdir win-dist
 
 # this ugly stuff is copied from what automake generates
-windows-distdir: $(WINDOWS_DISTFILES)
+win-distdir: $(WINDOWS_DISTFILES)
 	$(am__remove_distdir)
 	test -d "$(distdir)" || mkdir "$(distdir)"
 	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
@@ -664,6 +664,8 @@ windows-distdir: $(WINDOWS_DISTFILES)
 	|| chmod -R a+r "$(distdir)"
 
 
-windows-dist : windows-distdir
-	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >win-$(distdir).tar.gz
+win-dist : win-distdir
+	strip $(GDSLC)
+	-rm -f win-$(distdir).zip
+	zip -rq win-$(distdir).zip $(distdir)
 	$(am__remove_distdir)
