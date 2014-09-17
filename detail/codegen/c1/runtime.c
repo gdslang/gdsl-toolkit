@@ -552,18 +552,16 @@ int main (int argc, char** argv) {
 
   while (gdsl_get_ip(s)-base_address<buf_size) {
     size_t size;
-    size_t address=0;
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (run_translate) {
 #ifdef HAVE_TRANS
-        address = gdsl_get_ip(s);
         opt_result_t block = gdsl_decode_translate_block_optimized(s,
           decode_options,
           gdsl_int_max(s),
           optimization_options);
         obj_t res = gdsl_rreil_pretty(s,block->rreil);
         string_t str = gdsl_merge_rope(s,res);
-        if (print_addr) printf("0x%016lx:\n",address);
+        if (print_addr) printf("0x%016lx:\n",gdsl_get_ip(s));
         fputs(str,stdout);
 #else
         fputs("GDSL modules contain no semantic translation\n",stdout);
@@ -571,11 +569,10 @@ int main (int argc, char** argv) {
 #endif
       } else {
 #ifdef HAVE_DECODE
-        address = gdsl_get_ip(s);
         obj_t instr = gdsl_decode(s, decode_options);
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
-        if (print_addr) printf("%016lx ",address);
+        if (print_addr) printf("%016lx ",gdsl_get_ip(s));
         fputs(str,stdout);
 #else
         fputs("GDSL modules contain no decoder function\n",stdout);
@@ -583,9 +580,9 @@ int main (int argc, char** argv) {
 #endif
       }
     } else {
-      fprintf(stdout,"exception at address 0x%lx: %s", address, gdsl_get_error_message(s));
+      fprintf(stdout,"exception at address 0x%lx: %s", gdsl_get_ip(s), gdsl_get_error_message(s));
       size_t step = (s->token_addr_inv>0 ? (size_t) s->token_addr_inv+1 : 1u);
-      gdsl_seek(s,address+step);
+      gdsl_seek(s,gdsl_get_ip(s)+step);
     }
     fputs("\n",stdout);
     size = gdsl_heap_residency(s);
