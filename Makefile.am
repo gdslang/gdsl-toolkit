@@ -388,8 +388,7 @@ GS_ARM7 = $(GDSL_BASIS) $(GDSL_ARM7)
 gdsl-arm7.c: $(GDSLC_DEP) $(GS_ARM7)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_ARM7)
 
-JSOURCES = src/Program.java \
-src/gdsl/BareFrontend.java \
+JSOURCES = src/gdsl/BareFrontend.java \
 src/gdsl/translator/Translator.java \
 src/gdsl/translator/TranslatedBlock.java \
 src/gdsl/translator/TranslatedBlockRaw.java \
@@ -525,8 +524,9 @@ src/gdsl/asm/boundary/SizeBoundary.java \
 src/gdsl/asm/boundary/SizeOffsetBoundary.java \
 src/gdsl/asm/boundary/Boundary.java \
 src/gdsl/ResourceUnavailableException.java \
-src/gdsl/ListFrontend.java \
-src/GdslTest.java
+src/gdsl/ListFrontend.java
+
+JSOURCES_FULLPATH=$(JSOURCES:%=$(srcdir)/libs/jgdsl/%)
 
 SPRE=src
 BPRE=$(top_builddir)/build
@@ -535,9 +535,13 @@ BDIRS=$(BPRE)
 pre-build:
 	mkdir -p $(BDIRS)
 
-$(JAR): pre-build $(JSOURCES:%=libs/jgdsl/%)
-	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jgdsl && javac -cp /usr/share/java/junit4.jar:. $(JSOURCES) -d $$ABS_DST/
+$(JAR): pre-build $(JSOURCES_FULLPATH)
+	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jgdsl && javac -cp . $(JSOURCES) -d $$ABS_DST/
 	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
+
+#$(JAR): pre-build $(JSOURCES:%=libs/jgdsl/%)
+#	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jgdsl && javac -cp /usr/share/java/junit4.jar:. $(JSOURCES) -d $$ABS_DST/
+#	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
 
 CLEANFILES += $(builddir)/gdslc$(EXEEXT) $(builddir)/jgdsl.jar
 
@@ -589,7 +593,8 @@ endif
 libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_NativeInstruction.c $(srcdir)/libs/jgdsl/src/gdsl_asm_GeneralizerBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Frontend.c $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.c $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.c $(srcdir)/libs/jgdsl/src/util.c
 libjgdsl_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
 libjgdsl_la_LIBADD += libgdsl-multiplex.la jgdsl.jar
-private_headers += $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_Frontend.h $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.h $(srcdir)/libs/jgdsl/src/util.h
+
+private_headers += $(srcdir)/libs/jgdsl/src/gdsl_asm_GeneralizerBackend.h $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_NativeInstruction.h $(srcdir)/libs/jgdsl/src/gdsl_Frontend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/util.h
 
 if HAVE_MEMSTREAM
 libmemstream_la_SOURCES = $(srcdir)/libs/memstream/src/memstream.c
@@ -618,7 +623,7 @@ private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 
 MLLPT_LIB = $(srcdir)/detail/external/mllpt-lib/repair.sml $(srcdir)/detail/external/mllpt-lib/NJ-LICENSE $(srcdir)/detail/external/mllpt-lib/stream-pos.sml $(srcdir)/detail/external/mllpt-lib/ml-lpt-lib.cm $(srcdir)/detail/external/mllpt-lib/mllpt-lib.mlb $(srcdir)/detail/external/mllpt-lib/err-handler.sml $(srcdir)/detail/external/mllpt-lib/MLton-LICENSE $(srcdir)/detail/external/mllpt-lib/ulex-buffer.sml $(srcdir)/detail/external/mllpt-lib/ml-lpt-lib.mlb $(srcdir)/detail/external/mllpt-lib/wrapped-strm.sml $(srcdir)/detail/external/mllpt-lib/antlr-tokens-sig.sml $(srcdir)/detail/external/mllpt-lib/antlr-lexer-sig.sml $(srcdir)/detail/external/mllpt-lib/ebnf.sml
 
-EXTRA_DIST = LICENSE $(MLLPT_LIB) $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(GDSL_ARM7) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm build.bat
+EXTRA_DIST = LICENSE $(JSOURCES_FULLPATH) $(MLLPT_LIB) $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(GDSL_ARM7) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm build.bat
 
 WINDOWS_DISTFILES = $(GDSLC) LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(GDSL_ARM7) $(RUNTIME) build.bat
 
@@ -668,7 +673,7 @@ win-distdir: $(WINDOWS_DISTFILES)
 
 
 win-dist : win-distdir
-	strip $(GDSLC)
+	$(STRIP) $(GDSLC)
 	-rm -f win-$(distdir).zip
 	zip -rq win-$(distdir).zip $(distdir)
 	$(am__remove_distdir)
