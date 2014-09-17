@@ -11,11 +11,33 @@
 	
   </extension>
   <extension
-        point="org.eclipse.core.runtime.preferences">
-     <initializer
-           class="gdsl.plugin.preferences.PreferenceInitializer">
-     </initializer>
+        point="org.eclipse.ui.preferencePages">
+     <page
+           category="gdsl.plugin.GDSL"
+           class="gdsl.plugin.preferences.GdslCompilerPreferencePage"
+           id="gdsl.plugin.preferences.GDSLCompiler"
+           name="GDSL Compiler Validation">
+     </page>
   </extension>
+	<extension id="preferences" point="org.eclipse.core.runtime.preferences" name="preferences">
+		<scope name="Project" class="org.eclipse.core.internal.resources.ProjectPreferences"/>
+	</extension>
+ <extension
+       point="org.eclipse.ui.propertyPages">
+    <page
+          category="gdsl.plugin.GDSL"
+          class="gdsl.plugin.properties.GdslCompilerPropertyPage"
+          id="gdsl.plugin.properties.GDSLCompiler"
+          name="GDSL Compiler Validation"
+          nameFilter="*">
+       <enabledWhen>
+          <instanceof
+                value="org.eclipse.core.resources.IProject">
+          </instanceof>
+       </enabledWhen>
+    </page>
+ </extension>
+
 
 
 

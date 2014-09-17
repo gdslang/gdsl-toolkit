@@ -6,6 +6,7 @@ import gdsl.plugin.gDSL.CaseExp;
 import gdsl.plugin.gDSL.ClosedExp;
 import gdsl.plugin.gDSL.Exp;
 import gdsl.plugin.gDSL.GDSLPackage;
+import gdsl.plugin.gDSL.PAT;
 
 import java.util.Collection;
 
@@ -20,7 +21,6 @@ import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
-import org.eclipse.emf.ecore.util.EDataTypeEList;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.InternalEList;
 
@@ -73,14 +73,14 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
   protected ClosedExp closedExp;
 
   /**
-   * The cached value of the '{@link #getPat() <em>Pat</em>}' attribute list.
+   * The cached value of the '{@link #getPat() <em>Pat</em>}' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @see #getPat()
    * @generated
    * @ordered
    */
-  protected EList<String> pat;
+  protected EList<PAT> pat;
 
   /**
    * The cached value of the '{@link #getExp() <em>Exp</em>}' containment reference list.
@@ -189,11 +189,11 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<String> getPat()
+  public EList<PAT> getPat()
   {
     if (pat == null)
     {
-      pat = new EDataTypeEList<String>(String.class, this, GDSLPackage.CASE_EXP__PAT);
+      pat = new EObjectContainmentEList<PAT>(PAT.class, this, GDSLPackage.CASE_EXP__PAT);
     }
     return pat;
   }
@@ -224,6 +224,8 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
     {
       case GDSLPackage.CASE_EXP__CLOSED_EXP:
         return basicSetClosedExp(null, msgs);
+      case GDSLPackage.CASE_EXP__PAT:
+        return ((InternalEList<?>)getPat()).basicRemove(otherEnd, msgs);
       case GDSLPackage.CASE_EXP__EXP:
         return ((InternalEList<?>)getExp()).basicRemove(otherEnd, msgs);
     }
@@ -271,7 +273,7 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
         return;
       case GDSLPackage.CASE_EXP__PAT:
         getPat().clear();
-        getPat().addAll((Collection<? extends String>)newValue);
+        getPat().addAll((Collection<? extends PAT>)newValue);
         return;
       case GDSLPackage.CASE_EXP__EXP:
         getExp().clear();
@@ -342,8 +344,6 @@ public class CaseExpImpl extends MinimalEObjectImpl.Container implements CaseExp
     StringBuffer result = new StringBuffer(super.toString());
     result.append(" (name: ");
     result.append(name);
-    result.append(", pat: ");
-    result.append(pat);
     result.append(')');
     return result.toString();
   }

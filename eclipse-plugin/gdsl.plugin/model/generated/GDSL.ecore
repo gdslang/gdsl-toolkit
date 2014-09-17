@@ -7,20 +7,20 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Decl"/>
   <eClassifiers xsi:type="ecore:EClass" name="DeclExport" eSuperTypes="#//Decl">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="name" eType="#//DeclVal"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="name" eType="#//Val"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="tyVars" eType="#//TyVars"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//Ty" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="DeclType" eSuperTypes="#//Decl">
+  <eClassifiers xsi:type="ecore:EClass" name="Type" eSuperTypes="#//Decl">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tyVars" eType="#//TyVars"
+        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="conDecl" upperBound="-1"
         eType="#//ConDecl" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//Ty" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="tyVars" eType="#//TyVars"
-        containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="DeclVal" eSuperTypes="#//Decl">
+  <eClassifiers xsi:type="ecore:EClass" name="Val" eSuperTypes="#//Decl">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="attr" unique="false" upperBound="-1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -33,16 +33,16 @@
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TyVars">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="attr" unique="false" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attr" upperBound="-1" eType="#//Type"
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ConDecl">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="name" eType="#//CONS" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="ty" eType="#//Ty" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Ty">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="decl" eType="#//DeclType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="typeRef" eType="#//Type"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="tyBind" upperBound="-1"
         eType="#//TyBind" containment="true"/>
@@ -76,8 +76,8 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="closedExp" eType="#//ClosedExp"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pat" unique="false" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pat" upperBound="-1" eType="#//PAT"
+        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" upperBound="-1" eType="#//Exp"
         containment="true"/>
   </eClassifiers>
@@ -122,8 +122,13 @@
         eType="#//ApplyExp" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ApplyExp" eSuperTypes="#//SelectExp">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="atomicExp" upperBound="-1"
-        eType="#//AtomicExp" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="atomicExp" eType="#//AtomicExp"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="args" eType="#//Args" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Args">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="args" upperBound="-1" eType="#//AtomicExp"
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="AtomicExp" eSuperTypes="#//ApplyExp">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" unique="false" upperBound="-1"
@@ -145,5 +150,15 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ids" unique="false" upperBound="-1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Exp" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PAT">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="uscore" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="int" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pat" eType="#//PAT" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bitpat" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CONS">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="conName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
 </ecore:EPackage>

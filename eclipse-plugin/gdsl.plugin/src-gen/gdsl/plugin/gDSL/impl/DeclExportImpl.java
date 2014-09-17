@@ -3,10 +3,10 @@
 package gdsl.plugin.gDSL.impl;
 
 import gdsl.plugin.gDSL.DeclExport;
-import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.GDSLPackage;
 import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.TyVars;
+import gdsl.plugin.gDSL.Val;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
@@ -41,7 +41,7 @@ public class DeclExportImpl extends DeclImpl implements DeclExport
    * @generated
    * @ordered
    */
-  protected DeclVal name;
+  protected Val name;
 
   /**
    * The cached value of the '{@link #getTyVars() <em>Ty Vars</em>}' containment reference.
@@ -89,12 +89,12 @@ public class DeclExportImpl extends DeclImpl implements DeclExport
    * <!-- end-user-doc -->
    * @generated
    */
-  public DeclVal getName()
+  public Val getName()
   {
     if (name != null && name.eIsProxy())
     {
       InternalEObject oldName = (InternalEObject)name;
-      name = (DeclVal)eResolveProxy(oldName);
+      name = (Val)eResolveProxy(oldName);
       if (name != oldName)
       {
         if (eNotificationRequired())
@@ -109,7 +109,7 @@ public class DeclExportImpl extends DeclImpl implements DeclExport
    * <!-- end-user-doc -->
    * @generated
    */
-  public DeclVal basicGetName()
+  public Val basicGetName()
   {
     return name;
   }
@@ -119,9 +119,9 @@ public class DeclExportImpl extends DeclImpl implements DeclExport
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setName(DeclVal newName)
+  public void setName(Val newName)
   {
-    DeclVal oldName = name;
+    Val oldName = name;
     name = newName;
     if (eNotificationRequired())
       eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_EXPORT__NAME, oldName, name));
@@ -273,7 +273,7 @@ public class DeclExportImpl extends DeclImpl implements DeclExport
     switch (featureID)
     {
       case GDSLPackage.DECL_EXPORT__NAME:
-        setName((DeclVal)newValue);
+        setName((Val)newValue);
         return;
       case GDSLPackage.DECL_EXPORT__TY_VARS:
         setTyVars((TyVars)newValue);
@@ -296,7 +296,7 @@ public class DeclExportImpl extends DeclImpl implements DeclExport
     switch (featureID)
     {
       case GDSLPackage.DECL_EXPORT__NAME:
-        setName((DeclVal)null);
+        setName((Val)null);
         return;
       case GDSLPackage.DECL_EXPORT__TY_VARS:
         setTyVars((TyVars)null);

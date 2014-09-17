@@ -1,4 +1,10 @@
-grammar gdsl.plugin.GDSL hidden(WS, ML_COMMENT, SL_COMMENT)//with org.eclipse.xtext.common.Terminals
+/**
+ * Grammar for the GDSL language
+ * 
+ * @author Daniel Endress
+ */
+
+grammar gdsl.plugin.GDSL hidden(WS, ML_COMMENT, SL_COMMENT)
 
 generate gDSL "http://www.plugin.gdsl/GDSL"
 
@@ -13,26 +19,29 @@ Decl:
 ;
 
 DeclExport:
-	'export' name=[DeclVal] (tyVars=TyVars)? ':' type=Ty
+	'export' name=[Val] (tyVars=TyVars)? ':' type=Ty
 ;
 
-DeclType:
-	'type' name=ID 
-	(
-		('=' (=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) | value=Ty))
-		| (tyVars=TyVars '=' (conDecl+=ConDecl ('|' conDecl+=ConDecl)*))
-	)
+DeclType returns Type:
+	'type' name=(ID | S) (tyVars=TyVars)? '=' (
+			=>(conDecl+=ConDecl ('|' conDecl+=ConDecl)*) 
+			| value=Ty
+		)
 ;
 
-DeclVal:
+DeclVal returns Val:
 	'val'
-	(=>((name=ID | =>name=SYM) (attr += ID)* '=' exp=Exp) |
-	((mid+=MID attr+=ID)* '=' exp=Exp) |
-	( name=ID '[' decPat+=DECODEPAT* ']' (('=' exp=Exp) | ('|' exps+=Exp '=' exps+=Exp)+) ) )
+	(=>((name=(ID | S) | name=SYM) (attr += (ID | S))* '=' exp=Exp) |
+	((mid+=MID attr+=(ID | S))* '=' exp=Exp) |
+	( name=(ID | S) '[' decPat+=DECODEPAT* ']' (('=' exp=Exp) | ('|' exps+=Exp '=' exps+=Exp)+) ) )
 ;
 
 TyVars:
-	'[' attr+=ID (',' attr+=ID)* ']'
+	'[' attr+=TyVar (',' attr+=TyVar)* ']'
+;
+
+TyVar returns Type:
+	name=(ID | S)
 ;
 
 ConDecl:
@@ -40,21 +49,22 @@ ConDecl:
 ;
 
 Ty:
-	value=INTEGER |
-//	'|' value=INTEGER '|' |
-	(decl=[DeclType] | type='int') ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
+	value=(INTEGER|BINS) |
+	'|' value=INTEGER '|' |
+	'|' typeRef=[Type] '|' |
+	(typeRef=[Type] | type=('int'|'string'|'unit')) ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
 	{Ty} '{' (elements+=TyElement (',' elements+=TyElement)*)? '}' |
 	'(' param+=Ty (',' param+=Ty)* ')' '->' resType=Ty |
-	{Ty} '()' |
+	{Ty} '()' ('->' resType=Ty)? |
 	S r=Ty LESS in=Ty '=>' out=Ty GREATER
 ;
 
 TyBind:
-	name=ID ('=' value=Ty)?
+	name=(ID | S) ('=' value=Ty)?
 ;
 
 TyElement:
-	name=ID ':' value=Ty
+	name=(ID | S) ':' value=Ty
 ;
 
 Exp: 
@@ -73,8 +83,8 @@ ClosedExp:
 ;
 
 MonadicExp:
-	=>exp=Exp |
-	name=ID '<-' exp=Exp
+	exp=Exp |
+	name=(ID | S) '<-' exp=Exp
 ;
 
 OrElseExp:
@@ -103,59 +113,67 @@ SelectExp:
 
 ApplyExp:
 	'~' AtomicExp |
-	=>(atomicExp+=AtomicExp)+
+	atomicExp=AtomicExp args=Args
+;
+
+Args:
+	{Args} (
+		args+=AtomicExp* 
+		| '()'
+	)
 ;
 
 AtomicExp:
 	name=LIT |
 	name=STRING |
-	=>(name=CONS) |
-	name=ID (=>DOT id+=ID)* |
+	name=(ID | S) (=>DOT id+=(ID | S))* |
 	name='@' '{' fields+=Field (',' fields+=Field)* '}' |
-	'$' name=ID |
-	'(' expr=Exp ')' (=>DOT id+=ID)* |
-	{AtomicExp} '{' (id+=ID '=' exps+=Exp (',' id+=ID '=' exps+=Exp)*)? '}' |
+	'$' name=(ID | S) |
+	'(' expr=Exp ')' (=>DOT id+=(ID | S))* |
+	{AtomicExp} '{' (id+=(ID | S) '=' exps+=Exp (',' id+=(ID | S) '=' exps+=Exp)*)? '}' |
 	name='let' valDecl+=ValueDecl+ 'in' expr=Exp 'end'
 ;
 
 Field:
-	name=ID '=' exp=Exp |
-	'~' name=ID
+	name=(ID | S) '=' exp=Exp |
+	'~' name=(ID | S)
 ;
 
 ValueDecl:
-	'val' (=>name=ID | name=SYM) ids+=ID* '=' exp=Exp
+	'val' (name=(ID | S) | name=SYM) ids+=(ID | S)* '=' exp=Exp
 ;
 
+PAT: uscore=USCORE | 
+	=>(int=INTEGER) | 
+	=>(id=(ID | S) pat=PAT?) | 
+	"'"bitpat=BITPAT"'"
+;
+CONS: conName=(ID | S);
+
 DECODEPAT: "'"BITPAT+"'" | TOKPAT;
-TOKPAT: HEXINT | ID;
-BITPAT: BINARY | (ID (BITPATORINT)?);
+TOKPAT: HEXINT | (ID | S);
+BITPAT: BINARY | ((ID | S) (BITPATORINT)?);
 BITPATORINT: (':' POSINT) | ('@' BINARY);
-PAT: USCORE | =>INTEGER| =>CONS PAT? | =>ID | BITPAT ;
 LIT: INTEGER | "'"BINARY?"'";
-ID: CONS | ID_WO_CONS | SLASH;
 MID: MIXID | USCORE;
-SYM: USCORE| SLASH | BS | DOT | LESS | GREATER | SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER;
+SYM: USCORE | BS | DOT | LESS | GREATER | SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER;
 INTEGER: POSINT | HEXINT | NEGINT;
 POSINT: POSINT_WO_DUALS | DUALS;
 BINARY: DUALS | BINS | BS | DOT;
-CONS: S | CONS_WO_S;
 
 terminal USCORE:'_';
-terminal SLASH:'/';
 terminal BS:'\\';
 terminal DOT:'.';
 terminal S: 'S';
 terminal LESS: '<';
 terminal GREATER: '>';
-terminal SYM_WO_USCORE_WO_SLASH_WO_BS_WO_DOT_WO_LESS_WO_GREATER: (CHARSYM|OTHERSYM)+;
 terminal MIXID:'_'(USCORE|IDCHAR)*;
-terminal CONS_WO_S:('A'..'Z') (USCORE|IDCHAR)*;
-terminal ID_WO_CONS:('A'..'Z'|'a'..'z'|'/') (USCORE|IDCHAR)*;
+terminal ID:('A'..'Z'|'a'..'z'|'/') (USCORE|IDCHAR)*;
+terminal SYM_WO_USCORE_SLASH_BS_DOT_LESS_GREATER: (CHARSYM|OTHERSYM)+;
 terminal STRING:'"' ( '\\'('b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\') | !('\\'|'"') )* '"';
 terminal fragment IDCHAR:('A'..'Z'|'a'..'z'|'/'|'0'..'9'|CHARSYM);
-terminal fragment CHARSYM:'-'|'?'/*|"'"*/|'!';
-terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'/*|'#'*/|'*'|'\\';
+terminal fragment CHARSYM:'-'|'?'|'!';
+terminal fragment OTHERSYM:'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'|'|'#'|'*'|'\\';
 terminal DUALS: ('0'|'1')+;
 terminal BINS:('0'|'1'|'\\'|'.'|'|')*;
 terminal POSINT_WO_DUALS: ('0'..'9')+;

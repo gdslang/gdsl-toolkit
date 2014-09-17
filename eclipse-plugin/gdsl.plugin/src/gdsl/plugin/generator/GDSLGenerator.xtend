@@ -3,9 +3,6 @@
  */
 package gdsl.plugin.generator
 
-import gdsl.plugin.preferences.GDSLPluginPreferences
-import java.io.File
-import java.util.regex.Pattern
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
@@ -23,35 +20,6 @@ class GDSLGenerator implements IGenerator {
 //				.filter(typeof(Greeting))
 //				.map[name]
 //				.join(', '))\
-
-		var commandBuilder = new StringBuilder()
-		
-		commandBuilder.append(GDSLPluginPreferences.compilerCall)
-		
-		val smlLoad = GDSLPluginPreferences.compilerPath
-		if(null != smlLoad && !"".equals(smlLoad.trim)) {
-			commandBuilder.append(" @SMLload=")
-			commandBuilder.append(smlLoad)
-		}
-		
-		val arguments = GDSLPluginPreferences.compileArguments
-		if(null != arguments && !"".equals(arguments.trim)){
-			commandBuilder.append(" ")
-			commandBuilder.append(arguments)			
-		}
-		
-		val runtimeEnvironment = GDSLPluginPreferences.runtimeFolder
-		if(null != runtimeEnvironment && !"".equals(runtimeEnvironment.trim)){
-			commandBuilder.append(" --runtime=")
-			commandBuilder.append(runtimeEnvironment)
-		}
-		
-		var files = GDSLPluginPreferences.compileFiles
-		files = files.replaceAll(Pattern.quote(File.pathSeparator), " ")
-		commandBuilder.append(" ")
-		commandBuilder.append(files)
-		
-		RunCompiler.compile(commandBuilder.toString)
 	}
-	
+
 }

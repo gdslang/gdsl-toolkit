@@ -90,14 +90,14 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createDeclExportAdapter();
       }
       @Override
-      public Adapter caseDeclType(DeclType object)
+      public Adapter caseType(Type object)
       {
-        return createDeclTypeAdapter();
+        return createTypeAdapter();
       }
       @Override
-      public Adapter caseDeclVal(DeclVal object)
+      public Adapter caseVal(Val object)
       {
-        return createDeclValAdapter();
+        return createValAdapter();
       }
       @Override
       public Adapter caseTyVars(TyVars object)
@@ -180,6 +180,11 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createApplyExpAdapter();
       }
       @Override
+      public Adapter caseArgs(Args object)
+      {
+        return createArgsAdapter();
+      }
+      @Override
       public Adapter caseAtomicExp(AtomicExp object)
       {
         return createAtomicExpAdapter();
@@ -193,6 +198,16 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
       public Adapter caseValueDecl(ValueDecl object)
       {
         return createValueDeclAdapter();
+      }
+      @Override
+      public Adapter casePAT(PAT object)
+      {
+        return createPATAdapter();
+      }
+      @Override
+      public Adapter caseCONS(CONS object)
+      {
+        return createCONSAdapter();
       }
       @Override
       public Adapter defaultCase(EObject object)
@@ -262,31 +277,31 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
   }
 
   /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.DeclType <em>Decl Type</em>}'.
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Type <em>Type</em>}'.
    * <!-- begin-user-doc -->
    * This default implementation returns null so that we can easily ignore cases;
    * it's useful to ignore a case when inheritance will catch all the cases anyway.
    * <!-- end-user-doc -->
    * @return the new adapter.
-   * @see gdsl.plugin.gDSL.DeclType
+   * @see gdsl.plugin.gDSL.Type
    * @generated
    */
-  public Adapter createDeclTypeAdapter()
+  public Adapter createTypeAdapter()
   {
     return null;
   }
 
   /**
-   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.DeclVal <em>Decl Val</em>}'.
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Val <em>Val</em>}'.
    * <!-- begin-user-doc -->
    * This default implementation returns null so that we can easily ignore cases;
    * it's useful to ignore a case when inheritance will catch all the cases anyway.
    * <!-- end-user-doc -->
    * @return the new adapter.
-   * @see gdsl.plugin.gDSL.DeclVal
+   * @see gdsl.plugin.gDSL.Val
    * @generated
    */
-  public Adapter createDeclValAdapter()
+  public Adapter createValAdapter()
   {
     return null;
   }
@@ -532,6 +547,21 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
   }
 
   /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Args <em>Args</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.Args
+   * @generated
+   */
+  public Adapter createArgsAdapter()
+  {
+    return null;
+  }
+
+  /**
    * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.AtomicExp <em>Atomic Exp</em>}'.
    * <!-- begin-user-doc -->
    * This default implementation returns null so that we can easily ignore cases;
@@ -572,6 +602,36 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createValueDeclAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.PAT <em>PAT</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.PAT
+   * @generated
+   */
+  public Adapter createPATAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.CONS <em>CONS</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.CONS
+   * @generated
+   */
+  public Adapter createCONSAdapter()
   {
     return null;
   }

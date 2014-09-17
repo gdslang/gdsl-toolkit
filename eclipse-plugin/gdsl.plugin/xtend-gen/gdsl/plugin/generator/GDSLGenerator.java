@@ -3,11 +3,6 @@
  */
 package gdsl.plugin.generator;
 
-import com.google.common.base.Objects;
-import gdsl.plugin.generator.RunCompiler;
-import gdsl.plugin.preferences.GDSLPluginPreferences;
-import java.io.File;
-import java.util.regex.Pattern;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.generator.IFileSystemAccess;
 import org.eclipse.xtext.generator.IGenerator;
@@ -20,61 +15,5 @@ import org.eclipse.xtext.generator.IGenerator;
 @SuppressWarnings("all")
 public class GDSLGenerator implements IGenerator {
   public void doGenerate(final Resource resource, final IFileSystemAccess fsa) {
-    StringBuilder commandBuilder = new StringBuilder();
-    String _compilerCall = GDSLPluginPreferences.getCompilerCall();
-    commandBuilder.append(_compilerCall);
-    final String smlLoad = GDSLPluginPreferences.getCompilerPath();
-    boolean _and = false;
-    boolean _notEquals = (!Objects.equal(null, smlLoad));
-    if (!_notEquals) {
-      _and = false;
-    } else {
-      String _trim = smlLoad.trim();
-      boolean _equals = "".equals(_trim);
-      boolean _not = (!_equals);
-      _and = _not;
-    }
-    if (_and) {
-      commandBuilder.append(" @SMLload=");
-      commandBuilder.append(smlLoad);
-    }
-    final String arguments = GDSLPluginPreferences.getCompileArguments();
-    boolean _and_1 = false;
-    boolean _notEquals_1 = (!Objects.equal(null, arguments));
-    if (!_notEquals_1) {
-      _and_1 = false;
-    } else {
-      String _trim_1 = arguments.trim();
-      boolean _equals_1 = "".equals(_trim_1);
-      boolean _not_1 = (!_equals_1);
-      _and_1 = _not_1;
-    }
-    if (_and_1) {
-      commandBuilder.append(" ");
-      commandBuilder.append(arguments);
-    }
-    final String runtimeEnvironment = GDSLPluginPreferences.getRuntimeFolder();
-    boolean _and_2 = false;
-    boolean _notEquals_2 = (!Objects.equal(null, runtimeEnvironment));
-    if (!_notEquals_2) {
-      _and_2 = false;
-    } else {
-      String _trim_2 = runtimeEnvironment.trim();
-      boolean _equals_2 = "".equals(_trim_2);
-      boolean _not_2 = (!_equals_2);
-      _and_2 = _not_2;
-    }
-    if (_and_2) {
-      commandBuilder.append(" --runtime=");
-      commandBuilder.append(runtimeEnvironment);
-    }
-    String files = GDSLPluginPreferences.getCompileFiles();
-    String _quote = Pattern.quote(File.pathSeparator);
-    String _replaceAll = files.replaceAll(_quote, " ");
-    files = _replaceAll;
-    commandBuilder.append(" ");
-    commandBuilder.append(files);
-    String _string = commandBuilder.toString();
-    RunCompiler.compile(_string);
   }
 }

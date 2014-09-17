@@ -50,22 +50,22 @@ public interface GDSLFactory extends EFactory
   DeclExport createDeclExport();
 
   /**
-   * Returns a new object of class '<em>Decl Type</em>'.
+   * Returns a new object of class '<em>Type</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return a new object of class '<em>Decl Type</em>'.
+   * @return a new object of class '<em>Type</em>'.
    * @generated
    */
-  DeclType createDeclType();
+  Type createType();
 
   /**
-   * Returns a new object of class '<em>Decl Val</em>'.
+   * Returns a new object of class '<em>Val</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return a new object of class '<em>Decl Val</em>'.
+   * @return a new object of class '<em>Val</em>'.
    * @generated
    */
-  DeclVal createDeclVal();
+  Val createVal();
 
   /**
    * Returns a new object of class '<em>Ty Vars</em>'.
@@ -212,6 +212,15 @@ public interface GDSLFactory extends EFactory
   ApplyExp createApplyExp();
 
   /**
+   * Returns a new object of class '<em>Args</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Args</em>'.
+   * @generated
+   */
+  Args createArgs();
+
+  /**
    * Returns a new object of class '<em>Atomic Exp</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -237,6 +246,24 @@ public interface GDSLFactory extends EFactory
    * @generated
    */
   ValueDecl createValueDecl();
+
+  /**
+   * Returns a new object of class '<em>PAT</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>PAT</em>'.
+   * @generated
+   */
+  PAT createPAT();
+
+  /**
+   * Returns a new object of class '<em>CONS</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>CONS</em>'.
+   * @generated
+   */
+  CONS createCONS();
 
   /**
    * Returns the package supported by this factory.

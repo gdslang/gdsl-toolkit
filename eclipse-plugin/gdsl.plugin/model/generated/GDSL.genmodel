@@ -16,30 +16,30 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclExport/tyVars"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclExport/type"/>
     </genClasses>
-    <genClasses ecoreClass="GDSL.ecore#//DeclType">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclType/name"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclType/conDecl"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclType/value"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclType/tyVars"/>
+    <genClasses ecoreClass="GDSL.ecore#//Type">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Type/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/tyVars"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/conDecl"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Type/value"/>
     </genClasses>
-    <genClasses ecoreClass="GDSL.ecore#//DeclVal">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/name"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/attr"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/exp"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/mid"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/decPat"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/exps"/>
+    <genClasses ecoreClass="GDSL.ecore#//Val">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Val/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Val/attr"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Val/exp"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Val/mid"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Val/decPat"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Val/exps"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//TyVars">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//TyVars/attr"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//TyVars/attr"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//ConDecl">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//ConDecl/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ConDecl/name"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ConDecl/ty"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//Ty">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Ty/value"/>
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/decl"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/typeRef"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Ty/type"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/tyBind"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/elements"/>
@@ -65,7 +65,7 @@
     <genClasses ecoreClass="GDSL.ecore#//CaseExp">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//CaseExp/name"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//CaseExp/closedExp"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//CaseExp/pat"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//CaseExp/pat"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//CaseExp/exp"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//ClosedExp">
@@ -98,6 +98,10 @@
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//ApplyExp">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ApplyExp/atomicExp"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ApplyExp/args"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//Args">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Args/args"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//AtomicExp">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//AtomicExp/id"/>
@@ -114,6 +118,16 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//ValueDecl/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//ValueDecl/ids"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ValueDecl/exp"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//PAT">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//PAT/uscore"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//PAT/int"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//PAT/id"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//PAT/pat"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//PAT/bitpat"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//CONS">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//CONS/conName"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

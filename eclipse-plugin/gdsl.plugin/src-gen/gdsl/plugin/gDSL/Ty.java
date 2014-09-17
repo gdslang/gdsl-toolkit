@@ -15,7 +15,7 @@ import org.eclipse.emf.ecore.EObject;
  * The following features are supported:
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.Ty#getValue <em>Value</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.Ty#getDecl <em>Decl</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.Ty#getTypeRef <em>Type Ref</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.Ty#getType <em>Type</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.Ty#getTyBind <em>Ty Bind</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.Ty#getElements <em>Elements</em>}</li>
@@ -60,30 +60,30 @@ public interface Ty extends EObject
   void setValue(String value);
 
   /**
-   * Returns the value of the '<em><b>Decl</b></em>' reference.
+   * Returns the value of the '<em><b>Type Ref</b></em>' reference.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Decl</em>' reference isn't clear,
+   * If the meaning of the '<em>Type Ref</em>' reference isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Decl</em>' reference.
-   * @see #setDecl(DeclType)
-   * @see gdsl.plugin.gDSL.GDSLPackage#getTy_Decl()
+   * @return the value of the '<em>Type Ref</em>' reference.
+   * @see #setTypeRef(Type)
+   * @see gdsl.plugin.gDSL.GDSLPackage#getTy_TypeRef()
    * @model
    * @generated
    */
-  DeclType getDecl();
+  Type getTypeRef();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.Ty#getDecl <em>Decl</em>}' reference.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.Ty#getTypeRef <em>Type Ref</em>}' reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Decl</em>' reference.
-   * @see #getDecl()
+   * @param value the new value of the '<em>Type Ref</em>' reference.
+   * @see #getTypeRef()
    * @generated
    */
-  void setDecl(DeclType value);
+  void setTypeRef(Type value);
 
   /**
    * Returns the value of the '<em><b>Type</b></em>' attribute.

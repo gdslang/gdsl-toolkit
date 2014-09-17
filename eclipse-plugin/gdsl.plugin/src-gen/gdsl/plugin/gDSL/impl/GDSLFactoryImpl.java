@@ -67,8 +67,8 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.MODEL: return createModel();
       case GDSLPackage.DECL: return createDecl();
       case GDSLPackage.DECL_EXPORT: return createDeclExport();
-      case GDSLPackage.DECL_TYPE: return createDeclType();
-      case GDSLPackage.DECL_VAL: return createDeclVal();
+      case GDSLPackage.TYPE: return createType();
+      case GDSLPackage.VAL: return createVal();
       case GDSLPackage.TY_VARS: return createTyVars();
       case GDSLPackage.CON_DECL: return createConDecl();
       case GDSLPackage.TY: return createTy();
@@ -85,9 +85,12 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.MEXP: return createMExp();
       case GDSLPackage.SELECT_EXP: return createSelectExp();
       case GDSLPackage.APPLY_EXP: return createApplyExp();
+      case GDSLPackage.ARGS: return createArgs();
       case GDSLPackage.ATOMIC_EXP: return createAtomicExp();
       case GDSLPackage.FIELD: return createField();
       case GDSLPackage.VALUE_DECL: return createValueDecl();
+      case GDSLPackage.PAT: return createPAT();
+      case GDSLPackage.CONS: return createCONS();
       default:
         throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
     }
@@ -131,10 +134,10 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public DeclType createDeclType()
+  public Type createType()
   {
-    DeclTypeImpl declType = new DeclTypeImpl();
-    return declType;
+    TypeImpl type = new TypeImpl();
+    return type;
   }
 
   /**
@@ -142,10 +145,10 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
-  public DeclVal createDeclVal()
+  public Val createVal()
   {
-    DeclValImpl declVal = new DeclValImpl();
-    return declVal;
+    ValImpl val = new ValImpl();
+    return val;
   }
 
   /**
@@ -329,6 +332,17 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
    * <!-- end-user-doc -->
    * @generated
    */
+  public Args createArgs()
+  {
+    ArgsImpl args = new ArgsImpl();
+    return args;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public AtomicExp createAtomicExp()
   {
     AtomicExpImpl atomicExp = new AtomicExpImpl();
@@ -355,6 +369,28 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     ValueDeclImpl valueDecl = new ValueDeclImpl();
     return valueDecl;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public PAT createPAT()
+  {
+    PATImpl pat = new PATImpl();
+    return pat;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public CONS createCONS()
+  {
+    CONSImpl cons = new CONSImpl();
+    return cons;
   }
 
   /**

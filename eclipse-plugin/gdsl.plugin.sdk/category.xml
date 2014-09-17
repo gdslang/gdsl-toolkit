@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/gdsl.plugin.sdk_1.0.0.qualifier.jar" id="gdsl.plugin.sdk" version="1.0.0.qualifier">
+      <category name="gdslIde"/>
+   </feature>
+   <category-def name="gdslIde" label="GDSL IDE"/>
+</site>
