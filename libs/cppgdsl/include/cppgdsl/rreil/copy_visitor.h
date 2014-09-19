@@ -8,12 +8,13 @@
 #pragma once
 #include <vector>
 
-#include <cppgdsl/rreil/exception/exception_visitor.h>
-#include <cppgdsl/rreil/expr/expr_visitor.h>
-#include <cppgdsl/rreil/id/id_visitor.h>
-#include <cppgdsl/rreil/linear/linear_visitor.h>
-#include <cppgdsl/rreil/sexpr/sexpr_visitor.h>
-#include <cppgdsl/rreil/statement/statement_visitor.h>
+#include <cppgdsl/rreil/visitor.h>
+//#include <cppgdsl/rreil/exception/exception_visitor.h>
+//#include <cppgdsl/rreil/expr/expr_visitor.h>
+//#include <cppgdsl/rreil/id/id_visitor.h>
+//#include <cppgdsl/rreil/linear/linear_visitor.h>
+//#include <cppgdsl/rreil/sexpr/sexpr_visitor.h>
+//#include <cppgdsl/rreil/statement/statement_visitor.h>
 
 #include <cppgdsl/rreil/id/shared_id.h>
 #include <cppgdsl/rreil/expr/binop_op.h>
@@ -33,18 +34,14 @@ class expr;
 class sexpr;
 class statement;
 class id;
+class exception;
 
 class variable;
 class variable_limited;
 class address;
 class expr_cmp;
 
-class copy_visitor: public statement_visitor,
-    public sexpr_visitor,
-    public linear_visitor,
-    public id_visitor,
-    public expr_visitor,
-    public exception_visitor {
+class copy_visitor: public visitor {
 private:
   std::function<variable*(id*, int_t)> variable_ctor = NULL;
   std::function<variable_limited*(id*, int_t, int_t)> variable_limited_ctor = NULL;
@@ -76,8 +73,9 @@ private:
   std::function<statement*(sexpr*, address*, address*)> cbranch_ctor = NULL;
   std::function<statement*(address*, branch_hint)> branch_ctor = NULL;
   std::function<statement*(flop, variable, variable_limited, std::vector<variable_limited*>*)> floating_ctor = NULL;
-  std::function<statement*(std::string, std::vector<variable_limited*>*, std::vector<variable_limited*>*)> prim_ctor = NULL;
-  std::function<statement*(exception*)> _throw_ctor = NULL;
+  std::function<statement*(std::string, std::vector<variable_limited*>*, std::vector<variable_limited*>*)> prim_ctor =
+      NULL;
+  std::function<statement*(gdsl::rreil::exception*)> _throw_ctor = NULL;
 
   union {
     variable *_variable;
@@ -85,36 +83,41 @@ private:
     address *_address;
     expr_cmp *_expr_cmp;
 
-    assign *_assign;
-    load *_load;
-    store *_store;
-    ite *_ite;
-    _while *__while;
-    cbranch *_cbranch;
-    branch *_branch;
-    floating *_floating;
-    prim *_prim;
-    _throw *__throw;
+    statement *_statement;
+//    assign *_assign;
+//    load *_load;
+//    store *_store;
+//    ite *_ite;
+//    _while *__while;
+//    cbranch *_cbranch;
+//    branch *_branch;
+//    floating *_floating;
+//    prim *_prim;
+//    _throw *__throw;
 
     arbitrary *_arbitrary;
     sexpr_cmp *_sexpr_cmp;
     sexpr_lin *_sexpr_lin;
 
-    lin_binop *_lin_binop;
-    lin_imm *_lin_imm;
-    lin_scale *_lin_scale;
-    lin_var *_lin_var;
+    linear *_linear;
+//    lin_binop *_lin_binop;
+//    lin_imm *_lin_imm;
+//    lin_scale *_lin_scale;
+//    lin_var *_lin_var;
 
-    arch_id *_arch_id;
-    shared_id *_shared_id;
-    _virtual *__virtual;
+//    arch_id *_arch_id;
+//    shared_id *_shared_id;
+//    _virtual *__virtual;
+    id *_id;
 
-    expr_binop *_expr_binop;
-    expr_ext *_expr_ext;
-    expr_sexpr *_expr_sexpr;
+    expr *_expr;
+//    expr_binop *_expr_binop;
+//    expr_ext *_expr_ext;
+//    expr_sexpr *_expr_sexpr;
 
-    arch_exception *_arch_exception;
-    shared_exception *_shared_exception;
+    gdsl::rreil::exception *_exception;
+//    arch_exception *_arch_exception;
+//    shared_exception *_shared_exception;
   };
 
 public:
@@ -134,45 +137,49 @@ public:
     return _expr_cmp;
   }
 
-  assign *get_assign() {
-    return _assign;
+  statement *get_statement() {
+    return _statement;
   }
 
-  load *get_load() {
-    return _load;
-  }
-
-  store *get_store() {
-    return _store;
-  }
-
-  ite *get_ite() {
-    return _ite;
-  }
-
-  _while *get_while() {
-    return __while;
-  }
-
-  cbranch *get_cbranch() {
-    return _cbranch;
-  }
-
-  branch *get_branch() {
-    return _branch;
-  }
-
-  floating *get_floating() {
-    return _floating;
-  }
-
-  prim *get_prim() {
-    return _prim;
-  }
-
-  _throw *get_throw() {
-    return __throw;
-  }
+//  assign *get_assign() {
+//    return _assign;
+//  }
+//
+//  load *get_load() {
+//    return _load;
+//  }
+//
+//  store *get_store() {
+//    return _store;
+//  }
+//
+//  ite *get_ite() {
+//    return _ite;
+//  }
+//
+//  _while *get_while() {
+//    return __while;
+//  }
+//
+//  cbranch *get_cbranch() {
+//    return _cbranch;
+//  }
+//
+//  branch *get_branch() {
+//    return _branch;
+//  }
+//
+//  floating *get_floating() {
+//    return _floating;
+//  }
+//
+//  prim *get_prim() {
+//    return _prim;
+//  }
+//
+//  _throw *get_throw() {
+//    return __throw;
+//  }
 
   arbitrary *get_arbitrary() {
     return _arbitrary;
@@ -186,54 +193,68 @@ public:
     return _sexpr_lin;
   }
 
-  lin_binop *get_lin_binop() {
-    return _lin_binop;
+  linear *get_linear() {
+    return _linear;
   }
 
-  lin_imm *get_lin_imm() {
-    return _lin_imm;
+//  lin_binop *get_lin_binop() {
+//    return _lin_binop;
+//  }
+//
+//  lin_imm *get_lin_imm() {
+//    return _lin_imm;
+//  }
+//
+//  lin_scale *get_lin_scale() {
+//    return _lin_scale;
+//  }
+//
+//  lin_var *get_lin_var() {
+//    return _lin_var;
+//  }
+
+//  arch_id *get_arch_id() {
+//    return _arch_id;
+//  }
+//
+//  shared_id *get_shared_id() {
+//    return _shared_id;
+//  }
+//
+//  _virtual *get_virtual() {
+//    return __virtual;
+//  }
+
+  id *get_id() {
+    return _id;
   }
 
-  lin_scale *get_lin_scale() {
-    return _lin_scale;
+  expr *get_expr() {
+    return _expr;
   }
 
-  lin_var *get_lin_var() {
-    return _lin_var;
-  }
+//  expr_binop *get_expr_binop() {
+//    return _expr_binop;
+//  }
+//
+//  expr_ext *get_expr_ext() {
+//    return _expr_ext;
+//  }
+//
+//  expr_sexpr *get_expr_sexpr() {
+//    return _expr_sexpr;
+//  }
 
-  arch_id *get_arch_id() {
-    return _arch_id;
+  gdsl::rreil::exception *get_exception() {
+    return _exception;
   }
-
-  shared_id *get_shared_id() {
-    return _shared_id;
-  }
-
-  _virtual *get_virtual() {
-    return __virtual;
-  }
-
-  expr_binop *get_expr_binop() {
-    return _expr_binop;
-  }
-
-  expr_ext *get_expr_ext() {
-    return _expr_ext;
-  }
-
-  expr_sexpr *get_expr_sexpr() {
-    return _expr_sexpr;
-  }
-
-  arch_exception *get_arch_exception() {
-    return _arch_exception;
-  }
-
-  shared_exception *get_shared_exception() {
-    return _shared_exception;
-  }
-
+//  arch_exception *get_arch_exception() {
+//    return _arch_exception;
+//  }
+//
+//  shared_exception *get_shared_exception() {
+//    return _shared_exception;
+//  }
 
   virtual void visit(variable *v);
   virtual void visit(variable_limited *v);
@@ -271,102 +292,92 @@ public:
   virtual void visit(arch_exception *a);
   virtual void visit(shared_exception *a);
 
-  virtual void _default() {
+  void _(std::function<variable*(id*, int_t)> c) {
+    this->variable_ctor = c;
+  }
+  void _(std::function<variable_limited*(id*, int_t, int_t)> c) {
+    this->variable_limited_ctor = c;
+  }
+  void _(std::function<address*(int_t, linear*)> c) {
+    this->address_ctor = c;
+  }
+  void _(std::function<expr_cmp*(cmp_op, linear*, linear*)> c) {
+    this->expr_cmp_ctor = c;
   }
 
-//  void _(std::function<void(variable*)> c) {
-//    this->variable_ctor = c;
-//  }
-//  void _(std::function<void(variable_limited*)> c) {
-//    this->variable_limited_ctor = c;
-//  }
-//  void _(std::function<void(address*)> c) {
-//    this->address_ctor = c;
-//  }
-//  void _(std::function<void(expr_cmp*)> c) {
-//    this->expr_cmp_ctor = c;
-//  }
-//
-//  void _(std::function<void(arch_exception*)> c) {
-//    this->arch_exception_ctor = c;
-//  }
-//  void _(std::function<void(shared_exception*)> c) {
-//    this->shared_exception_ctor = c;
-//  }
-//
-//  void _(std::function<void(expr_binop*)> c) {
-//    this->expr_binop_ctor = c;
-//  }
-//  void _(std::function<void(expr_ext*)> c) {
-//    this->expr_ext_ctor = c;
-//  }
-//  void _(std::function<void(expr_sexpr*)> c) {
-//    this->expr_sexpr_ctor = c;
-//  }
-//
-//  void _(std::function<void(arch_id*)> c) {
-//    this->arch_id_ctor = c;
-//  }
-//  void _(std::function<void(shared_id*)> c) {
-//    this->shared_id_ctor = c;
-//  }
-//  void _(std::function<void(_virtual*)> c) {
-//    this->_virtual_ctor = c;
-//  }
-//
-//  void _(std::function<void(lin_binop*)> c) {
-//    this->lin_binop_ctor = c;
-//  }
-//  void _(std::function<void(lin_imm*)> c) {
-//    this->lin_imm_ctor = c;
-//  }
-//  void _(std::function<void(lin_scale*)> c) {
-//    this->lin_scale_ctor = c;
-//  }
-//  void _(std::function<void(lin_var*)> c) {
-//    this->lin_var_ctor = c;
-//  }
-//
-//  void _(std::function<void(arbitrary*)> c) {
-//    this->arbitrary_ctor = c;
-//  }
-//  void _(std::function<void(sexpr_cmp*)> c) {
-//    this->sexpr_cmp_ctor = c;
-//  }
-//  void _(std::function<void(sexpr_lin*)> c) {
-//    this->sexpr_lin_ctor = c;
-//  }
-//
-//  void _(std::function<void(assign*)> assign_ctor) {
-//    this->assign_ctor = assign_ctor;
-//  }
-//  void _(std::function<void(load*)> load_ctor) {
-//    this->load_ctor = load_ctor;
-//  }
-//  void _(std::function<void(store*)> store_ctor) {
-//    this->store_ctor = store_ctor;
-//  }
-//  void _(std::function<void(ite*)> ite_ctor) {
-//    this->ite_ctor = ite_ctor;
-//  }
-//  void _(std::function<void(_while*)> _while_ctor) {
-//    this->_while_ctor = _while_ctor;
-//  }
-//  void _(std::function<void(cbranch*)> cbranch_ctor) {
-//    this->cbranch_ctor = cbranch_ctor;
-//  }
-//  void _(std::function<void(branch*)> branch_ctor) {
-//    this->branch_ctor = branch_ctor;
-//  }
-//  void _(std::function<void(floating*)> floating_ctor) {
-//    this->floating_ctor = floating_ctor;
-//  }
-//  void _(std::function<void(prim*)> prim_ctor) {
-//    this->prim_ctor = prim_ctor;
-//  }
-//  void _(std::function<void(_throw*)> _throw_ctor) {
-//    this->_throw_ctor = _throw_ctor;
-//  }
+  void _(std::function<expr*(binop_op, linear*, linear*)> c) {
+    this->expr_binop_ctor = c;
+  }
+  void _(std::function<expr*(ext_op, int_t, linear*)> c) {
+    this->expr_ext_ctor = c;
+  }
+  void _(std::function<expr*(sexpr*)> c) {
+    this->expr_sexpr_ctor = c;
+  }
+
+  void _(std::function<id*(std::string)> c) {
+    this->arch_id_ctor = c;
+  }
+  void _(std::function<id*(shared_id_type)> c) {
+    this->shared_id_ctor = c;
+  }
+  void _(std::function<id*(int_t)> c) {
+    this->_virtual_ctor = c;
+  }
+
+  void _(std::function<linear*(binop_lin_op, linear*, linear*)> c) {
+    this->lin_binop_ctor = c;
+  }
+  void _(std::function<linear*(int_t)> c) {
+    this->lin_imm_ctor = c;
+  }
+  void _(std::function<linear*(int_t, linear*)> c) {
+    this->lin_scale_ctor = c;
+  }
+  void _(std::function<linear*(variable*)> c) {
+    this->lin_var_ctor = c;
+  }
+
+  void _(std::function<sexpr*()> c) {
+    this->arbitrary_ctor = c;
+  }
+  void _(std::function<sexpr*(expr_cmp*)> c) {
+    this->sexpr_cmp_ctor = c;
+  }
+  void _(std::function<sexpr*(linear*)> c) {
+    this->sexpr_lin_ctor = c;
+  }
+
+  void _(std::function<statement*(int_t, variable*, expr*)> c) {
+    this->assign_ctor = c;
+  }
+  void _(std::function<statement*(int_t, variable*, address*)> c) {
+    this->load_ctor = c;
+  }
+  void _(std::function<statement*(int_t, address*, linear*)> c) {
+    this->store_ctor = c;
+  }
+  void _(std::function<statement*(sexpr*, std::vector<statement*>*, std::vector<statement*>*)> c) {
+    this->ite_ctor = c;
+  }
+  void _(std::function<statement*(sexpr*, std::vector<statement*>*)> c) {
+    this->_while_ctor = c;
+  }
+  void _(std::function<statement*(sexpr*, address*, address*)> c) {
+    this->cbranch_ctor = c;
+  }
+  void _(std::function<statement*(address*, branch_hint)> c) {
+    this->branch_ctor = c;
+  }
+  void _(std::function<statement*(flop, variable, variable_limited, std::vector<variable_limited*>*)> c) {
+    this->floating_ctor = c;
+  }
+  void _(std::function<statement*(std::string, std::vector<variable_limited*>*, std::vector<variable_limited*>*)> c) {
+    this->prim_ctor = c;
+  }
+  void _(std::function<statement*(exception*)> c) {
+    this->_throw_ctor = c;
+  }
 };
 
 }
