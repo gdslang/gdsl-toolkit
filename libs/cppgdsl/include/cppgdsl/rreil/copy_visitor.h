@@ -68,15 +68,15 @@ private:
   std::function<statement*(sexpr*, std::vector<statement*>*, std::vector<statement*>*)> ite_ctor = NULL;
   std::function<statement*(sexpr*, std::vector<statement*>*)> _while_ctor = NULL;
   std::function<statement*(sexpr*, address*, address*)> cbranch_ctor = NULL;
-  std::function<statement*(address*, gdsl::rreil::branch_hint)> branch_ctor = NULL;
-  std::function<statement*(gdsl::rreil::flop, variable*, variable_limited*, std::vector<variable_limited*>)> floating_ctor =
+  std::function<statement*(address*, ::gdsl::rreil::branch_hint)> branch_ctor = NULL;
+  std::function<statement*(::gdsl::rreil::flop, variable*, variable_limited*, std::vector<variable_limited*>)> floating_ctor =
   NULL;
   std::function<statement*(std::string, std::vector<variable_limited*>, std::vector<variable_limited*>)> prim_ctor =
   NULL;
-  std::function<statement*(gdsl::rreil::exception*)> _throw_ctor = NULL;
+  std::function<statement*(::gdsl::rreil::exception*)> _throw_ctor = NULL;
 
-  std::function<gdsl::rreil::exception*(std::string)> arch_exception_ctor = NULL;
-  std::function<gdsl::rreil::exception*(shared_exception_type)> shared_exception_ctor = NULL;
+  std::function<::gdsl::rreil::exception*(std::string)> arch_exception_ctor = NULL;
+  std::function<::gdsl::rreil::exception*(shared_exception_type)> shared_exception_ctor = NULL;
 
   union {
     variable *_variable;
@@ -89,7 +89,7 @@ private:
     linear *_linear;
     id *_id;
     expr *_expr;
-    gdsl::rreil::exception *_exception;
+    ::gdsl::rreil::exception *_exception;
   };
 
 public:
@@ -129,7 +129,7 @@ public:
     return _expr;
   }
 
-  gdsl::rreil::exception *get_exception() {
+  ::gdsl::rreil::exception *get_exception() {
     return _exception;
   }
 
@@ -243,10 +243,10 @@ public:
   void _(std::function<statement*(sexpr*, address*, address*)> c) {
     this->cbranch_ctor = c;
   }
-  void _(std::function<statement*(address*, gdsl::rreil::branch_hint)> c) {
+  void _(std::function<statement*(address*, ::gdsl::rreil::branch_hint)> c) {
     this->branch_ctor = c;
   }
-  void _(std::function<statement*(gdsl::rreil::flop, variable*, variable_limited*, std::vector<variable_limited*>)> c) {
+  void _(std::function<statement*(::gdsl::rreil::flop, variable*, variable_limited*, std::vector<variable_limited*>)> c) {
     this->floating_ctor = c;
   }
   void _(std::function<statement*(std::string, std::vector<variable_limited*>, std::vector<variable_limited*>)> c) {
@@ -255,10 +255,10 @@ public:
   void _(std::function<statement*(exception*)> c) {
     this->_throw_ctor = c;
   }
-  void _(std::function<gdsl::rreil::exception*(std::string)> c) {
+  void _(std::function<::gdsl::rreil::exception*(std::string)> c) {
     this->arch_exception_ctor = c;
   }
-  void _(std::function<gdsl::rreil::exception*(shared_exception_type)> c) {
+  void _(std::function<::gdsl::rreil::exception*(shared_exception_type)> c) {
     this->shared_exception_ctor = c;
   }
 };
