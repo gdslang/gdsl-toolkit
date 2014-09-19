@@ -9,18 +9,15 @@
 #include <vector>
 
 #include <cppgdsl/rreil/visitor.h>
-//#include <cppgdsl/rreil/exception/exception_visitor.h>
-//#include <cppgdsl/rreil/expr/expr_visitor.h>
-//#include <cppgdsl/rreil/id/id_visitor.h>
-//#include <cppgdsl/rreil/linear/linear_visitor.h>
-//#include <cppgdsl/rreil/sexpr/sexpr_visitor.h>
-//#include <cppgdsl/rreil/statement/statement_visitor.h>
 
 #include <cppgdsl/rreil/id/shared_id.h>
 #include <cppgdsl/rreil/expr/binop_op.h>
 #include <cppgdsl/rreil/expr/expr_ext.h>
 #include <cppgdsl/rreil/expr_cmp/cmp_op.h>
 #include <cppgdsl/rreil/linear/binop_lin_op.h>
+#include <cppgdsl/rreil/branch_hint.h>
+#include <cppgdsl/rreil/flop.h>
+#include <cppgdsl/rreil/exception/shared_exception.h>
 
 extern "C" {
 #include <gdsl_generic.h>
@@ -71,11 +68,15 @@ private:
   std::function<statement*(sexpr*, std::vector<statement*>*, std::vector<statement*>*)> ite_ctor = NULL;
   std::function<statement*(sexpr*, std::vector<statement*>*)> _while_ctor = NULL;
   std::function<statement*(sexpr*, address*, address*)> cbranch_ctor = NULL;
-  std::function<statement*(address*, branch_hint)> branch_ctor = NULL;
-  std::function<statement*(flop, variable, variable_limited, std::vector<variable_limited*>*)> floating_ctor = NULL;
-  std::function<statement*(std::string, std::vector<variable_limited*>*, std::vector<variable_limited*>*)> prim_ctor =
-      NULL;
+  std::function<statement*(address*, gdsl::rreil::branch_hint)> branch_ctor = NULL;
+  std::function<statement*(gdsl::rreil::flop, variable*, variable_limited*, std::vector<variable_limited*>)> floating_ctor =
+  NULL;
+  std::function<statement*(std::string, std::vector<variable_limited*>, std::vector<variable_limited*>)> prim_ctor =
+  NULL;
   std::function<statement*(gdsl::rreil::exception*)> _throw_ctor = NULL;
+
+  std::function<gdsl::rreil::exception*(std::string)> arch_exception_ctor = NULL;
+  std::function<gdsl::rreil::exception*(shared_exception_type)> shared_exception_ctor = NULL;
 
   union {
     variable *_variable;
@@ -84,40 +85,11 @@ private:
     expr_cmp *_expr_cmp;
 
     statement *_statement;
-//    assign *_assign;
-//    load *_load;
-//    store *_store;
-//    ite *_ite;
-//    _while *__while;
-//    cbranch *_cbranch;
-//    branch *_branch;
-//    floating *_floating;
-//    prim *_prim;
-//    _throw *__throw;
-
-    arbitrary *_arbitrary;
-    sexpr_cmp *_sexpr_cmp;
-    sexpr_lin *_sexpr_lin;
-
+    sexpr *_sexpr;
     linear *_linear;
-//    lin_binop *_lin_binop;
-//    lin_imm *_lin_imm;
-//    lin_scale *_lin_scale;
-//    lin_var *_lin_var;
-
-//    arch_id *_arch_id;
-//    shared_id *_shared_id;
-//    _virtual *__virtual;
     id *_id;
-
     expr *_expr;
-//    expr_binop *_expr_binop;
-//    expr_ext *_expr_ext;
-//    expr_sexpr *_expr_sexpr;
-
     gdsl::rreil::exception *_exception;
-//    arch_exception *_arch_exception;
-//    shared_exception *_shared_exception;
   };
 
 public:
@@ -141,89 +113,13 @@ public:
     return _statement;
   }
 
-//  assign *get_assign() {
-//    return _assign;
-//  }
-//
-//  load *get_load() {
-//    return _load;
-//  }
-//
-//  store *get_store() {
-//    return _store;
-//  }
-//
-//  ite *get_ite() {
-//    return _ite;
-//  }
-//
-//  _while *get_while() {
-//    return __while;
-//  }
-//
-//  cbranch *get_cbranch() {
-//    return _cbranch;
-//  }
-//
-//  branch *get_branch() {
-//    return _branch;
-//  }
-//
-//  floating *get_floating() {
-//    return _floating;
-//  }
-//
-//  prim *get_prim() {
-//    return _prim;
-//  }
-//
-//  _throw *get_throw() {
-//    return __throw;
-//  }
-
-  arbitrary *get_arbitrary() {
-    return _arbitrary;
-  }
-
-  sexpr_cmp *get_sexpr_cmp() {
-    return _sexpr_cmp;
-  }
-
-  sexpr_lin *get_sexpr_lin() {
-    return _sexpr_lin;
+  sexpr *get_sexpr() {
+    return _sexpr;
   }
 
   linear *get_linear() {
     return _linear;
   }
-
-//  lin_binop *get_lin_binop() {
-//    return _lin_binop;
-//  }
-//
-//  lin_imm *get_lin_imm() {
-//    return _lin_imm;
-//  }
-//
-//  lin_scale *get_lin_scale() {
-//    return _lin_scale;
-//  }
-//
-//  lin_var *get_lin_var() {
-//    return _lin_var;
-//  }
-
-//  arch_id *get_arch_id() {
-//    return _arch_id;
-//  }
-//
-//  shared_id *get_shared_id() {
-//    return _shared_id;
-//  }
-//
-//  _virtual *get_virtual() {
-//    return __virtual;
-//  }
 
   id *get_id() {
     return _id;
@@ -233,28 +129,9 @@ public:
     return _expr;
   }
 
-//  expr_binop *get_expr_binop() {
-//    return _expr_binop;
-//  }
-//
-//  expr_ext *get_expr_ext() {
-//    return _expr_ext;
-//  }
-//
-//  expr_sexpr *get_expr_sexpr() {
-//    return _expr_sexpr;
-//  }
-
   gdsl::rreil::exception *get_exception() {
     return _exception;
   }
-//  arch_exception *get_arch_exception() {
-//    return _arch_exception;
-//  }
-//
-//  shared_exception *get_shared_exception() {
-//    return _shared_exception;
-//  }
 
   virtual void visit(variable *v);
   virtual void visit(variable_limited *v);
@@ -366,17 +243,23 @@ public:
   void _(std::function<statement*(sexpr*, address*, address*)> c) {
     this->cbranch_ctor = c;
   }
-  void _(std::function<statement*(address*, branch_hint)> c) {
+  void _(std::function<statement*(address*, gdsl::rreil::branch_hint)> c) {
     this->branch_ctor = c;
   }
-  void _(std::function<statement*(flop, variable, variable_limited, std::vector<variable_limited*>*)> c) {
+  void _(std::function<statement*(gdsl::rreil::flop, variable*, variable_limited*, std::vector<variable_limited*>)> c) {
     this->floating_ctor = c;
   }
-  void _(std::function<statement*(std::string, std::vector<variable_limited*>*, std::vector<variable_limited*>*)> c) {
+  void _(std::function<statement*(std::string, std::vector<variable_limited*>, std::vector<variable_limited*>)> c) {
     this->prim_ctor = c;
   }
   void _(std::function<statement*(exception*)> c) {
     this->_throw_ctor = c;
+  }
+  void _(std::function<gdsl::rreil::exception*(std::string)> c) {
+    this->arch_exception_ctor = c;
+  }
+  void _(std::function<gdsl::rreil::exception*(shared_exception_type)> c) {
+    this->shared_exception_ctor = c;
   }
 };
 
