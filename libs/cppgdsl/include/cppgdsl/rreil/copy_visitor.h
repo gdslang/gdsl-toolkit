@@ -79,6 +79,8 @@ private:
   std::function<::gdsl::rreil::exception*(shared_exception_type)> shared_exception_ctor = NULL;
 
   union {
+    std::vector<statement*> *_statements;
+
     variable *_variable;
     variable_limited *_variable_limited;
     address *_address;
@@ -111,6 +113,10 @@ public:
 
   statement *get_statement() {
     return _statement;
+  }
+
+  std::vector<statement*> *get_statements() {
+    return _statements;
   }
 
   sexpr *get_sexpr() {

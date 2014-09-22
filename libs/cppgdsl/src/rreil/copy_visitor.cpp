@@ -13,8 +13,12 @@
 using namespace std;
 
 void gdsl::rreil::copy_visitor::visit(std::vector<statement*> *statements) {
-  for(auto stmt : *statements)
+  std::vector<statement*> *_statements = new vector<statement*>();
+  for(auto stmt : *statements) {
     stmt->accept(*this);
+    _statements->push_back(this->_statement);
+  }
+  this->_statements = _statements;
 }
 
 void gdsl::rreil::copy_visitor::visit(variable *a) {
