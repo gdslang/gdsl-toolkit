@@ -133,6 +133,8 @@ public:
     return _exception;
   }
 
+  void visit(std::vector<statement*> *statements);
+
   virtual void visit(variable *v);
   virtual void visit(variable_limited *v);
   virtual void visit(address *v);

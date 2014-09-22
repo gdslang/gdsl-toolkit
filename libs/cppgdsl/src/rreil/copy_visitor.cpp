@@ -12,6 +12,11 @@
 
 using namespace std;
 
+void gdsl::rreil::copy_visitor::visit(std::vector<statement*> *statements) {
+  for(auto stmt : *statements)
+    stmt->accept(*this);
+}
+
 void gdsl::rreil::copy_visitor::visit(variable *a) {
   a->get_id()->accept(*this);
   id *id = _id;
