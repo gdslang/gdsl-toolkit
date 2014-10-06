@@ -93,6 +93,7 @@ structure Primitives = struct
    val inp = freshVar ()
    val out = freshVar ()
    val ropeVar = freshVar ()
+   val endianness = freshVar ()
 
    (*create a type from two vectors to one vector, all of size s*)
    fun func (a,b) = FUN ([a],b)
@@ -244,7 +245,7 @@ structure Primitives = struct
                 BD.meetVarImpliesVar (bvar content'', bvar content')},
        {name="void", ty=UNIT, flow = noFlow},
        {name="merge-rope", ty=FUN([ropeVar],STRING), flow = noFlow},
-       {name="endianness", ty=FUN([ZENO,ZENO],UNIT), flow = noFlow}
+       {name="endianness", ty=FUN([VEC endianness],UNIT), flow = noFlow}
        ]
 
    val primitiveSizeConstraints =
@@ -298,6 +299,7 @@ structure Primitives = struct
          val vvv = ftype [VECvtype, VECvtype] VECvtype
          val sv =  ftype [STRINGvtype] VOIDvtype
          val bi = ftype [VECvtype] INTvtype
+         val bv = ftype [VECvtype] VOIDvtype
          val iib = ftype [INTvtype, INTvtype] VECvtype
          val bb = ftype [VECvtype] VECvtype
          val is = ftype [INTvtype] STRINGvtype
@@ -314,7 +316,6 @@ structure Primitives = struct
          val ssis = ftype [STRINGvtype, STRINGvtype, INTvtype] STRINGvtype
          val si =  ftype [STRINGvtype] INTvtype
          val i = ftype [] INTvtype
-         val iiv = ftype [INTvtype, INTvtype] VOIDvtype
          val v = ftype [] VOIDvtype
          val fMv = ftype [ftype [OBJvtype] OBJvtype] (MONADvtype VOIDvtype)
          (* Generate type of the returned expression. The value that this
@@ -373,7 +374,7 @@ structure Primitives = struct
             [e] => action e
           | _ => raise ImpPrimTranslationBug))),
          ("merge-rope", (t 0, fn args => pr (MERGE_ROPEprim,os,args))),
-         ("endianness", (t 0, fn args => pr (SET_ENDIANNESSprim,iiv,unboxI args)))
+         ("endianness", (t 0, fn args => pr (ENDIANNESSprim,bv,unboxV args)))
          ]
       end
 

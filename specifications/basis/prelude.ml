@@ -200,15 +200,16 @@ val conf data short long = CONF
 type obj = OBJ
 
 # Set the endianness of the input.
-type endianness =
-    BIG_ENDIAN
-  | LITTLE_ENDIAN
-   
-val set-endianness kind size = let
-  val e = case kind of
-      BIG_ENDIAN : 0
-    | LITTLE_ENDIAN : 1
-  end
-in
-  return (endianness e size)
-end
+
+val little = '1'
+val big = '0'
+
+val endian-byte = '' #Access addresses bytewise
+val endian-big-16bit = big
+val endian-big-32bit = big ^ big
+val endian-big-64bit = big ^ big ^ big
+val endian-little-16bit = little
+val endian-little-32bit = little ^ little
+val endian-little-64bit = little ^ little ^ little
+
+val set-endianness mask = return (endianness mask)

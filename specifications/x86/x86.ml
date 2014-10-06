@@ -21,7 +21,7 @@ val config-default-opnd-sz-16 = '10'
 val test-opt opt config = if (zx (opt and config)) > 0 then '1' else '0'
 
 val decode config = do
-  set-endianness LITTLE_ENDIAN 1;
+  set-endianness endian-byte;
   update @{tab=void};
   main config
 end

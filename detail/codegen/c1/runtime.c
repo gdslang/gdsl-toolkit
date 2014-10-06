@@ -243,7 +243,7 @@ static INLINE_ATTR int_t consume(state_t s, int_t size) {
   };
   int_t result = 0;
   while (size)
-    result |= s->ip_start[(s->ip++ - s->ip_start) ^ s->token_addr_inv] << (--size*8);
+    result |= s->ip_start[((s->ip++ - s->ip_start + s->ip_base) ^ s->token_addr_inv) - s->ip_base] << (--size*8);
   return result;
 }
 
@@ -253,16 +253,17 @@ static INLINE_ATTR void unconsume(state_t s, int_t size) {
 
 void
 @endianness@
-(state_t s, int_t le, int_t size) {
-  if ((size != 1) && (size != 2) && (size != 4) && (size != 8)) {
-    s->err_str = "GDSL runtime: endianness(); invalid token size";
-    longjmp(s->err_tgt, 100);
-  };
-  if ((le != 0) && (le != 1)) {
-    s->err_str = "GDSL runtime: endianness(); invalid kind";
-    longjmp(s->err_tgt, 101);
-  };
-  s->token_addr_inv = le * (size - 1);
+(state_t s, vec_t mask) {
+//  if ((size != 1) && (size != 2) && (size != 4) && (size != 8)) {
+//    s->err_str = "GDSL runtime: endianness(); invalid token size";
+//    longjmp(s->err_tgt, 100);
+//  };
+//  if ((le != 0) && (le != 1)) {
+//    s->err_str = "GDSL runtime: endianness(); invalid kind";
+//    longjmp(s->err_tgt, 101);
+//  };
+//  s->token_addr_inv = le * (size - 1);
+  s->token_addr_inv = mask.data;
 }
 
 static int_t vec_to_signed(state_t s, vec_t v) {
@@ -387,8 +388,16 @@ void
 state_t
 @init@
 (void) {
+  vec_t endianness;
   state_t s = calloc(1,sizeof(struct state));
   s->handle = stdout;
+
+	/* initialize endianness to big endian, bytewise addressing */
+	endianness.data = 0;
+	endianness.size = 0;
+  @endianness@
+  (s, endianness);
+
   /* compute all constant expressions */
 @gdsl_init_constants@
 
@@ -397,9 +406,6 @@ state_t
   s->heap_base = NULL;
   s->heap_limit = NULL;
   s->heap = NULL;
-
-  @endianness@
-  (s, 0, 1);
 
   return s;
 }

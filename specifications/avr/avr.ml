@@ -526,7 +526,7 @@ val / ['1001010110101000'] = nullop WDR
 val / ['1001001 d d d d d 0100'] = binop XCH /Z rd5
 
 val decode config = do
-  set-endianness LITTLE_ENDIAN 2;
+  set-endianness endian-little-16bit;
   update@{rd='',rr='',ck='',cs='',cb='',io='',dq='', config = config};
   idx-before <- get-ip;
   insn <- /;
