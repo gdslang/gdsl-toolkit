@@ -51,6 +51,8 @@ structure Primitives = struct
    val stateO' = newFlow stateO
    val stateP = freshVar ()
    val stateP' = newFlow stateP
+   val stateQ = freshVar ()
+   val stateQ' = newFlow stateQ
    val a = freshVar ()
    val a = freshVar ()
    val a' = newFlow a
@@ -245,7 +247,8 @@ structure Primitives = struct
                 BD.meetVarImpliesVar (bvar content'', bvar content')},
        {name="void", ty=UNIT, flow = noFlow},
        {name="merge-rope", ty=FUN([ropeVar],STRING), flow = noFlow},
-       {name="endianness", ty=FUN([VEC endianness],UNIT), flow = noFlow}
+       {name="endianness", ty=func (VEC endianness, MONAD (UNIT, stateQ, stateQ')),
+        flow = BD.meetVarImpliesVar (bvar stateQ', bvar stateQ)}
        ]
 
    val primitiveSizeConstraints =
@@ -374,7 +377,7 @@ structure Primitives = struct
             [e] => action e
           | _ => raise ImpPrimTranslationBug))),
          ("merge-rope", (t 0, fn args => pr (MERGE_ROPEprim,os,args))),
-         ("endianness", (t 0, fn args => pr (ENDIANNESSprim,bv,unboxV args)))
+         ("endianness", (t ~1, fn args => action (PRIexp (ENDIANNESSprim,bv,unboxV args))))
          ]
       end
 

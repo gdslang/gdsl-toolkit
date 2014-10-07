@@ -2520,6 +2520,7 @@ structure DeadVariables = struct
      | hasSidePrim UNCONSUME32prim = true
      | hasSidePrim PRINTLNprim = true
      | hasSidePrim RAISEprim = true
+     | hasSidePrim ENDIANNESSprim = true
      | hasSidePrim _ = false
 
    fun visitDecl (FUNCdecl {

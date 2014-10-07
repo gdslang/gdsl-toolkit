@@ -201,15 +201,16 @@ type obj = OBJ
 
 # Set the endianness of the input.
 
-val little = '1'
-val big = '0'
+val endian-instr8-access8 = '' #Access addresses bytewise
 
-val endian-byte = '' #Access addresses bytewise
-val endian-big-16bit = big
-val endian-big-32bit = big ^ big
-val endian-big-64bit = big ^ big ^ big
-val endian-little-16bit = little
-val endian-little-32bit = little ^ little
-val endian-little-64bit = little ^ little ^ little
+val endian-big/instr16-big/access16 = '0'
+val endian-big/instr32-big/access32 = '00'
+val endian-big/instr64-big/access64 = '000'
+val endian-little/instr16-little/access16 = '1'
+val endian-little/instr32-little/access32 = '11'
+val endian-little/instr64-little/access64 = '111'
 
-val set-endianness mask = return (endianness mask)
+val endian-little/instr32-big/access64 = '111'
+val endian-little/instr32-little/access64 = '011'
+val endian-big/instr32-big/access64 = '100'
+val endian-big/instr32-little/access64 = '000'
