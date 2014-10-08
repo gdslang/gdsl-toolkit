@@ -55,22 +55,27 @@ int main(int argc, char** argv) {
     goto cleanup;
   }
 
-  obj_t insn = gdsl_decode(state, config);
+  size_t decoded_acc = 0;
+  while(decoded_acc < size) {
+    obj_t insn = gdsl_decode(state, config);
 
-  printf("[");
-  size_t decoded = gdsl_get_ip(state);
-  for(size_t i = 0; i < decoded; ++i) {
-    if(i) printf(" ");
-    printf("%02x", buffer[i]);
+    size_t decoded = gdsl_get_ip(state);
+    printf("[");
+    for(size_t i = decoded_acc; i < decoded; ++i) {
+      if(i != decoded_acc) printf(" ");
+      printf("%02x", buffer[i]);
+    }
+    printf("] ");
+
+    string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
+    puts(fmt);
+
+//    obj_t insn_asm = gdsl_generalize(state, insn);
+//    string_t asm_gen_str = gdsl_merge_rope(state, gdsl_asm_pretty(state, insn_asm));
+//    puts(asm_gen_str);
+
+    decoded_acc = decoded;
   }
-  printf("] ");
-
-  string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
-  puts(fmt);
-
-  obj_t insn_asm = gdsl_generalize(state, insn);
-  string_t asm_gen_str = gdsl_merge_rope(state, gdsl_asm_pretty(state, insn_asm));
-  puts(asm_gen_str);
 
   cleanup:
 
