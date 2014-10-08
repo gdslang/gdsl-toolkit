@@ -30,6 +30,6 @@ void gdsl::rreil::_while::accept(statement_visitor &v) {
 void gdsl::rreil::_while::put(ostream &out) {
   out << "while(" << *cond << ") {\n";
   for(auto stmt: *body)
-    out << stmt;
+    out << *stmt << endl;
   out << "\n}";
 }
