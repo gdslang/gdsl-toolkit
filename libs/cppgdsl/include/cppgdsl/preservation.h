@@ -6,11 +6,14 @@
  */
 
 #pragma once
+#include <gdsl_generic.h>
 
 namespace gdsl {
 
 enum preservation {
-  EVERYWHERE = 0, BLOCK = 1, CONTEXT = 2
+  EVERYWHERE = PRESERVATION_EVERYWHERE,
+  BLOCK = PRESERVATION_BLOCK,
+  CONTEXT = PRESERVATION_CONTEXT
 };
 
 }  // namespace gdsl

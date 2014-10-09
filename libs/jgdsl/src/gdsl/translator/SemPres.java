@@ -11,13 +11,13 @@ public enum SemPres {
    * This item requires the semantics of original machine program
    * and the translated program to equal on the instruction level.
    */
-  EVERYWHERE(0),
+  EVERYWHERE(1),
 
   /**
    * This item requires the semantics of original machine program
    * and the translated program to equal on the basic block level.
    */
-  BLOCK(1),
+  BLOCK(2),
 
   /**
    * This item requires the semantics of original machine program
@@ -26,7 +26,7 @@ public enum SemPres {
    * the program as a whole correctly whereas parts of translated semantics
    * cannot be mapped to parts of the original machine program.
    */
-  CONTEXT(2);
+  CONTEXT(4);
 
   private int id;
 

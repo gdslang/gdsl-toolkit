@@ -25,7 +25,7 @@ type sem_preservation =
  | SEM_PRESERVATION_BLOCK
  | SEM_PRESERVATION_CONTEXT
 
-val decode-translate-block-optimized-inner config limit pres = case pres of
+val decode-translate-block-optimized-preserve config limit pres = case pres of
    SEM_PRESERVATION_EVERYWHERE: do
      translated <- decode-translate-block config limit;
      clean <- cleanup translated;
@@ -56,9 +56,10 @@ type opt-result = {
 val decode-translate-block-optimized config limit opt-config = do
   update @{insns=INSNS_NIL};
   rreil <- case opt-config of
-     '001': decode-translate-block-optimized-inner config limit SEM_PRESERVATION_EVERYWHERE
-   | '01.': decode-translate-block-optimized-inner config limit SEM_PRESERVATION_BLOCK
-   | '1..': decode-translate-block-optimized-inner config limit SEM_PRESERVATION_CONTEXT
+     '000': decode-translate-block config limit
+   | '001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE
+   | '01.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK
+   | '1..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT
   end;
   insns <- query $insns;
   return {rreil=rreil, insns=insns}
