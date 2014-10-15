@@ -2,12 +2,14 @@
 
 export pretty : (insndata) -> rope
 
-val pretty i = show/op i.instruction
+val pretty insdata = show/instruction insdata.instruction
 
+val show/instruction insn = show/mnemonic insn
 
-val show/op i = 
-      case i of
-        SUB p : "SUB"
-      | _ : "ERR(show/op)"
+val show/mnemonic insn =
+   case insn of 
+      ADD m: "ADD"
+    | SUB m: "SUB"
+    | _: "UNKNOWN_MNEMONIC"
    end
 
