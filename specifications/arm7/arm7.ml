@@ -12,17 +12,14 @@
 export config-default: decoder-configuration
 export decode: (decoder-configuration) -> S insndata <{} => {}>
 export decoder-config : configuration[vec=decoder-configuration]
-export insn-length: int
-
 export operands : (insndata) -> int
 
 type decoder-configuration = 0
 
+type insndata = {length:int, insn:instruction}
+
 val config-default = ''
 val decoder-config = END
-
-# Instruction length in Bytes
-val insn-length = 4
 
 (* TODO: *)
 val operands i = 0
@@ -31,16 +28,26 @@ val operands i = 0
 val typeof-opnd insn i = 0
 
 # ----------------------------------------------------------------------
+# Main Entry Point
+# ----------------------------------------------------------------------
+val decode config = do
+  reset;
+
+  idx-before <- get-ip;
+  insn <- /;
+  idx-after <- get-ip;
+
+  return {length=(idx-after - idx-before), insn=insn}
+end
+
+# ----------------------------------------------------------------------
 # Type Definitions
 # ----------------------------------------------------------------------
-
-type insndata = {instruction:instruction}
 
 type instruction =
    BX of bx
  | ADC of dp # Missing: ADR, ORN
  | ADD of dp
- | ADR of dp_adr
  | AND of dp
  | BIC of dp
  | CMN of dp
@@ -92,21 +99,20 @@ type psr =
 
 # Standard data-processing instruction
 type dp = {
-  condition:condition,
-  s:1,
-  rn:register, # first operand register
-  rd:register, # destination register
-  op2:operand  # second operand
-}
-
-type dp_adr = {
-  cond:condition,
-  rd:register,
-  op2:operand
+  cond:condition, # condition code
+  s:1,            # whether the C flag should be set
+  rn:register,    # first operand register
+  rd:register,    # destination register
+  op2:operand     # second operand (immediate or register)
 }
 
 type mul = {
-  condition:condition, s:1, rd:register, rn:register, rs:register, rm:register
+  condition:condition,
+  s:1,
+  rd:register,
+  rn:register,
+  rs:register,
+  rm:register
 }
 
 type mull = {
@@ -139,8 +145,8 @@ type operand =
  | PSR of psr
 
 type const = {
-  byte:int, # numeric value
-  rot:int   # rotation
+  byte:8, # numeric value
+  rot:4   # rotation
 }
 
 type regshiftedreg = {
@@ -192,17 +198,11 @@ type condition =
  | LE
  | AL
 
-val decode config = do
-  reset;
-  insn <- /;
-  return {instruction=insn}
-end
-
-val dp cons condition s rn rd op2 = do
-  condition <- condition;
+val dp cons cond s rn rd op2 = do
+  cond <- cond;
   s <- s;
   op2 <- op2;
-  return (cons{condition=condition, s=s, rn=rn, rd=rd, op2=op2})
+  return (cons{cond=cond, s=s, rn=rn, rd=rd, op2=op2})
 end
 
 val mul cons condition s rd rn rs rm = do
@@ -235,6 +235,10 @@ end
 val branch cons condition offset = do
   condition <- condition;
   return (cons{condition=condition, offset=offset})
+end
+
+val const cons byte rot = do
+  return (cons{byte=byte, rot=rot})
 end
 
 val regshiftedreg cons rm register shift_type = do
@@ -310,25 +314,35 @@ val cond-from-bits bits =
    | '1110': AL
   end
 
-
-# Condition subdecoder
+# Condition subdecoder (4 bit condition code)
 val /cond ['cond:4'] = update@{cond=cond}
 
 val cond = do
-       cond  <- query $cond;
-       update @{cond='0000'};
-       return (cond-from-bits cond)
+  cond  <- query $cond;
+  update @{cond='0000'};
+  return (cond-from-bits cond)
+end
+
+# Immediate subdecoder (12 bit immediate)
+val /imm12 ['rot:4 byte:8'] = update@{rot=rot, byte=byte}
+
+val imm12 = do
+  rot <- query $rot;
+  byte <- query $byte;
+  update @{rot='0000', byte='00000000'};
+  ret <- const CONST byte rot;
+  return (ret)
 end
 
 (**)
 
 # Operand subdecoder: Immediate
-val /op2imm ['rotate:4 imm:8'] = update@{rotate=rotate, imm=imm}
+# val /op2imm ['rotate:4 imm:8'] = update@{rotate=rotate, imm=imm}
 
-# Operand subdecoder: Register + Immediate shift [[A8.4.1]]
+# Operand subdecoder: Register + Immediate shift
 val /op2register ['shift:5 shifttype:2 0 rm:4'] = update@{shiftoperation=0, shift_amount=shift, shifttype=shifttype, rm=rm}
 
-# Operand subdecoder: Register + Register controlled shift [[A8.4.2]]
+# Operand subdecoder: Register + Register controlled shift
 val /op2register ['shiftregister:4 0 shifttype:2 1 rm:4'] = update@{shiftoperation=1, shift_register=shiftregister, shifttype=shifttype, rm=rm}
 
 val op2register = do
@@ -356,20 +370,22 @@ val reset = do
 end
 
 (*TODO: this is plain wrong!*)
-val op2imm = do
-  imm <- query $imm;
-  rotate <- query $rotate;
-  reset;
-  # zero extend imm to 32 bits
-  # rotate right imm by 2 times rotate
-  return (CONST ({byte=zx imm, rot=zx rotate}))
-end
+# val op2imm = do
+#   imm <- query $imm;
+#   rotate <- query $rotate;
+#   reset;
+#   zero extend imm to 32 bits
+#   rotate right imm by 2 times rotate
+#   return (CONST ({byte=zx imm, rot=zx rotate}))
+# end
 
+# S flag subdecoder
 val /s ['s:1'] = update@{s=s}
+
 val s = do
-        s <- query $s;
-        update @{s='0'};
-        return (s)
+  s <- query $s;
+  update @{s='0'};
+  return (s)
 end
 
 # ----------------------------------------------------------------------
@@ -386,82 +402,75 @@ val / ['/cond 1010 offset:24'] = branch B cond offset
 ### BL
 val / ['/cond 1011 offset:24'] = branch BL cond offset
 
+### ADC
+###  - Add with Carry (immediate) [[A8.8.1]]
+val / ['/cond 0010101 /s rn:4 rd:4 /imm12'] = dp ADC cond s (register-from-bits rn) (register-from-bits rd) (imm12)
+###  - Add with Carry (register or register-shifted register) [[A8.8.2]] [[A8.8.3]]
+val / ['/cond 0000101 /s rn:4 rd:4 /op2register'] = dp ADC cond s (register-from-bits rn) (register-from-bits rd) (op2register)
+
 ### AND
 ###  - And (register)
 val / ['/cond 0000000 /s rn:4 rd:4 /op2register'] = dp AND cond s (register-from-bits rn) (register-from-bits rd) (op2register)
 ###  - And (immediate)
-val / ['/cond 0010000 /s rn:4 rd:4 /op2imm'] = dp AND cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0010000 /s rn:4 rd:4 /imm12'] = dp AND cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
-### ADC
-###  - Add with Carry (immediate) [[A8.6.1]]
-val / ['/cond 0010101 /s rn:4 rd:4 /op2imm'] = dp ADC cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
-###  - Add with Carry (register or register-shifted register) [[A8.6.2-3]]
-val / ['/cond 0000101 /s rn:4 rd:4 /op2register'] = dp ADC cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-
-### ADD [[A8.6.5]]
+### ADD
 ###  - Add (immediate)
-val / ['/cond 0010100 /s rn:4 rd:4 /op2imm'] = dp ADD cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0010100 /s rn:4 rd:4 /imm12'] = dp ADD cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 ###  - Add (register or register-shifted register)
 val / ['/cond 0000100 /s rn:4 rd:4 /op2register'] = dp ADD cond s (register-from-bits rn) (register-from-bits rd) (op2register)
 
-### ADR [[A8.6.10]] (*TODO: Remove s*)
-###  - Add immediate value to PC
-### Encoding A1:
-val / ['/cond 0010100 /s rn:4 rd:4 /op2imm'] = dp_adr ADR cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
-### Encoding A2:
-val / ['/cond 0010010 /s rn:4 r:4 /op2imm'] = dp_adr ADR cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
-
 ### EOR
 val / ['/cond 0000001 /s rn:4 rd:4 /op2register'] = dp EOR cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0010001 /s rn:4 rd:4 /op2imm'] = dp EOR cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0010001 /s rn:4 rd:4 /imm12'] = dp EOR cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### SUB
 val / ['/cond 0000010 /s rn:4 rd:4 /op2register'] = dp SUB cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0010010 /s rn:4 rd:4 /op2imm'] = dp SUB cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0010010 /s rn:4 rd:4 /imm12'] = dp SUB cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### RSB
 val / ['/cond 0000011 /s rn:4 rd:4 /op2register'] = dp RSB cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0010011 /s rn:4 rd:4 /op2imm'] = dp RSB cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0010011 /s rn:4 rd:4 /imm12'] = dp RSB cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### SBC 
 val / ['/cond 0000110 /s rn:4 rd:4 /op2register'] = dp SBC cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0010110 /s rn:4 rd:4 /op2imm'] = dp SBC cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0010110 /s rn:4 rd:4 /imm12'] = dp SBC cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### RSC 
 val / ['/cond 0000111 /s rn:4 rd:4 /op2register'] = dp RSC cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0010111 /s rn:4 rd:4 /op2imm'] = dp RSC cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0010111 /s rn:4 rd:4 /imm12'] = dp RSC cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### TST 
 val / ['/cond 00010001 rn:4 rd:4 /op2register'] = dp TST cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 00110001 rn:4 rd:4 /op2imm'] = dp TST cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 00110001 rn:4 rd:4 /imm12'] = dp TST cond (return '1') (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### TEQ 
 val / ['/cond 00010011 rn:4 rd:4 /op2register'] = dp TEQ cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 00110011 rn:4 rd:4 /op2imm'] = dp TEQ cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 00110011 rn:4 rd:4 /imm12'] = dp TEQ cond (return '1') (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### CMP 
 val / ['/cond 00010101 rn:4 rd:4 /op2register'] = dp CMP cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 00110101 rn:4 rd:4 /op2imm'] = dp CMP cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 00110101 rn:4 rd:4 /imm12'] = dp CMP cond (return '1') (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### CMN 
 val / ['/cond 00010111 rn:4 rd:4 /op2register'] = dp CMN cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 00110111 rn:4 rd:4 /op2imm'] = dp CMN cond (return '1') (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 00110111 rn:4 rd:4 /imm12'] = dp CMN cond (return '1') (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### ORR 
 val / ['/cond 0001100 /s rn:4 rd:4 /op2register'] = dp ORR cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0011100 /s rn:4 rd:4 /op2imm'] = dp ORR cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0011100 /s rn:4 rd:4 /imm12'] = dp ORR cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### MOV 
 val / ['/cond 0001101 /s rn:4 rd:4 /op2register'] = dp MOV cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0011101 /s rn:4 rd:4 /op2imm'] = dp MOV cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0011101 /s rn:4 rd:4 /imm12'] = dp MOV cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### BIC 
 val / ['/cond 0001110 /s rn:4 rd:4 /op2register'] = dp BIC cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0011110 /s rn:4 rd:4 /op2imm'] = dp BIC cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0011110 /s rn:4 rd:4 /imm12'] = dp BIC cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
 ### MVN 
 val / ['/cond 0001111 /s rn:4 rd:4 /op2register'] = dp MVN cond s (register-from-bits rn) (register-from-bits rd) (op2register)
-val / ['/cond 0011111 /s rn:4 rd:4 /op2imm'] = dp MVN cond s (register-from-bits rn) (register-from-bits rd) (op2imm)
+val / ['/cond 0011111 /s rn:4 rd:4 /imm12'] = dp MVN cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
 
 ##### MUL,MLA
@@ -543,7 +552,8 @@ val / ['/cond 011 /ldr/p /u /b /w 0 rn:4 rd:4 /op2register'] = loadstore STR con
 
 ### Half word and signed data transfer
 
-# LDRH - Load memory halfword [15:0] from register address + 5-bit immediate offset
+### LDRH
+###  - Load memory halfword [15:0] from register address + 5-bit immediate offset
 val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001011 rm:4'] = 
         loadstore 
                 LDRH
@@ -557,17 +567,16 @@ val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001011 rm:4'] =
                 (return (REGISTER (register-from-bits rm)))
 
 #val / ['/cond 000 /ldr/p /u 1 /w 1 rn:4 rd:4 00001011 rm:4'] = 
-        #       loadstore 
-        #               LDRH
-        #               cond
-        #               p
-        #               u
-        #               (return HALFWORD)
-        #                w
-        #                (register-from-bits rn)
-        #                (register-from-bits rd)
-        #               (return (IMMEDIATE (zx rd)))
-
+#       loadstore 
+#               LDRH
+#               cond
+#               p
+#               u
+#               (return HALFWORD)
+#                w
+#                (register-from-bits rn)
+#                (register-from-bits rd)
+#               (return (IMMEDIATE (zx rd)))
 
 (*
 # LDRSB - Load signed byte [7:0] from register address + register offset
@@ -623,8 +632,8 @@ val / ['/cond 000101101001111100000000 rm:4'] = psr_transfer MSR cond (return (R
 val / ['/cond 000100101000111100000000 rm:4'] = psr_transfer MSR cond (return (REGISTER (register-from-bits rm))) (PSR CPSR) '1'
 val / ['/cond 000101101000111100000000 rm:4'] = psr_transfer MSR cond (return (REGISTER (register-from-bits rm))) (PSR SPSR) '1'
 
-val / ['/cond 00110 P:1 1010001111 /op2imm'] = psr_transfer MSR cond (op2imm) (PSR CPSR) '1'
+val / ['/cond 00110 P:1 1010001111 /imm12'] = psr_transfer MSR cond (imm12) (PSR CPSR) '1'
 
 ### CLREX [[A8.6.30]]
 ###  - Clear-Exclusive
-val / ['11110101011111111111000000011111'] = return CLREX
+# val / ['11110101011111111111000000011111'] = return CLREX
