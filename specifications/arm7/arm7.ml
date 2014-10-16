@@ -12,6 +12,7 @@
 export config-default: decoder-configuration
 export decode: (decoder-configuration) -> S insndata <{} => {}>
 export decoder-config : configuration[vec=decoder-configuration]
+export insn-length: (insndata) -> int
 export operands : (insndata) -> int
 
 type decoder-configuration = 0
@@ -27,10 +28,14 @@ val operands i = 0
 (* TODO *)
 val typeof-opnd insn i = 0
 
+val insn-length insn = insn.length
+
 # ----------------------------------------------------------------------
 # Main Entry Point
 # ----------------------------------------------------------------------
 val decode config = do
+  endianness endian-little/instr32-little/access32;
+
   reset;
 
   idx-before <- get-ip;
@@ -408,17 +413,17 @@ val / ['/cond 0010101 /s rn:4 rd:4 /imm12'] = dp ADC cond s (register-from-bits 
 ###  - Add with Carry (register or register-shifted register) [[A8.8.2]] [[A8.8.3]]
 val / ['/cond 0000101 /s rn:4 rd:4 /op2register'] = dp ADC cond s (register-from-bits rn) (register-from-bits rd) (op2register)
 
+### ADD
+###  - Add (immediate) [[A8.8.5]]
+val / ['/cond 0010100 /s rn:4 rd:4 /imm12'] = dp ADD cond s (register-from-bits rn) (register-from-bits rd) (imm12)
+###  - Add (register or register-shifted register) [[A8.8.7]] [[A8.8.8]]
+val / ['/cond 0000100 /s rn:4 rd:4 /op2register'] = dp ADD cond s (register-from-bits rn) (register-from-bits rd) (op2register)
+
 ### AND
 ###  - And (register)
 val / ['/cond 0000000 /s rn:4 rd:4 /op2register'] = dp AND cond s (register-from-bits rn) (register-from-bits rd) (op2register)
 ###  - And (immediate)
 val / ['/cond 0010000 /s rn:4 rd:4 /imm12'] = dp AND cond s (register-from-bits rn) (register-from-bits rd) (imm12)
-
-### ADD
-###  - Add (immediate)
-val / ['/cond 0010100 /s rn:4 rd:4 /imm12'] = dp ADD cond s (register-from-bits rn) (register-from-bits rd) (imm12)
-###  - Add (register or register-shifted register)
-val / ['/cond 0000100 /s rn:4 rd:4 /op2register'] = dp ADD cond s (register-from-bits rn) (register-from-bits rd) (op2register)
 
 ### EOR
 val / ['/cond 0000001 /s rn:4 rd:4 /op2register'] = dp EOR cond s (register-from-bits rn) (register-from-bits rd) (op2register)
@@ -468,10 +473,13 @@ val / ['/cond 0011101 /s rn:4 rd:4 /imm12'] = dp MOV cond s (register-from-bits 
 val / ['/cond 0001110 /s rn:4 rd:4 /op2register'] = dp BIC cond s (register-from-bits rn) (register-from-bits rd) (op2register)
 val / ['/cond 0011110 /s rn:4 rd:4 /imm12'] = dp BIC cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
-### MVN 
+### MVN
 val / ['/cond 0001111 /s rn:4 rd:4 /op2register'] = dp MVN cond s (register-from-bits rn) (register-from-bits rd) (op2register)
 val / ['/cond 0011111 /s rn:4 rd:4 /imm12'] = dp MVN cond s (register-from-bits rn) (register-from-bits rd) (imm12)
 
+### LSL
+### - Logical Shift Left (immediate) [[A8.8.94]]
+## val / ['/cond 0001101 /s 0000 rd:4 imm5:5 000 rm:4'] = 
 
 ##### MUL,MLA
 
