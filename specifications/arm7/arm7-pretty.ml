@@ -4,6 +4,8 @@ export pretty : (insndata) -> rope
 
 val pretty insdata = show/instruction insdata.insn
 
+val -++ a b = a +++ " " +++ b
+
 val show/instruction insn = show/mnemonic insn
 
 val show/mnemonic insn =
@@ -37,9 +39,13 @@ val show/mnemonic insn =
     | LDRSRH m: "LDRSRH"
     | B m: "B"
     | BL m: "BL"
+    | BLX_imm m: "BLX (immediate)"
+    | BLX_reg m: "BLX (register)"
+    | BX m: "BX"
+    | BXJ m: "BXJ"
     | MRS m: "MRS"
     | MSR m: "MSR"
     | CLREX: "CLREX"
-    | _: "UNKNOWN_MNEMONIC"
+    | _: "???"
    end
 
