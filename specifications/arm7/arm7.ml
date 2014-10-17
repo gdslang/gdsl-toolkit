@@ -26,7 +26,7 @@ val decoder-config = END
 (* TODO: *)
 val operands i = 0
 
-(* TODO *)
+(* TODO: *)
 val typeof-opnd insn i = 0
 
 val insn-length insn = insn.length
@@ -102,6 +102,14 @@ type instruction =
  | MRS of psr_transfer
  | MSR of psr_transfer
  | CLREX
+ | DBG of cnd_opt
+ | DMB of opt
+ | DSB of opt
+ | ISB of opt
+ | NOP of cnd
+ | PLD of {u:1, r:1, rn:register, imm12:12}
+ | PLDW of {u:1, r:1, rn:register, imm12:12}
+ | PUSH of {cond:condition, registers:16}
 
 type signed =
    SIGNED
@@ -119,6 +127,19 @@ type width =
 type psr =
    CPSR
  | SPSR # _<current mode>
+
+type cnd = {
+  cond:condition
+}
+
+type opt = {
+  option:4
+}
+
+type cnd_opt = {
+  cond:condition,
+  option:4
+}
 
 # Standard data-processing instruction
 type dp = {
@@ -278,6 +299,16 @@ val bx cons cond rm = do
   return (cons{cond=cond, rm=(register-from-bits rm)})
 end
 
+val cnd cons cond = do
+  cond <- cond;
+  return (cons{cond=cond})
+end
+
+val cnd_opt cons cond option = do
+  cond <- cond;
+  return (cons{cond=cond, option=option})
+end
+
 val const cons byte rot = do
   return (cons{byte=byte, rot=rot})
 end
@@ -290,10 +321,20 @@ val immshiftedreg cons rm amount shift_type = do
   return (cons{rm=rm, amount=amount, shift_type=shift_type})
 end
 
+val pld cons u r rn imm12 = do
+  return (cons{u=u, r=r, rn=(register-from-bits rn), imm12=imm12})
+end
+
 val psr_transfer cons condition source destination flagsonly = do
   condition <- condition;
   source <- source;
   return (cons{condition=condition, source=source, destination=destination, flagsonly=flagsonly})
+end
+
+val push cons cond registers = do
+  cond <- cond;
+  registers <- registers;
+  return (cons{cond=cond, registers=registers})
 end
 
 val register-from-bits bits =
@@ -354,6 +395,10 @@ val cond-from-bits bits =
    | '1110': AL
   end
 
+# ----------------------------------------------------------------------
+# Subdecoder
+# ----------------------------------------------------------------------
+
 # Condition subdecoder (4 bit condition code; cannot be '1111')
 val /cond ['cond@0...'] = update@{cond=cond}
 val /cond ['cond@10..'] = update@{cond=cond}
@@ -376,8 +421,6 @@ val imm12 = do
   ret <- const CONST byte rot;
   return (ret)
 end
-
-(**)
 
 # Operand subdecoder: Immediate
 # val /op2imm ['rotate:4 imm:8'] = update@{rotate=rotate, imm=imm}
@@ -402,16 +445,6 @@ val op2register = do
   return (ret)
 end
 
-(*TODO: this is plain wrong!*)
-# val op2imm = do
-#   imm <- query $imm;
-#   rotate <- query $rotate;
-#   reset;
-#   zero extend imm to 32 bits
-#   rotate right imm by 2 times rotate
-#   return (CONST ({byte=zx imm, rot=zx rotate}))
-# end
-
 # S flag subdecoder
 val /s ['s:1'] = update@{s=s}
 
@@ -419,6 +452,39 @@ val s = do
   s <- query $s;
   update @{s='0'};
   return (s)
+end
+
+# Decodes a single register into a register_list for load/store instructions.
+val reg-to-reglist register =
+  case register of
+     '1111': '1000000000000000'
+   | '1110': '0100000000000000'
+   | '1101': '0010000000000000'
+   | '1100': '0001000000000000'
+   | '1011': '0000100000000000'
+   | '1010': '0000010000000000'
+   | '1001': '0000001000000000'
+   | '1000': '0000000100000000'
+   | '0111': '0000000010000000'
+   | '0110': '0000000001000000'
+   | '0101': '0000000000100000'
+   | '0100': '0000000000010000'
+   | '0011': '0000000000001000'
+   | '0010': '0000000000000100'
+   | '0001': '0000000000000010'
+   | '0000': '0000000000000001'
+  end
+
+# Subdecoder for (16 bit) register_lists for load/store instructions
+# NOTE: Bit i of the list is set, if register i should be loaded/stored.
+#       It's not possible to load/store the stack pointer (r13)
+val /register_list ['rt:4 000000000100'] = update@{register_list=(reg-to-reglist rt)}
+val /register_list ['registers@.............0..'] = update@{register_list=registers}
+
+val register_list = do
+  register_list <- query $register_list;
+  update @{register_list='0'};
+  return (register_list)
 end
 
 # ----------------------------------------------------------------------
@@ -563,7 +629,7 @@ val / ['/cond 0000101 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull UMLAL cond s (reg
 # SMLAL
 val / ['/cond 0000111 /s rdhi:4 rdlo:4 rs:4 1001 rm:4'] = mull SMLAL cond s (register-from-bits rdhi) (register-from-bits rdlo) (register-from-bits rs) (register-from-bits rm) 
 
-# LDR,STR
+# --- Load/store instructions ------------------------------------------
 
 val /ldr/p ['p:1'] = update@{p=p}
 val /b ['b:1'] = update@{b=b}
@@ -623,6 +689,41 @@ val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001011 rm:4'] =
 #               LDRH
 #               cond
 
-### CLREX [[A8.6.30]]
-###  - Clear-Exclusive
-# val / ['11110101011111111111000000011111'] = return CLREX
+# -- Load/store multiple instructions ----------------------------------
+
+### PUSH
+###  - Push Multiple Registers
+val / ['/cond 100100 1 0 1101 /register_list'] = push PUSH cond register_list
+
+# --- Miscellaneous instructions ---------------------------------------
+
+### CLREX
+###  - Clear-Exclusive [[A8.6.32]]
+val / ['1111 01010111 1 111 1111 0000 0001 1111'] = return CLREX
+
+### DBG
+###  - Debug Hint [[A8.8.42]]
+val / ['/cond 00110 0 10 0000 1111 0000 1111 option:4'] = cnd_opt DBG cond option
+
+### DMB
+###  - Data Memory Barrier [[A8.8.43]]
+val / ['1111 01010111 1111 1111 0000 0101 option:4'] = return (DMB{option=option})
+
+### DSB
+###  - Data Synchronization Barrier [[A8.8.44]]
+val / ['1111 01010111 1111 1111 0000 0100 option:4'] = return (DSB{option=option})
+
+### ISB
+###  - Instruction Synchronization Buffer [[A8.8.53]]
+val / ['1111 01010111 1111 1111 0000 0110 option:4'] = return (ISB{option=option})
+
+### NOP
+###  - No Operation [[A8.8.199]]
+val / ['/cond 0011 0010 0000 1111 0000 00000000'] = cnd NOP cond
+
+### PLD
+###  - Preload Data (for read) [[A8.8.126]]
+val / ['1111 01 0 1 u:1 r@1 01 rn:4 1111 imm12:12'] = pld PLD u r rn imm12
+###  - Preload Data (for write) [[A8.8.126]]
+val / ['1111 01 0 1 u:1 r@0 01 rn:4 1111 imm12:12'] = pld PLDW u r rn imm12
+
