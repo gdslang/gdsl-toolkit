@@ -31,12 +31,13 @@ val show/mnemonic insn =
     | SMLAL m: "SMLAL"
     | SMULL m: "SMULL"
     | UMLAL m: "UMULL"
-    | LDR m: "LDR"
     | STR m: "STR"
+    | LDR m: "LDR"
     | LDRH m: "LDRH"
     | STRH m: "STRH"
     | LDRSB m: "LDRSB"
     | LDRSRH m: "LDRSRH"
+    | PUSH m: "PUSH"
     | B m: "B"
     | BL m: "BL"
     | BLX_imm m: "BLX (immediate)"
@@ -46,6 +47,7 @@ val show/mnemonic insn =
     | MRS m: "MRS"
     | MSR m: "MSR"
     | CLREX: "CLREX"
+    | NOP m: "NOP"
     | _: "???"
    end
 
