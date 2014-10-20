@@ -340,7 +340,7 @@ int_t
 (state_t s, size_t i) {
   size_t size = (size_t)(s->ip_limit - s->ip_start);
   size_t start_offset = i - s->ip_base;
-  if(start_offset >= size)
+  if(start_offset > size)
     return 1;
   s->ip = s->ip_start + start_offset;
   return 0;
