@@ -17,7 +17,7 @@ class rreil_builder {
 private:
   gdsl *g;
 public:
-  rreil_builder(gdsl::gdsl *g);
+  rreil_builder(gdsl *g);
 
   std::vector<rreil::statement*> *convert(obj_t rreil);
 };

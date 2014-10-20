@@ -23,7 +23,7 @@ private:
   gdsl *g;
   obj_t native;
 public:
-  instruction(gdsl::gdsl *g, obj_t native);
+  instruction(gdsl *g, obj_t native);
   ~instruction();
 
   std::string to_string();

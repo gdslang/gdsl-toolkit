@@ -11,7 +11,7 @@
 
 using namespace std;
 
-gdsl::instruction::instruction(gdsl::gdsl *g, obj_t native) {
+gdsl::instruction::instruction(gdsl *g, obj_t native) {
   this->g = g;
   this->native = native;
 }
