@@ -18,9 +18,12 @@ val generalize-rvalue rval =
    case rval of
       LVALUE lval: generalize-lvalue lval
     | IMM i: generalize-immediate i
+    | FCC fc: generalize-fcc fc
    end
 
 val generalize-format fmt = asm-ann-string (string-from-rope (show/format fmt))
+
+val generalize-fcc fcc = asm-reg (string-from-rope (show/fccode fcc))
 
 val generalize-immediate i = let
    val inner i sz = asm-bounded (asm-boundary-sz sz) (asm-imm (zx i))
@@ -41,7 +44,6 @@ in case i of
  | HINT i: inner i 5
  | INSTRINDEX i: inner i 26
  | COFUN i: inner i 25
- | CC i: inner i 3
  | COND i: inner i 4
  | OP i: inner i 5
 end end

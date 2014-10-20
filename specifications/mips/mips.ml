@@ -26,7 +26,6 @@ type imm =
  | HINT of 5
  | INSTRINDEX of 26
  | COFUN of 25
- | CC of 3
  | COND of 4
  | OP of 5
 
@@ -37,6 +36,7 @@ type lvalue =
 type rvalue =
    LVALUE of lvalue
  | IMM of imm
+ | FCC of fccode
 
 type format = 
    S
@@ -44,6 +44,16 @@ type format =
  | W
  | L
  | PS
+
+type fccode =
+   FCC0
+ | FCC1
+ | FCC2
+ | FCC3
+ | FCC4
+ | FCC5
+ | FCC6
+ | FCC7
 
 val right lvalue = do
   lvalue <- lvalue;
@@ -1108,7 +1118,7 @@ end
 val cc = do
   cc <- query $cc;
   update @{cc='000'};
-  return (IMM (CC cc))
+  return (FCC (fcc-from-bits cc))
 end
 
 val cond = do
@@ -1644,6 +1654,18 @@ val fpr-from-bits bits =
   | '11101': F29
   | '11110': F30
   | '11111': F31
+ end
+
+val fcc-from-bits bits=
+ case bits of
+    '000': FCC0
+  | '001': FCC1
+  | '010': FCC2
+  | '011': FCC3
+  | '100': FCC4
+  | '101': FCC5
+  | '110': FCC6
+  | '111': FCC7
  end
 
 val format-from-bits bits = 
