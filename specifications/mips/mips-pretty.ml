@@ -14,6 +14,7 @@ val show/rvalue opnd =
    case opnd of
       LVALUE l: show/lvalue l
     | IMM imm: show/immediate imm
+    | FCC fcc: show/fccode fcc
    end
 
 val show/immediate imm =
@@ -34,7 +35,6 @@ val show/immediate imm =
     | HINT x: show-int (zx x)
     | INSTRINDEX x: show-int (zx x)
     | COFUN x: show-int (zx x)
-    | CC x: show-int (zx x)
     | COND x: show-int (zx x)
     | OP x: show-int (zx x)
   end
@@ -47,6 +47,17 @@ val show/format format =
     | L : "L"
     | PS : "PS"
    end
+
+val show/fccode fcc = 
+   case fcc of
+      FCC0: "$fcc0"
+    | FCC1: "$fcc1"
+    | FCC2: "$fcc2"
+    | FCC3: "$fcc3"
+    | FCC4: "$fcc4"
+    | FCC5: "$fcc5"
+    | FCC6: "$fcc6"
+    | FCC7: "$fcc7"
 
 val show/register r =
    case r of

@@ -45,9 +45,20 @@ val rval sn x = let
        | HINT i: from-vec sn i
        | INSTRINDEX i: from-vec sn i
        | COFUN i: from-vec sn i
-       | CC i: from-vec sn i
        | COND i: from-vec sn i
        | OP i: from-vec sn i
+      end
+
+   val from-fcc fcc = 
+      case fcc of
+         FCC0: return (var (sem-reg-offset (semantic-reg-of Sem_SREG) 23))
+       | FCC1: return (var (sem-reg-offset (semantic-reg-of Sem_SREG) 25))
+       | FCC2: return (var (sem-reg-offset (semantic-reg-of Sem_SREG) 26))
+       | FCC3: return (var (sem-reg-offset (semantic-reg-of Sem_SREG) 27))
+       | FCC4: return (var (sem-reg-offset (semantic-reg-of Sem_SREG) 28))
+       | FCC5: return (var (sem-reg-offset (semantic-reg-of Sem_SREG) 29))
+       | FCC6: return (var (sem-reg-offset (semantic-reg-of Sem_SREG) 30))
+       | FCC7: return (var (sem-reg-offset (semantic-reg-of Sem_SREG) 31))
       end
 in
    case x of
@@ -61,6 +72,7 @@ in
           | _: lval sn lv 
          end
     | IMM i: return (from-imm sn i)
+    | FCC fc: return (from-fcc fc)
    end
 end
 
@@ -98,10 +110,10 @@ val sizeof-rval x =
           | HINT i: 5
           | INSTRINDEX i: 26
           | COFUN i: 25
-          | CC i: 3
           | COND i: 4
           | OP i: 5
          end
+    | FCC fcc: 1
    end
 
 val mnemonic-with-format insn x = (mnemonic-of insn) +++ "." +++ show/format x.fmt
