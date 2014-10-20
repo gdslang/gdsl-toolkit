@@ -58,6 +58,7 @@ val show/fccode fcc =
     | FCC5: "$fcc5"
     | FCC6: "$fcc6"
     | FCC7: "$fcc7"
+   end
 
 val show/register r =
    case r of

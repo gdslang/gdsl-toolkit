@@ -73,7 +73,6 @@ val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101')
 # -> sftl
 
 val decode config = do
-  set-endianness LITTLE_ENDIAN 4;
   update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',sel='000',impl='0000000000000000',code10='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
   idx-before <- idxget;
   insn <- /;
@@ -1114,7 +1113,7 @@ end
 val cc = do
   cc <- query $cc;
   update @{cc='000'};
-  return (IMM (CC cc))
+  return (FCC (fcc-from-bits cc))
 end
 
 val cond = do
@@ -1652,7 +1651,7 @@ val fpr-from-bits bits =
   | '11111': F31
  end
 
-val cc-from-bits bits=
+val fcc-from-bits bits=
  case bits of
     '000': FCC0
   | '001': FCC1
