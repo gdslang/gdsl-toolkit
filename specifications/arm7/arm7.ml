@@ -81,7 +81,7 @@ type instruction =
  | SUB of dp
  | TEQ of dp
  | TST of dp
- | MLA of mul # Missing: MLS
+ | MLA of mul
  | MLS of {cond:condition, rd:register, ra:register, rm:register, rn:register}
  | MUL of mul
  | SMLAL of mull
@@ -110,7 +110,7 @@ type instruction =
  | NOP of cnd
  | PLD of {u:1, r:1, rn:register, imm12:12}
  | PLDW of {u:1, r:1, rn:register, imm12:12}
- | PUSH of {cond:condition, registers:16}
+ | PUSH of {cond:condition, registers:reglist}
 
 type signed =
    SIGNED
@@ -199,13 +199,22 @@ type psr_transfer = {
 }
 
 type operand =
-   IMMEDIATE of int
- | CONST of const
- | IMM24 of 24
+   IMM of immediate
  | REGISTER of register
+ | REGISERT_LIST of reglist
  | IMMSHIFTEDREGISTER of immshiftedreg # Register shifted by immediate
  | REGSHIFTEDREGISTER of regshiftedreg # Register shifted by register
  | PSR of psr
+
+type immediate =
+    IMMINT of int
+  | IMM12 of 12
+  | IMM24 of 24
+  | MODIMM of {byte:8, rot:4}
+
+type reglist =
+    REGL_NIL
+  | REGL_CONS of {head:register, tail:reglist}
 
 type const = {
   byte:8, # numeric value
@@ -347,9 +356,7 @@ val cnd_opt cons cond option = do
   return (cons{cond=cond, option=option})
 end
 
-val const cons byte rot = do
-  return (cons{byte=byte, rot=rot})
-end
+val immediate cons = return (IMM(cons))
 
 val regshiftedreg cons rm register shift_type = do
   return (cons{rm=rm, register=register, shift_type=shift_type})
@@ -375,25 +382,40 @@ val push cons cond registers = do
   return (cons{cond=cond, registers=registers})
 end
 
-val register-from-bits bits =
-  case bits of
-     '0000' : R0
-   | '0001' : R1
-   | '0010' : R2
-   | '0011' : R3
-   | '0100' : R4
-   | '0101' : R5
-   | '0110' : R6
-   | '0111' : R7
-   | '1000' : R8
-   | '1001' : R9
-   | '1010' : R10
-   | '1011' : R11
-   | '1100' : R12
-   | '1101' : R13
-   | '1110' : R14
-   | '1111' : R15
+val mod a b = a - (/m a b) * b
+
+val create-reglist intlist i reglist =
+  if intlist > 0 then
+    if mod intlist 2 === 1 then
+      REGL_CONS{head=(register-from-int i), tail=(create-reglist (/m intlist 2) (i+1) reglist)}
+    else
+      create-reglist (/m intlist 2) (i+1) reglist
+  else
+    reglist
+
+val reglist-from-int intlist = create-reglist intlist 0 REGL_NIL
+
+val register-from-int i =
+  case i of
+      0 : R0
+    | 1 : R1
+    | 2 : R2
+    | 3 : R3
+    | 4 : R4
+    | 5 : R5
+    | 6 : R6
+    | 7 : R7
+    | 8 : R8
+    | 9 : R9
+    | 10 : R10
+    | 11 : R11
+    | 12 : R12
+    | 13 : R13
+    | 14 : R14
+    | 15 : R15
   end
+
+val register-from-bits bits = register-from-int (zx bits)
 
 val updown-from-bits bits =
   case bits of
@@ -457,7 +479,7 @@ val imm12 = do
   rot <- query $rot;
   byte <- query $byte;
   update @{rot='0000', byte='00000000'};
-  ret <- const CONST byte rot;
+  ret <- (immediate (MODIMM{byte=byte, rot=rot}));
   return (ret)
 end
 
@@ -493,36 +515,15 @@ val s = do
   return (s)
 end
 
-# Decodes a single register into a register_list for load/store instructions.
-val to-reglist register =
-  case register of
-     '1111': '1000000000000000'
-   | '1110': '0100000000000000'
-   | '1101': '0010000000000000'
-   | '1100': '0001000000000000'
-   | '1011': '0000100000000000'
-   | '1010': '0000010000000000'
-   | '1001': '0000001000000000'
-   | '1000': '0000000100000000'
-   | '0111': '0000000010000000'
-   | '0110': '0000000001000000'
-   | '0101': '0000000000100000'
-   | '0100': '0000000000010000'
-   | '0011': '0000000000001000'
-   | '0010': '0000000000000100'
-   | '0001': '0000000000000010'
-   | '0000': '0000000000000001'
-  end
-
 # Subdecoder for (16 bit) register_lists for load/store instructions
 # NOTE: Bit i of the list is set, if register i should be loaded/stored.
 #       Loading/storing the SP (R13) results in undefined behaviour.
-val /register_list ['rt:4 000000000100'] = update @{register_list=(to-reglist rt)}
-val /register_list ['regs@.............0..'] =  update@{register_list=regs}
+val /register_list ['rt:4 000000000100'] = update @{register_list=(reglist-from-int (power 2 (zx rt)))}
+val /register_list ['regs@.............0..'] =  update@{register_list=(reglist-from-int (zx regs))}
 
 val register_list = do
   register_list <- query $register_list;
-  update @{register_list='0'};
+  update @{register_list=REGL_NIL};
   return (register_list)
 end
 
@@ -558,7 +559,7 @@ val / ['/cond 000100101111111111110010 rm:4'] = bx BXJ cond rm
 
 ### ADC
 ###  - Add with Carry (immediate) [[A8.8.1]]
-val / ['/cond 0010101 /s rn:4 rd:4 /imm12'] = dp ADC cond s rn rd (imm12)
+val / ['/cond 0010101 /s rn:4 rd:4 /imm12'] = dp ADC cond s rn rd imm12
 ###  - Add with Carry (register or register-shifted register) [[A8.8.2]] [[A8.8.3]]
 val / ['/cond 0000101 /s rn:4 rd:4 /op2register'] = dp ADC cond s rn rd (op2register)
 
@@ -694,11 +695,11 @@ val u = do
 end
 
 ### LDR
-val / ['/cond 010 /ldr/p /u /b /w 1 rn:4 rd:4 imm12:12'] = loadstore LDR cond p u b w rn rd (return (IMMEDIATE (zx imm12)))
+val / ['/cond 010 /ldr/p /u /b /w 1 rn:4 rd:4 imm12:12'] = loadstore LDR cond p u b w rn rd (immediate (IMMINT (zx imm12)))
 val / ['/cond 011 /ldr/p /u /b /w 1 rn:4 rd:4 /op2register'] = loadstore LDR cond p u b w rn rd (op2register)
 
 ### SDR
-val / ['/cond 010 /ldr/p /u /b /w 0 rn:4 rd:4 imm12:12'] = loadstore STR cond p u b w rn rd (return (IMMEDIATE (zx imm12)))
+val / ['/cond 010 /ldr/p /u /b /w 0 rn:4 rd:4 imm12:12'] = loadstore STR cond p u b w rn rd (immediate (IMMINT (zx imm12)))
 val / ['/cond 011 /ldr/p /u /b /w 0 rn:4 rd:4 /op2register'] = loadstore STR cond p u b w rn rd (op2register)
 
 ### Half word and signed data transfer
