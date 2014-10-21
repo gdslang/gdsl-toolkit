@@ -51,6 +51,7 @@ end
 # ----------------------------------------------------------------------
 
 val reset = do
+  update@{register_list=REGL_NIL};
   update@{shiftoperation=0};
   update@{rm='0000', shifttype='00'};
   update@{shift_amount='00000'};
@@ -110,7 +111,7 @@ type instruction =
  | NOP of cnd
  | PLD of {u:1, r:1, rn:register, imm12:12}
  | PLDW of {u:1, r:1, rn:register, imm12:12}
- | PUSH of {cond:condition, registers:reglist}
+ | PUSH of {cond:condition, registers:registerlist}
 
 type signed =
    SIGNED
@@ -160,6 +161,7 @@ type mul = {
   rm:register
 }
 
+
 type mull = {
   condition:condition,
   s:1,
@@ -201,25 +203,22 @@ type psr_transfer = {
 type operand =
    IMM of immediate
  | REGISTER of register
- | REGISERT_LIST of reglist
+ | REGISERT_LIST of registerlist
  | IMMSHIFTEDREGISTER of immshiftedreg # Register shifted by immediate
  | REGSHIFTEDREGISTER of regshiftedreg # Register shifted by register
  | PSR of psr
 
+# Supertype for the various immediate values
 type immediate =
     IMMINT of int
   | IMM12 of 12
   | IMM24 of 24
   | MODIMM of {byte:8, rot:4}
 
-type reglist =
+# A list of registers (for load/store instructions)
+type registerlist =
     REGL_NIL
-  | REGL_CONS of {head:register, tail:reglist}
-
-type const = {
-  byte:8, # numeric value
-  rot:4   # rotation
-}
+  | REGL_CONS of {head:register, tail:registerlist}
 
 type regshiftedreg = {
   rm:register, register:register, shift_type:shifttype
@@ -382,40 +381,48 @@ val push cons cond registers = do
   return (cons{cond=cond, registers=registers})
 end
 
+# I didn't see this operator anywhere else...
 val mod a b = a - (/m a b) * b
 
-val create-reglist intlist i reglist =
+# Creates a list of registers
+# NOTE: This function should be called by a wrapper like reglist-from-int
+val create-reglist intlist reg_index reglist =
   if intlist > 0 then
     if mod intlist 2 === 1 then
-      REGL_CONS{head=(register-from-int i), tail=(create-reglist (/m intlist 2) (i+1) reglist)}
+      REGL_CONS {
+        head=(decode-register reg_index),
+        tail=(create-reglist (/m intlist 2) (reg_index + 1) reglist)
+      }
     else
-      create-reglist (/m intlist 2) (i+1) reglist
+      create-reglist (/m intlist 2) (reg_index + 1) reglist
   else
     reglist
 
+# Creates a register list from a (16 bit) bit vector (for load/store insns)
+val reglist-from-bits bits = reglist-from-int (zx bits)
 val reglist-from-int intlist = create-reglist intlist 0 REGL_NIL
 
-val register-from-int i =
-  case i of
-      0 : R0
-    | 1 : R1
-    | 2 : R2
-    | 3 : R3
-    | 4 : R4
-    | 5 : R5
-    | 6 : R6
-    | 7 : R7
-    | 8 : R8
-    | 9 : R9
-    | 10 : R10
-    | 11 : R11
-    | 12 : R12
-    | 13 : R13
-    | 14 : R14
-    | 15 : R15
+val decode-register reg =
+  case reg of
+      0: R0
+    | 1: R1
+    | 2: R2
+    | 3: R3
+    | 4: R4
+    | 5: R5
+    | 6: R6
+    | 7: R7
+    | 8: R8
+    | 9: R9
+    | 10: R10
+    | 11: R11
+    | 12: R12
+    | 13: R13
+    | 14: R14
+    | 15: R15
   end
 
-val register-from-bits bits = register-from-int (zx bits)
+val register-from-bits bits = decode-register (zx bits)
 
 val updown-from-bits bits =
   case bits of
