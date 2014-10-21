@@ -45,9 +45,20 @@ val rval sn x = let
        | HINT i: from-vec sn i
        | INSTRINDEX i: from-vec sn i
        | COFUN i: from-vec sn i
-       | CC i: from-vec sn i
        | COND i: from-vec sn i
        | OP i: from-vec sn i
+      end
+
+   val from-fcc fcc = 
+      case fcc of
+         FCC0: var (sem-reg-offset (semantic-fpr-of FCSR) 23)
+       | FCC1: var (sem-reg-offset (semantic-fpr-of FCSR) 25)
+       | FCC2: var (sem-reg-offset (semantic-fpr-of FCSR) 26)
+       | FCC3: var (sem-reg-offset (semantic-fpr-of FCSR) 27)
+       | FCC4: var (sem-reg-offset (semantic-fpr-of FCSR) 28)
+       | FCC5: var (sem-reg-offset (semantic-fpr-of FCSR) 29)
+       | FCC6: var (sem-reg-offset (semantic-fpr-of FCSR) 30)
+       | FCC7: var (sem-reg-offset (semantic-fpr-of FCSR) 31)
       end
 in
    case x of
@@ -61,6 +72,7 @@ in
           | _: lval sn lv 
          end
     | IMM i: return (from-imm sn i)
+    | FCC fc: return (from-fcc fc)
    end
 end
 
@@ -98,10 +110,10 @@ val sizeof-rval x =
           | HINT i: 5
           | INSTRINDEX i: 26
           | COFUN i: 25
-          | CC i: 3
           | COND i: 4
           | OP i: 5
          end
+    | FCC fcc: 1
    end
 
 val mnemonic-with-format insn x = (mnemonic-of insn) +++ "." +++ show/format x.fmt
@@ -996,16 +1008,8 @@ val sem-movz x = sem-movn-movz /eq x
 val sem-movf-movt x i = do
 	rs <- rval Signed x.source1;
 	cc <- (rval Signed x.source2);
-	cc_int <- return (lin-to-int cc);
-	fcsr <- return (semantic-fpr-of FCSR);
-
-	bit <- return
-		(if cc_int === 0 then
-			23 + cc_int
-		else
-			24 + cc_int);
 	
-	_if (/eq 1 (var (at-offset fcsr bit)) (imm i)) _then
+	_if (/eq 1 cc (imm i)) _then
 		write x.destination rs
 end
 
