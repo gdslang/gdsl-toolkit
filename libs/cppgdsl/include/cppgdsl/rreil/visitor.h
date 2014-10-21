@@ -21,12 +21,12 @@ class variable_limited;
 class address;
 class expr_cmp;
 
-class visitor : public statement_visitor,
-    public sexpr_visitor,
-    public linear_visitor,
-    public id_visitor,
-    public expr_visitor,
-    public exception_visitor {
+class visitor : public virtual statement_visitor,
+    public virtual sexpr_visitor,
+    public virtual linear_visitor,
+    public virtual id_visitor,
+    public virtual expr_visitor,
+    public virtual exception_visitor {
 private:
   std::function<void(variable*)> variable_callback = NULL;
   std::function<void(variable_limited*)> variable_limited_callback = NULL;
@@ -87,6 +87,13 @@ public:
   void _(std::function<void(expr_cmp*)> c) {
     this->expr_cmp_callback = c;
   }
+
+  using statement_visitor::_;
+  using sexpr_visitor::_;
+  using linear_visitor::_;
+  using id_visitor::_;
+  using expr_visitor::_;
+  using exception_visitor::_;
 };
 
 }
