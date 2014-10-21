@@ -14,7 +14,6 @@ export config-default: decoder-configuration
 export decode: (decoder-configuration) -> S insndata <{} => {}>
 export decoder-config : configuration[vec=decoder-configuration]
 export insn-length: (insndata) -> int
-export operands : (insndata) -> int
 
 type decoder-configuration = 0
 
@@ -22,12 +21,6 @@ type insndata = {length:int, insn:instruction}
 
 val config-default = ''
 val decoder-config = END
-
-(* TODO: *)
-val operands i = 0
-
-(* TODO: *)
-val typeof-opnd insn i = 0
 
 val insn-length insn = insn.length
 
@@ -66,80 +59,86 @@ end
 # ----------------------------------------------------------------------
 
 type instruction =
-   ADC of dp
- | ADD of dp
- | AND of dp
- | BIC of dp
- | CMN of dp
- | CMP of dp
- | EOR of dp
- | MOV of dp
- | MVN of dp
- | ORR of dp
- | RSB of dp
- | RSC of dp
- | SBC of dp
- | SUB of dp
- | TEQ of dp
- | TST of dp
- | MLA of mul
- | MLS of {cond:condition, rd:register, ra:register, rm:register, rn:register}
- | MUL of mul
- | SMLAL of mull
- | SMULL of mull
- | UMLAL of mull
- | UMULL of mull
- | LDR of loadstore
- | STR of loadstore
- | LDRH of loadstore
- | STRH of loadstore
- | LDRSB of loadstore
- | LDRSRH of loadstore
- | B of br
- | BL of br
- | BLX_reg of bx
- | BLX_imm of {h:1, imm24:24}
- | BX of bx
- | BXJ of bx
- | MRS of psr_transfer
- | MSR of psr_transfer
- | CLREX
- | DBG of cnd_opt
- | DMB of opt
- | DSB of opt
- | ISB of opt
- | NOP of cnd
- | PLD of {u:1, r:1, rn:register, imm12:12}
- | PLDW of {u:1, r:1, rn:register, imm12:12}
- | PUSH of {cond:condition, registers:registerlist}
+    ADC of dp
+  | ADD of dp
+  | AND of dp
+  | BIC of dp
+  | CMN of dp
+  | CMP of dp
+  | EOR of dp
+  | MOV of dp
+  | MVN of dp
+  | ORR of dp
+  | RSB of dp
+  | RSC of dp
+  | SBC of dp
+  | SUB of dp
+  | TEQ of dp
+  | TST of dp
+  | MLA of mul
+  | MLS of {cond:condition, rd:register, ra:register, rm:register, rn:register}
+  | MUL of mul
+  | SMLAL of mull
+  | SMULL of mull
+  | UMLAL of mull
+  | UMULL of mull
+  | LDR of loadstore
+  | STR of loadstore
+  | LDRH of loadstore
+  | STRH of loadstore
+  | LDRSB of loadstore
+  | LDRSRH of loadstore
+  | B of br
+  | BL of br
+  | BLX_reg of bx
+  | BLX_imm of {h:1, imm24:24}
+  | BX of bx
+  | BXJ of bx
+  | MRS of psr_transfer
+  | MSR of psr_transfer
+  | CLREX
+  | DMB of opt
+  | DSB of opt
+  | ISB of opt
+  | DBG of hint_dbg
+  | NOP of hint
+  | SEV of hint
+  | WFE of hint
+  | WFI of hint
+  | YIELD of hint
+  | PLD of {u:1, r:1, rn:register, imm12:12}
+  | PLDW of {u:1, r:1, rn:register, imm12:12}
+  | PUSH of {cond:condition, registers:registerlist}
 
 type signed =
-   SIGNED
- | UNSIGNED
+    SIGNED
+  | UNSIGNED
 
 type updown =
-   UP
- | DOWN
+    UP
+  | DOWN
 
 type width =
-   BYTE
- | WORD
- | HALFWORD
+    BYTE
+  | WORD
+  | HALFWORD
 
 type psr =
-   CPSR
- | SPSR # _<current mode>
+    CPSR
+  | SPSR # _<current mode>
 
-type cnd = {
+# Hint instructions
+type hint = {
   cond:condition
 }
 
-type opt = {
-  option:4
+# Special debug hint instruction
+type hint_dbg = {
+  cond:condition,
+  option:4        # Decoding specified by debug system
 }
 
-type cnd_opt = {
-  cond:condition,
+type opt = {
   option:4
 }
 
@@ -253,21 +252,22 @@ type register =
  | R15 # Program Counter
 
 type condition =
-   EQ
- | NE
- | CS
- | CC
- | MI
- | PL
- | VS
- | VC
- | HI
- | LS
- | GE
- | LT
- | GT
- | LE
- | AL
+   EQ # Equal
+ | NE # Not equal
+ | CS # Carry set
+ | CC # Carry clear
+ | MI # Minus, negative
+ | PL # Plus, positive or zero
+ | VS # Overflow
+ | VC # No overflow
+ | HI # Unsigned higher
+ | LS # Unsigned lower or same
+ | GE # Signed greater than or equal
+ | LT # Signed less than
+ | GT # Signed greater than
+ | LE # Signed less than or equal
+ | AL # Always (unconditional)
+ | NONE # 
 
 val dp cons cond s rn rd op2 = do
   cond <- cond;
@@ -345,14 +345,14 @@ val bx cons cond rm = do
   return (cons{cond=cond, rm=(register-from-bits rm)})
 end
 
-val cnd cons cond = do
+val hint_dbg cons cond opt = do
   cond <- cond;
-  return (cons{cond=cond})
+  return (cons{cond=cond, option=opt})
 end
 
-val cnd_opt cons cond option = do
+val hint cons cond = do
   cond <- cond;
-  return (cons{cond=cond, option=option})
+  return (cons{cond=cond})
 end
 
 val immediate cons = return (IMM(cons))
@@ -478,6 +478,8 @@ val cond = do
   update @{cond='0000'};
   return (cond-from-bits cond)
 end
+
+val none = return NONE
 
 # Immediate subdecoder (12 bit immediate)
 val /imm12 ['rot:4 byte:8'] = update@{rot=rot, byte=byte}
@@ -726,15 +728,37 @@ val / ['/cond 000 /ldr/p /u 0 /w 1 rn:4 rd:4 00001011 rm:4'] = loadstore LDRH co
 ###  - Push Multiple Registers
 val / ['/cond 100100 1 0 1101 /register_list'] = push PUSH cond register_list
 
+# --- Hint instructions ------------------------------------------------
+
+### DBG
+###  - Debug Hint
+val / ['/cond 00110 0 10 0000 1111 0000 1111 opt:4'] = hint_dbg DBG cond opt
+
+### NOP
+###  - No Operation
+val / ['/cond 0011 0010 0000 1111 0000 00000000'] = hint NOP cond
+
+### SEV
+###  - Send Event
+val / ['/cond 00110 0 10 0000 1111 0000 00000100'] = hint SEV cond
+
+### YIELD
+###  - Yield
+val / ['/cond 00110010 0000 1111 0000 00000001'] = hint YIELD cond
+
+### WFE
+###  - Wait For Event
+val / ['/cond 00110010 0000 1111 0000 00000010'] = hint WFE cond
+
+### WFI
+###  - Wait For Interrupt
+val / ['/cond 00110010 0000 1111 0000 00000011'] = hint WFI cond
+
 # --- Miscellaneous instructions ---------------------------------------
 
 ### CLREX
 ###  - Clear-Exclusive
 val / ['1111 01010111 1 111 1111 0000 0001 1111'] = return CLREX
-
-### DBG
-###  - Debug Hint
-val / ['/cond 00110 0 10 0000 1111 0000 1111 option:4'] = cnd_opt DBG cond option
 
 ### DMB
 ###  - Data Memory Barrier
@@ -747,10 +771,6 @@ val / ['1111 01010111 1111 1111 0000 0100 option:4'] = return (DSB{option=option
 ### ISB
 ###  - Instruction Synchronization Buffer
 val / ['1111 01010111 1111 1111 0000 0110 option:4'] = return (ISB{option=option})
-
-### NOP
-###  - No Operation
-val / ['/cond 0011 0010 0000 1111 0000 00000000'] = cnd NOP cond
 
 ### PLD
 ###  - Preload Data (for read)
