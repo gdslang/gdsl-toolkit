@@ -45,10 +45,6 @@ end
 
 val reset = do
   update@{register_list=REGL_NIL};
-  update@{shiftoperation=0};
-  update@{rm='0000', shifttype='00'};
-  update@{shift_amount='00000'};
-  update@{shift_register='0000'};
   update@{imm='00000000'};
   update@{rotate='0000'};
   update@{b='0', p='0', w='0', u='0'}
@@ -152,7 +148,7 @@ type dp = {
 }
 
 type mul = {
-  condition:condition,
+  cond:condition,
   s:1,
   rd:register,
   rn:register,
@@ -160,9 +156,8 @@ type mul = {
   rm:register
 }
 
-
 type mull = {
-  condition:condition,
+  cond:condition,
   s:1,
   rdhi:register,
   rdlo:register,
@@ -171,6 +166,7 @@ type mull = {
 }
 
 type loadstore = {
+  cond:condition,
   p:1,
   u:updown,
   b:width,
@@ -200,16 +196,16 @@ type psr_transfer = {
 }
 
 type operand =
-   IMM of immediate
- | REGISTER of register
- | REGISERT_LIST of registerlist
- | IMMSHIFTEDREGISTER of immshiftedreg # Register shifted by immediate
- | REGSHIFTEDREGISTER of regshiftedreg # Register shifted by register
- | PSR of psr
+    IMMEDIATE of immediate
+  | REGISTER of register
+  | REGISTER_LIST of registerlist
+  | SHIFTED_REGISTER of shiftedregister
+  | PSR of psr
 
 # Supertype for the various immediate values
 type immediate =
-    IMMINT of int
+    INT of int
+  | IMM5 of 5
   | IMM12 of 12
   | IMM24 of 24
   | MODIMM of {byte:8, rot:4}
@@ -219,55 +215,58 @@ type registerlist =
     REGL_NIL
   | REGL_CONS of {head:register, tail:registerlist}
 
-type regshiftedreg = {
-  rm:register, register:register, shift_type:shifttype
-}
+# A register with a shift applied to its value
+type shiftedregister = {register:register, shift:shift}
 
-type immshiftedreg = {
-  rm:register, amount:int, shift_type:shifttype
-}
+# Shift types for shifted register values
+type shift =
+    IMMSHIFT of {immediate:immediate, shifttype:shifttype}
+  | REGSHIFT of {register:register, shifttype:shifttype}
 
+# Available shift methods
 type shifttype =
-   LLS # logical left shift
- | LRS # logical right shift
- | ARS # arithmetic right shift
- | RR  # rotate right
+    LLS  # logical left shift
+  | LRS  # logical right shift
+  | ARS  # arithmetic right shift
+  | RR   # rotate right
 
+# The 16 ARMv7 registers
 type register =
-   R0  # Argument1, Return Value: Temporory register
- | R1  # Argument2, Second 32-bits if double/int Return Value: Temporary register
- | R2  # Argument: Temporary register
- | R3  # Argument: Temporary register
- | R4  # permanent register
- | R5  # permanent register
- | R6  # permanent register
- | R7  # permanent register (THUMB frame pointer)
- | R8  # permanent register
- | R9  # permanent register
- | R10 # permanent register
- | R11 # ARM frame pointer: permanent register
- | R12 # Temporary register
- | R13 # Stack pointer: permanent register
- | R14 # Link register: permanent register
- | R15 # Program Counter
+    R0   # Argument1, Return Value: Temporory register
+  | R1   # Argument2, Second 32-bits if double/int Return Value: Temporary register
+  | R2   # Argument: Temporary register
+  | R3   # Argument: Temporary register
+  | R4   # permanent register
+  | R5   # permanent register
+  | R6   # permanent register
+  | R7   # permanent register (THUMB frame pointer)
+  | R8   # permanent register
+  | R9   # permanent register
+  | R10  # permanent register
+  | R11  # ARM frame pointer: permanent register
+  | R12  # Temporary register
+  | R13  # Stack pointer: permanent register
+  | R14  # Link register: permanent register
+  | R15  # Program Counter
 
+# ARM condition codes [[A8.3]]
 type condition =
-   EQ # Equal
- | NE # Not equal
- | CS # Carry set
- | CC # Carry clear
- | MI # Minus, negative
- | PL # Plus, positive or zero
- | VS # Overflow
- | VC # No overflow
- | HI # Unsigned higher
- | LS # Unsigned lower or same
- | GE # Signed greater than or equal
- | LT # Signed less than
- | GT # Signed greater than
- | LE # Signed less than or equal
- | AL # Always (unconditional)
- | NONE # 
+    EQ   # Equal
+  | NE   # Not equal
+  | CS   # Carry set
+  | CC   # Carry clear
+  | MI   # Minus, negative
+  | PL   # Plus, positive or zero
+  | VS   # Overflow
+  | VC   # No overflow
+  | HI   # Unsigned higher
+  | LS   # Unsigned lower or same
+  | GE   # Signed greater than or equal
+  | LT   # Signed less than
+  | GT   # Signed greater than
+  | LE   # Signed less than or equal
+  | AL   # Always (unconditional)
+  | NONE # Dummy condition (NONE is not an actual ARM condition)
 
 val dp cons cond s rn rd op2 = do
   cond <- cond;
@@ -293,11 +292,11 @@ val mls cons cond rd ra rm rn = do
   })
 end
 
-val mul cons condition s rd rn rs rm = do
-  condition <- condition;
+val mul cons cond s rd rn rs rm = do
+  cond <- cond;
   s <- s;
   return (cons{
-    condition=condition,
+    cond=cond,
     s=s,
     rd=(register-from-bits rd),
     rn=(register-from-bits rn),
@@ -306,11 +305,11 @@ val mul cons condition s rd rn rs rm = do
   })
 end
 
-val mull cons condition s rdhi rdlo rs rm = do
-  condition <- condition;
+val mull cons cond s rdhi rdlo rs rm = do
+  cond <- cond;
   s <- s;
   return (cons{
-    condition=condition,
+    cond=cond,
     s=s,
     rdhi=(register-from-bits rdhi),
     rdlo=(register-from-bits rdlo),
@@ -319,15 +318,15 @@ val mull cons condition s rdhi rdlo rs rm = do
   })
 end
 
-val loadstore cons condition p u b w rn rd offset = do
-  condition <- condition;
+val loadstore cons cond p u b w rn rd offset = do
+  cond <- cond;
   p <- p;
   u <- u;
   b <- b;
   w <- w;
   offset <- offset;
   return (cons{
-    condition=condition,
+    cond=cond,
     p=p, u=u, b=b, w=w,
     rn=(register-from-bits rn),
     rd=(register-from-bits rd),
@@ -355,7 +354,7 @@ val hint cons cond = do
   return (cons{cond=cond})
 end
 
-val immediate cons = return (IMM(cons))
+val immediate cons = return (IMMEDIATE(cons))
 
 val regshiftedreg cons rm register shift_type = do
   return (cons{rm=rm, register=register, shift_type=shift_type})
@@ -496,23 +495,23 @@ end
 # val /op2imm ['rotate:4 imm:8'] = update@{rotate=rotate, imm=imm}
 
 # Operand subdecoder: Register + Immediate shift
-val /op2register ['shift:5 shifttype:2 0 rm:4'] = update@{shiftoperation=0, shift_amount=shift, shifttype=shifttype, rm=rm}
+val /op2register ['imm5:5 stype:2 0 rm:4'] =
+  update@{
+    shift_operation=IMMSHIFT{immediate=IMM5(imm5), shifttype=(shifttype-from-bits stype)},
+    rm=(register-from-bits rm)
+  }
 
 # Operand subdecoder: Register + Register controlled shift
-val /op2register ['shiftregister:4 0 shifttype:2 1 rm:4'] = update@{shiftoperation=1, shift_register=shiftregister, shifttype=shifttype, rm=rm}
+val /op2register ['rs:4 0 stype:2 1 rm:4'] =
+  update@{
+    shift_operation=REGSHIFT{register=(register-from-bits rs), shifttype=(shifttype-from-bits stype)},
+    rm=(register-from-bits rm)
+  }
 
 val op2register = do
-  shiftoperation <- query $shiftoperation;
+  shiftoperation <- query $shift_operation;
   rm <- query $rm;
-  shifttype <- query $shifttype;
-  shift_amount <- query $shift_amount;
-  shift_register <- query $shift_register;
-  reset;
-  ret <- case shiftoperation of
-     0 : immshiftedreg IMMSHIFTEDREGISTER (register-from-bits rm) (zx shift_amount) (shifttype-from-bits shifttype)
-   | 1 : regshiftedreg REGSHIFTEDREGISTER (register-from-bits rm) (register-from-bits shift_register) (shifttype-from-bits shifttype)
-  end;
-  return (ret)
+  return (SHIFTED_REGISTER{register=rm, shift=shiftoperation})
 end
 
 # S flag subdecoder
@@ -650,7 +649,7 @@ val / ['/cond 0000001 /s rd:4 rn:4 rs:4 1001 rm:4'] = mul MUL cond s rd rn rs rm
 
 ### MUL
 ###  - Multiply
-val / ['/cond 0000000 /s rd:4 rn:4 rs:4 1001 rm:4'] = mul MUL cond s rd rn rs rm
+val / ['/cond 0000000 /s rd:4 rs@0000 rm:4 1001 rn:4'] = mul MUL cond s rd rs rm rn
 
 ### MLS
 ###  - Multiply and Subtract
@@ -704,11 +703,11 @@ val u = do
 end
 
 ### LDR
-val / ['/cond 010 /ldr/p /u /b /w 1 rn:4 rd:4 imm12:12'] = loadstore LDR cond p u b w rn rd (immediate (IMMINT (zx imm12)))
+val / ['/cond 010 /ldr/p /u /b /w 1 rn:4 rd:4 imm12:12'] = loadstore LDR cond p u b w rn rd (immediate (INT (zx imm12)))
 val / ['/cond 011 /ldr/p /u /b /w 1 rn:4 rd:4 /op2register'] = loadstore LDR cond p u b w rn rd (op2register)
 
 ### SDR
-val / ['/cond 010 /ldr/p /u /b /w 0 rn:4 rd:4 imm12:12'] = loadstore STR cond p u b w rn rd (immediate (IMMINT (zx imm12)))
+val / ['/cond 010 /ldr/p /u /b /w 0 rn:4 rd:4 imm12:12'] = loadstore STR cond p u b w rn rd (immediate (INT (zx imm12)))
 val / ['/cond 011 /ldr/p /u /b /w 0 rn:4 rd:4 /op2register'] = loadstore STR cond p u b w rn rd (op2register)
 
 ### Half word and signed data transfer
