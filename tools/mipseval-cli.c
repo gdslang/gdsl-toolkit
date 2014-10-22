@@ -10,63 +10,153 @@
 //#include <iostream>
 #include <gdsl.h>
 
+int isInsn(char *mnemonic, char *fmt)
+{
+	return strlen(fmt) > strlen(mnemonic) && !memcmp(mnemonic, fmt, strlen(mnemonic)) && fmt[strlen(mnemonic)] == ' ';
+}
+
+uint32_t invInsn(uint32_t insn)
+{
+	uint32_t res;
+	char *src = (char*) &insn, *dst = (char*) &res;
+
+	dst[0] = src[3];
+	dst[1] = src[2];
+	dst[2] = src[1];
+	dst[3] = src[0];
+
+	return res;
+}
+
 int main(int argc, char** argv) {
+
 	char retval = 0;
 
-	size_t size = 8;
-	uint8_t *buffer = (uint8_t*) malloc(size);
-	uint32_t randVal = random();
-	*(uint32_t*)buffer = 0xFFFFFFFF;
-	*(((uint32_t*)buffer)+1) = random();
+	const unsigned int cycle_interval = 0x10;//0x00100000;
+	const unsigned int max_cycles = 0x100;
+	const unsigned int round_offset = 0;
+	const unsigned int start_offset = round_offset * cycle_interval + 0x00000000;
 
-	//size_t size = sizeof(uint32_t);//readhex_hex_read(stdin, &buffer);
+	unsigned int cur_insn = start_offset;
+	for (unsigned int rounds = round_offset; rounds < max_cycles; rounds++) {
 
-	state_t state = gdsl_init();
+		printf("\tnew cycle: %d/%d  : %08X", rounds+1, max_cycles, invInsn(cur_insn));
 
-	FILE *f;
-	f = fopen("snackipack.txt", "w");
+		state_t state = gdsl_init();
 
-	/*ofstream out("snackipack.txt");
-	if (!out) {
-		printf("FATAL ERROR: COULDNT OPEN FILE");
-		return 1;
-	}*/
+		FILE *f;
+		f = fopen("snackipack.txt", "w");
 
-	for (int pew = 0; pew < 8; pew++)
-	{
-		uint32_t randi = pew;
-		printf("%s%08X", (randi==0)?"":"\n", randi);
-		gdsl_set_code(state, (char*)&randi, sizeof(uint32_t), 0);
-		if(setjmp(*gdsl_err_tgt(state))) {
-			if (!strcmp(gdsl_get_error_message(state), "DecodeSequenceMatchFailure")) {
-				char conv[512];
-				snprintf(conv, sizeof(conv), ".long 0x%08X\n", randi);
+		const unsigned int inst_block_size = sizeof(uint32_t) * cycle_interval * 2;
+		uint32_t *inst_buf = (uint32_t*) malloc(inst_block_size);
+		unsigned int inst_buf_entries = 0;
+
+		for (unsigned int pew = 0; pew < cycle_interval; pew++, cur_insn++)
+		{
+			inst_buf[inst_buf_entries++] = cur_insn;
+
+			gdsl_set_code(state, (char*)&cur_insn, sizeof(uint32_t), 0);
+			char conv[512];
+			snprintf(conv, sizeof(conv), ".long 0x%08X\n", invInsn(cur_insn));
+			if(setjmp(*gdsl_err_tgt(state)))
+			{
 				fwrite(conv, 1, strlen(conv), f);
-			} else {
-				fprintf(stderr, "decode nailed: %s\n", gdsl_get_error_message(state));
-				retval = 1;
-				goto cleanup;
+				if (!strcmp(gdsl_get_error_message(state), "DecodeSequenceMatchFailure")) {
+				} else if (!strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:371.4-10")
+						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:376.4-10")) {
+					//printf("  guard prob!\n");
+				} else {
+					fprintf(stderr, "decode nailed: %s\n", gdsl_get_error_message(state));
+					retval = 1;
+					break;
+				}
+				continue;
 			}
-			continue;
+
+			obj_t insn = gdsl_decode(state, gdsl_config_default(state));
+
+			string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
+
+			// special cases
+			// all branches and jumps reorder instructions, so a nop is inserted to prevent this
+			if (isInsn("JR", fmt) || isInsn("JALR", fmt) || isInsn("JALR.HB", fmt) || isInsn("JR.HB", fmt) || isInsn("JALX", fmt) || isInsn("JAL", fmt) || isInsn("J", fmt)
+					|| isInsn("BEQ", fmt) || isInsn("BEQL", fmt) || isInsn("BGEZ", fmt) || isInsn("BGEZAL", fmt) || isInsn("BGEZALL", fmt)
+					|| isInsn("BGEZL", fmt) || isInsn("BGTZ", fmt) || isInsn("BGTZL", fmt) || isInsn("BLEZ", fmt) || isInsn("BLEZL", fmt)
+					|| isInsn("BLTZ", fmt) || isInsn("BLTZAL", fmt) || isInsn("BLTZALL", fmt) || isInsn("BLTZL", fmt) || isInsn("BNE", fmt) || isInsn("BNEL", fmt)) {
+				fwrite("nop\n", 1, sizeof("nop\n")-1, f);
+				inst_buf[inst_buf_entries++] = 0x00000000;
+			}
+			if (isInsn("BREAKDD", fmt)								// inversed bit order argument
+					|| isInsn("PAUSEDD", fmt)						// pause unknown op to as
+					|| isInsn("DIVDD", fmt) || isInsn("DIVUDD", fmt)// catches division by zero ...
+					|| isInsn("BC2F", fmt)							// assembler syntax?
+					|| isInsn("LWXC1", fmt)							// index(base) ...
+					) {
+				fwrite(conv, 1, strlen(conv), f);
+				continue;
+			}
+
+			fwrite(fmt, 1, strlen(fmt), f);
+			fwrite("\n", 1, sizeof("\n")-1, f);
 		}
 
-		obj_t insn = gdsl_decode(state, gdsl_config_default(state));
+		printf("\n");
+		fclose(f);
 
-		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
-		fwrite(fmt, 1, strlen(fmt), f);
-		fwrite("\n", 1, sizeof("\n")-1, f);
-		printf("    %s", fmt);
+		// assembly
+		printf("\tassembling...");
+		system("/home/rupert/carambola2/staging_dir/toolchain-mips_r2_gcc-4.7-linaro_uClibc-0.9.33.2/initial/mips-openwrt-linux-uclibc/bin/as -mips32r2 -mhard-float -no-warn --no-trap --no-break -o snacki.out snackipack.txt");
+
+		// compare files:
+		printf("comparing...");
+		f = fopen("snacki.out", "rb");
+
+		char *as_buf = (char*) malloc(inst_block_size);
+
+		// .text section offset is 0x40 in as elf files
+		fread(as_buf, 1, 0x40, f);
+
+		int bSucc = 1;
+		int rb = fread(as_buf, inst_buf_entries * sizeof(uint32_t), 1, f);
+		if (rb != 1) {
+			printf("case 1\n");
+			bSucc = 0;
+		} else if (feof(f)) {
+			printf("case 2\n");
+			bSucc = 0;
+		} else if (memcmp(as_buf, inst_buf, inst_buf_entries * sizeof(uint32_t))) {
+			printf("case 3\n");
+
+			uint32_t *peep = (uint32_t*)as_buf;
+			for (int t = 0; t < inst_buf_entries; t++) {
+				if (inst_buf[t] != peep[t]) {
+					//printf("  at %d:  %08X  %08X\n", t-1, inst_buf[t-1], peep[t-1]);
+					printf("  at 0x%X (0x%X, %d):  %08X  %08X\n", t*4, t, t, invInsn(inst_buf[t]), invInsn(peep[t]));
+					//printf("  at %d:  %08X  %08X\n", t+1, inst_buf[t+1], peep[t+1]);
+					break;
+				}
+			}
+
+			/*
+			for (int t = 0; t < inst_buf_entries; t++) {
+				if (printf("  %08X\n", inst_buf[t]);
+			}
+			for (int t = 0; t < inst_buf_entries; t++)
+				printf("  %08X\n", peep[t]);
+			*/				//printf("  %08X  %08X\n", *(((uint32_t*)as_buf)+4*t), *(((uint32_t*)inst_buf)+4*t));
+			bSucc = 0;
+		}
+
+		free(inst_buf);
+		free(as_buf);
+		fclose(f);
+		gdsl_destroy(state);
+
+		printf("%s\n\n", (bSucc == 1)?"succeeded":"failed");
+
+		if (bSucc != 1)
+			break;
 	}
-  //obj_t insn_asm = gdsl_generalize(state, insn);
-  //string_t asm_gen_str = gdsl_merge_rope(state, gdsl_asm_pretty(state, insn_asm));
-	//puts(asm_gen_str);
-
-	cleanup:
-
-	printf("\n");
-	gdsl_destroy(state);
-	free(buffer);
-	fclose(f);
 
 	return retval;
 }

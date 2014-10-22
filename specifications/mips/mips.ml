@@ -12,6 +12,7 @@ type insndata = {length:int, insn:instruction}
 type imm =
    IMM5 of 5
  | IMM16 of 16
+ | RTRD5 of 5
  | OFFSET9 of 9
  | OFFSET16 of 16
  | SEL of 3
@@ -62,18 +63,25 @@ end
 
 
 val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101')
+val jalr? s = not (s.rd == s.rs)
 
 ###
 # SLL not script handled yet
 #val / ['000000 00000 /rt /rd /sa 000000']
 # | pause? = nullop PAUSE
 # | otherwise = ternop SLL rd (right rt) sa
+#
+# JALR too
+#val / ['000000 /rs 00000 /rd 00000 001001']
+# | jalr? = binop JALR rd (right rs) 
+#
+# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched
 ###
 
 # -> sftl
 
 val decode config = do
-  set-endianness LITTLE_ENDIAN 4;
+  set-endianness BIG_ENDIAN 4;
   update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',sel='000',impl='0000000000000000',code10='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
   idx-before <- idxget;
   insn <- /;
@@ -360,11 +368,13 @@ val / ['000011 /instr_index'] = unop-src JAL instr_index
 
 ### JALR
 ###  - Jump And Link Register
-val / ['000000 /rs 00000 /rd /hint5zero 001001'] = ternop JALR rd (right rs) hint5 
+val / ['000000 /rs 00000 /rd 00000 001001']
+ | jalr? = binop JALR rd (right rs) 
 
 ### JALR-HB
 ###  - Jump and Link Register with Hazard Barrier
-val / ['000000 /rs 00000 /rd 1 /hint4zero 001001'] = ternop JALR-HB rd (right rs) hint5 
+val / ['000000 /rs 00000 /rd 1 0000 001001']
+ | jalr? = binop JALR-HB rd (right rs) 
 
 ### JALX
 ###  - Jump and Link Exchange
@@ -372,11 +382,11 @@ val / ['011101 /instr_index'] = unop-src JALX instr_index
 
 ### JR
 ###  - Jump Register
-val / ['000000 /rs 0000000000 /hint5zero 001000'] = binop-src JR (right rs) hint5 
+val / ['000000 /rs 0000000000 00000 001000'] = unop-src JR (right rs) 
 
 ### JR-HB
 ###  - Jump Register with Hazard Barrier
-val / ['000000 /rs 0000000000 1 /hint4zero 001000'] = binop-src JR-HB (right rs) hint5 
+val / ['000000 /rs 0000000000 1 0000 001000'] = unop-src JR-HB (right rs) 
 
 ### LB
 ###  - Load Byte
@@ -684,7 +694,7 @@ val / ['000000 0000 1 /rt /rd /sa 000010'] = ternop ROTR rd (right rt) sa
 
 ### ROTRV
 ###  - Rotate Word Right Variable
-val / ['000000 /rs /rt /rd 0000 1 000110'] = ternop ROTRV rd (right rs) (right rt) 
+val / ['000000 /rs /rt /rd 0000 1 000110'] = ternop ROTRV rd (right rt) (right rs) 
 
 ### ROUND-L-fmt
 ###  - Floating Point Round to Long Fixed Point
@@ -754,7 +764,7 @@ val / ['000000 00000 /rt /rd /sa 000000']
 
 ### SLLV
 ###  - Shift Word Left Logical Variable
-val / ['000000 /rs /rt /rd 00000 000100'] = ternop SLLV rd (right rs) (right rt) 
+val / ['000000 /rs /rt /rd 00000 000100'] = ternop SLLV rd (right rt) (right rs)
 
 ### SLT
 ###  - Set On Less Than
@@ -782,7 +792,7 @@ val / ['000000 00000 /rt /rd /sa 000011'] = ternop SRA rd (right rt) sa
 
 ### SRAV
 ###  - Shift Word Right Arithmetic Variable
-val / ['000000 /rs /rt /rd 00000 000111'] = ternop SRAV rd (right rs) (right rt) 
+val / ['000000 /rs /rt /rd 00000 000111'] = ternop SRAV rd (right rt) (right rs) 
 
 ### SRL
 ###  - Shift Word Right Logical
@@ -790,7 +800,7 @@ val / ['000000 0000 0 /rt /rd /sa 000010'] = ternop SRL rd (right rt) sa
 
 ### SRLV
 ###  - Shift Word Right Logical Variable
-val / ['000000 /rs /rt /rd 0000 0 000110'] = ternop SRLV rd (right rs) (right rt) 
+val / ['000000 /rs /rt /rd 0000 0 000110'] = ternop SRLV rd (right rt) (right rs) 
 
 ### SSNOP
 ###  - Superscalar No Operation
@@ -982,13 +992,13 @@ end
 val rd/imm = do
   rd <- query $rd;
   update @{rd='00000'};
-  return (IMM (IMM5 rd))
+  return (IMM (RTRD5 rd))
 end
 
 val rt/imm = do
   rt <- query $rt;
   update @{rt='00000'};
-  return (IMM (IMM5 rt))
+  return (IMM (RTRD5 rt))
 end
 
 val fr = do
@@ -1348,11 +1358,11 @@ type instruction =
  | INS of quadop
  | J of unop-src
  | JAL of unop-src
- | JALR of ternop
- | JALR-HB of ternop
+ | JALR of binop
+ | JALR-HB of binop
  | JALX of unop-src
- | JR of binop-src
- | JR-HB of binop-src
+ | JR of unop-src
+ | JR-HB of unop-src
  | LB of ternop
  | LBE of ternop
  | LBU of ternop
