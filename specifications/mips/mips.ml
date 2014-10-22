@@ -75,7 +75,7 @@ val jalr? s = not (s.rd == s.rs)
 #val / ['000000 /rs 00000 /rd 00000 001001']
 # | jalr? = binop JALR rd (right rs) 
 #
-# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched
+# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched, EXT lsb and msbd; pretty printer offset *4 etc; ADD.fmt fs<->ft; WRPGPR swap params
 ###
 
 # -> sftl
@@ -100,7 +100,7 @@ val / ['000000 /rs /rt /rd 00000 100000'] = ternop ADD rd (right rs) (right rt)
 
 ### ADD-fmt
 ###  - Floating Point Add
-val / ['010001 /fmt5sdps /ft /fs /fd 000000'] = ternop-fmt ADD-fmt fmt fd (right ft) (right fs) 
+val / ['010001 /fmt5sdps /ft /fs /fd 000000'] = ternop-fmt ADD-fmt fmt fd (right fs) (right ft) 
 
 ### ADDI
 ###  - Add Immediate Word
@@ -344,7 +344,7 @@ val / ['010000 1 0000000000000000000 011000'] = nullop ERET
 
 ### EXT
 ###  - Extract Bit Field
-val / ['011111 /rs /rt /msbd /lsb 000000'] = quadop EXT rt (right rs) msbd lsb 
+val / ['011111 /rs /rt /msbd /lsb 000000'] = quadop EXT rt (right rs) lsb msbd
 
 ### FLOOR-L-fmt
 ###  - Floating Point Floor Convert to Long Fixed Point
@@ -956,7 +956,7 @@ val / ['010000 1 /code19 100000'] = unop-src WAIT code19
 
 ### WRPGPR
 ###  - Write to GPR in Previous Shadow Set
-val / ['010000 01110 /rt /rd 00000000000'] = binop-src WRPGPR (right rt) rd/imm 
+val / ['010000 01110 /rt /rd 00000000000'] = binop-src WRPGPR rd/imm (right rt)
 
 ### WSBH
 ###  - Word Swap Bytes Within Halfwords

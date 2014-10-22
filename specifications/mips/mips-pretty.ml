@@ -31,7 +31,7 @@ val show/immediate imm =
     | CODE20 x: show-int (zx x)
     | STYPE x: show-int (zx x)
     | POSSIZE x: show-int (zx x)
-    | SIZE x: show-int (zx x)
+    | SIZE x: show-int ((zx x)+1)
     | POS x: show-int (zx x)
     | HINT x: show-int (zx x)
     | INSTRINDEX x: show-int ((zx x) * 4)

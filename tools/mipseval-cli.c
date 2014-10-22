@@ -33,11 +33,13 @@ int main(int argc, char** argv) {
 	char retval = 0;
 
 	const unsigned int cycle_interval = 0x10;//0x00100000;
-	const unsigned int max_cycles = 0x100;
-	const unsigned int round_offset = 0;
+	const unsigned int max_cycles = 0x1000;
+	const unsigned int round_offset = 3000;
 	const unsigned int start_offset = round_offset * cycle_interval + 0x00000000;
 
 	unsigned int cur_insn = start_offset;
+	const unsigned int inst_block_size = sizeof(uint32_t) * cycle_interval * 3;
+	uint32_t *inst_buf = (uint32_t*) malloc(inst_block_size);
 	for (unsigned int rounds = round_offset; rounds < max_cycles; rounds++) {
 
 		printf("\tnew cycle: %d/%d  : %08X", rounds+1, max_cycles, invInsn(cur_insn));
@@ -47,10 +49,7 @@ int main(int argc, char** argv) {
 		FILE *f;
 		f = fopen("snackipack.txt", "w");
 
-		const unsigned int inst_block_size = sizeof(uint32_t) * cycle_interval * 2;
-		uint32_t *inst_buf = (uint32_t*) malloc(inst_block_size);
 		unsigned int inst_buf_entries = 0;
-
 		for (unsigned int pew = 0; pew < cycle_interval; pew++, cur_insn++)
 		{
 			inst_buf[inst_buf_entries++] = cur_insn;
@@ -78,22 +77,50 @@ int main(int argc, char** argv) {
 			string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 
 			// special cases
-			// all branches and jumps reorder instructions, so a nop is inserted to prevent this
-			if (isInsn("JR", fmt) || isInsn("JALR", fmt) || isInsn("JALR.HB", fmt) || isInsn("JR.HB", fmt) || isInsn("JALX", fmt) || isInsn("JAL", fmt) || isInsn("J", fmt)
-					|| isInsn("BEQ", fmt) || isInsn("BEQL", fmt) || isInsn("BGEZ", fmt) || isInsn("BGEZAL", fmt) || isInsn("BGEZALL", fmt)
-					|| isInsn("BGEZL", fmt) || isInsn("BGTZ", fmt) || isInsn("BGTZL", fmt) || isInsn("BLEZ", fmt) || isInsn("BLEZL", fmt)
-					|| isInsn("BLTZ", fmt) || isInsn("BLTZAL", fmt) || isInsn("BLTZALL", fmt) || isInsn("BLTZL", fmt) || isInsn("BNE", fmt) || isInsn("BNEL", fmt)) {
-				fwrite("nop\n", 1, sizeof("nop\n")-1, f);
-				inst_buf[inst_buf_entries++] = 0x00000000;
-			}
 			if (isInsn("BREAKDD", fmt)								// inversed bit order argument
 					|| isInsn("PAUSEDD", fmt)						// pause unknown op to as
 					|| isInsn("DIVDD", fmt) || isInsn("DIVUDD", fmt)// catches division by zero ...
-					|| isInsn("BC2F", fmt)							// assembler syntax?
+					|| isInsn("BC2F", fmt) || isInsn("BC2T", fmt) || isInsn("BC2F", fmt) || isInsn("BC2FL", fmt)
+					|| isInsn("BC2T", fmt) || isInsn("BC2TL", fmt)	// assembler syntax?
 					|| isInsn("LWXC1", fmt)							// index(base) ...
+					|| isInsn("LB", fmt) || isInsn("LBE", fmt) || isInsn("LBU", fmt) || isInsn("LBUE", fmt)
+					|| isInsn("LDC1", fmt) || isInsn("LDC2", fmt) || isInsn("LDXC1", fmt)
+					|| isInsn("LH", fmt) || isInsn("LHE", fmt) || isInsn("LHU", fmt) || isInsn("LHUE", fmt)
+					|| isInsn("LL", fmt) || isInsn("LLE", fmt) || isInsn("LUXC1", fmt)
+					|| isInsn("LW", fmt) || isInsn("LWE", fmt) || isInsn("LWL", fmt) || isInsn("LWLE", fmt)
+					|| isInsn("LWR", fmt) || isInsn("LWRE", fmt) || isInsn("LWXC1", fmt)
+					|| isInsn("LWC1", fmt) || isInsn("LWC2", fmt)	// index(base), offset(base)
+					|| isInsn("SB", fmt) || isInsn("SBE", fmt) || isInsn("SC", fmt) || isInsn("SCE", fmt)
+					|| isInsn("SDC1", fmt) || isInsn("SDC2", fmt) || isInsn("SDXC1", fmt)
+					|| isInsn("SH", fmt) || isInsn("SHE", fmt) || isInsn("SUXC1", fmt)
+					|| isInsn("SW", fmt) || isInsn("SWE", fmt) || isInsn("SWC1", fmt) || isInsn("SWC2", fmt)
+					|| isInsn("SWL", fmt) || isInsn("SWLE", fmt) || isInsn("SWR", fmt) || isInsn("SWRE", fmt)
+					|| isInsn("SWXC1", fmt)							// index(base), offset(base)
+					|| isInsn("CACHE", fmt) || isInsn("CACHEE", fmt)// index(base), offset(base)
+					|| isInsn("PREF", fmt) || isInsn("PREFE", fmt)
+					|| isInsn("PREFX", fmt) || isInsn("SYNCI", fmt)	// index(base), offset(base)
+					|| isInsn("MTC1", fmt) || isInsn("CTC1", fmt)
+					|| isInsn("MTHC1", fmt)							// swapped dest and source; rt and fs
 					) {
 				fwrite(conv, 1, strlen(conv), f);
 				continue;
+			}
+			// all branches and jumps reorder instructions, so a nop is inserted to prevent this
+			if (isInsn("JR", fmt) || isInsn("JALR", fmt) || isInsn("JALR.HB", fmt) || isInsn("JR.HB", fmt) || isInsn("JALX", fmt) || isInsn("JAL", fmt) || isInsn("J", fmt)
+					|| isInsn("BEQ", fmt) || isInsn("BGEZ", fmt) || isInsn("BGEZAL", fmt)
+					|| isInsn("BGTZ", fmt) || isInsn("BLEZ", fmt)
+					|| isInsn("BLTZ", fmt) || isInsn("BLTZAL", fmt) || isInsn("BNE", fmt)
+					|| isInsn("BC1F", fmt) || isInsn("BC1T", fmt)
+				) {
+				fwrite("nop\n", 1, sizeof("nop\n")-1, f);
+				inst_buf[inst_buf_entries++] = 0x00000000;
+			}
+			if (isInsn("BEQL", fmt) || isInsn("BGEZALL", fmt)
+					|| isInsn("BGEZL", fmt) || isInsn("BGTZL", fmt) || isInsn("BLEZL", fmt)
+					|| isInsn("BLTZALL", fmt) || isInsn("BLTZL", fmt) || isInsn("BNEL", fmt)
+					|| isInsn("BC1FL", fmt) || isInsn("BC1TL", fmt)
+				) {
+				inst_buf[inst_buf_entries++] = 0x00000000;
 			}
 
 			fwrite(fmt, 1, strlen(fmt), f);
@@ -147,7 +174,6 @@ int main(int argc, char** argv) {
 			bSucc = 0;
 		}
 
-		free(inst_buf);
 		free(as_buf);
 		fclose(f);
 		gdsl_destroy(state);
@@ -157,6 +183,7 @@ int main(int argc, char** argv) {
 		if (bSucc != 1)
 			break;
 	}
+	free(inst_buf);
 
 	return retval;
 }
