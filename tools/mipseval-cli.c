@@ -12,7 +12,17 @@
 
 int isInsn(char *mnemonic, char *fmt)
 {
-	return strlen(fmt) > strlen(mnemonic) && !memcmp(mnemonic, fmt, strlen(mnemonic)) && fmt[strlen(mnemonic)] == ' ';
+	return strlen(fmt) >= strlen(mnemonic) && !memcmp(mnemonic, fmt, strlen(mnemonic)) && (fmt[strlen(mnemonic)] == ' ' || fmt[strlen(mnemonic)] == '\0');
+}
+
+uint32_t bitInv(uint32_t insn)
+{
+	uint32_t res = 0x00000000;
+	for (int i = 0; i < 32; i++) {
+		res <<= 1;
+		res += (insn >> i) & 0x00000001;
+	}
+	return res;
 }
 
 uint32_t invInsn(uint32_t insn)
@@ -32,17 +42,17 @@ int main(int argc, char** argv) {
 
 	char retval = 0;
 
-	const unsigned int cycle_interval = 0x10;//0x00100000;
-	const unsigned int max_cycles = 0x1000;
-	const unsigned int round_offset = 3000;
+	const unsigned int cycle_interval = 0x00100000;
+	const unsigned int max_cycles = 0x100;
+	const unsigned int round_offset = 0;
 	const unsigned int start_offset = round_offset * cycle_interval + 0x00000000;
 
-	unsigned int cur_insn = start_offset;
+	unsigned int cur_insn = invInsn(start_offset);
 	const unsigned int inst_block_size = sizeof(uint32_t) * cycle_interval * 3;
 	uint32_t *inst_buf = (uint32_t*) malloc(inst_block_size);
 	for (unsigned int rounds = round_offset; rounds < max_cycles; rounds++) {
 
-		printf("\tnew cycle: %d/%d  : %08X", rounds+1, max_cycles, invInsn(cur_insn));
+		printf("\tnew cycle: %d/%d  : %08X => %08X", rounds+1, max_cycles, invInsn(cur_insn), cur_insn);
 
 		state_t state = gdsl_init();
 
@@ -50,7 +60,7 @@ int main(int argc, char** argv) {
 		f = fopen("snackipack.txt", "w");
 
 		unsigned int inst_buf_entries = 0;
-		for (unsigned int pew = 0; pew < cycle_interval; pew++, cur_insn++)
+		for (unsigned int pew = 0; pew < cycle_interval; pew++, cur_insn = invInsn(invInsn(cur_insn)+1))
 		{
 			inst_buf[inst_buf_entries++] = cur_insn;
 
@@ -61,8 +71,10 @@ int main(int argc, char** argv) {
 			{
 				fwrite(conv, 1, strlen(conv), f);
 				if (!strcmp(gdsl_get_error_message(state), "DecodeSequenceMatchFailure")) {
-				} else if (!strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:371.4-10")
-						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:376.4-10")) {
+				} else if (!strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:349.4-9")
+						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:374.4-10")
+						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:379.4-10")
+						) {
 					//printf("  guard prob!\n");
 				} else {
 					fprintf(stderr, "decode nailed: %s\n", gdsl_get_error_message(state));
@@ -77,9 +89,10 @@ int main(int argc, char** argv) {
 			string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 
 			// special cases
-			if (isInsn("BREAKDD", fmt)								// inversed bit order argument
-					|| isInsn("PAUSEDD", fmt)						// pause unknown op to as
-					|| isInsn("DIVDD", fmt) || isInsn("DIVUDD", fmt)// catches division by zero ...
+			if (isInsn("BREAK", fmt)								// code20 is limited to 10 bits; code10 endianess is swapped?
+					|| isInsn("PAUSE", fmt) || isInsn("TLBINV", fmt)
+					|| isInsn("TLBINVF", fmt)						// unknown op, but only single pattern
+					|| isInsn("DIV", fmt) || isInsn("DIVU", fmt)	// as catches division by zero ...
 					|| isInsn("BC2F", fmt) || isInsn("BC2T", fmt) || isInsn("BC2F", fmt) || isInsn("BC2FL", fmt)
 					|| isInsn("BC2T", fmt) || isInsn("BC2TL", fmt)	// assembler syntax?
 					|| isInsn("LWXC1", fmt)							// index(base) ...
@@ -101,6 +114,9 @@ int main(int argc, char** argv) {
 					|| isInsn("PREFX", fmt) || isInsn("SYNCI", fmt)	// index(base), offset(base)
 					|| isInsn("MTC1", fmt) || isInsn("CTC1", fmt)
 					|| isInsn("MTHC1", fmt)							// swapped dest and source; rt and fs
+					|| isInsn("MTC2", fmt) || isInsn("MFC2", fmt)
+					|| isInsn("CFC2", fmt) || isInsn("CTC2", fmt)	// impl field is in as just 0-31
+					|| isInsn("INS", fmt)							// operands depend on each other (msb, lsb) ... size/pos
 					) {
 				fwrite(conv, 1, strlen(conv), f);
 				continue;
@@ -132,7 +148,10 @@ int main(int argc, char** argv) {
 
 		// assembly
 		printf("\tassembling...");
-		system("/home/rupert/carambola2/staging_dir/toolchain-mips_r2_gcc-4.7-linaro_uClibc-0.9.33.2/initial/mips-openwrt-linux-uclibc/bin/as -mips32r2 -mhard-float -no-warn --no-trap --no-break -o snacki.out snackipack.txt");
+		if (system("/home/rupert/carambola2/staging_dir/toolchain-mips_r2_gcc-4.7-linaro_uClibc-0.9.33.2/initial/mips-openwrt-linux-uclibc/bin/as -mips32r2 -mhard-float -no-warn --no-trap --no-break -o snacki.out snackipack.txt")) {
+			printf("\n\n\tfailed at: %d/%d  : %08X => %08X\n\n", rounds+1, max_cycles, invInsn(cur_insn), cur_insn);
+			break;
+		}
 
 		// compare files:
 		printf("comparing...");
@@ -158,7 +177,7 @@ int main(int argc, char** argv) {
 			for (int t = 0; t < inst_buf_entries; t++) {
 				if (inst_buf[t] != peep[t]) {
 					//printf("  at %d:  %08X  %08X\n", t-1, inst_buf[t-1], peep[t-1]);
-					printf("  at 0x%X (0x%X, %d):  %08X  %08X\n", t*4, t, t, invInsn(inst_buf[t]), invInsn(peep[t]));
+					printf("\t\tmiss at 0x%X (0x%X, %d):  %08X  %08X\n", t*4, t, t, invInsn(inst_buf[t]), invInsn(peep[t]));
 					//printf("  at %d:  %08X  %08X\n", t+1, inst_buf[t+1], peep[t+1]);
 					break;
 				}
