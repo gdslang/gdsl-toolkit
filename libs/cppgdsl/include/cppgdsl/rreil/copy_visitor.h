@@ -78,6 +78,7 @@ private:
   std::function<::gdsl::rreil::exception*(std::string)> arch_exception_ctor = NULL;
   std::function<::gdsl::rreil::exception*(shared_exception_type)> shared_exception_ctor = NULL;
 
+protected:
   union {
     std::vector<statement*> *_statements;
 
