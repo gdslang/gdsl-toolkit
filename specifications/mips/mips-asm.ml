@@ -52,34 +52,34 @@ end end
 val generalize-ua ua =
    case ua of
       NULLOP: asm-opnds-none
-    | UNOP_SRC x: asm-opnds-one (generalize-rvalue x.source)
-    | UNOP x: asm-opnds-one (generalize-lvalue x.destination)
-    | BINOP_SRC x: asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-one (generalize-rvalue x.source2))
-    | BINOP_FMT x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-one (generalize-rvalue x.source))
-    | BINOP x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-one (generalize-rvalue x.source))
-    | TERNOP_SRC x: asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3)))
-    | TERNOP x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-one (generalize-rvalue x.source2)))
-    | TERNOP_FMT x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-one (generalize-rvalue x.source2)))
-    | TERNOP_FMT_SRC_COND x: asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3)))
-    | QUADOP x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3))))
-    | QUADOP_FMT x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3))))
+    | UNOP_R x: asm-opnds-one (generalize-rvalue x.op)
+    | UNOP_L x: asm-opnds-one (generalize-lvalue x.op)
+    | BINOP_RR x: asm-opnds-more (generalize-rvalue x.op1) (asm-opnds-one (generalize-rvalue x.op2))
+    | BINOP_LR x: asm-opnds-more (generalize-lvalue x.op1) (asm-opnds-one (generalize-rvalue x.op2))
+    | BINOP_FLR x: asm-opnds-more (generalize-lvalue x.op1) (asm-opnds-one (generalize-rvalue x.op2))
+    | TERNOP_RRR x: asm-opnds-more (generalize-rvalue x.op1) (asm-opnds-more (generalize-rvalue x.op2) (asm-opnds-one (generalize-rvalue x.op3)))
+    | TERNOP_LRR x: asm-opnds-more (generalize-lvalue x.op1) (asm-opnds-more (generalize-rvalue x.op2) (asm-opnds-one (generalize-rvalue x.op3)))
+    | TERNOP_FLRR x: asm-opnds-more (generalize-lvalue x.op1) (asm-opnds-more (generalize-rvalue x.op2) (asm-opnds-one (generalize-rvalue x.op3)))
+    | TERNOP_CFLRR x: asm-opnds-more (generalize-lvalue x.op1) (asm-opnds-more (generalize-rvalue x.op2) (asm-opnds-one (generalize-rvalue x.op3)))
+    | QUADOP_LRRR x: asm-opnds-more (generalize-lvalue x.op1) (asm-opnds-more (generalize-rvalue x.op2) (asm-opnds-more (generalize-rvalue x.op3) (asm-opnds-one (generalize-rvalue x.op4))))
+    | QUADOP_FLRRR x: asm-opnds-more (generalize-lvalue x.op1) (asm-opnds-more (generalize-rvalue x.op2) (asm-opnds-more (generalize-rvalue x.op3) (asm-opnds-one (generalize-rvalue x.op4))))
    end
 
 
 val generalize-fmt ua =
    case ua of
       NULLOP: asm-anns-none
-    | UNOP_SRC x: asm-anns-none
-    | UNOP x: asm-anns-none
-    | BINOP_SRC x: asm-anns-none
-    | BINOP_FMT x: asm-anns-one (generalize-format x.fmt)
-    | BINOP x: asm-anns-none
-    | TERNOP_SRC x: asm-anns-none
-    | TERNOP x: asm-anns-none
-    | TERNOP_FMT x: asm-anns-one (generalize-format x.fmt)
-    | TERNOP_FMT_SRC_COND x: asm-anns-more (generalize-condop x.cond) (asm-anns-one (generalize-format x.fmt))
-    | QUADOP x: asm-anns-none
-    | QUADOP_FMT x: asm-anns-one (generalize-format x.fmt)
+    | UNOP_R x: asm-anns-none
+    | UNOP_L x: asm-anns-none
+    | BINOP_RR x: asm-anns-none
+    | BINOP_LR x: asm-anns-none
+    | BINOP_FLR x: asm-anns-one (generalize-format x.fmt)
+    | TERNOP_RRR x: asm-anns-none
+    | TERNOP_LRR x: asm-anns-none
+    | TERNOP_FLRR x: asm-anns-one (generalize-format x.fmt)
+    | TERNOP_CFLRR x: asm-anns-more (generalize-format x.fmt) (asm-anns-one (generalize-condop x.cond))
+    | QUADOP_LRRR x: asm-anns-none
+    | QUADOP_FLRRR x: asm-anns-one (generalize-format x.fmt)
    end
 
 

@@ -117,52 +117,27 @@ val sizeof-rval x =
 val mnemonic-with-format insn x = (mnemonic-of insn) +++ "." +++ show/format x.fmt
 val mnemonic-with-format-and-cond insn x = (mnemonic-of insn) +++ "." +++ show/condop x.cond +++ "." +++ show/format x.fmt
 
-val sem-default-unop-src-ro-generic insn x = do
-	src-sz <- return (sizeof-rval x.source);
 
-	src <- rval Signed x.source;
+val sem-default-nullop-ro-generic insn = do
+	prim-generic (mnemonic-of insn) varls-none varls-none
+end
+
+val sem-default-unop-r-ro-generic insn x = do
+	src-sz <- return (sizeof-rval x.op);
+
+	src <- rval Signed x.op;
 
 	src-up <- unpack-lin src-sz src;
 
 	prim-generic (mnemonic-of insn) varls-none (varls-one (varl src-sz src-up))
 end
 
-val sem-default-nullop-ro-generic insn = do
-	prim-generic (mnemonic-of insn) varls-none varls-none
-end
+val sem-default-binop-rr-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.op1);
+	src2-sz <- return (sizeof-rval x.op2);
 
-val sem-default-binop-ro-generic insn x = do
-	src-sz <- return (sizeof-rval x.source);
-	dst-sz <- return (sizeof-lval x.destination);
-
-	src <- rval Signed x.source;
-	dst <- lval Signed x.destination;
-
-	src-up <- unpack-lin src-sz src;
-	dst-up <- unpack-lin dst-sz dst;
-
-	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-one (varl src-sz src-up))
-end
-
-val sem-default-binop-fmt-ro-generic insn x = do
-	src-sz <- return (sizeof-rval x.source);
-	dst-sz <- return (sizeof-lval x.destination);
-
-	src <- rval Signed x.source;
-	dst <- lval Signed x.destination;
-
-	src-up <- unpack-lin src-sz src;
-	dst-up <- unpack-lin dst-sz dst;
-
-	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-one (varl src-sz src-up))
-end
-
-val sem-default-binop-src-ro-generic insn x = do
-	src1-sz <- return (sizeof-rval x.source1);
-	src2-sz <- return (sizeof-rval x.source2);
-
-	src1 <- rval Signed x.source1;
-	src2 <- rval Signed x.source2;
+	src1 <- rval Signed x.op1;
+	src2 <- rval Signed x.op2;
 
 	src1-up <- unpack-lin src1-sz src1;
 	src2-up <- unpack-lin src2-sz src2;
@@ -170,46 +145,40 @@ val sem-default-binop-src-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))
 end
 
-val sem-default-ternop-ro-generic insn x = do
-	src1-sz <- return (sizeof-rval x.source1);
-	src2-sz <- return (sizeof-rval x.source2);
-	dst-sz <- return (sizeof-lval x.destination);
+val sem-default-binop-lr-ro-generic insn x = do
+	dst-sz <- return (sizeof-lval x.op1);
+	src-sz <- return (sizeof-rval x.op2);
 
-	src1 <- rval Signed x.source1;
-	src2 <- rval Signed x.source2;
-	dst <- lval Signed x.destination;
+	dst <- lval Signed x.op1;
+	src <- rval Signed x.op2;
 
-	src1-up <- unpack-lin src1-sz src1;
-	src2-up <- unpack-lin src2-sz src2;
 	dst-up <- unpack-lin dst-sz dst;
+	src-up <- unpack-lin src-sz src;
 
-	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))
+	prim-generic (mnemonic-of insn) (varls-one (varl src-sz src-up)) (varls-one (varl dst-sz dst-up))
 end
 
-val sem-default-ternop-fmt-ro-generic insn x = do
-	src1-sz <- return (sizeof-rval x.source1);
-	src2-sz <- return (sizeof-rval x.source2);
-	dst-sz <- return (sizeof-lval x.destination);
+val sem-default-binop-flr-ro-generic insn x = do
+	dst-sz <- return (sizeof-lval x.op1);
+	src-sz <- return (sizeof-rval x.op2);
 
-	src1 <- rval Signed x.source1;
-	src2 <- rval Signed x.source2;
-	dst <- lval Signed x.destination;
+	dst <- lval Signed x.op1;
+	src <- rval Signed x.op2;
 
-	src1-up <- unpack-lin src1-sz src1;
-	src2-up <- unpack-lin src2-sz src2;
 	dst-up <- unpack-lin dst-sz dst;
+	src-up <- unpack-lin src-sz src;
 
-	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))
+	prim-generic (mnemonic-with-format insn x) (varls-one (varl src-sz src-up)) (varls-one (varl dst-sz dst-up))
 end
 
-val sem-default-ternop-src-ro-generic insn x = do
-	src1-sz <- return (sizeof-rval x.source1);
-	src2-sz <- return (sizeof-rval x.source2);
-	src3-sz <- return (sizeof-rval x.source3);
+val sem-default-ternop-rrr-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.op1);
+	src2-sz <- return (sizeof-rval x.op2);
+	src3-sz <- return (sizeof-rval x.op3);
 
-	src1 <- rval Signed x.source1;
-	src2 <- rval Signed x.source2;
-	src3 <- rval Signed x.source3;
+	src1 <- rval Signed x.op1;
+	src2 <- rval Signed x.op2;
+	src3 <- rval Signed x.op3;
 
 	src1-up <- unpack-lin src1-sz src1;
 	src2-up <- unpack-lin src2-sz src2;
@@ -218,58 +187,90 @@ val sem-default-ternop-src-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
 end
 
-val sem-default-ternop-fmt-src-cond-ro-generic insn x = do
-	src1-sz <- return (sizeof-rval x.source1);
-	src2-sz <- return (sizeof-rval x.source2);
-	src3-sz <- return (sizeof-rval x.source3);
+val sem-default-ternop-lrr-ro-generic insn x = do
+	dst-sz <- return (sizeof-lval x.op1);
+	src1-sz <- return (sizeof-rval x.op2);
+	src2-sz <- return (sizeof-rval x.op3);
 
-	src1 <- rval Signed x.source1;
-	src2 <- rval Signed x.source2;
-	src3 <- rval Signed x.source3;
+	dst <- lval Signed x.op1;
+	src1 <- rval Signed x.op2;
+	src2 <- rval Signed x.op3;
 
+	dst-up <- unpack-lin dst-sz dst;
 	src1-up <- unpack-lin src1-sz src1;
 	src2-up <- unpack-lin src2-sz src2;
-	src3-up <- unpack-lin src3-sz src3;
 
-	prim-generic (mnemonic-with-format-and-cond insn x) varls-none (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
+	prim-generic (mnemonic-of insn) (varls-one (varl src2-sz src2-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up)))
 end
 
-val sem-default-quadop-ro-generic insn x = do
-	src1-sz <- return (sizeof-rval x.source1);
-	src2-sz <- return (sizeof-rval x.source2);
-	src3-sz <- return (sizeof-rval x.source3);
-	dst-sz <- return (sizeof-lval x.destination);
+val sem-default-ternop-flrr-ro-generic insn x = do
+	dst-sz <- return (sizeof-lval x.op1);
+	src1-sz <- return (sizeof-rval x.op2);
+	src2-sz <- return (sizeof-rval x.op3);
 
-	src1 <- rval Signed x.source1;
-	src2 <- rval Signed x.source2;
-	src3 <- rval Signed x.source3;
-	dst <- lval Signed x.destination;
+	dst <- lval Signed x.op1;
+	src1 <- rval Signed x.op2;
+	src2 <- rval Signed x.op3;
 
+	dst-up <- unpack-lin dst-sz dst;
 	src1-up <- unpack-lin src1-sz src1;
 	src2-up <- unpack-lin src2-sz src2;
-	src3-up <- unpack-lin src3-sz src3;
-	dst-up <- unpack-lin dst-sz dst;
 
-	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
+	prim-generic (mnemonic-with-format insn x) (varls-one (varl src2-sz src2-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up)))
 end
 
-val sem-default-quadop-fmt-ro-generic insn x = do
-	src1-sz <- return (sizeof-rval x.source1);
-	src2-sz <- return (sizeof-rval x.source2);
-	src3-sz <- return (sizeof-rval x.source3);
-	dst-sz <- return (sizeof-lval x.destination);
+val sem-default-ternop-cflrr-ro-generic insn x = do
+	dst-sz <- return (sizeof-lval x.op1);
+	src1-sz <- return (sizeof-rval x.op2);
+	src2-sz <- return (sizeof-rval x.op3);
 
-	src1 <- rval Signed x.source1;
-	src2 <- rval Signed x.source2;
-	src3 <- rval Signed x.source3;
-	dst <- lval Signed x.destination;
+	dst <- lval Signed x.op1;
+	src1 <- rval Signed x.op2;
+	src2 <- rval Signed x.op3;
 
+	dst-up <- unpack-lin dst-sz dst;
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+
+	prim-generic (mnemonic-with-format-and cond insn x) (varls-one (varl src2-sz src2-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up)))
+end
+
+val sem-default-quadop-lrrr-ro-generic insn x = do
+	dst-sz <- return (sizeof-lval x.op1);
+	src1-sz <- return (sizeof-rval x.op2);
+	src2-sz <- return (sizeof-rval x.op3);
+	src3-sz <- return (sizeof-rval x.op4);
+
+	dst <- lval Signed x.op1;
+	src1 <- rval Signed x.op2;
+	src2 <- rval Signed x.op3;
+	src3 <- rval Signed x.op4;
+
+	dst-up <- unpack-lin dst-sz dst;
 	src1-up <- unpack-lin src1-sz src1;
 	src2-up <- unpack-lin src2-sz src2;
 	src3-up <- unpack-lin src3-sz src3;
-	dst-up <- unpack-lin dst-sz dst;
 
-	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
+	prim-generic (mnemonic-of insn) (varls-one (varl src3-sz src3-up)) (varls-more (varl src2-sz src2-up) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up))))
+end
+
+val sem-default-quadop-flrrr-ro-generic insn x = do
+	dst-sz <- return (sizeof-lval x.op1);
+	src1-sz <- return (sizeof-rval x.op2);
+	src2-sz <- return (sizeof-rval x.op3);
+	src3-sz <- return (sizeof-rval x.op4);
+
+	dst <- lval Signed x.op1;
+	src1 <- rval Signed x.op2;
+	src2 <- rval Signed x.op3;
+	src3 <- rval Signed x.op4;
+
+	dst-up <- unpack-lin dst-sz dst;
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+	src3-up <- unpack-lin src3-sz src3;
+
+	prim-generic (mnemonic-with-format insn x) (varls-one (varl src3-sz src3-up)) (varls-more (varl src2-sz src2-up) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up))))
 end
 
 
@@ -285,9 +286,9 @@ type sem_exception =
  | SEM_EXC_DEBUG_MODE_BREAKPOINT
  | SEM_EXC_RESERVED_INSTRUCTION
 
-###########
-### semantics of instructions
-###########
+#################################
+### semantics of instructions ###
+#################################
 
 val overflow-add-addi size res rs rt = do
 	t1 <- mktemp;
@@ -317,73 +318,73 @@ val overflow-sub size res rs rt = do
 end
 
 val sem-add x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-lval x.destination);
+	rs <- rval Signed x.op2;
+	rt <- rval Signed x.op3;
+	size <- return (sizeof-lval x.op1);
 
 	res <- mktemp;
 	add size res rs rt;
 
 	overflow-add-addi size res rs rt;
 
-	write x.destination (var res)	
+	write x.op1 (var res)	
 end
 
 val sem-addu x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-lval x.destination);
+	rs <- rval Signed x.op2;
+	rt <- rval Signed x.op3;
+	size <- return (sizeof-lval x.op1);
 
 	res <- mktemp;
 	add size res rs rt;
 
-	write x.destination (var res)	
+	write x.op1 (var res)
 end
 
 val sem-addi x = do
-	rs <- rval Signed x.source1;
-	imm <- rval Signed x.source2;
-	size <- return (sizeof-lval x.destination);
+	rs <- rval Signed x.op2;
+	imm <- rval Signed x.op3;
+	size <- return (sizeof-lval x.op1);
 
 	res <- mktemp;
 	add size res rs imm;
 
 	overflow-add-addi size res rs imm;
 
-	write x.destination (var res)	
+	write x.op1 (var res)	
 end
 
 val sem-addiu x = do
-	rs <- rval Signed x.source1;
-	imm <- rval Signed x.source2;
-	size <- return (sizeof-lval x.destination);
+	rs <- rval Signed x.op2;
+	imm <- rval Signed x.op3;
+	size <- return (sizeof-lval x.op1);
 
 	res <- mktemp;
 	add size res rs imm;
 
-	write x.destination (var res)	
+	write x.op1 (var res)	
 end
 
 val sem-bitwise bit_op x = do
-	rs <- rval Unsigned x.source1;
-	rt <- rval Unsigned x.source2;
-	size <- return (sizeof-lval x.destination);
+	rs <- rval Unsigned x.op2;
+	rt <- rval Unsigned x.op3;
+	size <- return (sizeof-lval x.op1);
 
 	res <- mktemp;
 	bit_op size res rs rt;
 	
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-bitwise-imm bit_op x = do
-	rs <- rval Unsigned x.source1;
-	imm <- rval Unsigned x.source2;
-	size <- return (sizeof-lval x.destination);
+	rs <- rval Unsigned x.op2;
+	imm <- rval Unsigned x.op3;
+	size <- return (sizeof-lval x.op1);
 
 	res <- mktemp;
 	bit_op size res rs imm;
 	
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-and x = sem-bitwise andb x
@@ -405,11 +406,11 @@ val cbranch-rel cond offset = do
 end
 
 val sem-b cmp_op x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Signed x.op1;
+	rt <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op1);
 	
-	off <- rval Signed x.source3;
+	off <- rval Signed x.op3;
 	off_ext <- return (scale 4 off);
 
 	cond <- cmp_op size rs rt;
@@ -417,10 +418,10 @@ val sem-b cmp_op x = do
 end
 
 val sem-bz cmp_op x = do
-	rs <- rval Signed x.source1;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Signed x.op1;
+	size <- return (sizeof-rval x.op1);
 
-	off <- rval Signed x.source2;
+	off <- rval Signed x.op2;
 	off_ext <- return (scale 4 off);
 
 	cond <- cmp_op size rs (imm 0);
@@ -457,8 +458,8 @@ val sem-bnel x = sem-b /neq x
 val sem-break x = throw-exception SEM_EXC_BREAKPOINT
 
 val sem-cl bit x = do
-	rs <- rval Unsigned x.source;
-	size <- return (sizeof-rval x.source);
+	rs <- rval Unsigned x.op2;
+	size <- return (sizeof-rval x.op2);
 	
 	amount <- mktemp;
 	mov size amount (imm 32);
@@ -478,7 +479,7 @@ val sem-cl bit x = do
 		
 	end
 	;
-	write x.destination (var amount)
+	write x.op1 (var amount)
 end
 
 val sem-deret = do
@@ -518,13 +519,13 @@ val sem-di x = do
 	ie <- return fIE;
 	mov 1 ie (imm 0);
 
-	write x.destination (var temp)
+	write x.op (var temp)
 end
 
 val sem-div-divu div_op mod_op x = do
-	num <- rval Signed x.source1;
-	denom <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	num <- rval Signed x.op1;
+	denom <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op1);
 
 	hi <- return (semantic-reg-of Sem_HI);
 	lo <- return (semantic-reg-of Sem_LO);
@@ -545,7 +546,7 @@ val sem-ei x = do
 	ie <- return fIE;
 	mov 1 ie (imm 1);
 
-	write x.destination (var temp)
+	write x.op (var temp)
 end
 
 val sem-eret = do
@@ -607,10 +608,10 @@ val sem-eret = do
 end
 
 val sem-ext x = do
-	rs <- rval Unsigned x.source1;
-	msbd <- rval Unsigned x.source2;
-	lsb <- rval Unsigned x.source3;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Unsigned x.op2;
+	msbd <- rval Unsigned x.op3;
+	lsb <- rval Unsigned x.op4;
+	size <- return (sizeof-rval x.op2);
 
 	ps <- return (lin-to-int lsb);
 	sz <- return (1 + lin-to-int msbd);
@@ -622,15 +623,15 @@ val sem-ext x = do
 	mov size res (imm 0);
 	mov sz res (var (at-offset temp ps));
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-ins x = do
-	rs <- rval Unsigned x.source1;
-	msb <- rval Unsigned x.source2;
-	lsb <- rval Unsigned x.source3;
-	rt <- lval Unsigned x.destination;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Unsigned x.op2;
+	msb <- rval Unsigned x.op3;
+	lsb <- rval Unsigned x.op4;
+	rt <- lval Unsigned x.op1;
+	size <- return (sizeof-rval x.op2);
 
 	ps <- return (lin-to-int lsb);
 	sz <- return (1 - ps + lin-to-int msb);
@@ -642,12 +643,12 @@ val sem-ins x = do
 	mov size res rt;
 	mov sz res (var (at-offset temp ps));
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-j x = do
-	index <- rval Unsigned x.source;
-	size <- return (sizeof-rval x.source);
+	index <- rval Unsigned x.op;
+	size <- return (sizeof-rval x.op);
 	index_ext <- return (scale 4 index);
 
 	pc <- return (semantic-reg-of Sem_PC);
@@ -671,14 +672,32 @@ end
 
 val sem-jalr x =  do
 	pc <- return (semantic-reg-of Sem_PC);
-	size <- return (sizeof-lval x.destination);
+	size <- return (sizeof-lval x.op1);
 
 	# 4 instead of 8 since pc got incremented already
 	temp <- mktemp;
 	add size temp (var pc) (imm 4);
-	write x.destination (var temp);
+	write x.op1 (var temp);
 
-	sem-jr x
+	rs <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op2);
+	pc <- return (semantic-reg-of Sem_SREG);
+
+	pc_true <- mktemp;
+	mov size pc_true rs; 
+
+	pc_false <- mktemp;
+	mov size pc_false rs;
+	mov 1 pc_false (imm 0);
+
+	config1CA <- return (fCA);
+	cond <- /eq 1 (var config1CA) (imm 0);
+
+	isamode <- return (semantic-reg-of Sem_ISA_MODE);
+	_if (/neq 1 (var config1CA) (imm 0)) _then
+		mov isamode.size isamode rs;
+	
+	cbranch cond (address pc.size (var pc_true)) (address pc.size (var pc_false))	
 end
 
 val sem-jalr-hb x = sem-jalr x
@@ -692,8 +711,8 @@ val sem-jalx x = do
 end
 
 val sem-jr x = do
-	rs <- rval Signed x.source;
-	size <- return (sizeof-rval x.source);
+	rs <- rval Signed x.op;
+	size <- return (sizeof-rval x.op);
 	pc <- return (semantic-reg-of Sem_SREG);
 
 	pc_true <- mktemp;
@@ -759,9 +778,9 @@ val is-big-endian-cpu = do
 end
 
 val sem-lb-lbu ext_op x = do
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	base <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -783,16 +802,16 @@ val sem-lb-lbu ext_op x = do
 	res <- mktemp;
 	ext_op size res 8 (var memword);
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-lb x = sem-lb-lbu movsx x
 val sem-lbu x = sem-lb-lbu movzx x
 
 val sem-lh-lhu ext_op x = do
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	base <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -817,16 +836,16 @@ val sem-lh-lhu ext_op x = do
 	res <- mktemp;
 	ext_op size res 16 (var memword);
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-lh x = sem-lh-lhu movsx x
 val sem-lhu x = sem-lh-lhu movzx x
 
 val sem-lw x = do
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	base <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -837,7 +856,7 @@ val sem-lw x = do
 	memword <- mktemp;
 	load 32 memword size (var vaddr);
 
-	write x.destination (var memword)
+	write x.op1 (var memword)
 end
 
 val sem-ll x = do
@@ -848,10 +867,10 @@ val sem-ll x = do
 end
 
 val sem-lwl x = do
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source2;
-	rt <- lval Signed x.destination;
-	size <- return (sizeof-lval x.destination);
+	base <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	rt <- lval Signed x.op1;
+	size <- return (sizeof-lval x.op1);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -880,14 +899,14 @@ val sem-lwl x = do
 
 	res <- mktemp;
 	orb size res (var high) (var low);
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-lwr x = do
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source2;
-	rt <- lval Signed x.destination;
-	size <- return (sizeof-lval x.destination);
+	base <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	rt <- lval Signed x.op1;
+	size <- return (sizeof-lval x.op1);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -917,24 +936,24 @@ val sem-lwr x = do
 
 	res <- mktemp;
 	orb size res (var high) (var low);
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-lui x = do
-	immediate <- rval Unsigned x.source;
-	size <- return (sizeof-lval x.destination);
-	size_imm <- return (sizeof-rval x.source);
+	immediate <- rval Unsigned x.op2;
+	size <- return (sizeof-lval x.op1);
+	size_imm <- return (sizeof-rval x.op2);
 	
 	res <- mktemp;
 	shl size res immediate (imm (32-size_imm));
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-madd-maddu-msub-msubu ext_op add_sub_op x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Signed x.op1;
+	rt <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op1);
 
 	rs_ext <- mktemp;
 	ext_op (size*2) rs_ext size rs;
@@ -966,56 +985,56 @@ val sem-msubu x = sem-madd-maddu-msub-msubu movzx sub x
 val sem-mfhi x = do
 	hi <- return (semantic-reg-of Sem_HI);
 	
-	write x.destination (var hi)
+	write x.op (var hi)
 end
 
 val sem-mflo x = do
 	lo <- return (semantic-reg-of Sem_LO);
 	
-	write x.destination (var lo)
+	write x.op (var lo)
 end
 
 val sem-mthi x = do
-	rs <- rval Signed x.source;
+	rs <- rval Signed x.op;
 	hi <- return (semantic-reg-of Sem_HI);
 
 	mov hi.size hi rs
 end
 
 val sem-mtlo x = do
-	rs <- rval Signed x.source;
+	rs <- rval Signed x.op;
 	lo <- return (semantic-reg-of Sem_LO);
 
 	mov lo.size lo rs
 end
 
 val sem-movn-movz cmp_op x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Signed x.op2;
+	rt <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
 
 	_if (cmp_op size rt (imm 0)) _then
-		write x.destination rs
+		write x.op1 rs
 end
 
 val sem-movn x = sem-movn-movz /neq x
 val sem-movz x = sem-movn-movz /eq x
 
 val sem-movf-movt x i = do
-	rs <- rval Signed x.source1;
-	cc <- (rval Signed x.source2);
+	rs <- rval Signed x.op2;
+	cc <- (rval Signed x.op3);
 	
 	_if (/eq 1 cc (imm i)) _then
-		write x.destination rs
+		write x.op1 rs
 end
 
 val sem-movf x = sem-movf-movt x 0
 val sem-movt x = sem-movf-movt x 1
 
 val sem-mult-multu ext_op x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Signed x.op1;
+	rt <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op1);
 
 	rs_ext <- mktemp;
 	ext_op (size*2) rs_ext size rs;
@@ -1037,9 +1056,9 @@ val sem-mult x = sem-mult-multu movsx x
 val sem-multu x = sem-mult-multu movzx x
 
 val sem-mul x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Signed x.op2;
+	rt <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
 
 	rs_ext <- mktemp;
 	movsx (size*2) rs_ext size rs;
@@ -1050,19 +1069,19 @@ val sem-mul x = do
 	res <- mktemp;
 	mul (size*2) res (var rs_ext) (var rt_ext);
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-nor x = do
-	s1 <- rval Unsigned x.source1;
-	s2 <- rval Unsigned x.source2;
+	s1 <- rval Unsigned x.op2;
+	s2 <- rval Unsigned x.op3;
 	size <- return (sizeof-lval x.destination);
 
 	res <- mktemp;
 	orb size res s1 s2;
 	xorb size res (var res) (imm (0-1));
 	
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-pause = do
@@ -1090,38 +1109,38 @@ val hwr-reg-of x =
    end
 
 val sem-rdhwr x = do
-	rd <- rval Unsigned x.source;
+	rd <- rval Unsigned x.op2;
 	i <- return (lin-to-int rd);
 
 	if (i >= 4) then
 		if (i === 29) then do
 			reg <- return (hwr-reg-of i);
-			write x.destination (var reg)		
+			write x.op1 (var reg)		
 		end else
 			throw-exception SEM_EXC_RESERVED_INSTRUCTION
 	else do
 		reg <- return (hwr-reg-of i);
-		write x.destination (var reg)
+		write x.op1 (var reg)
 	end
 end
 
 val sem-rotr x = do
-	rt <- rval Signed x.source1;
-	sa <- rval Unsigned x.source2;
-	size <- return (sizeof-rval x.source1);
+	rt <- rval Signed x.op2;
+	sa <- rval Unsigned x.op3;
+	size <- return (sizeof-rval x.op2);
 	amount <- return (lin-to-int sa);
 
 	res <- mktemp;
 	shr size res rt sa;
 	mov amount (at-offset res (32-amount)) rt;
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-rotrv x = do
-	rt <- rval Signed x.source1;
-	rs <- rval Unsigned x.source2;
-	size <- return (sizeof-rval x.source1);
+	rt <- rval Signed x.op2;
+	rs <- rval Unsigned x.op3;
+	size <- return (sizeof-rval x.op2);
 
 	left <- mktemp;
 	shr size left rt rs;
@@ -1135,42 +1154,42 @@ val sem-rotrv x = do
 	res <- mktemp;
 	orb size res (var left) (var right);
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-se sz x = do
-	rt <- rval Signed x.source;
-	size <- return (sizeof-rval x.source);
+	rt <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op2);
 
 	res <- mktemp;
 	movsx size res sz rt;
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-seb x = sem-se 8 x
 val sem-seh x = sem-se 16 x
 
 val sem-slt-sltu cmp_op x = do
-	s1 <- rval Signed x.source1;
-	s2 <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	s1 <- rval Signed x.op2;
+	s2 <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
 
 	res <- mktemp;
 	cmp_op size res s1 s2;
 	movzx size res 1 (var res);
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-slt x = sem-slt-sltu cmplts x
 val sem-sltu x = sem-slt-sltu cmpltu x
 
 val sem-slti-sltiu mov_op cmp_op x = do
-	rt <- rval Signed x.source1;
-	imm <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
-	size_imm <- return (sizeof-rval x.source2);
+	rt <- rval Signed x.op2;
+	imm <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
+	size_imm <- return (sizeof-rval x.op3);
 
 	imm_ext <- mktemp;
 	mov_op size imm_ext size_imm imm;
@@ -1179,41 +1198,41 @@ val sem-slti-sltiu mov_op cmp_op x = do
 	cmp_op size res rt (var imm_ext);
 	movzx size res 1 (var res);
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-slti x = sem-slti-sltiu movsx cmplts x
 val sem-sltiu x = sem-slti-sltiu movzx cmpltu x
 
 val sem-sub x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-lval x.destination);
+	rs <- rval Signed x.op2;
+	rt <- rval Signed x.op3;
+	size <- return (sizeof-lval x.op1);
 
 	res <- mktemp;
 	sub size res rs rt;
 	
 	overflow-sub size res rs rt;
 
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-subu x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-lval x.destination);
+	rs <- rval Signed x.op2;
+	rt <- rval Signed x.op3;
+	size <- return (sizeof-lval x.op1);
 
 	res <- mktemp;
 	sub size res rs rt;
 	
-	write x.destination (var res)
+	write x.op1 (var res)
 end
 
 val sem-sb x = do
-	rt <- rval Signed x.source2;
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source3;
-	size <- return (sizeof-rval x.source1);
+	rt <- rval Signed x.op1;
+	base <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op1);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -1234,10 +1253,10 @@ val sem-sb x = do
 end
 
 val sem-sh x = do
-	rt <- rval Signed x.source2;
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source3;
-	size <- return (sizeof-rval x.source1);
+	rt <- rval Signed x.op1;
+	base <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op1);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -1261,10 +1280,10 @@ val sem-sh x = do
 end
 
 val sem-sw x = do
-	rt <- rval Signed x.source2;
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source3;
-	size <- return (sizeof-rval x.source1);
+	rt <- rval Signed x.op1;
+	base <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op1);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -1276,10 +1295,10 @@ val sem-sw x = do
 end
 
 val sem-sc-sw x = do
-	rt <- lval Signed x.destination;
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	rt <- lval Signed x.op1;
+	base <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op1);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -1292,7 +1311,7 @@ end
 
 val sem-sc x = do
 	llbit <- return (semantic-reg-of Sem_LLBIT);
-	size <- return (sizeof-lval x.destination);
+	size <- return (sizeof-lval x.op1);
 
 	_if (/eq llbit.size (var llbit) (imm 1)) _then
 		sem-sc-sw x;
@@ -1300,14 +1319,14 @@ val sem-sc x = do
 	temp <- mktemp;
 	movzx size temp llbit.size (var llbit);
 	
-	write x.destination (var temp)
+	write x.op1 (var temp)
 end
 
 val sem-swl x = do
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source3;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source2);
+	base <- rval Signed x.op1;
+	off <- rval Signed x.op3;
+	rt <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -1330,10 +1349,10 @@ end
 
 
 val sem-swr x = do
-	base <- rval Signed x.source1;
-	off <- rval Signed x.source3;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source2);
+	base <- rval Signed x.op1;
+	off <- rval Signed x.op3;
+	rt <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -1363,14 +1382,14 @@ val sem-sdbbp x = do
 end
 
 val sem-sll-sra-srl shift_op x = do
-	rt <- rval Signed x.source1;
-	amount <- rval Signed x.source2;
-	size <- return (sizeof-lval x.destination);
+	rt <- rval Signed x.op2;
+	amount <- rval Signed x.op3;
+	size <- return (sizeof-lval x.op1);
 
 	temp <- mktemp;
 	shift_op size temp rt amount;
 	
-	write x.destination (var temp)
+	write x.op1 (var temp)
 end
 
 val sem-sll x = sem-sll-sra-srl shl x
@@ -1378,9 +1397,9 @@ val sem-sra x = sem-sll-sra-srl shrs x
 val sem-srl x = sem-sll-sra-srl shr x
 
 val sem-sllv-srav-srlv shift_op x = do
-	rt <- rval Signed x.source1;
-	rs <- rval Signed x.source2;
-	size <- return (sizeof-lval x.destination);
+	rt <- rval Signed x.op2;
+	rs <- rval Signed x.op3;
+	size <- return (sizeof-lval x.op1);
 	
 	amount <- mktemp;
 	mov 5 amount rs;
@@ -1388,7 +1407,7 @@ val sem-sllv-srav-srlv shift_op x = do
 	temp <- mktemp;
 	shift_op size temp rt (var amount);
 
-	write x.destination (var temp)
+	write x.op1 (var temp)
 end
 
 val sem-sllv x = sem-sllv-srav-srlv shl x
@@ -1397,9 +1416,9 @@ val sem-srlv x = sem-sllv-srav-srlv shr x
 
 val sem-syscall = throw-exception SEM_EXC_SYSTEM_CALL
 val sem-t cmp_op x = do
-	rs <- rval Signed x.source1;
-	rt <- rval Signed x.source2;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Signed x.op1;
+	rt <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op1);
 
 	_if (cmp_op size rs rt) _then
 		throw-exception SEM_EXC_TRAP
@@ -1413,9 +1432,9 @@ val sem-tltu x = sem-t /ltu x
 val sem-tne x = sem-t /neq x
 
 val sem-ti cmp_op signedness x = do
-	rs <- rval signedness x.source1;
-	imm <- rval signedness x.source2;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval signedness x.op1;
+	imm <- rval signedness x.op2;
+	size <- return (sizeof-rval x.op1);
 
 	_if (cmp_op size rs imm) _then
 		throw-exception SEM_EXC_TRAP
@@ -1429,8 +1448,8 @@ val sem-tltiu x = sem-ti /ltu Unsigned x
 val sem-tnei x = sem-ti /neq Signed x
 
 val sem-wsbh x = do
-	rt <- rval Unsigned x.source;
-	size <- return (sizeof-rval x.source);
+	rt <- rval Unsigned x.op2;
+	size <- return (sizeof-rval x.op2);
 
 	temp <- mktemp;
 	mov size temp rt;
@@ -1457,28 +1476,28 @@ val sem-wsbh x = do
 	shl size res (var res) (imm 8);
 	mov 8 res (var p2);
 
-	write x.destination (var res)	
+	write x.op1 (var res)	
 end
 
 val semantics i =
    case i of
-      ABS-fmt x: sem-default-binop-fmt-ro-generic i x
+      ABS-fmt x: sem-default-binop-flr-ro-generic i x
     | ADD x: sem-add x
-    | ADD-fmt x: sem-default-ternop-fmt-ro-generic i x
+    | ADD-fmt x: sem-default-ternop-flrr-ro-generic i x
     | ADDI x: sem-addi x
     | ADDIU x: sem-addiu x
     | ADDU x: sem-addu x
-    | ALNV-PS x: sem-default-quadop-ro-generic i x
+    | ALNV-PS x: sem-default-quadop-lrrr-ro-generic i x
     | AND x: sem-and x
     | ANDI x: sem-andi x
-    | BC1F x: sem-default-binop-src-ro-generic i x
-    | BC1FL x: sem-default-binop-src-ro-generic i x
-    | BC1T x: sem-default-binop-src-ro-generic i x
-    | BC1TL x: sem-default-binop-src-ro-generic i x
-    | BC2F x: sem-default-binop-src-ro-generic i x
-    | BC2FL x: sem-default-binop-src-ro-generic i x
-    | BC2T x: sem-default-binop-src-ro-generic i x
-    | BC2TL x: sem-default-binop-src-ro-generic i x
+    | BC1F x: sem-default-binop-rr-ro-generic i x
+    | BC1FL x: sem-default-binop-rr-ro-generic i x
+    | BC1T x: sem-default-binop-rr-ro-generic i x
+    | BC1TL x: sem-default-binop-rr-ro-generic i x
+    | BC2F x: sem-default-binop-rr-ro-generic i x
+    | BC2FL x: sem-default-binop-rr-ro-generic i x
+    | BC2T x: sem-default-binop-rr-ro-generic i x
+    | BC2TL x: sem-default-binop-rr-ro-generic i x
     | BEQ x: sem-beq x
     | BEQL x: sem-beql x
     | BGEZ x: sem-bgez x
@@ -1496,35 +1515,35 @@ val semantics i =
     | BNE x: sem-bne x
     | BNEL x: sem-bnel x
     | BREAK x: sem-break x
-    | C-cond-fmt x: sem-default-ternop-fmt-src-cond-ro-generic i x
-    | CACHE x: sem-default-ternop-src-ro-generic i x
-    | CACHEE x: sem-default-ternop-src-ro-generic i x
-    | CEIL-L-fmt x: sem-default-binop-fmt-ro-generic i x
-    | CEIL-W-fmt x: sem-default-binop-fmt-ro-generic i x
-    | CFC1 x: sem-default-binop-ro-generic i x
-    | CFC2 x: sem-default-binop-ro-generic i x
+    | C-cond-fmt x: sem-default-ternop-cflrr-ro-generic i x
+    | CACHE x: sem-default-ternop-rrr-ro-generic i x
+    | CACHEE x: sem-default-ternop-rrr-ro-generic i x
+    | CEIL-L-fmt x: sem-default-binop-flr-ro-generic i x
+    | CEIL-W-fmt x: sem-default-binop-flr-ro-generic i x
+    | CFC1 x: sem-default-binop-lr-ro-generic i x
+    | CFC2 x: sem-default-binop-lr-ro-generic i x
     | CLO x: sem-cl 1 x
     | CLZ x: sem-cl 0 x
-    | COP2 x: sem-default-unop-src-ro-generic i x
-    | CTC1 x: sem-default-binop-src-ro-generic i x
-    | CTC2 x: sem-default-binop-src-ro-generic i x
-    | CVT-D-fmt x: sem-default-binop-fmt-ro-generic i x
-    | CVT-L-fmt x: sem-default-binop-fmt-ro-generic i x
-    | CVT-PS-S x: sem-default-ternop-ro-generic i x
-    | CVT-S-fmt x: sem-default-binop-fmt-ro-generic i x
-    | CVT-S-PL x: sem-default-binop-ro-generic i x
-    | CVT-S-PU x: sem-default-binop-ro-generic i x
-    | CVT-W-fmt x: sem-default-binop-fmt-ro-generic i x
+    | COP2 x: sem-default-unop-r-ro-generic i x
+    | CTC1 x: sem-default-binop-rr-ro-generic i x
+    | CTC2 x: sem-default-binop-rr-ro-generic i x
+    | CVT-D-fmt x: sem-default-binop-flr-ro-generic i x
+    | CVT-L-fmt x: sem-default-binop-flr-ro-generic i x
+    | CVT-PS-S x: sem-default-ternop-lrr-ro-generic i x
+    | CVT-S-fmt x: sem-default-binop-flr-ro-generic i x
+    | CVT-S-PL x: sem-default-binop-lr-ro-generic i x
+    | CVT-S-PU x: sem-default-binop-lr-ro-generic i x
+    | CVT-W-fmt x: sem-default-binop-flr-ro-generic i x
     | DERET: sem-deret
     | DI x: sem-di x
     | DIV x: sem-div x
-    | DIV-fmt x: sem-default-ternop-fmt-ro-generic i x
+    | DIV-fmt x: sem-default-ternop-flrr-ro-generic i x
     | DIVU x: sem-divu x 
     | EI x: sem-ei x
     | ERET: sem-eret
     | EXT x: sem-ext x
-    | FLOOR-L-fmt x: sem-default-binop-fmt-ro-generic i x
-    | FLOOR-W-fmt x: sem-default-binop-fmt-ro-generic i x
+    | FLOOR-L-fmt x: sem-default-binop-flr-ro-generic i x
+    | FLOOR-W-fmt x: sem-default-binop-flr-ro-generic i x
     | INS x: sem-ins x
     | J x: sem-j x
     | JAL x: sem-jal x
@@ -1537,9 +1556,9 @@ val semantics i =
     | LBE x: sem-lb x
     | LBU x: sem-lbu x
     | LBUE x: sem-lbu x
-    | LDC1 x: sem-default-ternop-ro-generic i x
-    | LDC2 x: sem-default-ternop-src-ro-generic i x
-    | LDXC1 x: sem-default-ternop-ro-generic i x
+    | LDC1 x: sem-default-ternop-lrr-ro-generic i x
+    | LDC2 x: sem-default-ternop-rrr-ro-generic i x
+    | LDXC1 x: sem-default-ternop-lrr-ro-generic i x
     | LH x: sem-lh x
     | LHE x: sem-lh x
     | LHU x: sem-lhu x
@@ -1547,79 +1566,79 @@ val semantics i =
     | LL x: sem-ll x
     | LLE x: sem-ll x
     | LUI x: sem-lui x
-    | LUXC1 x: sem-default-ternop-ro-generic i x
+    | LUXC1 x: sem-default-ternop-lrr-ro-generic i x
     | LW x: sem-lw x
-    | LWC1 x: sem-default-ternop-ro-generic i x
-    | LWC2 x: sem-default-ternop-src-ro-generic i x
+    | LWC1 x: sem-default-ternop-lrr-ro-generic i x
+    | LWC2 x: sem-default-ternop-rrr-ro-generic i x
     | LWE x: sem-lw x
     | LWL x: sem-lwl x
     | LWLE x: sem-lwl x
     | LWR x: sem-lwr x
     | LWRE x: sem-lwr x
-    | LWXC1 x: sem-default-ternop-ro-generic i x
+    | LWXC1 x: sem-default-ternop-lrr-ro-generic i x
     | MADD x: sem-madd x
-    | MADD-fmt x: sem-default-ternop-fmt-ro-generic i x
+    | MADD-fmt x: sem-default-ternop-flrr-ro-generic i x
     | MADDU x: sem-maddu x
-    | MFC0 x: sem-default-ternop-ro-generic i x
-    | MFC1 x: sem-default-binop-ro-generic i x
-    | MFC2 x: sem-default-binop-ro-generic i x
-    | MFHC1 x: sem-default-binop-ro-generic i x
-    | MFHC2 x: sem-default-binop-ro-generic i x
+    | MFC0 x: sem-default-ternop-lrr-ro-generic i x
+    | MFC1 x: sem-default-binop-lr-ro-generic i x
+    | MFC2 x: sem-default-binop-lr-ro-generic i x
+    | MFHC1 x: sem-default-binop-lr-ro-generic i x
+    | MFHC2 x: sem-default-binop-lr-ro-generic i x
     | MFHI x: sem-mfhi x
     | MFLO x: sem-mflo x
-    | MOV-fmt x: sem-default-binop-fmt-ro-generic i x
+    | MOV-fmt x: sem-default-binop-flr-ro-generic i x
     | MOVF x: sem-movf x
-    | MOVF-fmt x: sem-default-ternop-fmt-ro-generic i x
+    | MOVF-fmt x: sem-default-ternop-flrr-ro-generic i x
     | MOVN x: sem-movn x
-    | MOVN-fmt x: sem-default-ternop-fmt-ro-generic i x
+    | MOVN-fmt x: sem-default-ternop-flrr-ro-generic i x
     | MOVT x: sem-movt x
-    | MOVT-fmt x: sem-default-ternop-fmt-ro-generic i x
+    | MOVT-fmt x: sem-default-ternop-flrr-ro-generic i x
     | MOVZ x: sem-movz x
-    | MOVZ-fmt x: sem-default-ternop-fmt-ro-generic i x
+    | MOVZ-fmt x: sem-default-ternop-flrr-ro-generic i x
     | MSUB x: sem-msub x
-    | MSUB-fmt x: sem-default-quadop-fmt-ro-generic i x
+    | MSUB-fmt x: sem-default-quadop-flrrr-ro-generic i x
     | MSUBU x: sem-msubu x
-    | MTC0 x: sem-default-ternop-src-ro-generic i x
-    | MTC1 x: sem-default-binop-ro-generic i x
-    | MTC2 x: sem-default-binop-src-ro-generic i x
-    | MTHC1 x: sem-default-binop-ro-generic i x
-    | MTHC2 x: sem-default-binop-src-ro-generic i x
+    | MTC0 x: sem-default-ternop-rrr-ro-generic i x
+    | MTC1 x: sem-default-binop-lr-ro-generic i x
+    | MTC2 x: sem-default-binop-rr-ro-generic i x
+    | MTHC1 x: sem-default-binop-lr-ro-generic i x
+    | MTHC2 x: sem-default-binop-rr-ro-generic i x
     | MTHI x: sem-mthi x
     | MTLO x: sem-mtlo x
     | MUL x: sem-mul x
-    | MUL-fmt x: sem-default-ternop-fmt-ro-generic i x
+    | MUL-fmt x: sem-default-ternop-flrr-ro-generic i x
     | MULT x: sem-mult x
     | MULTU x: sem-multu x
-    | NEG-fmt x: sem-default-binop-fmt-ro-generic i x
-    | NMADD-fmt x: sem-default-quadop-fmt-ro-generic i x
-    | NMSUB-fmt x: sem-default-quadop-fmt-ro-generic i x
+    | NEG-fmt x: sem-default-binop-flr-ro-generic i x
+    | NMADD-fmt x: sem-default-quadop-flrrr-ro-generic i x
+    | NMSUB-fmt x: sem-default-quadop-flrrr-ro-generic i x
     | NOR x: sem-nor x
     | OR x: sem-or x
     | ORI x: sem-ori x
     | PAUSE: sem-pause
-    | PLL-PS x: sem-default-ternop-ro-generic i x
-    | PLU-PS x: sem-default-ternop-ro-generic i x
-    | PREF x: sem-default-ternop-src-ro-generic i x
-    | PREFE x: sem-default-ternop-src-ro-generic i x
-    | PREFX x: sem-default-ternop-src-ro-generic i x
-    | PUL-PS x: sem-default-ternop-ro-generic i x
-    | PUU-PS x: sem-default-ternop-ro-generic i x
+    | PLL-PS x: sem-default-ternop-lrr-ro-generic i x
+    | PLU-PS x: sem-default-ternop-lrr-ro-generic i x
+    | PREF x: sem-default-ternop-rrr-ro-generic i x
+    | PREFE x: sem-default-ternop-rrr-ro-generic i x
+    | PREFX x: sem-default-ternop-rrr-ro-generic i x
+    | PUL-PS x: sem-default-ternop-lrr-ro-generic i x
+    | PUU-PS x: sem-default-ternop-lrr-ro-generic i x
     | RDHWR x: sem-rdhwr x
-    | RDPGPR x: sem-default-binop-ro-generic i x
-    | RECIP-fmt x: sem-default-binop-fmt-ro-generic i x
+    | RDPGPR x: sem-default-binop-lr-ro-generic i x
+    | RECIP-fmt x: sem-default-binop-flr-ro-generic i x
     | ROTR x: sem-rotr x
     | ROTRV x: sem-rotrv x
-    | ROUND-L-fmt x: sem-default-binop-fmt-ro-generic i x
-    | ROUND-W-fmt x: sem-default-binop-fmt-ro-generic i x
-    | RSQRT-fmt x: sem-default-binop-fmt-ro-generic i x
+    | ROUND-L-fmt x: sem-default-binop-flr-ro-generic i x
+    | ROUND-W-fmt x: sem-default-binop-flr-ro-generic i x
+    | RSQRT-fmt x: sem-default-binop-flr-ro-generic i x
     | SB x: sem-sb x
     | SBE x: sem-sb x
     | SC x: sem-sc x
     | SCE x: sem-sc x
     | SDBBP x: sem-sdbbp x
-    | SDC1 x: sem-default-ternop-src-ro-generic i x
-    | SDC2 x: sem-default-ternop-src-ro-generic i x
-    | SDXC1 x: sem-default-ternop-src-ro-generic i x
+    | SDC1 x: sem-default-ternop-rrr-ro-generic i x
+    | SDC2 x: sem-default-ternop-rrr-ro-generic i x
+    | SDXC1 x: sem-default-ternop-rrr-ro-generic i x
     | SEB x: sem-seb x
     | SEH x: sem-seh x
     | SH x: sem-sh x
@@ -1630,26 +1649,26 @@ val semantics i =
     | SLTI x: sem-slti x
     | SLTIU x: sem-sltiu x
     | SLTU x: sem-sltu x
-    | SQRT-fmt x: sem-default-binop-fmt-ro-generic i x
+    | SQRT-fmt x: sem-default-binop-flr-ro-generic i x
     | SRA x: sem-sra x
     | SRAV x: sem-srav x
     | SRL x: sem-srl x
     | SRLV x: sem-srlv x
     | SUB x: sem-sub x
-    | SUB-fmt x: sem-default-ternop-fmt-ro-generic i x
+    | SUB-fmt x: sem-default-ternop-flrr-ro-generic i x
     | SUBU x: sem-subu x
-    | SUXC1 x: sem-default-ternop-src-ro-generic i x
+    | SUXC1 x: sem-default-ternop-rrr-ro-generic i x
     | SW x: sem-sw x
-    | SWC1 x: sem-default-ternop-src-ro-generic i x
-    | SWC2 x: sem-default-ternop-src-ro-generic i x
+    | SWC1 x: sem-default-ternop-rrr-ro-generic i x
+    | SWC2 x: sem-default-ternop-rrr-ro-generic i x
     | SWE x: sem-sw x
     | SWL x: sem-swl x
     | SWLE x: sem-swl x
     | SWR x: sem-swr x
     | SWRE x: sem-swr x
-    | SWXC1 x: sem-default-ternop-src-ro-generic i x
-    | SYNC x: sem-default-unop-src-ro-generic i x
-    | SYNCI x: sem-default-binop-src-ro-generic i x
+    | SWXC1 x: sem-default-ternop-rrr-ro-generic i x
+    | SYNC x: sem-default-unop-r-ro-generic i x
+    | SYNCI x: sem-default-binop-rr-ro-generic i x
     | SYSCALL x: sem-syscall
     | TEQ x: sem-teq x
     | TEQI x: sem-teqi x
@@ -1669,10 +1688,10 @@ val semantics i =
     | TLTU x: sem-tltu x
     | TNE x: sem-tne x
     | TNEI x: sem-tnei x
-    | TRUNC-L-fmt x: sem-default-binop-fmt-ro-generic i x
-    | TRUNC-W-fmt x: sem-default-binop-fmt-ro-generic i x
-    | WAIT x: sem-default-unop-src-ro-generic i x
-    | WRPGPR x: sem-default-binop-src-ro-generic i x
+    | TRUNC-L-fmt x: sem-default-binop-flr-ro-generic i x
+    | TRUNC-W-fmt x: sem-default-binop-flr-ro-generic i x
+    | WAIT x: sem-default-unop-r-ro-generic i x
+    | WRPGPR x: sem-default-binop-rr-ro-generic i x
     | WSBH x: sem-wsbh x
     | XOR x: sem-xor x
     | XORI x: sem-xori x
