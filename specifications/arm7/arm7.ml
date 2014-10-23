@@ -180,7 +180,6 @@ type ls = {
   cond:condition,
   p:1,
   u:1,
-  b:1,
   w:1,
   rn:register,
   rd:register,
@@ -340,18 +339,17 @@ val mull cons cond s rdhi rdlo rs rm = do
   })
 end
 
-val ls cons cond p u b w rn rd offset = do
+val ls cons cond p u w rn rd offset = do
   cond <- cond;
   p <- p;
   u <- u;
-  b <- b;
   w <- w;
   rn <- rn;
   rd <- rd;
   offset <- offset;
   return (cons{
     cond=cond,
-    p=p, u=u, b=b, w=w,
+    p=p, u=u, w=w,
     rn=(register-from-bits rn),
     rd=(register-from-bits rd),
     offset=offset
@@ -524,7 +522,6 @@ val none = return NONE
 
 # Flag subdecoders
 val /P ['p:1'] = update@{p=p}
-val /B ['b:1'] = update@{b=b}
 val /W ['w:1'] = update@{w=w}
 val /U ['u:1'] = update@{u=u}
 val /S ['s:1'] = update@{s=s}
@@ -532,11 +529,6 @@ val /S ['s:1'] = update@{s=s}
 val p = do
   p <- query $p;
   return p
-end
-
-val b = do
-  b <- query $b;
-  return b
 end
 
 val w = do
@@ -554,6 +546,10 @@ val s = do
   return s
 end
 
+# set0 and set1 can be used if one of the flags for a particular
+# instruction has a fixed value:
+val set0 = return '0'
+val set1 = return '1'
 
 # Immediate subdecoder (default 12 bit immediate)
 val /imm12 ['imm12:12'] = update@{imm12=imm12}
@@ -777,7 +773,7 @@ val / ['/cond 000 0 0 0 1 /S /rd /ra /rm 1001 /rn'] =
 ### MLS
 ###  - Multiply and Subtract
 val / ['/cond 000 0 0 1 1 0 /rd /ra /rm 1001 /rn'] =
-  mul MLS cond s rd ra rm rn
+  mul MLS cond set0 rd ra rm rn
 
 ### MUL
 ###  - Multiply
@@ -813,50 +809,50 @@ val / ['/cond 010 /P /U 0 /W 1 /rn /rt /imm12']
 ###  - Pop Multiple Registers (Encoding A2)
   | ldr_is_pop? = lsm POP cond w rn combine_register_list
 ###  - Load Register (immediate/literal)
-  | otherwise = ls LDR cond p u b w rn rt imm12
+  | otherwise = ls LDR cond p u w rn rt imm12
 ###  - Load Register (register)
 val / ['/cond 011 /P /U 0 /W 1 /rn /rt /immshift /rm'] =
-  ls LDR cond p u b w rn rt op2register
+  ls LDR cond p u w rn rt op2register
 
 ### LDRB
 ###  - Load Register Byte (immediate/literal)
 val / ['/cond 010 /P /U 1 /W 1 /rn /rt /imm12'] =
-  ls LDRB cond p u (return '1') w rn rt imm12
+  ls LDRB cond p u w rn rt imm12
 ###  - Load Register Byte (register)
 val / ['/cond 011 /P /U 1 /W 1 /rn /rt /immshift /rm'] =
-  ls LDRB cond p u (return '1') w rn rt op2register
+  ls LDRB cond p u w rn rt op2register
 
 ### LDRH
 ###  - Load Register Halfword (immediat/literal)
 val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1011 /imm4L'] =
-  ls LDRH cond p u (return '1') w rn rt combine_imm8
+  ls LDRH cond p u w rn rt combine_imm8
 ###  - Load Register Halfword (register)
 val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1011 /rm'] =
-  ls LDRH cond p u b w rn rt (rx2operand rm)
+  ls LDRH cond p u w rn rt (rx2operand rm)
 
 ### LDRD
 ###  - Load Register Dual (immediate/literal)
 val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1101 /imm4L'] =
-  ls LDRD cond p u (return '1') w rn rt combine_imm8
+  ls LDRD cond p u w rn rt combine_imm8
 ###  - Load Register Dual (register)
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1101 /rm'] =
-  ls LDRD cond p u (return '0') w rn rt (rx2operand rm)
+  ls LDRD cond p u w rn rt (rx2operand rm)
 
 ### LDRSB
 ###  - Load Register Signed Byte (immediate/literal)
 val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1101 /imm4L'] =
-  ls LDRSB cond p u (return '1') w rn rt combine_imm8
+  ls LDRSB cond p u w rn rt combine_imm8
 ###  - Load Register Signed Byte (register)
 val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1101 /rm'] =
-  ls LDRSB cond p u (return '0') w rn rt (rx2operand rm)
+  ls LDRSB cond p u w rn rt (rx2operand rm)
 
 ### LDRSH
 ###  - Load Register Signed Halfword (immediat/literal)
 val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1111 /imm4L'] =
-  ls LDRSH cond p u (return '1') w rn rt combine_imm8
+  ls LDRSH cond p u w rn rt combine_imm8
 ###  - Load Register Signed Halfword (register)
 val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1111 /rm'] =
-  ls LDRSH cond p u (return '0') w rn rt (rx2operand rm)
+  ls LDRSH cond p u w rn rt (rx2operand rm)
 
 val str_is_push? s = ($rn s == '1101') and ($p s == '1') and ($u s == '0') and ($imm12 s == '000000000100')
 
@@ -865,34 +861,34 @@ val / ['/cond 010 /P /U 0 /W 0 /rn /rt /imm12']
 ###  - Push Multiple Registers (Encoding A2)
   | str_is_push? = lsm PUSH cond w rn combine_register_list
 ###  - Store Register (immediate)
-  | otherwise = ls STR cond p u b w rn rt imm12
+  | otherwise = ls STR cond p u w rn rt imm12
 ###  - Store Register (register)
 val / ['/cond 011 /P /U 0 /W 0 /rn /rt /immshift /rm'] =
-  ls STR cond p u b w rn rt op2register
+  ls STR cond p u w rn rt op2register
 
 ### STRB
 ###  - Store Register Byte (immediate)
 val / ['/cond 010 /P /U 1 /W 0 /rn /rt /imm12'] =
-  ls STRB cond p u (return '1') w rn rt imm12
+  ls STRB cond p u w rn rt imm12
 ###  - Store Register Byte (register)
 val / ['/cond 011 /P /U 1 /W 0 /rn /rt /immshift /rm'] =
-  ls STRB cond p u (return '1') w rn rt op2register
+  ls STRB cond p u w rn rt op2register
 
 ### STRD
 ###  - Store Register Dual (immediate)
 val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1111 /imm4L'] =
-  ls STRD cond p u (return '1') w rn rt combine_imm8
+  ls STRD cond p u w rn rt combine_imm8
 ###  - Store Register Dual (register)
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1111 /rm'] =
-  ls STRD cond p u (return '0') w rn rt (rx2operand rm)
+  ls STRD cond p u w rn rt (rx2operand rm)
 
 ### STRH
 ###  - Store Register Halfword (immediate)
 val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1011 /imm4L'] =
-  ls STRH cond p u (return '1') w rn rt combine_imm8
+  ls STRH cond p u w rn rt combine_imm8
 ###  - Store Register Halfword (register)
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1011 /rm'] =
-  ls STRH cond p u (return '0') w rn rt (rx2operand rm)
+  ls STRH cond p u w rn rt (rx2operand rm)
 
 # --- Load/store multiple instructions ---------------------------------
 
@@ -900,7 +896,7 @@ val ldm_is_pop? s = ($w s == '1') and (($rn s) == '1101') and (reglist-length ($
 
 ### LDM/POP
 val / ['/cond 100 0 1 0 /W 1 /rn /register_list_many']
-  | ldm_is_pop? = lsm POP cond (return '1') rn register_list
+  | ldm_is_pop? = lsm POP cond set1 rn register_list
 ###  - Load Multiple
   | otherwise = lsm LDM cond (return '1') rn register_list
 
