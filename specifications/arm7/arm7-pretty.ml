@@ -6,10 +6,10 @@ val pretty insdata = show/instruction insdata.insn
 
 val -++ a b = a +++ " " +++ b
 
-val show/instruction insn = show/mnemonic insn
+val show/instruction insn = show/mnemonic insn -++ show/registers insn
 
 val show/mnemonic insn =
-   case insn of
+  case insn of
       ADC m: "ADC"
     | ADD m: "ADD"
     | AND m: "AND"
@@ -49,5 +49,41 @@ val show/mnemonic insn =
     | CLREX: "CLREX"
     | NOP m: "NOP"
     | _: "???"
-   end
+  end
 
+val show/register reg =
+  case reg of
+      R0: "R0"
+    | R1: "R1"
+    | R2: "R2"
+    | R3: "R3"
+    | R4: "R4"
+    | R5: "R5"
+    | R6: "R6"
+    | R7: "R7"
+    | R8: "R8"
+    | R9: "R9"
+    | R10: "R10"
+    | R11: "R11"
+    | R12: "IP"
+    | R13: "SP"
+    | R14: "LR"
+    | R15: "PC"
+    | _: "??"
+  end
+
+val show/registers insn =
+  case insn of
+      PUSH i : "{" +++ show/reglist i.registers +++ "}"
+    | _ : ""
+  end
+
+val show/reglist reglist =
+  case reglist of
+      REGL_NIL: ""
+    | REGL_CONS l: show/register l.head +++
+      (case l.tail of
+          REGL_NIL: ""
+        | _: ", "
+      end) +++ show/reglist l.tail
+  end
