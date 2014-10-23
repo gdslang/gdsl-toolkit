@@ -12,6 +12,7 @@ type insndata = {length:int, insn:instruction}
 type imm =
    IMM5 of 5
  | IMM16 of 16
+ | RTRD5 of 5
  | OFFSET9 of 9
  | OFFSET16 of 16
  | SEL of 3
@@ -62,12 +63,20 @@ end
 
 
 val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101')
+val jalr? s = not (s.rd == s.rs)
+val ext? s = (zx s.lsb) + (zx s.msbd)+1 < 33
 
 ###
 # SLL not script handled yet
 #val / ['000000 00000 /rt /rd /sa 000000']
 # | pause? = nullop PAUSE
 # | otherwise = ternop SLL rd (right rt) sa
+#
+# JALR too
+#val / ['000000 /rs 00000 /rd 00000 001001']
+# | jalr? = binop JALR rd (right rs) 
+#
+# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched, EXT lsb and msbd; pretty printer offset *4 etc; ADD.fmt fs<->ft; WRPGPR swap params; ext guard; offset sign extend; SUB.FMT switch fs ft; switch FMT{MSUB,NMSUB,NMADD,SUB,MADD,MOVF,MOVN,MOVZ,DIV}
 ###
 
 # -> sftl
@@ -96,7 +105,7 @@ val / ['000000 /rs /rt /rd 00000 100000'] = ternop ADD rd (right rs) (right rt)
 
 ### ADD-fmt
 ###  - Floating Point Add
-val / ['010001 /fmt5sdps /ft /fs /fd 000000'] = ternop-fmt ADD-fmt fmt fd (right ft) (right fs) 
+val / ['010001 /fmt5sdps /ft /fs /fd 000000'] = ternop-fmt ADD-fmt fmt fd (right fs) (right ft) 
 
 ### ADDI
 ###  - Add Immediate Word
@@ -320,7 +329,7 @@ val / ['000000 /rs /rt 0000000000 011010'] = binop-src DIV (right rs) (right rt)
 
 ### DIV-fmt
 ###  - Floating Point Divide
-val / ['010001 /fmt5sd /ft /fs /fd 000011'] = ternop-fmt DIV-fmt fmt fd (right ft) (right fs) 
+val / ['010001 /fmt5sd /ft /fs /fd 000011'] = ternop-fmt DIV-fmt fmt fd (right fs) (right ft) 
 
 ### DIVU
 ###  - Divide Unsigned Word
@@ -340,7 +349,8 @@ val / ['010000 1 0000000000000000000 011000'] = nullop ERET
 
 ### EXT
 ###  - Extract Bit Field
-val / ['011111 /rs /rt /msbd /lsb 000000'] = quadop EXT rt (right rs) msbd lsb 
+val / ['011111 /rs /rt /msbd /lsb 000000']
+ | ext? = quadop EXT rt (right rs) lsb msbd
 
 ### FLOOR-L-fmt
 ###  - Floating Point Floor Convert to Long Fixed Point
@@ -364,11 +374,13 @@ val / ['000011 /instr_index'] = unop-src JAL instr_index
 
 ### JALR
 ###  - Jump And Link Register
-val / ['000000 /rs 00000 /rd /hint5zero 001001'] = ternop JALR rd (right rs) hint5 
+val / ['000000 /rs 00000 /rd 00000 001001']
+ | jalr? = binop JALR rd (right rs) 
 
 ### JALR-HB
 ###  - Jump and Link Register with Hazard Barrier
-val / ['000000 /rs 00000 /rd 1 /hint4zero 001001'] = ternop JALR-HB rd (right rs) hint5 
+val / ['000000 /rs 00000 /rd 1 0000 001001']
+ | jalr? = binop JALR-HB rd (right rs) 
 
 ### JALX
 ###  - Jump and Link Exchange
@@ -376,11 +388,11 @@ val / ['011101 /instr_index'] = unop-src JALX instr_index
 
 ### JR
 ###  - Jump Register
-val / ['000000 /rs 0000000000 /hint5zero 001000'] = binop-src JR (right rs) hint5 
+val / ['000000 /rs 0000000000 00000 001000'] = unop-src JR (right rs) 
 
 ### JR-HB
 ###  - Jump Register with Hazard Barrier
-val / ['000000 /rs 0000000000 1 /hint4zero 001000'] = binop-src JR-HB (right rs) hint5 
+val / ['000000 /rs 0000000000 1 0000 001000'] = unop-src JR-HB (right rs) 
 
 ### LB
 ###  - Load Byte
@@ -484,7 +496,7 @@ val / ['011100 /rs /rt 00000 00000 000000'] = binop-src MADD (right rs) (right r
 
 ### MADD-fmt
 ###  - Floating Point Multiply Add
-val / ['010011 /fr /ft /fs /fd 100 /fmt3sdps'] = quadop-fmt MADD-fmt fmt fd (right fr) (right ft) (right fs) 
+val / ['010011 /fr /ft /fs /fd 100 /fmt3sdps'] = quadop-fmt MADD-fmt fmt fd (right fr) (right fs) (right ft) 
 
 ### MADDU
 ###  - Multiply and Add Unsigned Word to Hi,Lo
@@ -508,7 +520,7 @@ val / ['010001 00011 /rt /fs 00000000000'] = binop MFHC1 rt (right fs)
 
 ### MFHC2
 ###  - Move Word From High Half of Coprocessor 2 Register
-val / ['010010 00011 /rt /impl'] = binop MFHC2 rt impl 
+val / ['010010 00011 /rt /impl'] = binop MFHC2 rt impl
 
 ### MFHI
 ###  - Move From HI Register
@@ -528,7 +540,7 @@ val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) cc
 
 ### MOVF-fmt
 ###  - Floating Point Move Conditional on Floating Point False
-val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd cc (right fs) 
+val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) cc
 
 ### MOVN
 ###  - Move Conditional on Not Zero
@@ -536,7 +548,7 @@ val / ['000000 /rs /rt /rd 00000 001011'] = ternop MOVN rd (right rs) (right rt)
 
 ### MOVN-fmt
 ###  - Floating Point Move Conditional on Not Zero
-val / ['010001 /fmt5sdps /rt /fs /fd 010011'] = ternop-fmt MOVN-fmt fmt fd (right rt) (right fs) 
+val / ['010001 /fmt5sdps /rt /fs /fd 010011'] = ternop-fmt MOVN-fmt fmt fd (right fs) (right rt) 
 
 ### MOVT
 ###  - Move Conditional on Floating Point True
@@ -544,7 +556,7 @@ val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) cc
 
 ### MOVT-fmt
 ###  - Floating Point Move Conditional on Floating Point True
-val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd cc (right fs) 
+val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) cc
 
 ### MOVZ
 ###  - Move Conditional on Not Zero
@@ -552,7 +564,7 @@ val / ['000000 /rs /rt /rd 00000 001010'] = ternop MOVZ rd (right rs) (right rt)
 
 ### MOVZ-fmt
 ###  - Floating Point Move Conditional on Zero
-val / ['010001 /fmt5sdps /rt /fs /fd 010010'] = ternop-fmt MOVZ-fmt fmt fd (right rt) (right fs) 
+val / ['010001 /fmt5sdps /rt /fs /fd 010010'] = ternop-fmt MOVZ-fmt fmt fd (right fs) (right rt) 
 
 ### MSUB
 ###  - Multiply and Subtract Word to Hi,Lo
@@ -560,7 +572,7 @@ val / ['011100 /rs /rt 00000 00000 000100'] = binop-src MSUB (right rs) (right r
 
 ### MSUB-fmt
 ###  - Floating Point Multiply Subtract
-val / ['010011 /fr /ft /fs /fd 101 /fmt3sdps'] = quadop-fmt MSUB-fmt fmt fd (right fr) (right ft) (right fs) 
+val / ['010011 /fr /ft /fs /fd 101 /fmt3sdps'] = quadop-fmt MSUB-fmt fmt fd (right fr) (right fs) (right ft) 
 
 ### MSUBU
 ###  - Multiply and Subtract Word to Hi,Lo
@@ -600,7 +612,7 @@ val / ['011100 /rs /rt /rd 00000 000010'] = ternop MUL rd (right rs) (right rt)
 
 ### MUL-fmt
 ###  - Floating Point Multiply
-val / ['010001 /fmt5sdps /ft /fs /fd 000010'] = ternop-fmt MUL-fmt fmt fd (right ft) (right fs) 
+val / ['010001 /fmt5sdps /ft /fs /fd 000010'] = ternop-fmt MUL-fmt fmt fd (right fs) (right ft) 
 
 ### MULT
 ###  - Multiply Word
@@ -616,11 +628,11 @@ val / ['010001 /fmt5sdps 00000 /fs /fd 000111'] = binop-fmt NEG-fmt fmt fd (righ
 
 ### NMADD-fmt
 ###  - Floating Point Negative Multiply Add
-val / ['010011 /fr /ft /fs /fd 110 /fmt3sdps'] = quadop-fmt NMADD-fmt fmt fd (right fr) (right ft) (right fs) 
+val / ['010011 /fr /ft /fs /fd 110 /fmt3sdps'] = quadop-fmt NMADD-fmt fmt fd (right fr) (right fs) (right ft) 
 
 ### NMSUB-fmt
 ###  - Floating Point Negative Multiply Subtract
-val / ['010011 /fr /ft /fs /fd 111 /fmt3sdps'] = quadop-fmt NMSUB-fmt fmt fd (right fr) (right ft) (right fs) 
+val / ['010011 /fr /ft /fs /fd 111 /fmt3sdps'] = quadop-fmt NMSUB-fmt fmt fd (right fr) (right fs) (right ft) 
 
 ### NOP
 ###  - No Operation
@@ -688,7 +700,7 @@ val / ['000000 0000 1 /rt /rd /sa 000010'] = ternop ROTR rd (right rt) sa
 
 ### ROTRV
 ###  - Rotate Word Right Variable
-val / ['000000 /rs /rt /rd 0000 1 000110'] = ternop ROTRV rd (right rs) (right rt) 
+val / ['000000 /rs /rt /rd 0000 1 000110'] = ternop ROTRV rd (right rt) (right rs) 
 
 ### ROUND-L-fmt
 ###  - Floating Point Round to Long Fixed Point
@@ -758,7 +770,7 @@ val / ['000000 00000 /rt /rd /sa 000000']
 
 ### SLLV
 ###  - Shift Word Left Logical Variable
-val / ['000000 /rs /rt /rd 00000 000100'] = ternop SLLV rd (right rs) (right rt) 
+val / ['000000 /rs /rt /rd 00000 000100'] = ternop SLLV rd (right rt) (right rs)
 
 ### SLT
 ###  - Set On Less Than
@@ -786,7 +798,7 @@ val / ['000000 00000 /rt /rd /sa 000011'] = ternop SRA rd (right rt) sa
 
 ### SRAV
 ###  - Shift Word Right Arithmetic Variable
-val / ['000000 /rs /rt /rd 00000 000111'] = ternop SRAV rd (right rs) (right rt) 
+val / ['000000 /rs /rt /rd 00000 000111'] = ternop SRAV rd (right rt) (right rs) 
 
 ### SRL
 ###  - Shift Word Right Logical
@@ -794,7 +806,7 @@ val / ['000000 0000 0 /rt /rd /sa 000010'] = ternop SRL rd (right rt) sa
 
 ### SRLV
 ###  - Shift Word Right Logical Variable
-val / ['000000 /rs /rt /rd 0000 0 000110'] = ternop SRLV rd (right rs) (right rt) 
+val / ['000000 /rs /rt /rd 0000 0 000110'] = ternop SRLV rd (right rt) (right rs) 
 
 ### SSNOP
 ###  - Superscalar No Operation
@@ -806,7 +818,7 @@ val / ['000000 /rs /rt /rd 00000 100010'] = ternop SUB rd (right rs) (right rt)
 
 ### SUB-fmt
 ###  - Floating Point Subtract
-val / ['010001 /fmt5sdps /ft /fs /fd 000001'] = ternop-fmt SUB-fmt fmt fd (right ft) (right fs) 
+val / ['010001 /fmt5sdps /ft /fs /fd 000001'] = ternop-fmt SUB-fmt fmt fd (right fs) (right ft) 
 
 ### SUBU
 ###  - Subtract Unsigned Word
@@ -950,7 +962,7 @@ val / ['010000 1 /code19 100000'] = unop-src WAIT code19
 
 ### WRPGPR
 ###  - Write to GPR in Previous Shadow Set
-val / ['010000 01110 /rt /rd 00000000000'] = binop-src WRPGPR (right rt) rd/imm 
+val / ['010000 01110 /rt /rd 00000000000'] = binop-src WRPGPR rd/imm (right rt)
 
 ### WSBH
 ###  - Word Swap Bytes Within Halfwords
@@ -986,13 +998,13 @@ end
 val rd/imm = do
   rd <- query $rd;
   update @{rd='00000'};
-  return (IMM (IMM5 rd))
+  return (IMM (RTRD5 rd))
 end
 
 val rt/imm = do
   rt <- query $rt;
   update @{rt='00000'};
-  return (IMM (IMM5 rt))
+  return (IMM (RTRD5 rt))
 end
 
 val fr = do
@@ -1352,11 +1364,11 @@ type instruction =
  | INS of quadop
  | J of unop-src
  | JAL of unop-src
- | JALR of ternop
- | JALR-HB of ternop
+ | JALR of binop
+ | JALR-HB of binop
  | JALX of unop-src
- | JR of binop-src
- | JR-HB of binop-src
+ | JR of unop-src
+ | JR-HB of unop-src
  | LB of ternop
  | LBE of ternop
  | LBU of ternop

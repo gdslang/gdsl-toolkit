@@ -696,8 +696,8 @@ val sem-jalx x = do
 end
 
 val sem-jr x = do
-	rs <- rval Signed x.source1;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Signed x.source;
+	size <- return (sizeof-rval x.source);
 	pc <- return (semantic-reg-of Sem_SREG);
 
 	pc_true <- mktemp;
