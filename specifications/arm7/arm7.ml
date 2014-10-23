@@ -285,7 +285,7 @@ type condition =
   | GT   # Signed greater than
   | LE   # Signed less than or equal
   | AL   # Always (unconditional)
-  | NONE # Dummy condition (NONE is not an actual ARM condition)
+  | NV   # Never: Dummy condition (NV is not an actual ARM condition)
 
 val dp cons cond s rn rd op2 = do
   cond <- cond;
