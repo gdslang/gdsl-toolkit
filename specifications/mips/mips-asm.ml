@@ -22,6 +22,7 @@ val generalize-rvalue rval =
    end
 
 val generalize-format fmt = asm-ann-string (string-from-rope (show/format fmt))
+val generalize-condop cond = asm-ann-string (string-from-rope (show/condop cond))
 
 val generalize-fcc fcc = asm-reg (string-from-rope (show/fccode fcc))
 
@@ -44,7 +45,6 @@ in case i of
  | HINT i: inner i 5
  | INSTRINDEX i: inner i 26
  | COFUN i: inner i 25
- | COND i: inner i 4
  | OP i: inner i 5
 end end
 
@@ -60,9 +60,9 @@ val generalize-ua ua =
     | TERNOP_SRC x: asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3)))
     | TERNOP x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-one (generalize-rvalue x.source2)))
     | TERNOP_FMT x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-one (generalize-rvalue x.source2)))
+    | TERNOP_FMT_SRC_COND x: asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3)))
     | QUADOP x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3))))
     | QUADOP_FMT x: asm-opnds-more (generalize-lvalue x.destination) (asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-one (generalize-rvalue x.source3))))
-    | QUADOP_FMT_SRC x: asm-opnds-more (generalize-rvalue x.source1) (asm-opnds-more (generalize-rvalue x.source2) (asm-opnds-more (generalize-rvalue x.source3) (asm-opnds-one (generalize-rvalue x.source4))))
    end
 
 
@@ -77,9 +77,9 @@ val generalize-fmt ua =
     | TERNOP_SRC x: asm-anns-none
     | TERNOP x: asm-anns-none
     | TERNOP_FMT x: asm-anns-one (generalize-format x.fmt)
+    | TERNOP_FMT_SRC_COND x: asm-anns-more (generalize-condop x.cond) (asm-anns-one (generalize-format x.fmt))
     | QUADOP x: asm-anns-none
     | QUADOP_FMT x: asm-anns-one (generalize-format x.fmt)
-    | QUADOP_FMT_SRC x: asm-anns-one (generalize-format x.fmt)
    end
 
 

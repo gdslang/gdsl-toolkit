@@ -36,7 +36,6 @@ val show/immediate imm =
     | HINT x: show-int (zx x)
     | INSTRINDEX x: show-int ((zx x) * 4)
     | COFUN x: show-int (zx x)
-    | COND x: show-int (zx x)
     | OP x: show-int (zx x)
   end
 
@@ -47,6 +46,26 @@ val show/format format =
     | W : "W"
     | L : "L"
     | PS : "PS"
+   end
+
+val show/condop cond = 
+   case cond of
+      C_F: "F"
+    | C_UN: "UN"
+    | C_EQ: "EQ"
+    | C_UEQ: "UEQ"
+    | C_OLT: "OLT"
+    | C_ULT: "ULT"
+    | C_OLE: "OLE"
+    | C_ULE: "ULE"
+    | C_SF: "SF"
+    | C_NGLE: "NGLE"
+    | C_SEQ: "SEQ"
+    | C_NGL: "NGL"
+    | C_LT: "LT"
+    | C_NGE: "NGE"
+    | C_LE: "LE"
+    | C_NGT: "NGT"
    end
 
 val show/fccode fcc = 
@@ -147,9 +166,9 @@ val show/binop x = show/lvalue x.destination +++ ", " +++ show/rvalue x.source
 val show/ternop-src x = show/rvalue x.source1 +++ ", " +++ show/rvalue x.source2 +++ ", " +++ show/rvalue x.source3
 val show/ternop x = show/lvalue x.destination +++ ", " +++ show/rvalue x.source1 +++ ", " +++ show/rvalue x.source2
 val show/ternop-fmt x = show/lvalue x.destination +++ ", " +++ show/rvalue x.source1 +++ ", " +++ show/rvalue x.source2
+val show/ternop-fmt-src-cond x = show/rvalue x.source1 +++ ", " +++ show/rvalue x.source2 +++ ", " +++ show/rvalue x.source3
 val show/quadop x = show/lvalue x.destination +++ ", " +++ show/rvalue x.source1 +++ ", " +++ show/rvalue x.source2 +++ ", " +++ show/rvalue x.source3
 val show/quadop-fmt x = show/lvalue x.destination +++ ", " +++ show/rvalue x.source1 +++ ", " +++ show/rvalue x.source2 +++ ", " +++ show/rvalue x.source3
-val show/quadop-fmt-src x = show/rvalue x.source1 +++ ", " +++ show/rvalue x.source2 +++ ", " +++ show/rvalue x.source3 +++ ", " +++ show/rvalue x.source4
 
 
 val show/instruction insn = let
@@ -163,9 +182,9 @@ val show/instruction insn = let
     | TERNOP_SRC x: mnemonic -++ show/ternop-src x
     | TERNOP x: mnemonic -++ show/ternop x
     | TERNOP_FMT x: mnemonic +++ "." +++ show/format x.fmt -++ show/ternop-fmt x
+    | TERNOP_FMT_SRC_COND x: mnemonic +++ "." +++ show/condop x.cond +++ "." +++ show/format x.fmt -++ show/ternop-fmt-src-cond x
     | QUADOP x: mnemonic -++ show/quadop x
     | QUADOP_FMT x: mnemonic +++ "." +++ show/format x.fmt -++ show/quadop-fmt x
-    | QUADOP_FMT_SRC x: mnemonic +++ "." +++ show/format x.fmt -++ show/quadop-fmt-src x
    end
 in
    traverse show/ua insn.insn

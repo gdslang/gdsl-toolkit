@@ -45,7 +45,6 @@ val rval sn x = let
        | HINT i: from-vec sn i
        | INSTRINDEX i: from-vec sn i
        | COFUN i: from-vec sn i
-       | COND i: from-vec sn i
        | OP i: from-vec sn i
       end
 
@@ -110,13 +109,13 @@ val sizeof-rval x =
           | HINT i: 5
           | INSTRINDEX i: 26
           | COFUN i: 25
-          | COND i: 4
           | OP i: 5
          end
     | FCC fcc: 1
    end
 
 val mnemonic-with-format insn x = (mnemonic-of insn) +++ "." +++ show/format x.fmt
+val mnemonic-with-format-and-cond insn x = (mnemonic-of insn) +++ "." +++ show/condop x.cond +++ "." +++ show/format x.fmt
 
 val sem-default-unop-src-ro-generic insn x = do
 	src-sz <- return (sizeof-rval x.source);
@@ -219,6 +218,21 @@ val sem-default-ternop-src-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
 end
 
+val sem-default-ternop-fmt-src-cond-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.source1);
+	src2-sz <- return (sizeof-rval x.source2);
+	src3-sz <- return (sizeof-rval x.source3);
+
+	src1 <- rval Signed x.source1;
+	src2 <- rval Signed x.source2;
+	src3 <- rval Signed x.source3;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+	src3-up <- unpack-lin src3-sz src3;
+
+	prim-generic (mnemonic-with-format-and-cond insn x) varls-none (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
+end
 
 val sem-default-quadop-ro-generic insn x = do
 	src1-sz <- return (sizeof-rval x.source1);
@@ -258,24 +272,6 @@ val sem-default-quadop-fmt-ro-generic insn x = do
 	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
 end
 
-val sem-default-quadop-fmt-src-ro-generic insn x = do
-	src1-sz <- return (sizeof-rval x.source1);
-	src2-sz <- return (sizeof-rval x.source2);
-	src3-sz <- return (sizeof-rval x.source3);
-	src4-sz <- return (sizeof-rval x.source4);
-
-	src1 <- rval Signed x.source1;
-	src2 <- rval Signed x.source2;
-	src3 <- rval Signed x.source3;
-	src4 <- rval Signed x.source4;
-
-	src1-up <- unpack-lin src1-sz src1;
-	src2-up <- unpack-lin src2-sz src2;
-	src3-up <- unpack-lin src3-sz src3;
-	src4-up <- unpack-lin src4-sz src4;
-
-	prim-generic (mnemonic-with-format insn x) varls-none (varls-more (varl src4-sz src4-up) (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))))
-end
 
 val throw-exception exc = if exceptions_on then throw exc else (return void)
 
@@ -461,8 +457,8 @@ val sem-bnel x = sem-b /neq x
 val sem-break x = throw-exception SEM_EXC_BREAKPOINT
 
 val sem-cl bit x = do
-	rs <- rval Unsigned x.source1;
-	size <- return (sizeof-rval x.source1);
+	rs <- rval Unsigned x.source;
+	size <- return (sizeof-rval x.source);
 	
 	amount <- mktemp;
 	mov size amount (imm 32);
@@ -1500,7 +1496,7 @@ val semantics i =
     | BNE x: sem-bne x
     | BNEL x: sem-bnel x
     | BREAK x: sem-break x
-    | C-cond-fmt x: sem-default-quadop-fmt-src-ro-generic i x
+    | C-cond-fmt x: sem-default-ternop-fmt-src-cond-ro-generic i x
     | CACHE x: sem-default-ternop-src-ro-generic i x
     | CACHEE x: sem-default-ternop-src-ro-generic i x
     | CEIL-L-fmt x: sem-default-binop-fmt-ro-generic i x

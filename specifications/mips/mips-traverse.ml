@@ -26,9 +26,9 @@ type uarity =
  | TERNOP_SRC of ternop-src
  | TERNOP of ternop
  | TERNOP_FMT of ternop-fmt
+ | TERNOP_FMT_SRC_COND of ternop-fmt-src-cond
  | QUADOP of quadop
  | QUADOP_FMT of quadop-fmt
- | QUADOP_FMT_SRC of quadop-fmt-src
 
 
 val traverse f insn = 
@@ -67,15 +67,15 @@ val traverse f insn =
     | BNE x: f "BNE" (TERNOP_SRC x)
     | BNEL x: f "BNEL" (TERNOP_SRC x)
     | BREAK x: f "BREAK" (UNOP_SRC x)
-    | C-cond-fmt x: f "C.cond" (QUADOP_FMT_SRC x)
+    | C-cond-fmt x: f "C" (TERNOP_FMT_SRC_COND x)
     | CACHE x: f "CACHE" (TERNOP_SRC x)
     | CACHEE x: f "CACHEE" (TERNOP_SRC x)
     | CEIL-L-fmt x: f "CEIL.L" (BINOP_FMT x)
     | CEIL-W-fmt x: f "CEIL.W" (BINOP_FMT x)
     | CFC1 x: f "CFC1" (BINOP x)
     | CFC2 x: f "CFC2" (BINOP x)
-    | CLO x: f "CLO" (TERNOP x)
-    | CLZ x: f "CLZ" (TERNOP x)
+    | CLO x: f "CLO" (BINOP x)
+    | CLZ x: f "CLZ" (BINOP x)
     | COP2 x: f "COP2" (UNOP_SRC x)
     | CTC1 x: f "CTC1" (BINOP_SRC x)
     | CTC2 x: f "CTC2" (BINOP_SRC x)

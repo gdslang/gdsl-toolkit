@@ -43,11 +43,11 @@ int main(int argc, char** argv) {
 	char retval = 0;
 
 	const unsigned int cycle_interval = 0x00100000;
-	const unsigned int max_cycles = 0x100;
-	const unsigned int round_offset = 0;
+	const unsigned int max_cycles = 0x1000;
+	const unsigned int round_offset = 2728;
 	const unsigned int start_offset = round_offset * cycle_interval + 0x00000000;
 
-	unsigned int cur_insn = invInsn(start_offset);
+	unsigned int cur_insn = start_offset;//invInsn(start_offset);
 	const unsigned int inst_block_size = sizeof(uint32_t) * cycle_interval * 3;
 	uint32_t *inst_buf = (uint32_t*) malloc(inst_block_size);
 	for (unsigned int rounds = round_offset; rounds < max_cycles; rounds++) {
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
 		f = fopen("snackipack.txt", "w");
 
 		unsigned int inst_buf_entries = 0;
-		for (unsigned int pew = 0; pew < cycle_interval; pew++, cur_insn = invInsn(invInsn(cur_insn)+1))
+		for (unsigned int pew = 0; pew < cycle_interval; pew++, cur_insn++)//cur_insn = invInsn(invInsn(cur_insn)+1))
 		{
 			inst_buf[inst_buf_entries++] = cur_insn;
 
@@ -71,15 +71,18 @@ int main(int argc, char** argv) {
 			{
 				fwrite(conv, 1, strlen(conv), f);
 				if (!strcmp(gdsl_get_error_message(state), "DecodeSequenceMatchFailure")) {
-				} else if (!strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:349.4-9")
-						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:374.4-10")
-						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:379.4-10")
+				} else if (!strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:371.4-9")
+						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:396.4-10")
+						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:401.4-10")
+						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:289.4-10")
+						|| !strcmp(gdsl_get_error_message(state), "unsatisfiable guards at specifications/mips/mips.ml:294.4-10")
 						) {
 					//printf("  guard prob!\n");
 				} else {
 					fprintf(stderr, "decode nailed: %s\n", gdsl_get_error_message(state));
+					//printf("\n\n\tfailed at: %d/%d  : %08X => %08X\n\n", rounds+1, max_cycles, invInsn(cur_insn), cur_insn);
 					retval = 1;
-					break;
+					return retval;
 				}
 				continue;
 			}
