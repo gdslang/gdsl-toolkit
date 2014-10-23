@@ -37,18 +37,44 @@ val show/mnemonic insn =
     | STRH m: "STRH"
     | LDRSB m: "LDRSB"
     | LDRSRH m: "LDRSRH"
+    | LDM m: "LDM"
+    | LDMDA m: "LDMDA"
+    | LDMDB m: "LDMDB"
+    | LDMIB m: "LDMIB"
+    | POP m: "POP"
+    | STM m: "STM"
+    | STMDA m: "STMDA"
+    | STMDB m: "STMDB"
+    | STMIB m: "STMIB"
     | PUSH m: "PUSH"
     | B m: "B"
     | BL m: "BL"
-    | BLX_imm m: "BLX (immediate)"
-    | BLX_reg m: "BLX (register)"
+    | BLX m: "BLX"
     | BX m: "BX"
     | BXJ m: "BXJ"
     | MRS m: "MRS"
     | MSR m: "MSR"
-    | CLREX: "CLREX"
     | NOP m: "NOP"
     | _: "???"
+  end
+
+val show/condition cond =
+  case cond of
+      EQ: "EQ"
+    | NE: "NE"
+    | CS: "CS"
+    | CC: "CC"
+    | MI: "MI"
+    | PL: "PL"
+    | VS: "VS"
+    | VC: "VS"
+    | HI: "HI"
+    | LS: "LS"
+    | GE: "GE"
+    | LT: "LT"
+    | GT: "GT"
+    | LE: "LE"
+    | _: ""
   end
 
 val show/register reg =
@@ -74,7 +100,8 @@ val show/register reg =
 
 val show/registers insn =
   case insn of
-      PUSH i : "{" +++ show/reglist i.registers +++ "}"
+      PUSH i: "{" +++ show/reglist i.register_list +++ "}"
+    | POP i: "{" +++ show/reglist i.register_list +++ "}"
     | _ : ""
   end
 
