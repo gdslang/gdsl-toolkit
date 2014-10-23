@@ -182,7 +182,7 @@ type ls = {
   u:1,
   w:1,
   rn:register,
-  rd:register,
+  rt:register,
   offset:operand
 }
 
@@ -345,13 +345,13 @@ val ls cons cond p u w rn rd offset = do
   u <- u;
   w <- w;
   rn <- rn;
-  rd <- rd;
+  rt <- rt;
   offset <- offset;
   return (cons{
     cond=cond,
     p=p, u=u, w=w,
     rn=(register-from-bits rn),
-    rd=(register-from-bits rd),
+    rt=(register-from-bits rt),
     offset=offset
   })
 end
