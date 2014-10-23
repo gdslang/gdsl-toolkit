@@ -18,7 +18,7 @@ type instruction_class =
 val show/instruction insn = let
   val show/i mnemonic i = case i of
       DP c: mnemonic +++ show/dp c
-    | LSS c: mnemonic +++ show/ls c
+    | LSS c: mnemonic +++ show/lss c
     | LSM c: mnemonic +++ show/lsm c
     | NONE: mnemonic
   end
@@ -69,11 +69,13 @@ val traverse f insn =
   end
 
 val show/dp insn = show/s insn +++ show/condition insn.cond -++ show/register insn.rn +++ "," -++ show/register insn.rd +++ "," -++ show/operand insn.op2
-
 val show/s insn = if insn.s then "S" else ""
 
-val show/ls insn = ""
-val show/lsm insn = ""
+val show/lss insn = show/condition insn.cond -++ show/register insn.rt +++ ", [" +++ show/register insn.rn +++ ", #" +++ show/sign insn +++ show/operand insn.offset +++ "]"
+val show/sign insn = if insn.u then "+" else "-"
+val show/wback insn = if insn.w then "!" else ""
+
+val show/lsm insn = show/condition insn.cond -++ show/register insn.rn +++ "," -++ show/reglist insn.register_list
 
 val show/condition cond =
   case cond of
@@ -115,6 +117,20 @@ val show/register reg =
     | _: "??"
   end
 
+val show/shift s =
+  case s of
+      IMMSHIFT s: show/shifttype s.shifttype -++ "#" +++ show/immediate s.immediate
+    | REGSHIFT s: show/shifttype s.shifttype -++ show/register s.register
+  end
+
+val show/shifttype t =
+  case t of
+      LLS: "LLS"
+    | LRS: "LRS"
+    | ARS: "ARS"
+    | RR: "RR"
+  end
+
 val show/immediate imm =
   case imm of
       INT i: show-int i
@@ -128,10 +144,10 @@ val show/immediate imm =
 
 val show/operand op =
   case op of
-      IMMEDIATE i: show/immediate i
-    | REGISTER r: show/register r
-    | REGISTER_LIST l: "{" +++ show/reglist l +++ "}"
-    | SHIFTED_REGISTER s: 
+      IMMEDIATE o: show/immediate o
+    | REGISTER o: show/register o
+    | REGISTER_LIST o: "{" +++ show/reglist o +++ "}"
+    | SHIFTED_REGISTER o: show/register o.register +++ "," -++ show/shift o.shift
     | _: "???"
   end
 
