@@ -17,9 +17,11 @@ type instruction_class =
 
 val show/instruction insn = let
   val show/i mnemonic i = case i of
-      DP c: mnemonic +++ show/dp c
+      BR c: mnemonic +++ show/br c
+    | DP c: mnemonic +++ show/dp c
     | LSS c: mnemonic +++ show/lss c
     | LSM c: mnemonic +++ show/lsm c
+    | ML c: mnemonic +++ show/ml c
     | NONE: mnemonic
   end
 in
@@ -65,17 +67,32 @@ val traverse f insn =
     | STMDB c: f "STMDB" (LSM c)
     | STMIB c: f "STMIB" (LSM c)
     | PUSH c: f "PUSH" (LSM c)
+    | B d: f "B" (BR d)
+    | BL d: f "BL" (BR d)
+    | BLX d: f "BLX" (BR d)
+    | BX d: f "BX" (BR d)
+    | BXJ d: f "BXJ" (BR d)
     | _: f "???" NONE
   end
 
+# Show branch instructions
+val show/br insn = show/condition insn.cond -++ show/operand insn.label
+
+# Show data-processing instructions
 val show/dp insn = show/s insn +++ show/condition insn.cond -++ show/register insn.rn +++ "," -++ show/register insn.rd +++ "," -++ show/operand insn.op2
+
 val show/s insn = if insn.s then "S" else ""
 
+# Show load/store (single) instructions
 val show/lss insn = show/condition insn.cond -++ show/register insn.rt +++ ", [" +++ show/register insn.rn +++ ", #" +++ show/sign insn +++ show/operand insn.offset +++ "]"
-val show/sign insn = if insn.u then "+" else "-"
+
+val show/sign insn = if insn.u then "" else "-"
 val show/wback insn = if insn.w then "!" else ""
 
-val show/lsm insn = show/condition insn.cond -++ show/register insn.rn +++ "," -++ show/reglist insn.register_list
+# Show load/store (multiple) instructions
+val show/lsm insn = show/condition insn.cond -++ show/register insn.rn +++ "," -++ show/operand insn.register_list
+
+val show/ml insn = show/s insn +++ show/condition insn.cond -++ show/register insn.rd +++ "," -++ show/register insn.rn +++ "," -++ show/register insn.rm +++ "," -++ show/register insn.ra
 
 val show/condition cond =
   case cond of
@@ -133,7 +150,7 @@ val show/shifttype t =
 
 val show/immediate imm =
   case imm of
-      INT i: show-int i
+      IMMi i: show-int i
     | IMM5 i: show-int (zx i)
     | IMM8 i: show-int (zx i)
     | IMM12 i: show-int (zx i)

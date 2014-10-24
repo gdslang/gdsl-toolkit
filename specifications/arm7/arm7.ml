@@ -106,9 +106,9 @@ type instruction =
   | PUSH of lsm
   | B of br
   | BL of br
-  | BLX of bx
-  | BX of bx
-  | BXJ of bx
+  | BLX of br
+  | BX of br
+  | BXJ of br
   | MRS of psr_transfer
   | MSR of psr_transfer
   | NOP of hint
@@ -157,6 +157,7 @@ type dp = {
   op2:operand     # second operand (immediate or register)
 }
 
+# Standard multiplication instructions
 type mul = {
   cond:condition,
   s:1,
@@ -166,6 +167,7 @@ type mul = {
   rn:register
 }
 
+# Long mulitplication instructions
 type mull = {
   cond:condition,
   s:1,
@@ -191,19 +193,13 @@ type lsm = {
   cond:condition,
   w:1,
   rn:register,
-  register_list:registerlist
+  register_list:operand
 }
 
-# Standard Branching instructions
+# Branch instructions
 type br = {
   cond:condition,
-  imm24:24
-}
-
-# Branch and Exchange instructions
-type bx = {
-  cond:condition,
-  rm:register
+  label:operand
 }
 
 type psr_transfer = {
@@ -222,7 +218,7 @@ type operand =
 
 # Supertype for the various immediate values
 type immediate =
-    INT of int
+    IMMi of int
   | IMM5 of 5
   | IMM8 of 8
   | IMM12 of 12
@@ -364,18 +360,14 @@ val lsm cons cond w rn register_list = do
   return (cons{
     cond=cond, w=w,
     rn=(register-from-bits rn),
-    register_list=register_list
+    register_list=(REGISTER_LIST(register_list))
   })
 end
 
-val br cons cond imm24 = do
+val br cons cond label = do
   cond <- cond;
-  return (cons{cond=cond, imm24=imm24})
-end
-
-val bx cons cond rm = do
-  cond <- cond;
-  return (cons{cond=cond, rm=(register-from-bits rm)})
+  label <- label;
+  return (cons{cond=cond, label=label})
 end
 
 val hint_dbg cons cond opt = do
@@ -518,7 +510,7 @@ val cond = do
   return (cond-from-bits cond)
 end
 
-val none = return NONE
+val no_cond = return NV
 
 # Flag subdecoders
 val /P ['p:1'] = update@{p=p}
@@ -667,23 +659,31 @@ end
 
 ### B
 ### - Branch
-val / ['/cond 101 0 imm24:24'] = br B cond imm24
+val / ['/cond 101 0 imm24:24'] =
+  br B cond (immediate (IMMi(zx (imm24^'00'))))
 
 ### BL
 ###  - Branch with Link
-val / ['/cond 101 1 imm24:24'] = br BL cond imm24
+val / ['/cond 101 1 imm24:24'] =
+  br BL cond (immediate (IMMi(zx (imm24^'00'))))
 
 ### BLX
+###  - Branch with Link and Exchange (Immediate)
+val / ['1111 101 h:1 imm24:24'] = 
+  br BLX no_cond (immediate (IMMi(zx (imm24^h^'0'))))
 ###  - Branch with Link and Exchange (Register)
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0111 rm:4'] = bx BLX cond rm
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0111 /rm'] =
+  br BLX cond (rx2operand rm)
 
 ### BX
 ### - Branch and Exchange
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0001 rm:4'] = bx BX cond rm
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0001 /rm'] =
+  br BX cond (rx2operand rm)
 
 ### BXJ
 ###  - Branch and Exchange Jazelle
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0010 rm:4'] = bx BXJ cond rm
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0010 /rm'] =
+  br BXJ cond (rx2operand rm)
 
 # --- Data Processing Instructions -------------------------------------
 
@@ -768,7 +768,7 @@ val / ['/cond 0011000 s@1 rn:4 rd:4 /modimm'] = dp TST cond s rn rd (modimm)
 ### MLA
 ###  - Multiply Accumulate
 val / ['/cond 000 0 0 0 1 /S /rd /ra /rm 1001 /rn'] =
-  mul MUL cond s rd ra rm rn
+  mul MLA cond s rd ra rm rn
 
 ### MLS
 ###  - Multiply and Subtract
