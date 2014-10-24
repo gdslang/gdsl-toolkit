@@ -6,8 +6,8 @@ val -++ a b = a +++ " " +++ b
 
 val show/lvalue opnd = 
    case opnd of
-      GPR r: show/register r
-    | FPR r: show/register r
+      GPR r: show/gpr-register r
+    | FPR r: show/fpr-register r
     | FCC fcc: show/fccode fcc
    end
 
@@ -15,6 +15,8 @@ val show/rvalue opnd =
    case opnd of
       LVALUE l: show/lvalue l
     | IMM imm: show/immediate imm
+    | OFFSET/BASE ob: show/immediate ob.offset +++ "("+++ show/gpr-register ob.base +++ ")"
+    | INDEX/BASE ib: show/gpr-register ib.index +++ "("+++ show/gpr-register ib.base +++ ")"
    end
 
 val show/immediate imm =
@@ -80,7 +82,7 @@ val show/fccode fcc =
     | FCC7: "$fcc7"
    end
 
-val show/register r =
+val show/gpr-register r =
    case r of
       ZERO: "$zero"
     | AT: "$at"
@@ -114,10 +116,11 @@ val show/register r =
     | SP: "$sp"
     | S8: "$s8"
     | RA: "$ra"
-    | HI: "$hi"
-    | LO: "$lo"
-    | PC: "$pc"
-    | F0: "$f0"
+   end
+
+val show/fpr-register r =
+   case r of
+      F0: "$f0"
     | F1: "$f1"
     | F2: "$f2"
     | F3: "$f3"
@@ -149,11 +152,6 @@ val show/register r =
     | F29: "$f29"
     | F30: "$f30"
     | F31: "$f31"
-    | FIR: "$fir"
-    | FCCR: "$fccr"
-    | FEXR: "$fexr"
-    | FENR: "$fenr"
-    | FCSR: "$fcsr"
    end
 
 # -> sftl

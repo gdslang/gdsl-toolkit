@@ -30,13 +30,15 @@ type imm =
  | OP of 5
 
 type lvalue =
-   GPR of register
- | FPR of register
+   GPR of gpr-register
+ | FPR of fpr-register
  | FCC of fccode
 
 type rvalue =
    LVALUE of lvalue
  | IMM of imm
+ | OFFSET/BASE of {offset:imm, base:gpr-register}
+ | INDEX/BASE of {index:gpr-register, base:gpr-register}
 
 type format = 
    S
@@ -103,7 +105,7 @@ val cloz? s = (s.rt == s.rd)
 
 val decode config = do
   set-endianness BIG_ENDIAN 4;
-  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',sel='000',impl='0000000000000000',code10='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
+  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',base='00000',index='00000',sel='000',impl='0000000000000000',code10='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
   idx-before <- idxget;
   insn <- /;
   idx-after <- idxget;
@@ -419,55 +421,55 @@ val / ['000000 /rs 0000000000 1 0000 001000'] = unop JR-HB (right rs)
 
 ### LB
 ###  - Load Byte
-val / ['100000 /rs /rt /offset16'] = ternop LB rt (right rs) offset16 
+val / ['100000 /base /rt /offset16'] = binop LB rt offset16/base
 
 ### LBE
 ###  - Load Byte EVA
-val / ['011111 /rs /rt /offset9 0 101100'] = ternop LBE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101100'] = binop LBE rt offset9/base 
 
 ### LBU
 ###  - Load Byte Unsigned
-val / ['100100 /rs /rt /offset16'] = ternop LBU rt (right rs) offset16 
+val / ['100100 /base /rt /offset16'] = binop LBU rt offset16/base
 
 ### LBUE
 ###  - Load Byte Unsigned EVA
-val / ['011111 /rs /rt /offset9 0 101000'] = ternop LBUE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101000'] = binop LBUE rt offset9/base
 
 ### LDC1
 ###  - Load Doubleword to Floating Point
-val / ['110101 /rs /ft /offset16'] = ternop LDC1 ft (right rs) offset16 
+val / ['110101 /base /ft /offset16'] = binop LDC1 ft offset16/base 
 
 ### LDC2
 ###  - Load Doubleword to Coprocessor 2
-val / ['110110 /rs /rt /offset16'] = ternop LDC2 (right rs) rt/imm offset16 
+val / ['110110 /base /rt /offset16'] = binop LDC2 rt/imm offset16/base 
 
 ### LDXC1
 ###  - Load Doubleword Indexed to Floating Point
-val / ['010011 /rs /rt 00000 /fd 000001'] = ternop LDXC1 fd (right rs) (right rt) 
+val / ['010011 /base /index 00000 /fd 000001'] = binop LDXC1 fd index/base
 
 ### LH
 ###  - Load Halfword
-val / ['100001 /rs /rt /offset16'] = ternop LH rt (right rs) offset16 
+val / ['100001 /base /rt /offset16'] = binop LH rt offset16/base
 
 ### LHE
 ###  - Load Halfword EVA
-val / ['011111 /rs /rt /offset9 0 101101'] = ternop LHE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101101'] = binop LHE rt offset9/base
 
 ### LHU
 ###  - Load Halfword Unsigned
-val / ['100101 /rs /rt /offset16'] = ternop LHU rt (right rs) offset16 
+val / ['100101 /base /rt /offset16'] = binop LHU rt offset16/base
 
 ### LHUE
 ###  - Load Halfword Unsigned EVA
-val / ['011111 /rs /rt /offset9 0 101001'] = ternop LHUE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101001'] = binop LHUE rt offset9/base
 
 ### LL
 ###  - Load Linked Word
-val / ['110000 /rs /rt /offset16'] = ternop LL rt (right rs) offset16 
+val / ['110000 /base /rt /offset16'] = binop LL rt offset16/base
 
 ### LLE
 ###  - Load Linked Word EVA
-val / ['011111 /rs /rt /offset9 0 101110'] = ternop LLE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101110'] = binop LLE rt offset9/base
 
 ### LUI
 ###  - Load Upper Immediate
@@ -475,43 +477,43 @@ val / ['001111 00000 /rt /immediate'] = binop LUI rt immediate
 
 ### LUXC1
 ###  - Load Doubleword Indexed Unaligned to Floating Point
-val / ['010011 /rs /rt 00000 /fd 000101'] = ternop LUXC1 fd (right rs) (right rt) 
+val / ['010011 /base /index 00000 /fd 000101'] = binop LUXC1 fd index/base
 
 ### LW
 ###  - Load word
-val / ['100011 /rs /rt /offset16'] = ternop LW rt (right rs) offset16 
+val / ['100011 /base /rt /offset16'] = binop LW rt offset16/base
 
 ### LWC1
 ###  - Load Word To Floating Point
-val / ['110001 /rs /ft /offset16'] = ternop LWC1 ft (right rs) offset16 
+val / ['110001 /base /ft /offset16'] = binop LWC1 ft offset16/base
 
 ### LWC2
 ###  - Load Word to Coprocessor 2
-val / ['110010 /rs /rt /offset16'] = ternop LWC2 (right rs) rt/imm offset16 
+val / ['110010 /base /rt /offset16'] = binop LWC2 rt/imm offset16/base 
 
 ### LWE
 ###  - Load Word EVA
-val / ['011111 /rs /rt /offset9 0 101111'] = ternop LWE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101111'] = binop LWE rt offset9/base
 
 ### LWL
 ###  - Load Word Left
-val / ['100010 /rs /rt /offset16'] = ternop LWL rt (right rs) offset16 
+val / ['100010 /base /rt /offset16'] = binop LWL rt offset16/base
 
 ### LWLE
 ###  - Load Word Left EVA
-val / ['011111 /rs /rt /offset9 0 011001'] = ternop LWLE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 011001'] = binop LWLE rt offset9/base
 
 ### LWR
 ###  - Load Word Right
-val / ['100110 /rs /rt /offset16'] = ternop LWR rt (right rs) offset16 
+val / ['100110 /base /rt /offset16'] = binop LWR rt offset16/base
 
 ### LWRE
 ###  - Load Word Right EVA
-val / ['011111 /rs /rt /offset9 0 011010'] = ternop LWRE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 011010'] = binop LWRE rt offset9/base
 
 ### LWXC1
 ###  - Load Word Indexed to Floating Point
-val / ['010011 /rs /rt 00000 /fd 000000'] = ternop LWXC1 fd (right rs) (right rt) 
+val / ['010011 /base /index 00000 /fd 000000'] = binop LWXC1 fd index/base
 
 ### MADD
 ###  - Multiply and Add Word to Hi,Lo
@@ -739,19 +741,19 @@ val / ['010001 /fmt5sd 00000 /fs /fd 010110'] = binop-fmt RSQRT-fmt fmt fd (righ
 
 ### SB
 ###  - Store Byte
-val / ['101000 /rs /rt /offset16'] = ternop SB (right rs) (right rt) offset16 
+val / ['101000 /base /rt /offset16'] = binop SB (right rt) offset16/base
 
 ### SBE
 ###  - Store Byte EVA
-val / ['011111 /rs /rt /offset9 0 011100'] = ternop SBE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 011100'] = binop SBE (right rt) offset9/base 
 
 ### SC
 ###  - Store Conditional Word
-val / ['111000 /rs /rt /offset16'] = ternop SC rt (right rs) offset16 
+val / ['111000 /base /rt /offset16'] = binop SC rt offset16/base
 
 ### SCE
 ###  - Store Conditional Word EVA
-val / ['011111 /rs /rt /offset9 0 011110'] = ternop SCE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 011110'] = binop SCE rt offset9/base
 
 ### SDBBP
 ###  - Software Debug Breakpoint
@@ -759,15 +761,15 @@ val / ['011100 /code20 111111'] = unop SDBBP code20
 
 ### SDC1
 ###  - Store Doubleword from Floating Point
-val / ['111101 /rs /ft /offset16'] = ternop SDC1 (right rs) (right ft) offset16 
+val / ['111101 /base /ft /offset16'] = binop SDC1 (right ft) offset16/base
 
 ### SDC2
 ###  - Store Doubleword from Coprocessor 2
-val / ['111110 /rs /rt /offset16'] = ternop SDC2 (right rs) rt/imm offset16 
+val / ['111110 /base /rt /offset16'] = binop SDC2 rt/imm offset16/base 
 
 ### SDXC1
 ###  - Store Doubleword Indexed from Floating Point
-val / ['010011 /rs /rt /fs 00000 001001'] = ternop SDXC1 (right rs) (right rt) (right fs) 
+val / ['010011 /base /index /fs 00000 001001'] = binop SDXC1 (right fs) index/base
 
 ### SEB
 ###  - Sign-Extend Byte
@@ -779,11 +781,11 @@ val / ['011111 00000 /rt /rd 11000 100000'] = binop SEH rd (right rt)
 
 ### SH
 ###  - Store Halfword
-val / ['101001 /rs /rt /offset16'] = ternop SH (right rs) (right rt) offset16 
+val / ['101001 /base /rt /offset16'] = binop SH (right rt) offset16/base 
 
 ### SHE
 ###  - Store Halfword EVA
-val / ['011111 /rs /rt /offset9 0 011101'] = ternop SHE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 011101'] = binop SHE (right rt) offset9/base 
 
 ### SLL
 ###  - Shift Word Left Logical
@@ -849,43 +851,43 @@ val / ['000000 /rs /rt /rd 00000 100011'] = ternop SUBU rd (right rs) (right rt)
 
 ### SUXC1
 ###  - Store Doubleword Indexed Unaligned from Floating Point
-val / ['010011 /rs /rt /fs 00000 001101'] = ternop SUXC1 (right rs) (right rt) (right fs) 
+val / ['010011 /base /index /fs 00000 001101'] = binop SUXC1 (right fs) index/base
 
 ### SW
 ###  - Store Word
-val / ['101011 /rs /rt /offset16'] = ternop SW (right rs) (right rt) offset16 
+val / ['101011 /base /rt /offset16'] = binop SW (right rt) offset16/base
 
 ### SWC1
 ###  - Store Word from Floating Point
-val / ['111001 /rs /ft /offset16'] = ternop SWC1 (right rs) (right ft) offset16 
+val / ['111001 /base /ft /offset16'] = binop SWC1 (right ft) offset16/base
 
 ### SWC2
 ###  - Store Word from Coprocessor 2
-val / ['111010 /rs /rt /offset16'] = ternop SWC2 (right rs) rt/imm offset16 
+val / ['111010 /base /rt /offset16'] = binop SWC2 rt/imm offset16/base
 
 ### SWE
 ###  - Store Word EVA
-val / ['011111 /rs /rt /offset9 0 011111'] = ternop SWE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 011111'] = binop SWE (right rt) offset9/base 
 
 ### SWL
 ###  - Store Word Left
-val / ['101010 /rs /rt /offset16'] = ternop SWL (right rs) (right rt) offset16 
+val / ['101010 /base /rt /offset16'] = binop SWL (right rt) offset16/base 
 
 ### SWLE
 ###  - Store Word Left EVA
-val / ['011111 /rs /rt /offset9 0 100001'] = ternop SWLE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 100001'] = binop SWLE (right rt) offset9/base 
 
 ### SWR
 ###  - Store Word Right
-val / ['101110 /rs /rt /offset16'] = ternop SWR (right rs) (right rt) offset16 
+val / ['101110 /base /rt /offset16'] = binop SWR (right rt) offset16/base 
 
 ### SWRE
 ###  - Store Word Right EVA
-val / ['011111 /rs /rt /offset9 0 100010'] = ternop SWRE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 100010'] = binop SWRE (right rt) offset9/base 
 
 ### SWXC1
 ###  - Store Word Indexed from Floating Point
-val / ['010011 /rs /rt /fs 00000 001000'] = ternop SWXC1 (right rs) (right rt) (right fs) 
+val / ['010011 /base /index /fs 00000 001000'] = binop SWXC1 (right fs) index/base
 
 ### SYNC
 ###  - Synchronize Shared Memory
@@ -1180,6 +1182,30 @@ val fmt = do
   return (format-from-bits (fmt))
 end
 
+val offset16/base = do
+  offset16 <- query $offset16;
+  base <- query $base;
+  update @{offset16='0000000000000000'};
+  update @{base='00000'};
+  return (OFFSET/BASE {offset=(OFFSET16 offset16), base=(gpr-from-bits base)})
+end
+
+val offset9/base = do
+  offset9 <- query $offset9;
+  base <- query $base;
+  update @{offset9='000000000'};
+  update @{base='00000'};
+  return (OFFSET/BASE {offset=(OFFSET9 offset9), base=(gpr-from-bits base)})
+end
+
+val index/base = do
+  index <- query $index;
+  base <- query $base;
+  update @{index='00000'};
+  update @{base='00000'};
+  return (INDEX/BASE {index=(gpr-from-bits index), base=(gpr-from-bits base)})
+end
+
 
 val /rs ['rs:5'] = update@{rs=rs}
 val /rt ['rt:5'] = update@{rt=rt}
@@ -1191,6 +1217,8 @@ val /fd ['fd:5'] = update@{fd=fd}
 val /immediate ['immediate:16'] = update@{immediate=immediate}
 val /offset16 ['offset16:16'] = update@{offset16=offset16}
 val /offset9 ['offset9:9'] = update@{offset9=offset9}
+val /base ['base:5'] = update@{base=base}
+val /index ['index:5'] = update@{index=index}
 val /sel ['sel:3'] = update@{sel=sel}
 val /impl ['impl:16'] = update@{impl=impl}
 val /code10 ['code10:10'] = update@{code10=code10}
@@ -1376,30 +1404,30 @@ type instruction =
  | JALX of unop-r
  | JR of unop-r
  | JR-HB of unop-r
- | LB of ternop-lrr
- | LBE of ternop-lrr
- | LBU of ternop-lrr
- | LBUE of ternop-lrr
- | LDC1 of ternop-lrr
- | LDC2 of ternop-rrr
- | LDXC1 of ternop-lrr
- | LH of ternop-lrr
- | LHE of ternop-lrr
- | LHU of ternop-lrr
- | LHUE of ternop-lrr
- | LL of ternop-lrr
- | LLE of ternop-lrr
+ | LB of binop-lr
+ | LBE of binop-lr
+ | LBU of binop-lr
+ | LBUE of binop-lr
+ | LDC1 of binop-lr
+ | LDC2 of binop-rr
+ | LDXC1 of binop-lr
+ | LH of binop-lr
+ | LHE of binop-lr
+ | LHU of binop-lr
+ | LHUE of binop-lr
+ | LL of binop-lr
+ | LLE of binop-lr
  | LUI of binop-lr
- | LUXC1 of ternop-lrr
- | LW of ternop-lrr
- | LWC1 of ternop-lrr
- | LWC2 of ternop-rrr
- | LWE of ternop-lrr
- | LWL of ternop-lrr
- | LWLE of ternop-lrr
- | LWR of ternop-lrr
- | LWRE of ternop-lrr
- | LWXC1 of ternop-lrr
+ | LUXC1 of binop-lr
+ | LW of binop-lr
+ | LWC1 of binop-lr
+ | LWC2 of binop-rr
+ | LWE of binop-lr
+ | LWL of binop-lr
+ | LWLE of binop-lr
+ | LWR of binop-lr
+ | LWRE of binop-lr
+ | LWXC1 of binop-lr
  | MADD of binop-rr
  | MADD-fmt of quadop-flrrr
  | MADDU of binop-rr
@@ -1454,18 +1482,18 @@ type instruction =
  | ROUND-L-fmt of binop-flr
  | ROUND-W-fmt of binop-flr
  | RSQRT-fmt of binop-flr
- | SB of ternop-rrr
- | SBE of ternop-rrr
- | SC of ternop-lrr
- | SCE of ternop-lrr
+ | SB of binop-rr
+ | SBE of binop-rr
+ | SC of binop-lr
+ | SCE of binop-lr
  | SDBBP of unop-r
- | SDC1 of ternop-rrr
- | SDC2 of ternop-rrr
- | SDXC1 of ternop-rrr
+ | SDC1 of binop-rr
+ | SDC2 of binop-rr
+ | SDXC1 of binop-rr
  | SEB of binop-lr
  | SEH of binop-lr
- | SH of ternop-rrr
- | SHE of ternop-rrr
+ | SH of binop-rr
+ | SHE of binop-rr
  | SLL of ternop-lrr
  | SLLV of ternop-lrr
  | SLT of ternop-lrr
@@ -1480,16 +1508,16 @@ type instruction =
  | SUB of ternop-lrr
  | SUB-fmt of ternop-flrr
  | SUBU of ternop-lrr
- | SUXC1 of ternop-rrr
- | SW of ternop-rrr
- | SWC1 of ternop-rrr
- | SWC2 of ternop-rrr
- | SWE of ternop-rrr
- | SWL of ternop-rrr
- | SWLE of ternop-rrr
- | SWR of ternop-rrr
- | SWRE of ternop-rrr
- | SWXC1 of ternop-rrr
+ | SUXC1 of binop-rr
+ | SW of binop-rr
+ | SWC1 of binop-rr
+ | SWC2 of binop-rr
+ | SWE of binop-rr
+ | SWL of binop-rr
+ | SWLE of binop-rr
+ | SWR of binop-rr
+ | SWRE of binop-rr
+ | SWXC1 of binop-rr
  | SYNC of unop-r
  | SYNCI of binop-rr
  | SYSCALL of unop-r
@@ -1524,7 +1552,7 @@ type instruction =
 type instruction = 
    PAUSE
 
-type register =
+type gpr-register =
    ZERO
  | AT
  | V0
@@ -1558,13 +1586,13 @@ type register =
  | S8
  | RA
 
-type register =
+type sp-register =
    HI
  | LO
  | PC
  | SREG
 
-type register =
+type fpr-register =
    F0
  | F1
  | F2
@@ -1598,7 +1626,9 @@ type register =
  | F30
  | F31
  | FIR
- | FCCR
+
+type fcr-register =
+   FCCR
  | FEXR
  | FENR
  | FCSR

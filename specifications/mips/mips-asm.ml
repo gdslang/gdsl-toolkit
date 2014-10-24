@@ -8,10 +8,11 @@ in
 end
 
 val generalize-lvalue lval = let
-  val generalize-register r = asm-reg (string-from-rope (show/register r))
+  val generalize-gpr-register r = asm-reg (string-from-rope (show/gpr-register r))
+  val generalize-fpr-register f = asm-reg (string-from-rope (show/fpr-register f))
 in case lval of
-   GPR r: generalize-register r
- | FPR f: generalize-register f
+   GPR r: generalize-gpr-register r
+ | FPR f: generalize-fpr-register f
  | FCC fc: generalize-fcc fc
 end end
 

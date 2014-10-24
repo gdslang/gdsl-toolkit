@@ -17,14 +17,14 @@ val write to from =
 val lval sn x = let
    val from-fcc fcc = 
       case fcc of
-         FCC0: var (sem-reg-offset (semantic-fpr-of FCSR) 23)
-       | FCC1: var (sem-reg-offset (semantic-fpr-of FCSR) 25)
-       | FCC2: var (sem-reg-offset (semantic-fpr-of FCSR) 26)
-       | FCC3: var (sem-reg-offset (semantic-fpr-of FCSR) 27)
-       | FCC4: var (sem-reg-offset (semantic-fpr-of FCSR) 28)
-       | FCC5: var (sem-reg-offset (semantic-fpr-of FCSR) 29)
-       | FCC6: var (sem-reg-offset (semantic-fpr-of FCSR) 30)
-       | FCC7: var (sem-reg-offset (semantic-fpr-of FCSR) 31)
+         FCC0: var (sem-reg-offset (semantic-fcr-of FCSR) 23)
+       | FCC1: var (sem-reg-offset (semantic-fcr-of FCSR) 25)
+       | FCC2: var (sem-reg-offset (semantic-fcr-of FCSR) 26)
+       | FCC3: var (sem-reg-offset (semantic-fcr-of FCSR) 27)
+       | FCC4: var (sem-reg-offset (semantic-fcr-of FCSR) 28)
+       | FCC5: var (sem-reg-offset (semantic-fcr-of FCSR) 29)
+       | FCC6: var (sem-reg-offset (semantic-fcr-of FCSR) 30)
+       | FCC7: var (sem-reg-offset (semantic-fcr-of FCSR) 31)
       end
 in
    case x of
@@ -33,6 +33,9 @@ in
     | FCC fc: return (from-fcc fc)
    end
 end
+
+type sem_linear =
+   SEM_LIN_TUPLE of {opnd1:sem_linear, opnd2:sem_linear}
 
 val rval sn x = let
    val from-vec sn vec =
@@ -45,6 +48,7 @@ val rval sn x = let
       case imm of
          IMM5 i: from-vec sn i
        | IMM16 i: from-vec sn i
+       | RTRD5 i: from-vec sn i
        | OFFSET9 i: from-vec sn i
        | OFFSET16 i: from-vec sn i
        | SEL i: from-vec sn i
@@ -74,6 +78,8 @@ in
           | _: lval sn lv 
          end
     | IMM i: return (from-imm sn i)
+    | OFFSET/BASE ob: return (SEM_LIN_TUPLE {opnd1=(from-imm sn ob.offset), opnd2=(var (semantic-gpr-of ob.base))})
+    | INDEX/BASE ob: return (SEM_LIN_TUPLE {opnd1=(var (semantic-gpr-of ob.index)), opnd2=(var (semantic-gpr-of ob.base))})
    end
 end
 
@@ -98,6 +104,7 @@ val sizeof-rval x =
          case imm of
             IMM5 i: 5
 	  | IMM16 i: 16
+          | RTRD5 i: 5
           | OFFSET9 i: 9
           | OFFSET16 i: 16
           | SEL i: 3
@@ -114,6 +121,8 @@ val sizeof-rval x =
           | COFUN i: 25
           | OP i: 5
          end
+    | OFFSET/BASE ob: 32
+    | INDEX/BASE ib: 32
    end
 
 val mnemonic-with-format insn x = (mnemonic-of insn) +++ "." +++ show/format x.fmt
@@ -132,6 +141,40 @@ val sem-default-unop-r-ro-generic insn x = do
 	src-up <- unpack-lin src-sz src;
 
 	prim-generic (mnemonic-of insn) varls-none (varls-one (varl src-sz src-up))
+end
+
+val sem-default-binop-rr-tuple-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.op1);
+	src2-sz <- return (sizeof-rval x.op2);
+	src3-sz <- return (sizeof-rval x.op2);
+
+	src1 <- rval Signed x.op1;
+	one/two <- rval Signed x.op2;
+	src2 <- return (extract-tuple one/two).opnd1;
+	src3 <- return (extract-tuple one/two).opnd2;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+	src3-up <- unpack-lin src3-sz src3;
+
+	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src1-sz src1-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src3-sz src3-up))))
+end
+
+val sem-default-binop-lr-tuple-ro-generic insn x = do
+	dst-sz <- return (sizeof-lval x.op1);
+	src1-sz <- return (sizeof-rval x.op2);
+	src2-sz <- return (sizeof-rval x.op2);
+
+	dst <- lval Signed x.op1;
+	one/two <- rval Signed x.op2;
+	src1 <- return (extract-tuple one/two).opnd1;
+	src2 <- return (extract-tuple one/two).opnd2;
+
+	dst-up <- unpack-lin dst-sz dst;
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+
+	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
 val sem-default-binop-rr-ro-generic insn x = do
@@ -792,9 +835,15 @@ val is-big-endian-cpu = do
 		/eq 1 re (imm 1)
 end
 
+val extract-tuple x =
+   case x of
+      SEM_LIN_TUPLE t: t
+   end
+
 val sem-lb-lbu ext_op x = do
-	base <- rval Signed x.op2;
-	off <- rval Signed x.op3;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
 	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
@@ -824,8 +873,9 @@ val sem-lb x = sem-lb-lbu movsx x
 val sem-lbu x = sem-lb-lbu movzx x
 
 val sem-lh-lhu ext_op x = do
-	base <- rval Signed x.op2;
-	off <- rval Signed x.op3;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
 	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
@@ -858,8 +908,9 @@ val sem-lh x = sem-lh-lhu movsx x
 val sem-lhu x = sem-lh-lhu movzx x
 
 val sem-lw x = do
-	base <- rval Signed x.op2;
-	off <- rval Signed x.op3;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
 	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
@@ -882,8 +933,9 @@ val sem-ll x = do
 end
 
 val sem-lwl x = do
-	base <- rval Signed x.op2;
-	off <- rval Signed x.op3;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
 	rt <- lval Signed x.op1;
 	size <- return (sizeof-lval x.op1);
 
@@ -918,8 +970,9 @@ val sem-lwl x = do
 end
 
 val sem-lwr x = do
-	base <- rval Signed x.op2;
-	off <- rval Signed x.op3;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
 	rt <- lval Signed x.op1;
 	size <- return (sizeof-lval x.op1);
 
@@ -1245,8 +1298,9 @@ end
 
 val sem-sb x = do
 	rt <- rval Signed x.op1;
-	base <- rval Signed x.op2;
-	off <- rval Signed x.op3;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
 	size <- return (sizeof-rval x.op1);
 
 	vaddr <- mktemp;
@@ -1269,8 +1323,9 @@ end
 
 val sem-sh x = do
 	rt <- rval Signed x.op1;
-	base <- rval Signed x.op2;
-	off <- rval Signed x.op3;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
 	size <- return (sizeof-rval x.op1);
 
 	vaddr <- mktemp;
@@ -1296,8 +1351,9 @@ end
 
 val sem-sw x = do
 	rt <- rval Signed x.op1;
-	base <- rval Signed x.op2;
-	off <- rval Signed x.op3;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
 	size <- return (sizeof-rval x.op1);
 
 	vaddr <- mktemp;
@@ -1311,8 +1367,9 @@ end
 
 val sem-sc-sw x = do
 	rt <- lval Signed x.op1;
-	base <- rval Signed x.op2;
-	off <- rval Signed x.op3;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
 	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
@@ -1338,10 +1395,11 @@ val sem-sc x = do
 end
 
 val sem-swl x = do
-	base <- rval Signed x.op1;
-	off <- rval Signed x.op3;
-	rt <- rval Signed x.op2;
-	size <- return (sizeof-rval x.op2);
+	rt <- rval Signed x.op1;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
+	size <- return (sizeof-rval x.op1);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -1364,10 +1422,11 @@ end
 
 
 val sem-swr x = do
-	base <- rval Signed x.op1;
-	off <- rval Signed x.op3;
-	rt <- rval Signed x.op2;
-	size <- return (sizeof-rval x.op2);
+	rt <- rval Signed x.op1;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
+	size <- return (sizeof-rval x.op1);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -1574,9 +1633,9 @@ val semantics i =
     | LBE x: sem-lb x
     | LBU x: sem-lbu x
     | LBUE x: sem-lbu x
-    | LDC1 x: sem-default-ternop-lrr-ro-generic i x
-    | LDC2 x: sem-default-ternop-rrr-ro-generic i x
-    | LDXC1 x: sem-default-ternop-lrr-ro-generic i x
+    | LDC1 x: sem-default-binop-lr-tuple-ro-generic i x
+    | LDC2 x: sem-default-binop-rr-tuple-ro-generic i x
+    | LDXC1 x: sem-default-binop-lr-tuple-ro-generic i x
     | LH x: sem-lh x
     | LHE x: sem-lh x
     | LHU x: sem-lhu x
@@ -1584,16 +1643,16 @@ val semantics i =
     | LL x: sem-ll x
     | LLE x: sem-ll x
     | LUI x: sem-lui x
-    | LUXC1 x: sem-default-ternop-lrr-ro-generic i x
+    | LUXC1 x: sem-default-binop-lr-tuple-ro-generic i x
     | LW x: sem-lw x
-    | LWC1 x: sem-default-ternop-lrr-ro-generic i x
-    | LWC2 x: sem-default-ternop-rrr-ro-generic i x
+    | LWC1 x: sem-default-binop-lr-tuple-ro-generic i x
+    | LWC2 x: sem-default-binop-rr-tuple-ro-generic i x
     | LWE x: sem-lw x
     | LWL x: sem-lwl x
     | LWLE x: sem-lwl x
     | LWR x: sem-lwr x
     | LWRE x: sem-lwr x
-    | LWXC1 x: sem-default-ternop-lrr-ro-generic i x
+    | LWXC1 x: sem-default-binop-lr-tuple-ro-generic i x
     | MADD x: sem-madd x
     | MADD-fmt x: sem-default-ternop-flrr-ro-generic i x
     | MADDU x: sem-maddu x
@@ -1654,9 +1713,9 @@ val semantics i =
     | SC x: sem-sc x
     | SCE x: sem-sc x
     | SDBBP x: sem-sdbbp x
-    | SDC1 x: sem-default-ternop-rrr-ro-generic i x
-    | SDC2 x: sem-default-ternop-rrr-ro-generic i x
-    | SDXC1 x: sem-default-ternop-rrr-ro-generic i x
+    | SDC1 x: sem-default-binop-rr-tuple-ro-generic i x
+    | SDC2 x: sem-default-binop-rr-tuple-ro-generic i x
+    | SDXC1 x: sem-default-binop-rr-tuple-ro-generic i x
     | SEB x: sem-seb x
     | SEH x: sem-seh x
     | SH x: sem-sh x
@@ -1675,16 +1734,16 @@ val semantics i =
     | SUB x: sem-sub x
     | SUB-fmt x: sem-default-ternop-flrr-ro-generic i x
     | SUBU x: sem-subu x
-    | SUXC1 x: sem-default-ternop-rrr-ro-generic i x
+    | SUXC1 x: sem-default-binop-rr-tuple-ro-generic i x
     | SW x: sem-sw x
-    | SWC1 x: sem-default-ternop-rrr-ro-generic i x
-    | SWC2 x: sem-default-ternop-rrr-ro-generic i x
+    | SWC1 x: sem-default-binop-rr-tuple-ro-generic i x
+    | SWC2 x: sem-default-binop-rr-tuple-ro-generic i x
     | SWE x: sem-sw x
     | SWL x: sem-swl x
     | SWLE x: sem-swl x
     | SWR x: sem-swr x
     | SWRE x: sem-swr x
-    | SWXC1 x: sem-default-ternop-rrr-ro-generic i x
+    | SWXC1 x: sem-default-binop-rr-tuple-ro-generic i x
     | SYNC x: sem-default-unop-r-ro-generic i x
     | SYNCI x: sem-default-binop-rr-ro-generic i x
     | SYSCALL x: sem-syscall
