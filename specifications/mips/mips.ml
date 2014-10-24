@@ -27,17 +27,16 @@ type imm =
  | HINT of 5
  | INSTRINDEX of 26
  | COFUN of 25
- | COND of 4
  | OP of 5
 
 type lvalue =
    GPR of register
  | FPR of register
+ | FCC of fccode
 
 type rvalue =
    LVALUE of lvalue
  | IMM of imm
- | FCC of fccode
 
 type format = 
    S
@@ -56,6 +55,24 @@ type fccode =
  | FCC6
  | FCC7
 
+type condop =
+   C_F
+ | C_UN
+ | C_EQ
+ | C_UEQ
+ | C_OLT
+ | C_ULT
+ | C_OLE
+ | C_ULE
+ | C_SF
+ | C_NGLE
+ | C_SEQ
+ | C_NGL
+ | C_LT
+ | C_NGE
+ | C_LE
+ | C_NGT
+
 val right lvalue = do
   lvalue <- lvalue;
   return (LVALUE lvalue)
@@ -65,6 +82,7 @@ end
 val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101')
 val jalr? s = not (s.rd == s.rs)
 val ext? s = (zx s.lsb) + (zx s.msbd)+1 < 33
+val cloz? s = (s.rt == s.rd)
 
 ###
 # SLL not script handled yet
@@ -76,7 +94,9 @@ val ext? s = (zx s.lsb) + (zx s.msbd)+1 < 33
 #val / ['000000 /rs 00000 /rd 00000 001001']
 # | jalr? = binop JALR rd (right rs) 
 #
-# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched, EXT lsb and msbd; pretty printer offset *4 etc; ADD.fmt fs<->ft; WRPGPR swap params; ext guard; offset sign extend; SUB.FMT switch fs ft; switch FMT{MSUB,NMSUB,NMADD,SUB,MADD,MOVF,MOVN,MOVZ,DIV}
+# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched; WRPGPR swap params; EXT lsb and msbd; pretty printer offset *4 etc; ext guard; offset sign extend; switch FMT{ADD,MSUB,NMSUB,NMADD,SUB,MADD,MOVF,MOVN,MOVZ,DIV,CVT-PS-S,PLL.PS,PLU.PS,PUL.PS,PUU.PS}
+# guards for CLO/CLZ
+# C.cond.fmt cond-operand
 ###
 
 # -> sftl
@@ -121,7 +141,7 @@ val / ['000000 /rs /rt /rd 00000 100001'] = ternop ADDU rd (right rs) (right rt)
 
 ### ALNV-PS
 ###  - Floating Point Align Variable
-val / ['010011 /rs /ft /fs /fd 011110'] = quadop ALNV-PS fd (right rs) (right ft) (right fs) 
+val / ['010011 /rs /ft /fs /fd 011110'] = quadop ALNV-PS fd (right fs) (right ft) (right rs) 
 
 ### AND
 ###  - And
@@ -141,115 +161,115 @@ val / ['001100 /rs /rt /immediate'] = ternop ANDI rt (right rs) immediate
 
 ### BC1F
 ###  - Branch on FP False
-val / ['010001 01000 /cc 0 0 /offset16'] = binop-src BC1F cc offset16 
+val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F (right cc) offset16 
 
 ### BC1FL
 ###  - Branch on FP False Likely
-val / ['010001 01000 /cc 1 0 /offset16'] = binop-src BC1FL cc offset16 
+val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL (right cc) offset16 
 
 ### BC1T
 ###  - Branch on FP True
-val / ['010001 01000 /cc 0 1 /offset16'] = binop-src BC1T cc offset16 
+val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T (right cc) offset16 
 
 ### BC1TL
 ###  - Branch on FP True Likely
-val / ['010001 01000 /cc 1 1 /offset16'] = binop-src BC1TL cc offset16 
+val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL (right cc) offset16 
 
 ### BC2F
 ###  - Branch on COP2 False
-val / ['010010 01000 /cc 0 0 /offset16'] = binop-src BC2F cc offset16 
+val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F (right cc) offset16 
 
 ### BC2FL
 ###  - Branch on COP2 False Likely
-val / ['010010 01000 /cc 1 0 /offset16'] = binop-src BC2FL cc offset16 
+val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL (right cc) offset16 
 
 ### BC2T
 ###  - Branch on COP2 True
-val / ['010010 01000 /cc 0 1 /offset16'] = binop-src BC2T cc offset16 
+val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T (right cc) offset16 
 
 ### BC2TL
 ###  - Branch on COP2 True Likely
-val / ['010010 01000 /cc 1 1 /offset16'] = binop-src BC2TL cc offset16 
+val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL (right cc) offset16 
 
 ### BEQ
 ###  - Branch on Equal
-val / ['000100 /rs /rt /offset16'] = ternop-src BEQ (right rs) (right rt) offset16 
+val / ['000100 /rs /rt /offset16'] = ternop BEQ (right rs) (right rt) offset16 
 
 ### BEQL
 ###  - Branch on Equal Likely
-val / ['010100 /rs /rt /offset16'] = ternop-src BEQL (right rs) (right rt) offset16 
+val / ['010100 /rs /rt /offset16'] = ternop BEQL (right rs) (right rt) offset16 
 
 ### BGEZ
 ###  - Branch on Greater Than or Equal to Zero
-val / ['000001 /rs 00001 /offset16'] = binop-src BGEZ (right rs) offset16 
+val / ['000001 /rs 00001 /offset16'] = binop BGEZ (right rs) offset16 
 
 ### BGEZAL
 ###  - Branch on Greater Than or Equal to Zero and Link
-val / ['000001 /rs 10001 /offset16'] = binop-src BGEZAL (right rs) offset16 
+val / ['000001 /rs 10001 /offset16'] = binop BGEZAL (right rs) offset16 
 
 ### BGEZALL
 ###  - Branch on Greater Than or Equal to Zero and Link Likely
-val / ['000001 /rs 10011 /offset16'] = binop-src BGEZALL (right rs) offset16 
+val / ['000001 /rs 10011 /offset16'] = binop BGEZALL (right rs) offset16 
 
 ### BGEZL
 ###  - Branch on Greater Than or Equal to Zero Likely
-val / ['000001 /rs 00011 /offset16'] = binop-src BGEZL (right rs) offset16 
+val / ['000001 /rs 00011 /offset16'] = binop BGEZL (right rs) offset16 
 
 ### BGTZ
 ###  - Branch on Greater Than Zero
-val / ['000111 /rs 00000 /offset16'] = binop-src BGTZ (right rs) offset16 
+val / ['000111 /rs 00000 /offset16'] = binop BGTZ (right rs) offset16 
 
 ### BGTZL
 ###  - Branch on Greater Than Zero Likely
-val / ['010111 /rs 00000 /offset16'] = binop-src BGTZL (right rs) offset16 
+val / ['010111 /rs 00000 /offset16'] = binop BGTZL (right rs) offset16 
 
 ### BLEZ
 ###  - Branch on Less Than or Equal to Zero
-val / ['000110 /rs 00000 /offset16'] = binop-src BLEZ (right rs) offset16 
+val / ['000110 /rs 00000 /offset16'] = binop BLEZ (right rs) offset16 
 
 ### BLEZL
 ###  - Branch on Less Than or Equal to Zero Likely
-val / ['010110 /rs 00000 /offset16'] = binop-src BLEZL (right rs) offset16 
+val / ['010110 /rs 00000 /offset16'] = binop BLEZL (right rs) offset16 
 
 ### BLTZ
 ###  - Branch on Less Than Zero
-val / ['000001 /rs 00000 /offset16'] = binop-src BLTZ (right rs) offset16 
+val / ['000001 /rs 00000 /offset16'] = binop BLTZ (right rs) offset16 
 
 ### BLTZAL
 ###  - Branch on Less Than Zero And Link
-val / ['000001 /rs 10000 /offset16'] = binop-src BLTZAL (right rs) offset16 
+val / ['000001 /rs 10000 /offset16'] = binop BLTZAL (right rs) offset16 
 
 ### BLTZALL
 ###  - Branch on Less Than Zero And Link Likely
-val / ['000001 /rs 10010 /offset16'] = binop-src BLTZALL (right rs) offset16 
+val / ['000001 /rs 10010 /offset16'] = binop BLTZALL (right rs) offset16 
 
 ### BLTZL
 ###  - Branch on Less Than Zero Likely
-val / ['000001 /rs 00010 /offset16'] = binop-src BLTZL (right rs) offset16 
+val / ['000001 /rs 00010 /offset16'] = binop BLTZL (right rs) offset16 
 
 ### BNE
 ###  - Branch on Not Equal
-val / ['000101 /rs /rt /offset16'] = ternop-src BNE (right rs) (right rt) offset16 
+val / ['000101 /rs /rt /offset16'] = ternop BNE (right rs) (right rt) offset16 
 
 ### BNEL
 ###  - Branch on Not Equal Likely
-val / ['010101 /rs /rt /offset16'] = ternop-src BNEL (right rs) (right rt) offset16 
+val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset16 
 
 ### BREAK
 ###  - Breakpoint
-val / ['000000 /code20 001101'] = unop-src BREAK code20 
+val / ['000000 /code20 001101'] = unop BREAK code20 
 
 ### C-cond-fmt
 ###  - Floating Point Compare
-val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = quadop-fmt-src C-cond-fmt fmt (right ft) (right fs) cc cond 
+val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = ternop-cond-fmt C-cond-fmt cond fmt cc (right fs) (right ft)
 
 ### CACHE
 ###  - Perform Cache Operation
-val / ['101111 /rs /op /offset16'] = ternop-src CACHE (right rs) op offset16 
+val / ['101111 /rs /op /offset16'] = ternop CACHE (right rs) op offset16 
 
 ### CACHEE
 ###  - Perform Cache Operation EVA
-val / ['011111 /rs /op /offset9 0 011011'] = ternop-src CACHEE (right rs) op offset9 
+val / ['011111 /rs /op /offset9 0 011011'] = ternop CACHEE (right rs) op offset9 
 
 ### CEIL-L-fmt
 ###  - Fixed Point Ceiling Convert to Long Fixed Point
@@ -269,23 +289,25 @@ val / ['010010 00010 /rt /impl'] = binop CFC2 rt impl
 
 ### CLO
 ###  - Count Leading Ones in Word
-val / ['011100 /rs /rt /rd 00000 100001'] = ternop CLO rd (right rs) (right rt) 
+val / ['011100 /rs /rt /rd 00000 100001']
+ | cloz? = binop CLO rd (right rs)
 
 ### CLZ
 ###  - Count Leading Zeros in Word
-val / ['011100 /rs /rt /rd 00000 100000'] = ternop CLZ rd (right rs) (right rt) 
+val / ['011100 /rs /rt /rd 00000 100000']
+ | cloz? = binop CLZ rd (right rs)
 
 ### COP2
 ###  - Coprocessor Operation to Coprocessor 2
-val / ['010010 1 /cofun'] = unop-src COP2 cofun 
+val / ['010010 1 /cofun'] = unop COP2 cofun 
 
 ### CTC1
 ###  - Move Control Word to Floating Point
-val / ['010001 00110 /rt /fs 00000000000'] = binop-src CTC1 (right rt) fs/ctrl 
+val / ['010001 00110 /rt /fs 00000000000'] = binop CTC1 (right rt) fs/ctrl 
 
 ### CTC2
 ###  - Move Control Word to Coprocessor 2
-val / ['010010 00110 /rt /impl'] = binop-src CTC2 (right rt) impl 
+val / ['010010 00110 /rt /impl'] = binop CTC2 (right rt) impl 
 
 ### CVT-D-fmt
 ###  - Floating Point Convert To Double Floating Point
@@ -297,7 +319,7 @@ val / ['010001 /fmt5sd 00000 /fs /fd 100101'] = binop-fmt CVT-L-fmt fmt fd (righ
 
 ### CVT-PS-S
 ###  - Floating Point Convert Pair to Paired Single
-val / ['010001 10000 /ft /fs /fd 100110'] = ternop CVT-PS-S fd (right ft) (right fs) 
+val / ['010001 10000 /ft /fs /fd 100110'] = ternop CVT-PS-S fd (right fs) (right ft) 
 
 ### CVT-S-fmt
 ###  - Floating Point Convert to Single Floating Point
@@ -325,7 +347,7 @@ val / ['010000 01011 /rt 01100 00000 0 00 000'] = unop DI rt
 
 ### DIV
 ###  - Divide Word
-val / ['000000 /rs /rt 0000000000 011010'] = binop-src DIV (right rs) (right rt) 
+val / ['000000 /rs /rt 0000000000 011010'] = binop DIV (right rs) (right rt) 
 
 ### DIV-fmt
 ###  - Floating Point Divide
@@ -333,7 +355,7 @@ val / ['010001 /fmt5sd /ft /fs /fd 000011'] = ternop-fmt DIV-fmt fmt fd (right f
 
 ### DIVU
 ###  - Divide Unsigned Word
-val / ['000000 /rs /rt 0000000000 011011'] = binop-src DIVU (right rs) (right rt) 
+val / ['000000 /rs /rt 0000000000 011011'] = binop DIVU (right rs) (right rt) 
 
 ### EHB
 ###  - Execution Hazard Barrier
@@ -366,11 +388,11 @@ val / ['011111 /rs /rt /msb /lsb 000100'] = quadop INS rt (right rs) msb lsb
 
 ### J
 ###  - Jump
-val / ['000010 /instr_index'] = unop-src J instr_index 
+val / ['000010 /instr_index'] = unop J instr_index 
 
 ### JAL
 ###  - Jump And Link
-val / ['000011 /instr_index'] = unop-src JAL instr_index 
+val / ['000011 /instr_index'] = unop JAL instr_index 
 
 ### JALR
 ###  - Jump And Link Register
@@ -384,15 +406,15 @@ val / ['000000 /rs 00000 /rd 1 0000 001001']
 
 ### JALX
 ###  - Jump and Link Exchange
-val / ['011101 /instr_index'] = unop-src JALX instr_index 
+val / ['011101 /instr_index'] = unop JALX instr_index 
 
 ### JR
 ###  - Jump Register
-val / ['000000 /rs 0000000000 00000 001000'] = unop-src JR (right rs) 
+val / ['000000 /rs 0000000000 00000 001000'] = unop JR (right rs) 
 
 ### JR-HB
 ###  - Jump Register with Hazard Barrier
-val / ['000000 /rs 0000000000 1 0000 001000'] = unop-src JR-HB (right rs) 
+val / ['000000 /rs 0000000000 1 0000 001000'] = unop JR-HB (right rs) 
 
 ### LB
 ###  - Load Byte
@@ -416,7 +438,7 @@ val / ['110101 /rs /ft /offset16'] = ternop LDC1 ft (right rs) offset16
 
 ### LDC2
 ###  - Load Doubleword to Coprocessor 2
-val / ['110110 /rs /rt /offset16'] = ternop-src LDC2 (right rs) rt/imm offset16 
+val / ['110110 /rs /rt /offset16'] = ternop LDC2 (right rs) rt/imm offset16 
 
 ### LDXC1
 ###  - Load Doubleword Indexed to Floating Point
@@ -464,7 +486,7 @@ val / ['110001 /rs /ft /offset16'] = ternop LWC1 ft (right rs) offset16
 
 ### LWC2
 ###  - Load Word to Coprocessor 2
-val / ['110010 /rs /rt /offset16'] = ternop-src LWC2 (right rs) rt/imm offset16 
+val / ['110010 /rs /rt /offset16'] = ternop LWC2 (right rs) rt/imm offset16 
 
 ### LWE
 ###  - Load Word EVA
@@ -492,7 +514,7 @@ val / ['010011 /rs /rt 00000 /fd 000000'] = ternop LWXC1 fd (right rs) (right rt
 
 ### MADD
 ###  - Multiply and Add Word to Hi,Lo
-val / ['011100 /rs /rt 00000 00000 000000'] = binop-src MADD (right rs) (right rt) 
+val / ['011100 /rs /rt 00000 00000 000000'] = binop MADD (right rs) (right rt) 
 
 ### MADD-fmt
 ###  - Floating Point Multiply Add
@@ -500,7 +522,7 @@ val / ['010011 /fr /ft /fs /fd 100 /fmt3sdps'] = quadop-fmt MADD-fmt fmt fd (rig
 
 ### MADDU
 ###  - Multiply and Add Unsigned Word to Hi,Lo
-val / ['011100 /rs /rt 00000 00000 000001'] = binop-src MADDU (right rs) (right rt) 
+val / ['011100 /rs /rt 00000 00000 000001'] = binop MADDU (right rs) (right rt) 
 
 ### MFC0
 ###  - Move from Coprocessor 0
@@ -536,11 +558,11 @@ val / ['010001 /fmt5sdps 00000 /fs /fd 000110'] = binop-fmt MOV-fmt fmt fd (righ
 
 ### MOVF
 ###  - Move Conditional on Floating Point False
-val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) cc 
+val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) (right cc) 
 
 ### MOVF-fmt
 ###  - Floating Point Move Conditional on Floating Point False
-val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) cc
+val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) (right cc)
 
 ### MOVN
 ###  - Move Conditional on Not Zero
@@ -552,11 +574,11 @@ val / ['010001 /fmt5sdps /rt /fs /fd 010011'] = ternop-fmt MOVN-fmt fmt fd (righ
 
 ### MOVT
 ###  - Move Conditional on Floating Point True
-val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) cc 
+val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) (right cc) 
 
 ### MOVT-fmt
 ###  - Floating Point Move Conditional on Floating Point True
-val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) cc
+val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) (right cc)
 
 ### MOVZ
 ###  - Move Conditional on Not Zero
@@ -568,7 +590,7 @@ val / ['010001 /fmt5sdps /rt /fs /fd 010010'] = ternop-fmt MOVZ-fmt fmt fd (righ
 
 ### MSUB
 ###  - Multiply and Subtract Word to Hi,Lo
-val / ['011100 /rs /rt 00000 00000 000100'] = binop-src MSUB (right rs) (right rt) 
+val / ['011100 /rs /rt 00000 00000 000100'] = binop MSUB (right rs) (right rt) 
 
 ### MSUB-fmt
 ###  - Floating Point Multiply Subtract
@@ -576,35 +598,35 @@ val / ['010011 /fr /ft /fs /fd 101 /fmt3sdps'] = quadop-fmt MSUB-fmt fmt fd (rig
 
 ### MSUBU
 ###  - Multiply and Subtract Word to Hi,Lo
-val / ['011100 /rs /rt 00000 00000 000101'] = binop-src MSUBU (right rs) (right rt) 
+val / ['011100 /rs /rt 00000 00000 000101'] = binop MSUBU (right rs) (right rt) 
 
 ### MTC0
 ###  - Move to Coprocessor 0
-val / ['010000 00100 /rt /rd 00000000 /sel'] = ternop-src MTC0 (right rt) rd/imm sel 
+val / ['010000 00100 /rt /rd 00000000 /sel'] = ternop MTC0 (right rt) rd/imm sel 
 
 ### MTC1
 ###  - Move Word to Floating Point
-val / ['010001 00100 /rt /fs 00000000000'] = binop MTC1 fs (right rt) 
+val / ['010001 00100 /rt /fs 00000000000'] = binop MTC1 (right rt) fs
 
 ### MTC2
 ###  - Move Word to Coprocessor 2
-val / ['010010 00100 /rt /impl'] = binop-src MTC2 (right rt) impl 
+val / ['010010 00100 /rt /impl'] = binop MTC2 (right rt) impl 
 
 ### MTHC1
 ###  - Move Word to High Half of Floating Point Register
-val / ['010001 00111 /rt /fs 00000000000'] = binop MTHC1 fs (right rt) 
+val / ['010001 00111 /rt /fs 00000000000'] = binop MTHC1 (right rt) fs
 
 ### MTHC2
 ###  - Move Word to High Half of Coprocessor 2 Register
-val / ['010010 00111 /rt /impl'] = binop-src MTHC2 (right rt) impl 
+val / ['010010 00111 /rt /impl'] = binop MTHC2 (right rt) impl 
 
 ### MTHI
 ###  - Move To HI Register
-val / ['000000 /rs 000000000000000 010001'] = unop-src MTHI (right rs) 
+val / ['000000 /rs 000000000000000 010001'] = unop MTHI (right rs) 
 
 ### MTLO
 ###  - Move To LO Register
-val / ['000000 /rs 000000000000000 010011'] = unop-src MTLO (right rs) 
+val / ['000000 /rs 000000000000000 010011'] = unop MTLO (right rs) 
 
 ### MUL
 ###  - Multiply Word to GPR
@@ -616,11 +638,11 @@ val / ['010001 /fmt5sdps /ft /fs /fd 000010'] = ternop-fmt MUL-fmt fmt fd (right
 
 ### MULT
 ###  - Multiply Word
-val / ['000000 /rs /rt 0000000000 011000'] = binop-src MULT (right rs) (right rt) 
+val / ['000000 /rs /rt 0000000000 011000'] = binop MULT (right rs) (right rt) 
 
 ### MULTU
 ###  - Multiply Unsigned Word
-val / ['000000 /rs /rt 0000000000 011001'] = binop-src MULTU (right rs) (right rt) 
+val / ['000000 /rs /rt 0000000000 011001'] = binop MULTU (right rs) (right rt) 
 
 ### NEG-fmt
 ###  - Floating Point Negate
@@ -656,31 +678,31 @@ val / ['001101 /rs /rt /immediate'] = ternop ORI rt (right rs) immediate
 
 ### PLL-PS
 ###  - Pair Lower Lower
-val / ['010001 10110 /ft /fs /fd 101100'] = ternop PLL-PS fd (right ft) (right fs) 
+val / ['010001 10110 /ft /fs /fd 101100'] = ternop PLL-PS fd (right fs) (right ft) 
 
 ### PLU-PS
 ###  - Pair Lower Upper
-val / ['010001 10110 /ft /fs /fd 101101'] = ternop PLU-PS fd (right ft) (right fs) 
+val / ['010001 10110 /ft /fs /fd 101101'] = ternop PLU-PS fd (right fs) (right ft) 
 
 ### PREF
 ###  - Prefetch
-val / ['110011 /rs /hint5 /offset16'] = ternop-src PREF (right rs) hint5 offset16 
+val / ['110011 /rs /hint5 /offset16'] = ternop PREF (right rs) hint5 offset16 
 
 ### PREFE
 ###  - Prefetch EVA
-val / ['011111 /rs /hint5 /offset9 0 100011'] = ternop-src PREFE (right rs) hint5 offset9 
+val / ['011111 /rs /hint5 /offset9 0 100011'] = ternop PREFE (right rs) hint5 offset9 
 
 ### PREFX
 ###  - Prefetch Indexed
-val / ['010011 /rs /rt /hint5 00000 001111'] = ternop-src PREFX (right rs) (right rt) hint5 
+val / ['010011 /rs /rt /hint5 00000 001111'] = ternop PREFX (right rs) (right rt) hint5 
 
 ### PUL-PS
 ###  - Pair Upper Lower
-val / ['010001 10110 /ft /fs /fd 101110'] = ternop PUL-PS fd (right ft) (right fs) 
+val / ['010001 10110 /ft /fs /fd 101110'] = ternop PUL-PS fd (right fs) (right ft) 
 
 ### PUU-PS
 ###  - Pair Upper Upper
-val / ['010001 10110 /ft /fs /fd 101111'] = ternop PUU-PS fd (right ft) (right fs) 
+val / ['010001 10110 /ft /fs /fd 101111'] = ternop PUU-PS fd (right fs) (right ft) 
 
 ### RDHWR
 ###  - Read Hardware Register
@@ -716,11 +738,11 @@ val / ['010001 /fmt5sd 00000 /fs /fd 010110'] = binop-fmt RSQRT-fmt fmt fd (righ
 
 ### SB
 ###  - Store Byte
-val / ['101000 /rs /rt /offset16'] = ternop-src SB (right rs) (right rt) offset16 
+val / ['101000 /rs /rt /offset16'] = ternop SB (right rs) (right rt) offset16 
 
 ### SBE
 ###  - Store Byte EVA
-val / ['011111 /rs /rt /offset9 0 011100'] = ternop-src SBE (right rs) (right rt) offset9 
+val / ['011111 /rs /rt /offset9 0 011100'] = ternop SBE (right rs) (right rt) offset9 
 
 ### SC
 ###  - Store Conditional Word
@@ -732,19 +754,19 @@ val / ['011111 /rs /rt /offset9 0 011110'] = ternop SCE rt (right rs) offset9
 
 ### SDBBP
 ###  - Software Debug Breakpoint
-val / ['011100 /code20 111111'] = unop-src SDBBP code20 
+val / ['011100 /code20 111111'] = unop SDBBP code20 
 
 ### SDC1
 ###  - Store Doubleword from Floating Point
-val / ['111101 /rs /ft /offset16'] = ternop-src SDC1 (right rs) (right ft) offset16 
+val / ['111101 /rs /ft /offset16'] = ternop SDC1 (right rs) (right ft) offset16 
 
 ### SDC2
 ###  - Store Doubleword from Coprocessor 2
-val / ['111110 /rs /rt /offset16'] = ternop-src SDC2 (right rs) rt/imm offset16 
+val / ['111110 /rs /rt /offset16'] = ternop SDC2 (right rs) rt/imm offset16 
 
 ### SDXC1
 ###  - Store Doubleword Indexed from Floating Point
-val / ['010011 /rs /rt /fs 00000 001001'] = ternop-src SDXC1 (right rs) (right rt) (right fs) 
+val / ['010011 /rs /rt /fs 00000 001001'] = ternop SDXC1 (right rs) (right rt) (right fs) 
 
 ### SEB
 ###  - Sign-Extend Byte
@@ -756,11 +778,11 @@ val / ['011111 00000 /rt /rd 11000 100000'] = binop SEH rd (right rt)
 
 ### SH
 ###  - Store Halfword
-val / ['101001 /rs /rt /offset16'] = ternop-src SH (right rs) (right rt) offset16 
+val / ['101001 /rs /rt /offset16'] = ternop SH (right rs) (right rt) offset16 
 
 ### SHE
 ###  - Store Halfword EVA
-val / ['011111 /rs /rt /offset9 0 011101'] = ternop-src SHE (right rs) (right rt) offset9 
+val / ['011111 /rs /rt /offset9 0 011101'] = ternop SHE (right rs) (right rt) offset9 
 
 ### SLL
 ###  - Shift Word Left Logical
@@ -826,79 +848,79 @@ val / ['000000 /rs /rt /rd 00000 100011'] = ternop SUBU rd (right rs) (right rt)
 
 ### SUXC1
 ###  - Store Doubleword Indexed Unaligned from Floating Point
-val / ['010011 /rs /rt /fs 00000 001101'] = ternop-src SUXC1 (right rs) (right rt) (right fs) 
+val / ['010011 /rs /rt /fs 00000 001101'] = ternop SUXC1 (right rs) (right rt) (right fs) 
 
 ### SW
 ###  - Store Word
-val / ['101011 /rs /rt /offset16'] = ternop-src SW (right rs) (right rt) offset16 
+val / ['101011 /rs /rt /offset16'] = ternop SW (right rs) (right rt) offset16 
 
 ### SWC1
 ###  - Store Word from Floating Point
-val / ['111001 /rs /ft /offset16'] = ternop-src SWC1 (right rs) (right ft) offset16 
+val / ['111001 /rs /ft /offset16'] = ternop SWC1 (right rs) (right ft) offset16 
 
 ### SWC2
 ###  - Store Word from Coprocessor 2
-val / ['111010 /rs /rt /offset16'] = ternop-src SWC2 (right rs) rt/imm offset16 
+val / ['111010 /rs /rt /offset16'] = ternop SWC2 (right rs) rt/imm offset16 
 
 ### SWE
 ###  - Store Word EVA
-val / ['011111 /rs /rt /offset9 0 011111'] = ternop-src SWE (right rs) (right rt) offset9 
+val / ['011111 /rs /rt /offset9 0 011111'] = ternop SWE (right rs) (right rt) offset9 
 
 ### SWL
 ###  - Store Word Left
-val / ['101010 /rs /rt /offset16'] = ternop-src SWL (right rs) (right rt) offset16 
+val / ['101010 /rs /rt /offset16'] = ternop SWL (right rs) (right rt) offset16 
 
 ### SWLE
 ###  - Store Word Left EVA
-val / ['011111 /rs /rt /offset9 0 100001'] = ternop-src SWLE (right rs) (right rt) offset9 
+val / ['011111 /rs /rt /offset9 0 100001'] = ternop SWLE (right rs) (right rt) offset9 
 
 ### SWR
 ###  - Store Word Right
-val / ['101110 /rs /rt /offset16'] = ternop-src SWR (right rs) (right rt) offset16 
+val / ['101110 /rs /rt /offset16'] = ternop SWR (right rs) (right rt) offset16 
 
 ### SWRE
 ###  - Store Word Right EVA
-val / ['011111 /rs /rt /offset9 0 100010'] = ternop-src SWRE (right rs) (right rt) offset9 
+val / ['011111 /rs /rt /offset9 0 100010'] = ternop SWRE (right rs) (right rt) offset9 
 
 ### SWXC1
 ###  - Store Word Indexed from Floating Point
-val / ['010011 /rs /rt /fs 00000 001000'] = ternop-src SWXC1 (right rs) (right rt) (right fs) 
+val / ['010011 /rs /rt /fs 00000 001000'] = ternop SWXC1 (right rs) (right rt) (right fs) 
 
 ### SYNC
 ###  - Synchronize Shared Memory
-val / ['000000 000000000000000 /stype 001111'] = unop-src SYNC stype 
+val / ['000000 000000000000000 /stype 001111'] = unop SYNC stype 
 
 ### SYNCI
 ###  - Synchronize Caches to Make Instruction Writes Effective
-val / ['000001 /rs 11111 /offset16'] = binop-src SYNCI (right rs) offset16 
+val / ['000001 /rs 11111 /offset16'] = binop SYNCI (right rs) offset16 
 
 ### SYSCALL
 ###  - System Call
-val / ['000000 /code20 001100'] = unop-src SYSCALL code20 
+val / ['000000 /code20 001100'] = unop SYSCALL code20 
 
 ### TEQ
 ###  - Trap if Equal
-val / ['000000 /rs /rt /code10 110100'] = ternop-src TEQ (right rs) (right rt) code10 
+val / ['000000 /rs /rt /code10 110100'] = ternop TEQ (right rs) (right rt) code10 
 
 ### TEQI
 ###  - Trap if Equal Immediate
-val / ['000001 /rs 01100 /immediate'] = binop-src TEQI (right rs) immediate 
+val / ['000001 /rs 01100 /immediate'] = binop TEQI (right rs) immediate 
 
 ### TGE
 ###  - Trap if Greater or Equal
-val / ['000000 /rs /rt /code10 110000'] = ternop-src TGE (right rs) (right rt) code10 
+val / ['000000 /rs /rt /code10 110000'] = ternop TGE (right rs) (right rt) code10 
 
 ### TGEI
 ###  - Trap if Greater or Equal Immediate
-val / ['000001 /rs 01000 /immediate'] = binop-src TGEI (right rs) immediate 
+val / ['000001 /rs 01000 /immediate'] = binop TGEI (right rs) immediate 
 
 ### TGEIU
 ###  - Trap if Greater or Equal Immediate Unsigned
-val / ['000001 /rs 01001 /immediate'] = binop-src TGEIU (right rs) immediate 
+val / ['000001 /rs 01001 /immediate'] = binop TGEIU (right rs) immediate 
 
 ### TGEU
 ###  - Trap if Greater or Equal Unsigned
-val / ['000000 /rs /rt /code10 110001'] = ternop-src TGEU (right rs) (right rt) code10 
+val / ['000000 /rs /rt /code10 110001'] = ternop TGEU (right rs) (right rt) code10 
 
 ### TLBINV
 ###  - TLB Invalidate
@@ -926,27 +948,27 @@ val / ['010000 1 0000000000000000000 000110'] = nullop TLBWR
 
 ### TLT
 ###  - Trap if Less Than
-val / ['000000 /rs /rt /code10 110010'] = ternop-src TLT (right rs) (right rt) code10 
+val / ['000000 /rs /rt /code10 110010'] = ternop TLT (right rs) (right rt) code10 
 
 ### TLTI
 ###  - Trap if Less Than Immediate
-val / ['000001 /rs 01010 /immediate'] = binop-src TLTI (right rs) immediate 
+val / ['000001 /rs 01010 /immediate'] = binop TLTI (right rs) immediate 
 
 ### TLTIU
 ###  - Trap if Less Than Immediate Unsigned
-val / ['000001 /rs 01011 /immediate'] = binop-src TLTIU (right rs) immediate 
+val / ['000001 /rs 01011 /immediate'] = binop TLTIU (right rs) immediate 
 
 ### TLTU
 ###  - Trap if Less Than Unsigned
-val / ['000000 /rs /rt /code10 110011'] = ternop-src TLTU (right rs) (right rt) code10 
+val / ['000000 /rs /rt /code10 110011'] = ternop TLTU (right rs) (right rt) code10 
 
 ### TNE
 ###  - Trap if Not Equal
-val / ['000000 /rs /rt /code10 110110'] = ternop-src TNE (right rs) (right rt) code10 
+val / ['000000 /rs /rt /code10 110110'] = ternop TNE (right rs) (right rt) code10 
 
 ### TNEI
 ###  - Trap if Not Equal Immediate
-val / ['000001 /rs 01110 /immediate'] = binop-src TNEI (right rs) immediate 
+val / ['000001 /rs 01110 /immediate'] = binop TNEI (right rs) immediate 
 
 ### TRUNC-L-fmt
 ###  - Floating Point Truncate to Long Fixed Point
@@ -958,11 +980,11 @@ val / ['010001 /fmt5sd 00000 /fs /fd 001101'] = binop-fmt TRUNC-W-fmt fmt fd (ri
 
 ### WAIT
 ###  - Enter Standby Mode
-val / ['010000 1 /code19 100000'] = unop-src WAIT code19 
+val / ['010000 1 /code19 100000'] = unop WAIT code19 
 
 ### WRPGPR
 ###  - Write to GPR in Previous Shadow Set
-val / ['010000 01110 /rt /rd 00000000000'] = binop-src WRPGPR rd/imm (right rt)
+val / ['010000 01110 /rt /rd 00000000000'] = binop WRPGPR rd/imm (right rt)
 
 ### WSBH
 ###  - Word Swap Bytes Within Halfwords
@@ -1136,7 +1158,7 @@ end
 val cond = do
   cond <- query $cond;
   update @{cond='0000'};
-  return (IMM (COND cond))
+  return (cond-from-bits (cond))
 end
 
 val op = do
@@ -1202,315 +1224,298 @@ val /fmt3sdps ['001'] = update@{fmt='10001'}
 val /fmt3sdps ['110'] = update@{fmt='10110'}
 
 
-type unop-src = {source:rvalue}
-type unop = {destination:lvalue}
-type binop-src = {source1:rvalue,source2:rvalue}
-type binop-fmt = {fmt:format,destination:lvalue,source:rvalue}
-type binop = {destination:lvalue,source:rvalue}
-type ternop-src = {source1:rvalue,source2:rvalue,source3:rvalue}
-type ternop = {destination:lvalue,source1:rvalue,source2:rvalue}
-type ternop-fmt = {fmt:format,destination:lvalue,source1:rvalue,source2:rvalue}
-type quadop = {destination:lvalue,source1:rvalue,source2:rvalue,source3:rvalue}
-type quadop-fmt = {fmt:format,destination:lvalue,source1:rvalue,source2:rvalue,source3:rvalue}
-type quadop-fmt-src = {fmt:format,source1:rvalue,source2:rvalue,source3:rvalue,source4:rvalue}
+type unop-r = {op:rvalue}
+type unop-l = {op:lvalue}
+type binop-rr = {op1:rvalue, op2:rvalue}
+type binop-rl = {op1:rvalue, op2:lvalue}
+type binop-lr = {op1:lvalue, op2:rvalue}
+type binop-flr = {fmt:format, op1:lvalue, op2:rvalue}
+type ternop-rrr = {op1:rvalue, op2:rvalue, op3:rvalue}
+type ternop-lrr = {op1:lvalue, op2:rvalue, op3:rvalue}
+type ternop-flrr = {fmt:format, op1:lvalue, op2:rvalue, op3:rvalue}
+type ternop-cflrr = {cond:condop, fmt:format, op1:lvalue, op2:rvalue, op3:rvalue}
+type quadop-lrrr = {op1:lvalue, op2:rvalue, op3:rvalue, op4:rvalue}
+type quadop-flrrr = {fmt:format, op1:lvalue, op2:rvalue, op3:rvalue, op4:rvalue}
 
 
 val nullop cons = do
  return cons
 end
 
-val unop-src cons source = do
- source <- source;
- return (cons {source=source})
+val unop cons getOp = do
+ op <- getOp;
+ return (cons {op=op})
 end
 
-val unop cons destination = do
- destination <- destination;
- return (cons {destination=destination})
+val binop cons getOp1 getOp2 = do
+ op1 <- getOp1;
+ op2 <- getOp2;
+ return (cons {op1=op1, op2=op2})
 end
 
-val binop-src cons source1 source2 = do
- source1 <- source1;
- source2 <- source2;
- return (cons {source1=source1, source2=source2})
+val binop-fmt cons getFMT getOp1 getOp2 = do
+ fmt <- getFMT;
+ op1 <- getOp1;
+ op2 <- getOp2;
+ return (cons {fmt=fmt, op1=op1, op2=op2})
 end
 
-val binop-fmt cons fmt destination source = do
- fmt <- fmt;
- destination <- destination;
- source <- source;
- return (cons {fmt=fmt, destination=destination, source=source})
+val ternop cons getOp1 getOp2 getOp3 = do
+ op1 <- getOp1;
+ op2 <- getOp2;
+ op3 <- getOp3;
+ return (cons {op1=op1, op2=op2, op3=op3})
 end
 
-val binop cons destination source = do
- destination <- destination;
- source <- source;
- return (cons {destination=destination, source=source})
+val ternop-fmt cons getFMT getOp1 getOp2 getOp3 = do
+ fmt <- getFMT;
+ op1 <- getOp1;
+ op2 <- getOp2;
+ op3 <- getOp3;
+ return (cons {fmt=fmt, op1=op1, op2=op2, op3=op3})
 end
 
-val ternop-src cons source1 source2 source3 = do
- source1 <- source1;
- source2 <- source2;
- source3 <- source3;
- return (cons {source1=source1, source2=source2, source3=source3})
+val ternop-cond-fmt cons getCond getFMT getOp1 getOp2 getOp3 = do
+ cond <- getCond;
+ fmt <- getFMT;
+ op1 <- getOp1;
+ op2 <- getOp2;
+ op3 <- getOp3;
+ return (cons {cond=cond, fmt=fmt, op1=op1, op2=op2, op3=op3})
 end
 
-val ternop cons destination source1 source2 = do
- destination <- destination;
- source1 <- source1;
- source2 <- source2;
- return (cons {destination=destination, source1=source1, source2=source2})
+val quadop cons getOp1 getOp2 getOp3 getOp4 = do
+ op1 <- getOp1;
+ op2 <- getOp2;
+ op3 <- getOp3;
+ op4 <- getOp4;
+ return (cons {op1=op1, op2=op2, op3=op3, op4=op4})
 end
 
-val ternop-fmt cons fmt destination source1 source2 = do
- fmt <- fmt;
- destination <- destination;
- source1 <- source1;
- source2 <- source2;
- return (cons {fmt=fmt, destination=destination, source1=source1, source2=source2})
-end
-
-val quadop cons destination source1 source2 source3 = do
- destination <- destination;
- source1 <- source1;
- source2 <- source2;
- source3 <- source3;
- return (cons {destination=destination, source1=source1, source2=source2, source3=source3})
-end
-
-val quadop-fmt cons fmt destination source1 source2 source3 = do
- fmt <- fmt;
- destination <- destination;
- source1 <- source1;
- source2 <- source2;
- source3 <- source3;
- return (cons {fmt=fmt, destination=destination, source1=source1, source2=source2, source3=source3})
-end
-
-val quadop-fmt-src cons fmt source1 source2 source3 source4 = do
- fmt <- fmt;
- source1 <- source1;
- source2 <- source2;
- source3 <- source3;
- source4 <- source4;
- return (cons {fmt=fmt, source1=source1, source2=source2, source3=source3, source4=source4})
+val quadop-fmt cons getFMT getOp1 getOp2 getOp3 getOp4 = do
+ fmt <- getFMT;
+ op1 <- getOp1;
+ op2 <- getOp2;
+ op3 <- getOp3;
+ op4 <- getOp4;
+ return (cons {fmt=fmt, op1=op1, op2=op2, op3=op3, op4=op4})
 end
 
 
 type instruction = 
-   ABS-fmt of binop-fmt
- | ADD of ternop
- | ADD-fmt of ternop-fmt
- | ADDI of ternop
- | ADDIU of ternop
- | ADDU of ternop
- | ALNV-PS of quadop
- | AND of ternop
- | ANDI of ternop
- | BC1F of binop-src
- | BC1FL of binop-src
- | BC1T of binop-src
- | BC1TL of binop-src
- | BC2F of binop-src
- | BC2FL of binop-src
- | BC2T of binop-src
- | BC2TL of binop-src
- | BEQ of ternop-src
- | BEQL of ternop-src
- | BGEZ of binop-src
- | BGEZAL of binop-src
- | BGEZALL of binop-src
- | BGEZL of binop-src
- | BGTZ of binop-src
- | BGTZL of binop-src
- | BLEZ of binop-src
- | BLEZL of binop-src
- | BLTZ of binop-src
- | BLTZAL of binop-src
- | BLTZALL of binop-src
- | BLTZL of binop-src
- | BNE of ternop-src
- | BNEL of ternop-src
- | BREAK of unop-src
- | C-cond-fmt of quadop-fmt-src
- | CACHE of ternop-src
- | CACHEE of ternop-src
- | CEIL-L-fmt of binop-fmt
- | CEIL-W-fmt of binop-fmt
- | CFC1 of binop
- | CFC2 of binop
- | CLO of ternop
- | CLZ of ternop
- | COP2 of unop-src
- | CTC1 of binop-src
- | CTC2 of binop-src
- | CVT-D-fmt of binop-fmt
- | CVT-L-fmt of binop-fmt
- | CVT-PS-S of ternop
- | CVT-S-fmt of binop-fmt
- | CVT-S-PL of binop
- | CVT-S-PU of binop
- | CVT-W-fmt of binop-fmt
+   ABS-fmt of binop-flr
+ | ADD of ternop-lrr
+ | ADD-fmt of ternop-flrr
+ | ADDI of ternop-lrr
+ | ADDIU of ternop-lrr
+ | ADDU of ternop-lrr
+ | ALNV-PS of quadop-lrrr
+ | AND of ternop-lrr
+ | ANDI of ternop-lrr
+ | BC1F of binop-rr
+ | BC1FL of binop-rr
+ | BC1T of binop-rr
+ | BC1TL of binop-rr
+ | BC2F of binop-rr
+ | BC2FL of binop-rr
+ | BC2T of binop-rr
+ | BC2TL of binop-rr
+ | BEQ of ternop-rrr
+ | BEQL of ternop-rrr
+ | BGEZ of binop-rr
+ | BGEZAL of binop-rr
+ | BGEZALL of binop-rr
+ | BGEZL of binop-rr
+ | BGTZ of binop-rr
+ | BGTZL of binop-rr
+ | BLEZ of binop-rr
+ | BLEZL of binop-rr
+ | BLTZ of binop-rr
+ | BLTZAL of binop-rr
+ | BLTZALL of binop-rr
+ | BLTZL of binop-rr
+ | BNE of ternop-rrr
+ | BNEL of ternop-rrr
+ | BREAK of unop-r
+ | C-cond-fmt of ternop-cflrr
+ | CACHE of ternop-rrr
+ | CACHEE of ternop-rrr
+ | CEIL-L-fmt of binop-flr
+ | CEIL-W-fmt of binop-flr
+ | CFC1 of binop-lr
+ | CFC2 of binop-lr
+ | CLO of binop-lr
+ | CLZ of binop-lr
+ | COP2 of unop-r
+ | CTC1 of binop-rr
+ | CTC2 of binop-rr
+ | CVT-D-fmt of binop-flr
+ | CVT-L-fmt of binop-flr
+ | CVT-PS-S of ternop-lrr
+ | CVT-S-fmt of binop-flr
+ | CVT-S-PL of binop-lr
+ | CVT-S-PU of binop-lr
+ | CVT-W-fmt of binop-flr
  | DERET
- | DI of unop
- | DIV of binop-src
- | DIV-fmt of ternop-fmt
- | DIVU of binop-src
- | EI of unop
+ | DI of unop-l
+ | DIV of binop-rr
+ | DIV-fmt of ternop-flrr
+ | DIVU of binop-rr
+ | EI of unop-l
  | ERET
- | EXT of quadop
- | FLOOR-L-fmt of binop-fmt
- | FLOOR-W-fmt of binop-fmt
- | INS of quadop
- | J of unop-src
- | JAL of unop-src
- | JALR of binop
- | JALR-HB of binop
- | JALX of unop-src
- | JR of unop-src
- | JR-HB of unop-src
- | LB of ternop
- | LBE of ternop
- | LBU of ternop
- | LBUE of ternop
- | LDC1 of ternop
- | LDC2 of ternop-src
- | LDXC1 of ternop
- | LH of ternop
- | LHE of ternop
- | LHU of ternop
- | LHUE of ternop
- | LL of ternop
- | LLE of ternop
- | LUI of binop
- | LUXC1 of ternop
- | LW of ternop
- | LWC1 of ternop
- | LWC2 of ternop-src
- | LWE of ternop
- | LWL of ternop
- | LWLE of ternop
- | LWR of ternop
- | LWRE of ternop
- | LWXC1 of ternop
- | MADD of binop-src
- | MADD-fmt of quadop-fmt
- | MADDU of binop-src
- | MFC0 of ternop
- | MFC1 of binop
- | MFC2 of binop
- | MFHC1 of binop
- | MFHC2 of binop
- | MFHI of unop
- | MFLO of unop
- | MOV-fmt of binop-fmt
- | MOVF of ternop
- | MOVF-fmt of ternop-fmt
- | MOVN of ternop
- | MOVN-fmt of ternop-fmt
- | MOVT of ternop
- | MOVT-fmt of ternop-fmt
- | MOVZ of ternop
- | MOVZ-fmt of ternop-fmt
- | MSUB of binop-src
- | MSUB-fmt of quadop-fmt
- | MSUBU of binop-src
- | MTC0 of ternop-src
- | MTC1 of binop
- | MTC2 of binop-src
- | MTHC1 of binop
- | MTHC2 of binop-src
- | MTHI of unop-src
- | MTLO of unop-src
- | MUL of ternop
- | MUL-fmt of ternop-fmt
- | MULT of binop-src
- | MULTU of binop-src
- | NEG-fmt of binop-fmt
- | NMADD-fmt of quadop-fmt
- | NMSUB-fmt of quadop-fmt
- | NOR of ternop
- | OR of ternop
- | ORI of ternop
- | PLL-PS of ternop
- | PLU-PS of ternop
- | PREF of ternop-src
- | PREFE of ternop-src
- | PREFX of ternop-src
- | PUL-PS of ternop
- | PUU-PS of ternop
- | RDHWR of binop
- | RDPGPR of binop
- | RECIP-fmt of binop-fmt
- | ROTR of ternop
- | ROTRV of ternop
- | ROUND-L-fmt of binop-fmt
- | ROUND-W-fmt of binop-fmt
- | RSQRT-fmt of binop-fmt
- | SB of ternop-src
- | SBE of ternop-src
- | SC of ternop
- | SCE of ternop
- | SDBBP of unop-src
- | SDC1 of ternop-src
- | SDC2 of ternop-src
- | SDXC1 of ternop-src
- | SEB of binop
- | SEH of binop
- | SH of ternop-src
- | SHE of ternop-src
- | SLL of ternop
- | SLLV of ternop
- | SLT of ternop
- | SLTI of ternop
- | SLTIU of ternop
- | SLTU of ternop
- | SQRT-fmt of binop-fmt
- | SRA of ternop
- | SRAV of ternop
- | SRL of ternop
- | SRLV of ternop
- | SUB of ternop
- | SUB-fmt of ternop-fmt
- | SUBU of ternop
- | SUXC1 of ternop-src
- | SW of ternop-src
- | SWC1 of ternop-src
- | SWC2 of ternop-src
- | SWE of ternop-src
- | SWL of ternop-src
- | SWLE of ternop-src
- | SWR of ternop-src
- | SWRE of ternop-src
- | SWXC1 of ternop-src
- | SYNC of unop-src
- | SYNCI of binop-src
- | SYSCALL of unop-src
- | TEQ of ternop-src
- | TEQI of binop-src
- | TGE of ternop-src
- | TGEI of binop-src
- | TGEIU of binop-src
- | TGEU of ternop-src
+ | EXT of quadop-lrrr
+ | FLOOR-L-fmt of binop-flr
+ | FLOOR-W-fmt of binop-flr
+ | INS of quadop-lrrr
+ | J of unop-r
+ | JAL of unop-r
+ | JALR of binop-lr
+ | JALR-HB of binop-lr
+ | JALX of unop-r
+ | JR of unop-r
+ | JR-HB of unop-r
+ | LB of ternop-lrr
+ | LBE of ternop-lrr
+ | LBU of ternop-lrr
+ | LBUE of ternop-lrr
+ | LDC1 of ternop-lrr
+ | LDC2 of ternop-rrr
+ | LDXC1 of ternop-lrr
+ | LH of ternop-lrr
+ | LHE of ternop-lrr
+ | LHU of ternop-lrr
+ | LHUE of ternop-lrr
+ | LL of ternop-lrr
+ | LLE of ternop-lrr
+ | LUI of binop-lr
+ | LUXC1 of ternop-lrr
+ | LW of ternop-lrr
+ | LWC1 of ternop-lrr
+ | LWC2 of ternop-rrr
+ | LWE of ternop-lrr
+ | LWL of ternop-lrr
+ | LWLE of ternop-lrr
+ | LWR of ternop-lrr
+ | LWRE of ternop-lrr
+ | LWXC1 of ternop-lrr
+ | MADD of binop-rr
+ | MADD-fmt of quadop-flrrr
+ | MADDU of binop-rr
+ | MFC0 of ternop-lrr
+ | MFC1 of binop-lr
+ | MFC2 of binop-lr
+ | MFHC1 of binop-lr
+ | MFHC2 of binop-lr
+ | MFHI of unop-l
+ | MFLO of unop-l
+ | MOV-fmt of binop-flr
+ | MOVF of ternop-lrr
+ | MOVF-fmt of ternop-flrr
+ | MOVN of ternop-lrr
+ | MOVN-fmt of ternop-flrr
+ | MOVT of ternop-lrr
+ | MOVT-fmt of ternop-flrr
+ | MOVZ of ternop-lrr
+ | MOVZ-fmt of ternop-flrr
+ | MSUB of binop-rr
+ | MSUB-fmt of quadop-flrrr
+ | MSUBU of binop-rr
+ | MTC0 of ternop-rrr
+ | MTC1 of binop-rl
+ | MTC2 of binop-rr
+ | MTHC1 of binop-rl
+ | MTHC2 of binop-rr
+ | MTHI of unop-r
+ | MTLO of unop-r
+ | MUL of ternop-lrr
+ | MUL-fmt of ternop-flrr
+ | MULT of binop-rr
+ | MULTU of binop-rr
+ | NEG-fmt of binop-flr
+ | NMADD-fmt of quadop-flrrr
+ | NMSUB-fmt of quadop-flrrr
+ | NOR of ternop-lrr
+ | OR of ternop-lrr
+ | ORI of ternop-lrr
+ | PLL-PS of ternop-lrr
+ | PLU-PS of ternop-lrr
+ | PREF of ternop-rrr
+ | PREFE of ternop-rrr
+ | PREFX of ternop-rrr
+ | PUL-PS of ternop-lrr
+ | PUU-PS of ternop-lrr
+ | RDHWR of binop-lr
+ | RDPGPR of binop-lr
+ | RECIP-fmt of binop-flr
+ | ROTR of ternop-lrr
+ | ROTRV of ternop-lrr
+ | ROUND-L-fmt of binop-flr
+ | ROUND-W-fmt of binop-flr
+ | RSQRT-fmt of binop-flr
+ | SB of ternop-rrr
+ | SBE of ternop-rrr
+ | SC of ternop-lrr
+ | SCE of ternop-lrr
+ | SDBBP of unop-r
+ | SDC1 of ternop-rrr
+ | SDC2 of ternop-rrr
+ | SDXC1 of ternop-rrr
+ | SEB of binop-lr
+ | SEH of binop-lr
+ | SH of ternop-rrr
+ | SHE of ternop-rrr
+ | SLL of ternop-lrr
+ | SLLV of ternop-lrr
+ | SLT of ternop-lrr
+ | SLTI of ternop-lrr
+ | SLTIU of ternop-lrr
+ | SLTU of ternop-lrr
+ | SQRT-fmt of binop-flr
+ | SRA of ternop-lrr
+ | SRAV of ternop-lrr
+ | SRL of ternop-lrr
+ | SRLV of ternop-lrr
+ | SUB of ternop-lrr
+ | SUB-fmt of ternop-flrr
+ | SUBU of ternop-lrr
+ | SUXC1 of ternop-rrr
+ | SW of ternop-rrr
+ | SWC1 of ternop-rrr
+ | SWC2 of ternop-rrr
+ | SWE of ternop-rrr
+ | SWL of ternop-rrr
+ | SWLE of ternop-rrr
+ | SWR of ternop-rrr
+ | SWRE of ternop-rrr
+ | SWXC1 of ternop-rrr
+ | SYNC of unop-r
+ | SYNCI of binop-rr
+ | SYSCALL of unop-r
+ | TEQ of ternop-rrr
+ | TEQI of binop-rr
+ | TGE of ternop-rrr
+ | TGEI of binop-rr
+ | TGEIU of binop-rr
+ | TGEU of ternop-rrr
  | TLBINV
  | TLBINVF
  | TLBP
  | TLBR
  | TLBWI
  | TLBWR
- | TLT of ternop-src
- | TLTI of binop-src
- | TLTIU of binop-src
- | TLTU of ternop-src
- | TNE of ternop-src
- | TNEI of binop-src
- | TRUNC-L-fmt of binop-fmt
- | TRUNC-W-fmt of binop-fmt
- | WAIT of unop-src
- | WRPGPR of binop-src
- | WSBH of binop
- | XOR of ternop
- | XORI of ternop
+ | TLT of ternop-rrr
+ | TLTI of binop-rr
+ | TLTIU of binop-rr
+ | TLTU of ternop-rrr
+ | TNE of ternop-rrr
+ | TNEI of binop-rr
+ | TRUNC-L-fmt of binop-flr
+ | TRUNC-W-fmt of binop-flr
+ | WAIT of unop-r
+ | WRPGPR of binop-rr
+ | WSBH of binop-lr
+ | XOR of ternop-lrr
+ | XORI of ternop-lrr
 
 # <- sutl
 
@@ -1668,7 +1673,7 @@ val fpr-from-bits bits =
   | '11111': F31
  end
 
-val fcc-from-bits bits=
+val fcc-from-bits bits =
  case bits of
     '000': FCC0
   | '001': FCC1
@@ -1678,6 +1683,26 @@ val fcc-from-bits bits=
   | '101': FCC5
   | '110': FCC6
   | '111': FCC7
+ end
+
+val cond-from-bits bits =
+ case bits of
+    '0000': C_F
+  | '0001': C_UN
+  | '0010': C_EQ
+  | '0011': C_UEQ
+  | '0100': C_OLT
+  | '0101': C_ULT
+  | '0110': C_OLE
+  | '0111': C_ULE
+  | '1000': C_SF
+  | '1001': C_NGLE
+  | '1010': C_SEQ
+  | '1011': C_NGL
+  | '1100': C_LT
+  | '1101': C_NGE
+  | '1110': C_LE
+  | '1111': C_NGT
  end
 
 val format-from-bits bits = 
