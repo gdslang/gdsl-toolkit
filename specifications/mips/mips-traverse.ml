@@ -16,6 +16,7 @@ type uarity =
  | UNOP_R of unop-r
  | UNOP_L of unop-l
  | BINOP_RR of binop-rr
+ | BINOP_RL of binop-rl
  | BINOP_LR of binop-lr
  | BINOP_FLR of binop-flr
  | TERNOP_RRR of ternop-rrr
@@ -146,9 +147,9 @@ val traverse f insn =
     | MSUB-fmt x: f "MSUB" (QUADOP_FLRRR x)
     | MSUBU x: f "MSUBU" (BINOP_RR x)
     | MTC0 x: f "MTC0" (TERNOP_RRR x)
-    | MTC1 x: f "MTC1" (BINOP_LR x)
+    | MTC1 x: f "MTC1" (BINOP_RL x)
     | MTC2 x: f "MTC2" (BINOP_RR x)
-    | MTHC1 x: f "MTHC1" (BINOP_LR x)
+    | MTHC1 x: f "MTHC1" (BINOP_RL x)
     | MTHC2 x: f "MTHC2" (BINOP_RR x)
     | MTHI x: f "MTHI" (UNOP_R x)
     | MTLO x: f "MTLO" (UNOP_R x)

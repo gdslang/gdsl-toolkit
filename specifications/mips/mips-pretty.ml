@@ -161,9 +161,10 @@ val show/register r =
 val show/unop-r x = show/rvalue x.op
 val show/unop-l x = show/lvalue x.op
 val show/binop-rr x = show/rvalue x.op1 +++ ", " +++ show/rvalue x.op2
+val show/binop-rl x = show/rvalue x.op1 +++ ", " +++ show/lvalue x.op2
 val show/binop-lr x = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2
 val show/ternop-rrr x = show/rvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3
-val show/ternop-lrr = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3
+val show/ternop-lrr x = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3
 val show/quadop-lrrr x = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3 +++ ", " +++ show/rvalue x.op4
 
 
@@ -173,6 +174,7 @@ val show/instruction insn = let
     | UNOP_R x: mnemonic -++ show/unop-r x
     | UNOP_L x: mnemonic -++ show/unop-l x
     | BINOP_RR x: mnemonic -++ show/binop-rr x
+    | BINOP_RL x: mnemonic -++ show/binop-rl x
     | BINOP_LR x: mnemonic -++ show/binop-lr x
     | BINOP_FLR x: mnemonic +++ "." +++ show/format x.fmt -++ show/binop-lr x
     | TERNOP_RRR x: mnemonic -++ show/ternop-rrr x

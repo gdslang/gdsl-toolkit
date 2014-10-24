@@ -14,11 +14,25 @@ val write to from =
       GPR r: mov (sizeof-lval to) (semantic-gpr-of r) from
    end
 
-val lval sn x =
+val lval sn x = let
+   val from-fcc fcc = 
+      case fcc of
+         FCC0: var (sem-reg-offset (semantic-fpr-of FCSR) 23)
+       | FCC1: var (sem-reg-offset (semantic-fpr-of FCSR) 25)
+       | FCC2: var (sem-reg-offset (semantic-fpr-of FCSR) 26)
+       | FCC3: var (sem-reg-offset (semantic-fpr-of FCSR) 27)
+       | FCC4: var (sem-reg-offset (semantic-fpr-of FCSR) 28)
+       | FCC5: var (sem-reg-offset (semantic-fpr-of FCSR) 29)
+       | FCC6: var (sem-reg-offset (semantic-fpr-of FCSR) 30)
+       | FCC7: var (sem-reg-offset (semantic-fpr-of FCSR) 31)
+      end
+in
    case x of
       GPR r: return (var (semantic-gpr-of r))
     | FPR f: return (var (semantic-fpr-of f))
+    | FCC fc: return (from-fcc fc)
    end
+end
 
 val rval sn x = let
    val from-vec sn vec =
@@ -48,17 +62,6 @@ val rval sn x = let
        | OP i: from-vec sn i
       end
 
-   val from-fcc fcc = 
-      case fcc of
-         FCC0: var (sem-reg-offset (semantic-fpr-of FCSR) 23)
-       | FCC1: var (sem-reg-offset (semantic-fpr-of FCSR) 25)
-       | FCC2: var (sem-reg-offset (semantic-fpr-of FCSR) 26)
-       | FCC3: var (sem-reg-offset (semantic-fpr-of FCSR) 27)
-       | FCC4: var (sem-reg-offset (semantic-fpr-of FCSR) 28)
-       | FCC5: var (sem-reg-offset (semantic-fpr-of FCSR) 29)
-       | FCC6: var (sem-reg-offset (semantic-fpr-of FCSR) 30)
-       | FCC7: var (sem-reg-offset (semantic-fpr-of FCSR) 31)
-      end
 in
    case x of
       LVALUE lv:
@@ -71,7 +74,6 @@ in
           | _: lval sn lv 
          end
     | IMM i: return (from-imm sn i)
-    | FCC fc: return (from-fcc fc)
    end
 end
 
@@ -86,6 +88,7 @@ val sizeof-lval x =
    case x of
       GPR r: 32
     | FPR f: 32
+    | FCC fcc: 1
    end
 
 val sizeof-rval x = 
@@ -111,7 +114,6 @@ val sizeof-rval x =
           | COFUN i: 25
           | OP i: 5
          end
-    | FCC fcc: 1
    end
 
 val mnemonic-with-format insn x = (mnemonic-of insn) +++ "." +++ show/format x.fmt
@@ -142,7 +144,20 @@ val sem-default-binop-rr-ro-generic insn x = do
 	src1-up <- unpack-lin src1-sz src1;
 	src2-up <- unpack-lin src2-sz src2;
 
-	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up)))
+	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
+end
+
+val sem-default-binop-rl-ro-generic insn x = do
+	src-sz <- return (sizeof-rval x.op1);
+	dst-sz <- return (sizeof-lval x.op2);
+
+	src <- rval Signed x.op1;
+	dst <- lval Signed x.op2;
+
+	src-up <- unpack-lin src-sz src;
+	dst-up <- unpack-lin dst-sz dst;
+
+	prim-generic (mnemonic-of insn) (varls-one (varl src-sz src-up)) (varls-one (varl dst-sz dst-up))
 end
 
 val sem-default-binop-lr-ro-generic insn x = do
@@ -155,7 +170,7 @@ val sem-default-binop-lr-ro-generic insn x = do
 	dst-up <- unpack-lin dst-sz dst;
 	src-up <- unpack-lin src-sz src;
 
-	prim-generic (mnemonic-of insn) (varls-one (varl src-sz src-up)) (varls-one (varl dst-sz dst-up))
+	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-one (varl src-sz src-up))
 end
 
 val sem-default-binop-flr-ro-generic insn x = do
@@ -168,7 +183,7 @@ val sem-default-binop-flr-ro-generic insn x = do
 	dst-up <- unpack-lin dst-sz dst;
 	src-up <- unpack-lin src-sz src;
 
-	prim-generic (mnemonic-with-format insn x) (varls-one (varl src-sz src-up)) (varls-one (varl dst-sz dst-up))
+	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-one (varl src-sz src-up))
 end
 
 val sem-default-ternop-rrr-ro-generic insn x = do
@@ -184,7 +199,7 @@ val sem-default-ternop-rrr-ro-generic insn x = do
 	src2-up <- unpack-lin src2-sz src2;
 	src3-up <- unpack-lin src3-sz src3;
 
-	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src3-sz src3-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src1-sz src1-up))))
+	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src1-sz src1-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src3-sz src3-up))))
 end
 
 val sem-default-ternop-lrr-ro-generic insn x = do
@@ -200,7 +215,7 @@ val sem-default-ternop-lrr-ro-generic insn x = do
 	src1-up <- unpack-lin src1-sz src1;
 	src2-up <- unpack-lin src2-sz src2;
 
-	prim-generic (mnemonic-of insn) (varls-one (varl src2-sz src2-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up)))
+	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
 val sem-default-ternop-flrr-ro-generic insn x = do
@@ -216,7 +231,7 @@ val sem-default-ternop-flrr-ro-generic insn x = do
 	src1-up <- unpack-lin src1-sz src1;
 	src2-up <- unpack-lin src2-sz src2;
 
-	prim-generic (mnemonic-with-format insn x) (varls-one (varl src2-sz src2-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up)))
+	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
 val sem-default-ternop-cflrr-ro-generic insn x = do
@@ -232,7 +247,7 @@ val sem-default-ternop-cflrr-ro-generic insn x = do
 	src1-up <- unpack-lin src1-sz src1;
 	src2-up <- unpack-lin src2-sz src2;
 
-	prim-generic (mnemonic-with-format-and cond insn x) (varls-one (varl src2-sz src2-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up)))
+	prim-generic (mnemonic-with-format-and-cond insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
 val sem-default-quadop-lrrr-ro-generic insn x = do
@@ -251,7 +266,7 @@ val sem-default-quadop-lrrr-ro-generic insn x = do
 	src2-up <- unpack-lin src2-sz src2;
 	src3-up <- unpack-lin src3-sz src3;
 
-	prim-generic (mnemonic-of insn) (varls-one (varl src3-sz src3-up)) (varls-more (varl src2-sz src2-up) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up))))
+	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src3-sz src3-up))))
 end
 
 val sem-default-quadop-flrrr-ro-generic insn x = do
@@ -270,7 +285,7 @@ val sem-default-quadop-flrrr-ro-generic insn x = do
 	src2-up <- unpack-lin src2-sz src2;
 	src3-up <- unpack-lin src3-sz src3;
 
-	prim-generic (mnemonic-with-format insn x) (varls-one (varl src3-sz src3-up)) (varls-more (varl src2-sz src2-up) (varls-more (varl src1-sz src1-up) (varls-one (varl dst-sz dst-up))))
+	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src3-sz src3-up))))
 end
 
 
@@ -1075,7 +1090,7 @@ end
 val sem-nor x = do
 	s1 <- rval Unsigned x.op2;
 	s2 <- rval Unsigned x.op3;
-	size <- return (sizeof-lval x.destination);
+	size <- return (sizeof-lval x.op1);
 
 	res <- mktemp;
 	orb size res s1 s2;
@@ -1298,7 +1313,7 @@ val sem-sc-sw x = do
 	rt <- lval Signed x.op1;
 	base <- rval Signed x.op2;
 	off <- rval Signed x.op3;
-	size <- return (sizeof-rval x.op1);
+	size <- return (sizeof-rval x.op2);
 
 	vaddr <- mktemp;
 	add size vaddr base off;
@@ -1599,9 +1614,9 @@ val semantics i =
     | MSUB-fmt x: sem-default-quadop-flrrr-ro-generic i x
     | MSUBU x: sem-msubu x
     | MTC0 x: sem-default-ternop-rrr-ro-generic i x
-    | MTC1 x: sem-default-binop-lr-ro-generic i x
+    | MTC1 x: sem-default-binop-rl-ro-generic i x
     | MTC2 x: sem-default-binop-rr-ro-generic i x
-    | MTHC1 x: sem-default-binop-lr-ro-generic i x
+    | MTHC1 x: sem-default-binop-rl-ro-generic i x
     | MTHC2 x: sem-default-binop-rr-ro-generic i x
     | MTHI x: sem-mthi x
     | MTLO x: sem-mtlo x

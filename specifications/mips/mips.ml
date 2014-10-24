@@ -94,7 +94,7 @@ val cloz? s = (s.rt == s.rd)
 #val / ['000000 /rs 00000 /rd 00000 001001']
 # | jalr? = binop JALR rd (right rs) 
 #
-# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched, EXT lsb and msbd; pretty printer offset *4 etc; ADD.fmt fs<->ft; WRPGPR swap params; ext guard; offset sign extend; SUB.FMT switch fs ft; switch FMT{MSUB,NMSUB,NMADD,SUB,MADD,MOVF,MOVN,MOVZ,DIV,CVT-PS-S,PLL.PS,PLU.PS,PUL.PS,PUU.PS}
+# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched; WRPGPR swap params; EXT lsb and msbd; pretty printer offset *4 etc; ext guard; offset sign extend; switch FMT{ADD,MSUB,NMSUB,NMADD,SUB,MADD,MOVF,MOVN,MOVZ,DIV,CVT-PS-S,PLL.PS,PLU.PS,PUL.PS,PUU.PS}
 # guards for CLO/CLZ
 # C.cond.fmt cond-operand
 ###
@@ -157,35 +157,35 @@ val / ['001100 /rs /rt /immediate'] = ternop ANDI rt (right rs) immediate
 
 ### BC1F
 ###  - Branch on FP False
-val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F cc offset16 
+val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F (right cc) offset16 
 
 ### BC1FL
 ###  - Branch on FP False Likely
-val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL cc offset16 
+val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL (right cc) offset16 
 
 ### BC1T
 ###  - Branch on FP True
-val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T cc offset16 
+val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T (right cc) offset16 
 
 ### BC1TL
 ###  - Branch on FP True Likely
-val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL cc offset16 
+val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL (right cc) offset16 
 
 ### BC2F
 ###  - Branch on COP2 False
-val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F cc offset16 
+val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F (right cc) offset16 
 
 ### BC2FL
 ###  - Branch on COP2 False Likely
-val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL cc offset16 
+val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL (right cc) offset16 
 
 ### BC2T
 ###  - Branch on COP2 True
-val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T cc offset16 
+val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T (right cc) offset16 
 
 ### BC2TL
 ###  - Branch on COP2 True Likely
-val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL cc offset16 
+val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL (right cc) offset16 
 
 ### BEQ
 ###  - Branch on Equal
@@ -554,11 +554,11 @@ val / ['010001 /fmt5sdps 00000 /fs /fd 000110'] = binop-fmt MOV-fmt fmt fd (righ
 
 ### MOVF
 ###  - Move Conditional on Floating Point False
-val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) cc 
+val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) (right cc) 
 
 ### MOVF-fmt
 ###  - Floating Point Move Conditional on Floating Point False
-val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) cc
+val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) (right cc)
 
 ### MOVN
 ###  - Move Conditional on Not Zero
@@ -570,11 +570,11 @@ val / ['010001 /fmt5sdps /rt /fs /fd 010011'] = ternop-fmt MOVN-fmt fmt fd (righ
 
 ### MOVT
 ###  - Move Conditional on Floating Point True
-val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) cc 
+val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) (right cc) 
 
 ### MOVT-fmt
 ###  - Floating Point Move Conditional on Floating Point True
-val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) cc
+val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) (right cc)
 
 ### MOVZ
 ###  - Move Conditional on Not Zero
@@ -602,7 +602,7 @@ val / ['010000 00100 /rt /rd 00000000 /sel'] = ternop MTC0 (right rt) rd/imm sel
 
 ### MTC1
 ###  - Move Word to Floating Point
-val / ['010001 00100 /rt /fs 00000000000'] = binop MTC1 fs (right rt) 
+val / ['010001 00100 /rt /fs 00000000000'] = binop MTC1 (right rt) fs
 
 ### MTC2
 ###  - Move Word to Coprocessor 2
@@ -610,7 +610,7 @@ val / ['010010 00100 /rt /impl'] = binop MTC2 (right rt) impl
 
 ### MTHC1
 ###  - Move Word to High Half of Floating Point Register
-val / ['010001 00111 /rt /fs 00000000000'] = binop MTHC1 fs (right rt) 
+val / ['010001 00111 /rt /fs 00000000000'] = binop MTHC1 (right rt) fs
 
 ### MTHC2
 ###  - Move Word to High Half of Coprocessor 2 Register
@@ -1223,6 +1223,7 @@ val /fmt3sdps ['110'] = update@{fmt='10110'}
 type unop-r = {op:rvalue}
 type unop-l = {op:lvalue}
 type binop-rr = {op1:rvalue, op2:rvalue}
+type binop-rl = {op1:rvalue, op2:lvalue}
 type binop-lr = {op1:lvalue, op2:rvalue}
 type binop-flr = {fmt:format, op1:lvalue, op2:rvalue}
 type ternop-rrr = {op1:rvalue, op2:rvalue, op3:rvalue}
@@ -1356,7 +1357,7 @@ type instruction =
  | DIV of binop-rr
  | DIV-fmt of ternop-flrr
  | DIVU of binop-rr
- | EI of unop-r
+ | EI of unop-l
  | ERET
  | EXT of quadop-lrrr
  | FLOOR-L-fmt of binop-flr
@@ -1416,9 +1417,9 @@ type instruction =
  | MSUB-fmt of quadop-flrrr
  | MSUBU of binop-rr
  | MTC0 of ternop-rrr
- | MTC1 of binop-lr
+ | MTC1 of binop-rl
  | MTC2 of binop-rr
- | MTHC1 of binop-lr
+ | MTHC1 of binop-rl
  | MTHC2 of binop-rr
  | MTHI of unop-r
  | MTLO of unop-r

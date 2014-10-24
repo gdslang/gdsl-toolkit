@@ -12,13 +12,13 @@ val generalize-lvalue lval = let
 in case lval of
    GPR r: generalize-register r
  | FPR f: generalize-register f
+ | FCC fc: generalize-fcc fc
 end end
 
 val generalize-rvalue rval =
    case rval of
       LVALUE lval: generalize-lvalue lval
     | IMM i: generalize-immediate i
-    | FCC fc: generalize-fcc fc
    end
 
 val generalize-format fmt = asm-ann-string (string-from-rope (show/format fmt))
@@ -55,6 +55,7 @@ val generalize-ua ua =
     | UNOP_R x: asm-opnds-one (generalize-rvalue x.op)
     | UNOP_L x: asm-opnds-one (generalize-lvalue x.op)
     | BINOP_RR x: asm-opnds-more (generalize-rvalue x.op1) (asm-opnds-one (generalize-rvalue x.op2))
+    | BINOP_RL x: asm-opnds-more (generalize-rvalue x.op1) (asm-opnds-one (generalize-lvalue x.op2))
     | BINOP_LR x: asm-opnds-more (generalize-lvalue x.op1) (asm-opnds-one (generalize-rvalue x.op2))
     | BINOP_FLR x: asm-opnds-more (generalize-lvalue x.op1) (asm-opnds-one (generalize-rvalue x.op2))
     | TERNOP_RRR x: asm-opnds-more (generalize-rvalue x.op1) (asm-opnds-more (generalize-rvalue x.op2) (asm-opnds-one (generalize-rvalue x.op3)))
