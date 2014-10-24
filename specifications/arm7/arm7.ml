@@ -48,6 +48,7 @@ val reset = do
     cond='0000',
     b='0', p='0', w='0', s='0',
     ra='0000', rd='0000', rm='0000', rn='0000', rt='0000',
+    rdhi='0000', rdlo='0000',
     register_list=REGL_NIL,
     imm4H='0000', imm4L='0000',
     imm12='000000000000',
@@ -173,7 +174,7 @@ type mull = {
   s:1,
   rdhi:register,
   rdlo:register,
-  rs:register,
+  rn:register,
   rm:register
 }
 
@@ -323,14 +324,18 @@ val mul cons cond s rd ra rm rn = do
   })
 end
 
-val mull cons cond s rdhi rdlo rs rm = do
+val mull cons cond s rdhi rdlo rm rn = do
   cond <- cond;
+  rdhi <- rdhi;
+  rdlo <- rdlo;
+  rm <- rm;
+  rn <- rn;
   return (cons{
     cond=cond,
     s=s,
     rdhi=(register-from-bits rdhi),
     rdlo=(register-from-bits rdlo),
-    rs=(register-from-bits rs),
+    rn=(register-from-bits rn),
     rm=(register-from-bits rm)
   })
 end
@@ -594,13 +599,15 @@ val op2register = do
 end
 
 # Subdecoder for (16 bit) register_lists for load/store instructions
-# NOTE: Bit i of the list is set, if register i should be loaded/stored.
-#       Loading/storing the SP (R13) results in undefined behaviour.
+val /register_list ['regs:16'] =
+  update@{register_list=(reglist-from-int (zx regs))}
+
 val /register_list_one ['rt:4 000000000100'] =
-  update @{register_list=(reglist-from-int (power 2 (zx rt)))}
+  update@{register_list=(reglist-from-int (power 2 (zx rt)))}
 
 val /register_list_many ['regs@.............0..'] =
   update@{register_list=(reglist-from-int (zx regs))}
+
 
 val register_list = do
   register_list <- query $register_list;
@@ -620,6 +627,9 @@ val /rd ['rd:4'] = update@{rd=rd}
 val /rm ['rm:4'] = update@{rm=rm}
 val /rn ['rn:4'] = update@{rn=rn}
 val /rt ['rt:4'] = update@{rt=rt}
+
+val /rdhi ['rdhi:4'] = update@{rdhi=rdhi}
+val /rdlo ['rdlo:4'] = update@{rdlo=rdlo}
 
 val ra = do
   ra <- query $ra;
@@ -644,6 +654,16 @@ end
 val rt = do
   rt <- query $rt;
   return rt
+end
+
+val rdhi = do
+  rdhi <- query $rdhi;
+  return rdhi
+end
+
+val rdlo = do
+  rdlo <- query $rdlo;
+  return rdlo
 end
 
 val rx2operand rx = do
@@ -782,23 +802,23 @@ val / ['/cond 000 0 0 0 0 /S /rd ra@0000 /rm 1001 /rn'] =
 
 ### SMLAL
 ###  - Signed Multiply Accumulate Long
-val / ['/cond 000 0 1 1 1 s:1 rdhi:4 rdlo:4 rs:4 1001 rm:4'] =
-  mull SMLAL cond s rdhi rdlo rs rm
+val / ['/cond 000 0 1 1 1 s:1 /rdhi /rdlo /rm 1001 /rn'] =
+  mull SMLAL cond s rdhi rdlo rm rn
 
 ### SMULL
 ###  - Signed Multiply Long
-val / ['/cond 000 0 1 1 0 s:1 rdhi:4 rdlo:4 rs:4 1001 rm:4'] =
-  mull SMULL cond s rdhi rdlo rs rm
+val / ['/cond 000 0 1 1 0 s:1 /rdhi /rdlo /rm 1001 /rn'] =
+  mull SMULL cond s rdhi rdlo rm rn
 
 ### UMLAL
 ###  - Unsigned Multiply Accumulate Long
-val / ['/cond 000 0 1 0 1 s:1 rdhi:4 rdlo:4 rs:4 1001 rm:4'] =
-  mull UMLAL cond s rdhi rdlo rs rm
+val / ['/cond 000 0 1 0 1 s:1 /rdhi /rdlo /rm 1001 /rn'] =
+  mull UMLAL cond s rdhi rdlo rm rn
 
 ### UMULL
 ###  - Unsigned Multiply Long
-val / ['/cond 000 0 1 0 0 s:1 rdhi:4 rdlo:4 rs:4 1001 rm:4'] =
-  mull UMULL cond s rdhi rdlo rs rm
+val / ['/cond 000 0 1 0 0 s:1 /rdhi /rdlo /rm 1001 /rn'] =
+  mull UMULL cond s rdhi rdlo rm rn
 
 # --- Load/store instructions ------------------------------------------
 
@@ -895,35 +915,35 @@ val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1011 /rm'] =
 val ldm_is_pop? s = ($w s == '1') and (($rn s) == '1101') and (reglist-length ($register_list s)) > 1
 
 ### LDM/POP
-val / ['/cond 100 0 1 0 /W 1 /rn /register_list_many']
+val / ['/cond 100 0 1 0 /W 1 /rn /register_list']
   | ldm_is_pop? = lsm POP cond set1 rn register_list
 ###  - Load Multiple
   | otherwise = lsm LDM cond (return '1') rn register_list
 
 ### LDMDA
 ###  - Load Multiple Decrement After
-val / ['/cond 100 0 0 0 /W 1 /rn /register_list_many'] =
+val / ['/cond 100 0 0 0 /W 1 /rn /register_list'] =
   lsm LDMDA cond w rn register_list
 
 ### LDMDB
 ###  - Load Multiple Decrement Before
-val / ['/cond 100 1 0 0 /W 1 /rn /register_list_many'] =
+val / ['/cond 100 1 0 0 /W 1 /rn /register_list'] =
   lsm LDMDB cond w rn register_list
 
 ### LDMIB
 ###  - Load Multiple Increment Before
-val / ['/cond 100 1 1 0 /W 1 /rn /register_list_many'] =
+val / ['/cond 100 1 1 0 /W 1 /rn /register_list'] =
   lsm LDMIB cond w rn register_list
 
 ### STM
 ###  - Store Multiple
-val / ['/cond 100 0 1 0 /W 0 /rn /register_list_many'] =
+val / ['/cond 100 0 1 0 /W 0 /rn /register_list'] =
   lsm STM cond w rn register_list
 
 val stmdb_is_push? s = ($w s == '1') and ($rn s == '1101') and (reglist-length ($register_list s)) > 1
 
 ### STMDB/PUSH
-val / ['/cond 100 1 0 0 /W 0 /rn /register_list_many']
+val / ['/cond 100 1 0 0 /W 0 /rn /register_list']
 ###  - Push Multiple Registers
   | stmdb_is_push? = lsm PUSH cond w rn register_list
 ###  - Store Multiple Decrement Before
@@ -931,12 +951,12 @@ val / ['/cond 100 1 0 0 /W 0 /rn /register_list_many']
 
 ### STMDA
 ###  - Store Multiple Decrement After
-val / ['/cond 100 0 0 0 /W 0 /rn /register_list_many'] =
+val / ['/cond 100 0 0 0 /W 0 /rn /register_list'] =
   lsm STMDA cond w rn register_list
 
 ### STMIB
 ###  - Store Multiple Increment Before
-val / ['/cond 100 1 1 0 /W 0 /rn /register_list_many'] =
+val / ['/cond 100 1 1 0 /W 0 /rn /register_list'] =
   lsm STMIB cond w rn register_list
 
 # --- Hint instructions ------------------------------------------------
