@@ -43,6 +43,7 @@ end
 
 # ----------------------------------------------------------------------
 
+(* NOTE: This function is most likely unnecessary... It doesn't really matter*)
 val reset = do
   update@{
     cond='0000',
@@ -121,9 +122,10 @@ type instruction =
   | WFE of hint
   | WFI of hint
   | YIELD of hint
-  | DBG of hint_dbg
+  | DBG of coop
   | PLD of {u:1, r:1, rn:register, imm12:12}
   | PLDW of {u:1, r:1, rn:register, imm12:12}
+  | SVC of coop
 
 type signed =
     SIGNED
@@ -145,6 +147,12 @@ type psr =
 # Hint instructions
 type hint = {
   cond:condition
+}
+
+# Generic instruction with co(ndition) and op(erand)
+type coop = {
+  cond:condition,
+  op:operand
 }
 
 # Special debug hint instruction
@@ -224,6 +232,7 @@ type operand =
 # Supertype for the various immediate values
 type immediate =
     IMMi of int
+  | IMM4 of 4
   | IMM5 of 5
   | IMM8 of 8
   | IMM12 of 12
@@ -379,9 +388,10 @@ val br cons cond label = do
   return (cons{cond=cond, label=label})
 end
 
-val hint_dbg cons cond opt = do
+val coop cons cond op = do
   cond <- cond;
-  return (cons{cond=cond, option=opt})
+  op <- op;
+  return (cons{cond=cond, op=op})
 end
 
 val hint cons cond = do
@@ -684,17 +694,17 @@ end
 ### B
 ### - Branch
 val / ['/cond 101 0 imm24:24'] =
-  br B cond (immediate (IMMi(zx (imm24^'00'))))
+  br B cond (immediate (IMMi(sx (imm24^'00'))))
 
 ### BL
 ###  - Branch with Link
 val / ['/cond 101 1 imm24:24'] =
-  br BL cond (immediate (IMMi(zx (imm24^'00'))))
+  br BL cond (immediate (IMMi(sx (imm24^'00'))))
 
 ### BLX
 ###  - Branch with Link and Exchange (Immediate)
-val / ['1111 101 h:1 imm24:24'] = 
-  br BLX no_cond (immediate (IMMi(zx (imm24^h^'0'))))
+val / ['1111 101 h:1 imm24:24'] =
+  br BLX no_cond (immediate (IMMi(sx (imm24^h^'0'))))
 ###  - Branch with Link and Exchange (Register)
 val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0111 /rm'] =
   br BLX cond (rx2operand rm)
@@ -988,7 +998,8 @@ val / ['/cond 100 1 1 0 /W 0 /rn /register_list'] =
 
 ### DBG
 ###  - Debug Hint
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 opt:4'] = hint_dbg DBG cond opt
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 opt:4'] =
+  coop DBG cond (immediate (IMM4(opt)))
 
 ### NOP
 ###  - No Operation
@@ -1013,3 +1024,7 @@ val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0011'] = hint WFI cond
 # --- Miscellaneous instructions ---------------------------------------
 
 # Coming soon...
+
+# --- Exception-generating/-handling instructions
+
+val / ['/cond 111 1 imm24:24'] = coop SVC cond (immediate (IMM24(imm24)))
