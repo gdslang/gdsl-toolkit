@@ -3,7 +3,7 @@ export translate: (insndata) -> S sem_stmt_list <{} => {}>
 val exceptions_on = '1'
 val bigendian_mem = '1'
 val isMIPS16Implemented = '1'
-val architectureRevision = 5
+val architectureRevision = 2
 
 type signedness =
    Signed
@@ -49,19 +49,21 @@ val rval sn x = let
          IMM5 i: from-vec sn i
        | IMM16 i: from-vec sn i
        | RTRD5 i: from-vec sn i
+       | FSCTRL5 i: from-vec sn i
        | OFFSET9 i: from-vec sn i
        | OFFSET16 i: from-vec sn i
+       | OFFSET18 i: from-vec sn i
        | SEL i: from-vec sn i
        | IMPL i: from-vec sn i
        | CODE10 i: from-vec sn i
        | CODE19 i: from-vec sn i
        | CODE20 i: from-vec sn i
        | STYPE i: from-vec sn i
-       | POSSIZE i: from-vec sn i
-       | SIZE i: from-vec sn i
-       | POS i: from-vec sn i
+       | MSB i: from-vec sn i
+       | MSBD i: from-vec sn i
+       | LSB i: from-vec sn i
        | HINT i: from-vec sn i
-       | INSTRINDEX i: from-vec sn i
+       | INSTRINDEX28 i: from-vec sn i
        | COFUN i: from-vec sn i
        | OP i: from-vec sn i
       end
@@ -79,7 +81,8 @@ in
          end
     | IMM i: return (from-imm sn i)
     | OFFSET/BASE ob: return (SEM_LIN_TUPLE {opnd1=(from-imm sn ob.offset), opnd2=(var (semantic-gpr-of ob.base))})
-    | INDEX/BASE ob: return (SEM_LIN_TUPLE {opnd1=(var (semantic-gpr-of ob.index)), opnd2=(var (semantic-gpr-of ob.base))})
+    | INDEX/BASE ib: return (SEM_LIN_TUPLE {opnd1=(var (semantic-gpr-of ib.index)), opnd2=(var (semantic-gpr-of ib.base))})
+    | MSB/LSB ml: return (SEM_LIN_TUPLE {opnd1=(from-imm sn ml.msb), opnd2=(from-imm sn ml.lsb)})
    end
 end
 
@@ -105,24 +108,27 @@ val sizeof-rval x =
             IMM5 i: 5
 	  | IMM16 i: 16
           | RTRD5 i: 5
+          | FSCTRL5 i: 5
           | OFFSET9 i: 9
           | OFFSET16 i: 16
+          | OFFSET18 i: 18
           | SEL i: 3
           | IMPL i: 16
           | CODE10 i: 10
           | CODE19 i: 19
           | CODE20 i: 20
           | STYPE i: 5
-          | POSSIZE i: 5
-          | SIZE i: 5
-          | POS i: 5
+          | MSB i: 5
+          | MSBD i: 5
+          | LSB i: 5
           | HINT i: 5
-          | INSTRINDEX i: 26
+          | INSTRINDEX28 i: 28
           | COFUN i: 25
           | OP i: 5
          end
     | OFFSET/BASE ob: 32
     | INDEX/BASE ib: 32
+    | MSB/LSB ml: 5
    end
 
 val mnemonic-with-format insn x = (mnemonic-of insn) +++ "." +++ show/format x.fmt
@@ -131,6 +137,20 @@ val mnemonic-with-format-and-cond insn x = (mnemonic-of insn) +++ "." +++ show/c
 
 val sem-default-nullop-ro-generic insn = do
 	prim-generic (mnemonic-of insn) varls-none varls-none
+end
+
+val sem-default-unop-r-tuple-ro-generic insn x = do
+	src1-sz <- return (sizeof-rval x.op);
+	src2-sz <- return (sizeof-rval x.op);
+
+	one/two <- rval Signed x.op;
+	src1 <- return (extract-tuple one/two).opnd1;
+	src2 <- return (extract-tuple one/two).opnd2;
+
+	src1-up <- unpack-lin src1-sz src1;
+	src2-up <- unpack-lin src2-sz src2;
+
+	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
 val sem-default-unop-r-ro-generic insn x = do
@@ -463,16 +483,17 @@ val cbranch-rel cond offset = do
 	cbranch cond (address pc.size (var new_pc)) (address pc.size (var pc))
 end
 
+########
+# offset already shifted left by 2 at decoding
+######
 val sem-b cmp_op x = do
 	rs <- rval Signed x.op1;
 	rt <- rval Signed x.op2;
 	size <- return (sizeof-rval x.op1);
 	
 	off <- rval Signed x.op3;
-	off_ext <- return (scale 4 off);
-
 	cond <- cmp_op size rs rt;
-	cbranch-rel cond off_ext
+	cbranch-rel cond off
 end
 
 val sem-bz cmp_op x = do
@@ -480,10 +501,9 @@ val sem-bz cmp_op x = do
 	size <- return (sizeof-rval x.op1);
 
 	off <- rval Signed x.op2;
-	off_ext <- return (scale 4 off);
 
 	cond <- cmp_op size rs (imm 0);
-	cbranch-rel cond off_ext
+	cbranch-rel cond off
 end
 
 val sem-bz-link cmp_op x = do
@@ -686,10 +706,11 @@ end
 
 val sem-ins x = do
 	rs <- rval Unsigned x.op2;
-	msb <- rval Unsigned x.op3;
-	lsb <- rval Unsigned x.op4;
-	rt <- lval Unsigned x.op1;
+	msb/lsb <- rval Unsigned x.op3;
+	msb <- return (extract-tuple msb/lsb).opnd1;
+	lsb <- return (extract-tuple msb/lsb).opnd2;
 	size <- return (sizeof-rval x.op2);
+	rt <- lval Unsigned x.op1;
 
 	ps <- return (lin-to-int lsb);
 	sz <- return (1 - ps + lin-to-int msb);
@@ -707,13 +728,12 @@ end
 val sem-j x = do
 	index <- rval Unsigned x.op;
 	size <- return (sizeof-rval x.op);
-	index_ext <- return (scale 4 index);
 
 	pc <- return (semantic-reg-of Sem_PC);
 
 	addr <- mktemp;
 	mov 32 addr (var pc);
-	mov (size+2) addr index_ext;
+	mov (size+2) addr index;
 
 	jump (address pc.size (var addr))
 end
@@ -1554,10 +1574,12 @@ val sem-wsbh x = do
 end
 
 val sem-unpredictable = return void
+val sem-undefined = return void
 
 val semantics i =
    case i of
       UNPREDICTABLE: sem-unpredictable
+    | UNDEFINED: sem-undefined
     | ABS-fmt x: sem-default-binop-flr-ro-generic i x
     | ADD x: sem-add x
     | ADD-fmt x: sem-default-ternop-flrr-ro-generic i x
@@ -1593,8 +1615,8 @@ val semantics i =
     | BNEL x: sem-bnel x
     | BREAK x: sem-break x
     | C-cond-fmt x: sem-default-ternop-cflrr-ro-generic i x
-    | CACHE x: sem-default-ternop-rrr-ro-generic i x
-    | CACHEE x: sem-default-ternop-rrr-ro-generic i x
+    | CACHE x: sem-default-binop-rr-tuple-ro-generic i x
+    | CACHEE x: sem-default-binop-rr-tuple-ro-generic i x
     | CEIL-L-fmt x: sem-default-binop-flr-ro-generic i x
     | CEIL-W-fmt x: sem-default-binop-flr-ro-generic i x
     | CFC1 x: sem-default-binop-lr-ro-generic i x
@@ -1695,9 +1717,9 @@ val semantics i =
     | PAUSE: sem-pause
     | PLL-PS x: sem-default-ternop-lrr-ro-generic i x
     | PLU-PS x: sem-default-ternop-lrr-ro-generic i x
-    | PREF x: sem-default-ternop-rrr-ro-generic i x
-    | PREFE x: sem-default-ternop-rrr-ro-generic i x
-    | PREFX x: sem-default-ternop-rrr-ro-generic i x
+    | PREF x: sem-default-binop-rr-tuple-ro-generic i x
+    | PREFE x: sem-default-binop-rr-tuple-ro-generic i x
+    | PREFX x: sem-default-binop-rr-tuple-ro-generic i x
     | PUL-PS x: sem-default-ternop-lrr-ro-generic i x
     | PUU-PS x: sem-default-ternop-lrr-ro-generic i x
     | RDHWR x: sem-rdhwr x
@@ -1745,7 +1767,7 @@ val semantics i =
     | SWRE x: sem-swr x
     | SWXC1 x: sem-default-binop-rr-tuple-ro-generic i x
     | SYNC x: sem-default-unop-r-ro-generic i x
-    | SYNCI x: sem-default-binop-rr-ro-generic i x
+    | SYNCI x: sem-default-unop-r-tuple-ro-generic i x
     | SYSCALL x: sem-syscall
     | TEQ x: sem-teq x
     | TEQI x: sem-teqi x

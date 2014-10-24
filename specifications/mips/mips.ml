@@ -9,23 +9,33 @@ val config-default = ''
 
 type insndata = {length:int, insn:instruction}
 
+####################################################################
+### architecture specific values can be set in the translator.ml ###
+####################################################################
+
+## set true, this value reduces instruction count and transforms output
+## compatible to the mips evaluation assembler
+val assembler-mode = '1'
+
 type imm =
    IMM5 of 5
  | IMM16 of 16
  | RTRD5 of 5
+ | FSCTRL5 of 5
  | OFFSET9 of 9
  | OFFSET16 of 16
+ | OFFSET18 of 18
  | SEL of 3
  | IMPL of 16
  | CODE10 of 10
  | CODE19 of 19
  | CODE20 of 20
  | STYPE of 5
- | POSSIZE of 5
- | SIZE of 5
- | POS of 5
+ | MSB of 5
+ | MSBD of 5
+ | LSB of 5
  | HINT of 5
- | INSTRINDEX of 26
+ | INSTRINDEX28 of 28
  | COFUN of 25
  | OP of 5
 
@@ -39,6 +49,7 @@ type rvalue =
  | IMM of imm
  | OFFSET/BASE of {offset:imm, base:gpr-register}
  | INDEX/BASE of {index:gpr-register, base:gpr-register}
+ | MSB/LSB of {msb:imm, lsb:imm}
 
 type format = 
    S
@@ -81,10 +92,12 @@ val right lvalue = do
 end
 
 
-val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101')
+val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101') and (not (assembler-mode))
 val jalr? s = not (s.rd == s.rs)
-val ext? s = (zx s.lsb) + (zx s.msbd)+1 < 33
+val ext? s = (zx s.lsb) + (zx s.msbd) < 32
+val ins? s = (zx s.lsb) - (zx s.msb)  < 1
 val cloz? s = (s.rt == s.rd)
+val asmode? s = assembler-mode
 
 ###
 # SLL not script handled yet
@@ -159,99 +172,99 @@ val / ['001100 /rs /rt /immediate'] = ternop ANDI rt (right rs) immediate
 
 ### BC1F
 ###  - Branch on FP False
-val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F (right cc) offset16 
+val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F (right cc) offset18 
 
 ### BC1FL
 ###  - Branch on FP False Likely
-val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL (right cc) offset16 
+val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL (right cc) offset18 
 
 ### BC1T
 ###  - Branch on FP True
-val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T (right cc) offset16 
+val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T (right cc) offset18 
 
 ### BC1TL
 ###  - Branch on FP True Likely
-val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL (right cc) offset16 
+val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL (right cc) offset18 
 
 ### BC2F
 ###  - Branch on COP2 False
-val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F (right cc) offset16 
+val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F (right cc) offset18 
 
 ### BC2FL
 ###  - Branch on COP2 False Likely
-val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL (right cc) offset16 
+val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL (right cc) offset18 
 
 ### BC2T
 ###  - Branch on COP2 True
-val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T (right cc) offset16 
+val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T (right cc) offset18 
 
 ### BC2TL
 ###  - Branch on COP2 True Likely
-val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL (right cc) offset16 
+val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL (right cc) offset18 
 
 ### BEQ
 ###  - Branch on Equal
-val / ['000100 /rs /rt /offset16'] = ternop BEQ (right rs) (right rt) offset16 
+val / ['000100 /rs /rt /offset16'] = ternop BEQ (right rs) (right rt) offset18 
 
 ### BEQL
 ###  - Branch on Equal Likely
-val / ['010100 /rs /rt /offset16'] = ternop BEQL (right rs) (right rt) offset16 
+val / ['010100 /rs /rt /offset16'] = ternop BEQL (right rs) (right rt) offset18
 
 ### BGEZ
 ###  - Branch on Greater Than or Equal to Zero
-val / ['000001 /rs 00001 /offset16'] = binop BGEZ (right rs) offset16 
+val / ['000001 /rs 00001 /offset16'] = binop BGEZ (right rs) offset18
 
 ### BGEZAL
 ###  - Branch on Greater Than or Equal to Zero and Link
-val / ['000001 /rs 10001 /offset16'] = binop BGEZAL (right rs) offset16 
+val / ['000001 /rs 10001 /offset16'] = binop BGEZAL (right rs) offset18
 
 ### BGEZALL
 ###  - Branch on Greater Than or Equal to Zero and Link Likely
-val / ['000001 /rs 10011 /offset16'] = binop BGEZALL (right rs) offset16 
+val / ['000001 /rs 10011 /offset16'] = binop BGEZALL (right rs) offset18
 
 ### BGEZL
 ###  - Branch on Greater Than or Equal to Zero Likely
-val / ['000001 /rs 00011 /offset16'] = binop BGEZL (right rs) offset16 
+val / ['000001 /rs 00011 /offset16'] = binop BGEZL (right rs) offset18
 
 ### BGTZ
 ###  - Branch on Greater Than Zero
-val / ['000111 /rs 00000 /offset16'] = binop BGTZ (right rs) offset16 
+val / ['000111 /rs 00000 /offset16'] = binop BGTZ (right rs) offset18
 
 ### BGTZL
 ###  - Branch on Greater Than Zero Likely
-val / ['010111 /rs 00000 /offset16'] = binop BGTZL (right rs) offset16 
+val / ['010111 /rs 00000 /offset16'] = binop BGTZL (right rs) offset18
 
 ### BLEZ
 ###  - Branch on Less Than or Equal to Zero
-val / ['000110 /rs 00000 /offset16'] = binop BLEZ (right rs) offset16 
+val / ['000110 /rs 00000 /offset16'] = binop BLEZ (right rs) offset18
 
 ### BLEZL
 ###  - Branch on Less Than or Equal to Zero Likely
-val / ['010110 /rs 00000 /offset16'] = binop BLEZL (right rs) offset16 
+val / ['010110 /rs 00000 /offset16'] = binop BLEZL (right rs) offset18
 
 ### BLTZ
 ###  - Branch on Less Than Zero
-val / ['000001 /rs 00000 /offset16'] = binop BLTZ (right rs) offset16 
+val / ['000001 /rs 00000 /offset16'] = binop BLTZ (right rs) offset18
 
 ### BLTZAL
 ###  - Branch on Less Than Zero And Link
-val / ['000001 /rs 10000 /offset16'] = binop BLTZAL (right rs) offset16 
+val / ['000001 /rs 10000 /offset16'] = binop BLTZAL (right rs) offset18
 
 ### BLTZALL
 ###  - Branch on Less Than Zero And Link Likely
-val / ['000001 /rs 10010 /offset16'] = binop BLTZALL (right rs) offset16 
+val / ['000001 /rs 10010 /offset16'] = binop BLTZALL (right rs) offset18
 
 ### BLTZL
 ###  - Branch on Less Than Zero Likely
-val / ['000001 /rs 00010 /offset16'] = binop BLTZL (right rs) offset16 
+val / ['000001 /rs 00010 /offset16'] = binop BLTZL (right rs) offset18
 
 ### BNE
 ###  - Branch on Not Equal
-val / ['000101 /rs /rt /offset16'] = ternop BNE (right rs) (right rt) offset16 
+val / ['000101 /rs /rt /offset16'] = ternop BNE (right rs) (right rt) offset18
 
 ### BNEL
 ###  - Branch on Not Equal Likely
-val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset16 
+val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset18
 
 ### BREAK
 ###  - Breakpoint
@@ -263,11 +276,13 @@ val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = ternop-cond-fmt C-cond-fmt
 
 ### CACHE
 ###  - Perform Cache Operation
-val / ['101111 /rs /op /offset16'] = ternop CACHE (right rs) op offset16 
+val / ['101111 /base /op /offset16'] = binop CACHE op offset16/base
 
 ### CACHEE
 ###  - Perform Cache Operation EVA
-val / ['011111 /rs /op /offset9 0 011011'] = ternop CACHEE (right rs) op offset9 
+val / ['011111 /base /op /offset9 0 011011']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop CACHEE op offset9/base 
 
 ### CEIL-L-fmt
 ###  - Fixed Point Ceiling Convert to Long Fixed Point
@@ -385,7 +400,9 @@ val / ['010001 /fmt5sd 00000 /fs /fd 001111'] = binop-fmt FLOOR-W-fmt fmt fd (ri
 
 ### INS
 ###  - Insert Bit Field
-val / ['011111 /rs /rt /msb /lsb 000100'] = quadop INS rt (right rs) msb lsb 
+val / ['011111 /rs /rt /msb /lsb 000100']
+ | ins? = ternop INS rt (right rs) msb/lsb 
+ | otherwise = nullop UNPREDICTABLE
 
 ### J
 ###  - Jump
@@ -425,7 +442,9 @@ val / ['100000 /base /rt /offset16'] = binop LB rt offset16/base
 
 ### LBE
 ###  - Load Byte EVA
-val / ['011111 /base /rt /offset9 0 101100'] = binop LBE rt offset9/base 
+val / ['011111 /base /rt /offset9 0 101100']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LBE rt offset9/base 
 
 ### LBU
 ###  - Load Byte Unsigned
@@ -433,7 +452,9 @@ val / ['100100 /base /rt /offset16'] = binop LBU rt offset16/base
 
 ### LBUE
 ###  - Load Byte Unsigned EVA
-val / ['011111 /base /rt /offset9 0 101000'] = binop LBUE rt offset9/base
+val / ['011111 /base /rt /offset9 0 101000']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LBUE rt offset9/base
 
 ### LDC1
 ###  - Load Doubleword to Floating Point
@@ -453,7 +474,9 @@ val / ['100001 /base /rt /offset16'] = binop LH rt offset16/base
 
 ### LHE
 ###  - Load Halfword EVA
-val / ['011111 /base /rt /offset9 0 101101'] = binop LHE rt offset9/base
+val / ['011111 /base /rt /offset9 0 101101']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LHE rt offset9/base
 
 ### LHU
 ###  - Load Halfword Unsigned
@@ -461,7 +484,9 @@ val / ['100101 /base /rt /offset16'] = binop LHU rt offset16/base
 
 ### LHUE
 ###  - Load Halfword Unsigned EVA
-val / ['011111 /base /rt /offset9 0 101001'] = binop LHUE rt offset9/base
+val / ['011111 /base /rt /offset9 0 101001']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LHUE rt offset9/base
 
 ### LL
 ###  - Load Linked Word
@@ -469,7 +494,9 @@ val / ['110000 /base /rt /offset16'] = binop LL rt offset16/base
 
 ### LLE
 ###  - Load Linked Word EVA
-val / ['011111 /base /rt /offset9 0 101110'] = binop LLE rt offset9/base
+val / ['011111 /base /rt /offset9 0 101110']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LLE rt offset9/base
 
 ### LUI
 ###  - Load Upper Immediate
@@ -493,7 +520,9 @@ val / ['110010 /base /rt /offset16'] = binop LWC2 rt/imm offset16/base
 
 ### LWE
 ###  - Load Word EVA
-val / ['011111 /base /rt /offset9 0 101111'] = binop LWE rt offset9/base
+val / ['011111 /base /rt /offset9 0 101111']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LWE rt offset9/base
 
 ### LWL
 ###  - Load Word Left
@@ -501,7 +530,9 @@ val / ['100010 /base /rt /offset16'] = binop LWL rt offset16/base
 
 ### LWLE
 ###  - Load Word Left EVA
-val / ['011111 /base /rt /offset9 0 011001'] = binop LWLE rt offset9/base
+val / ['011111 /base /rt /offset9 0 011001']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LWLE rt offset9/base
 
 ### LWR
 ###  - Load Word Right
@@ -509,7 +540,9 @@ val / ['100110 /base /rt /offset16'] = binop LWR rt offset16/base
 
 ### LWRE
 ###  - Load Word Right EVA
-val / ['011111 /base /rt /offset9 0 011010'] = binop LWRE rt offset9/base
+val / ['011111 /base /rt /offset9 0 011010']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LWRE rt offset9/base
 
 ### LWXC1
 ###  - Load Word Indexed to Floating Point
@@ -689,15 +722,17 @@ val / ['010001 10110 /ft /fs /fd 101101'] = ternop PLU-PS fd (right fs) (right f
 
 ### PREF
 ###  - Prefetch
-val / ['110011 /rs /hint5 /offset16'] = ternop PREF (right rs) hint5 offset16 
+val / ['110011 /base /hint5 /offset16'] = binop PREF hint5 offset16/base
 
 ### PREFE
 ###  - Prefetch EVA
-val / ['011111 /rs /hint5 /offset9 0 100011'] = ternop PREFE (right rs) hint5 offset9 
+val / ['011111 /base /hint5 /offset9 0 100011']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop PREFE hint5 offset9/base
 
 ### PREFX
 ###  - Prefetch Indexed
-val / ['010011 /rs /rt /hint5 00000 001111'] = ternop PREFX (right rs) (right rt) hint5 
+val / ['010011 /base /index /hint5 00000 001111'] = binop PREFX hint5 index/base 
 
 ### PUL-PS
 ###  - Pair Upper Lower
@@ -745,7 +780,9 @@ val / ['101000 /base /rt /offset16'] = binop SB (right rt) offset16/base
 
 ### SBE
 ###  - Store Byte EVA
-val / ['011111 /base /rt /offset9 0 011100'] = binop SBE (right rt) offset9/base 
+val / ['011111 /base /rt /offset9 0 011100']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SBE (right rt) offset9/base 
 
 ### SC
 ###  - Store Conditional Word
@@ -753,7 +790,9 @@ val / ['111000 /base /rt /offset16'] = binop SC rt offset16/base
 
 ### SCE
 ###  - Store Conditional Word EVA
-val / ['011111 /base /rt /offset9 0 011110'] = binop SCE rt offset9/base
+val / ['011111 /base /rt /offset9 0 011110']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SCE rt offset9/base
 
 ### SDBBP
 ###  - Software Debug Breakpoint
@@ -785,7 +824,9 @@ val / ['101001 /base /rt /offset16'] = binop SH (right rt) offset16/base
 
 ### SHE
 ###  - Store Halfword EVA
-val / ['011111 /base /rt /offset9 0 011101'] = binop SHE (right rt) offset9/base 
+val / ['011111 /base /rt /offset9 0 011101']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SHE (right rt) offset9/base 
 
 ### SLL
 ###  - Shift Word Left Logical
@@ -867,7 +908,9 @@ val / ['111010 /base /rt /offset16'] = binop SWC2 rt/imm offset16/base
 
 ### SWE
 ###  - Store Word EVA
-val / ['011111 /base /rt /offset9 0 011111'] = binop SWE (right rt) offset9/base 
+val / ['011111 /base /rt /offset9 0 011111']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SWE (right rt) offset9/base 
 
 ### SWL
 ###  - Store Word Left
@@ -875,7 +918,9 @@ val / ['101010 /base /rt /offset16'] = binop SWL (right rt) offset16/base
 
 ### SWLE
 ###  - Store Word Left EVA
-val / ['011111 /base /rt /offset9 0 100001'] = binop SWLE (right rt) offset9/base 
+val / ['011111 /base /rt /offset9 0 100001']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SWLE (right rt) offset9/base 
 
 ### SWR
 ###  - Store Word Right
@@ -883,7 +928,9 @@ val / ['101110 /base /rt /offset16'] = binop SWR (right rt) offset16/base
 
 ### SWRE
 ###  - Store Word Right EVA
-val / ['011111 /base /rt /offset9 0 100010'] = binop SWRE (right rt) offset9/base 
+val / ['011111 /base /rt /offset9 0 100010']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SWRE (right rt) offset9/base 
 
 ### SWXC1
 ###  - Store Word Indexed from Floating Point
@@ -895,7 +942,7 @@ val / ['000000 000000000000000 /stype 001111'] = unop SYNC stype
 
 ### SYNCI
 ###  - Synchronize Caches to Make Instruction Writes Effective
-val / ['000001 /rs 11111 /offset16'] = binop SYNCI (right rs) offset16 
+val / ['000001 /base 11111 /offset16'] = unop SYNCI offset16/base
 
 ### SYSCALL
 ###  - System Call
@@ -927,11 +974,15 @@ val / ['000000 /rs /rt /code10 110001'] = ternop TGEU (right rs) (right rt) code
 
 ### TLBINV
 ###  - TLB Invalidate
-val / ['010000 1 0000000000000000000 000011'] = nullop TLBINV 
+val / ['010000 1 0000000000000000000 000011']
+ | asmode? = nullop UNDEFINED
+ | otherwise = nullop TLBINV 
 
 ### TLBINVF
 ###  - TLB Invalidate Flush
-val / ['010000 1 0000000000000000000 000100'] = nullop TLBINVF 
+val / ['010000 1 0000000000000000000 000100']
+ | asmode? = nullop UNDEFINED
+ | otherwise = nullop TLBINVF 
 
 ### TLBP
 ###  - Probe TLB for Matching Entry
@@ -1001,6 +1052,9 @@ val / ['000000 /rs /rt /rd 00000 100110'] = ternop XOR rd (right rs) (right rt)
 ###  - Exclusive OR Immediate
 val / ['001110 /rs /rt /immediate'] = ternop XORI rt (right rs) immediate 
 
+### UNDEFINED
+### - Undefined Instruction
+val / [] = nullop UNDEFINED
 
 val rs = do
   rs <- query $rs;
@@ -1059,7 +1113,7 @@ end
 val fs/ctrl = do
   fs <- query $fs;
   update @{fs='00000'};
-  return (IMM (IMM5 fs))
+  return (IMM (FSCTRL5 fs))
 end
 
 val immediate = do
@@ -1068,16 +1122,22 @@ val immediate = do
   return (IMM (IMM16 immediate))
 end
 
+val offset9 = do
+  offset9 <- query $offset9;
+  update @{offset9='000000000'};
+  return (IMM (OFFSET9 offset9))
+end
+
 val offset16 = do
   offset16 <- query $offset16;
   update @{offset16='0000000000000000'};
   return (IMM (OFFSET16 offset16))
 end
 
-val offset9 = do
-  offset9 <- query $offset9;
-  update @{offset9='000000000'};
-  return (IMM (OFFSET9 offset9))
+val offset18 = do
+  offset16 <- query $offset16;
+  update @{offset16='0000000000000000'};
+  return (IMM (OFFSET18 (offset16 ^ '00')))
 end
 
 val sel = do
@@ -1116,22 +1176,16 @@ val stype = do
   return (IMM (STYPE stype))
 end
 
-val msb = do
-  msb <- query $msb;
-  update @{msb='00000'};
-  return (IMM (POSSIZE msb))
-end
-
 val msbd = do
   msbd <- query $msbd;
   update @{msbd='00000'};
-  return (IMM (SIZE msbd))
+  return (IMM (MSBD msbd))
 end
 
 val lsb = do
   lsb <- query $lsb;
   update @{lsb='00000'};
-  return (IMM (POS lsb))
+  return (IMM (LSB lsb))
 end
 
 val sa = do
@@ -1143,7 +1197,7 @@ end
 val instr_index = do
   instr_index <- query $instr_index;
   update @{instr_index='00000000000000000000000000'};
-  return (IMM (INSTRINDEX instr_index))
+  return (IMM (INSTRINDEX28 (instr_index ^ '00')))
 end
 
 val cofun = do
@@ -1182,14 +1236,6 @@ val fmt = do
   return (format-from-bits (fmt))
 end
 
-val offset16/base = do
-  offset16 <- query $offset16;
-  base <- query $base;
-  update @{offset16='0000000000000000'};
-  update @{base='00000'};
-  return (OFFSET/BASE {offset=(OFFSET16 offset16), base=(gpr-from-bits base)})
-end
-
 val offset9/base = do
   offset9 <- query $offset9;
   base <- query $base;
@@ -1198,12 +1244,28 @@ val offset9/base = do
   return (OFFSET/BASE {offset=(OFFSET9 offset9), base=(gpr-from-bits base)})
 end
 
+val offset16/base = do
+  offset16 <- query $offset16;
+  base <- query $base;
+  update @{offset16='0000000000000000'};
+  update @{base='00000'};
+  return (OFFSET/BASE {offset=(OFFSET16 offset16), base=(gpr-from-bits base)})
+end
+
 val index/base = do
   index <- query $index;
   base <- query $base;
   update @{index='00000'};
   update @{base='00000'};
   return (INDEX/BASE {index=(gpr-from-bits index), base=(gpr-from-bits base)})
+end
+
+val msb/lsb = do
+  msb <- query $msb;
+  lsb <- query $lsb;
+  update @{msb='00000'};
+  update @{lsb='00000'};
+  return (MSB/LSB {msb=(MSB msb), lsb=(LSB lsb)})
 end
 
 
@@ -1215,8 +1277,8 @@ val /fs ['fs:5'] = update@{fs=fs}
 val /ft ['ft:5'] = update@{ft=ft}
 val /fd ['fd:5'] = update@{fd=fd}
 val /immediate ['immediate:16'] = update@{immediate=immediate}
-val /offset16 ['offset16:16'] = update@{offset16=offset16}
 val /offset9 ['offset9:9'] = update@{offset9=offset9}
+val /offset16 ['offset16:16'] = update@{offset16=offset16}
 val /base ['base:5'] = update@{base=base}
 val /index ['index:5'] = update@{index=index}
 val /sel ['sel:3'] = update@{sel=sel}
@@ -1333,6 +1395,7 @@ end
 
 type instruction = 
    UNPREDICTABLE
+ | UNDEFINED
  | ABS-fmt of binop-flr
  | ADD of ternop-lrr
  | ADD-fmt of ternop-flrr
@@ -1368,8 +1431,8 @@ type instruction =
  | BNEL of ternop-rrr
  | BREAK of unop-r
  | C-cond-fmt of ternop-cflrr
- | CACHE of ternop-rrr
- | CACHEE of ternop-rrr
+ | CACHE of binop-rr
+ | CACHEE of binop-rr
  | CEIL-L-fmt of binop-flr
  | CEIL-W-fmt of binop-flr
  | CFC1 of binop-lr
@@ -1396,7 +1459,7 @@ type instruction =
  | EXT of quadop-lrrr
  | FLOOR-L-fmt of binop-flr
  | FLOOR-W-fmt of binop-flr
- | INS of quadop-lrrr
+ | INS of ternop-lrr
  | J of unop-r
  | JAL of unop-r
  | JALR of binop-lr
@@ -1467,11 +1530,12 @@ type instruction =
  | NOR of ternop-lrr
  | OR of ternop-lrr
  | ORI of ternop-lrr
+ | PAUSE
  | PLL-PS of ternop-lrr
  | PLU-PS of ternop-lrr
- | PREF of ternop-rrr
- | PREFE of ternop-rrr
- | PREFX of ternop-rrr
+ | PREF of binop-rr
+ | PREFE of binop-rr
+ | PREFX of binop-rr
  | PUL-PS of ternop-lrr
  | PUU-PS of ternop-lrr
  | RDHWR of binop-lr
@@ -1519,7 +1583,7 @@ type instruction =
  | SWRE of binop-rr
  | SWXC1 of binop-rr
  | SYNC of unop-r
- | SYNCI of binop-rr
+ | SYNCI of unop-r
  | SYSCALL of unop-r
  | TEQ of ternop-rrr
  | TEQI of binop-rr
@@ -1548,9 +1612,6 @@ type instruction =
  | XORI of ternop-lrr
 
 # <- sutl
-
-type instruction = 
-   PAUSE
 
 type gpr-register =
    ZERO
