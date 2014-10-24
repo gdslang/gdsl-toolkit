@@ -6,9 +6,27 @@ val pretty insdata = show/instruction insdata.insn
 
 val -++ a b = a +++ " " +++ b
 
+val show-hex i = let
+  val hex nibble = case nibble of
+      10: "A"
+    | 11: "B"
+    | 12: "C"
+    | 13: "D"
+    | 14: "E"
+    | 15: "F"
+    | _: show-int (nibble)
+  end
+in
+  if (/m i 16) === 0 then
+    hex (mod i 16)
+  else
+    show-hex (/m i 16) +++ hex (mod i 16)
+end
+
 type instruction_class =
     NONE
   | BR of br      # branch
+  | COOP of coop  # generic instruction w/ cond & operand
   | DP of dp      # data processing
   | LSS of ls     # load/store single
   | LSM of lsm    # load/store multiple
@@ -18,6 +36,7 @@ type instruction_class =
 val show/instruction insn = let
   val show/i mnemonic i = case i of
       BR c: mnemonic +++ show/br c
+    | COOP c: mnemonic +++ show/condition c.cond -++ show/operand c.op
     | DP c: mnemonic +++ show/dp c
     | LSS c: mnemonic +++ show/lss c
     | LSM c: mnemonic +++ show/lsm c
@@ -84,6 +103,8 @@ val traverse f insn =
     | SMULL g: f "SMULL" (MLL g)
     | UMLAL g: f "UMLAL" (MLL g)
     | UMULL g: f "UMULL" (MLL g)
+    | DBG h: f "DBG" (COOP h)
+    | SVC h: f "SVC" (COOP h)
     | _: f "???" NONE
   end
 
@@ -166,11 +187,12 @@ val show/shifttype t =
 
 val show/immediate imm =
   case imm of
-      IMMi i: show-int i
+      IMMi i: if i > 8096 then "0x" +++ show-hex i else show-int i
+    | IMM4 i: show-int (zx i)
     | IMM5 i: show-int (zx i)
     | IMM8 i: show-int (zx i)
     | IMM12 i: show-int (zx i)
-    | IMM24 i: show-int (zx i)
+    | IMM24 i: "0x" +++ show-hex (zx i)
     | MODIMM i: "#" +++ show-int(zx i.byte) +++ "," -++ "#" +++ show-int(zx i.rot)
     | _: "???"
   end
