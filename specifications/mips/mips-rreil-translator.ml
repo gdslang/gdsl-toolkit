@@ -1494,9 +1494,12 @@ val sem-wsbh x = do
 	write x.op1 (var res)	
 end
 
+val sem-unpredictable = return void
+
 val semantics i =
    case i of
-      ABS-fmt x: sem-default-binop-flr-ro-generic i x
+      UNPREDICTABLE: sem-unpredictable
+    | ABS-fmt x: sem-default-binop-flr-ro-generic i x
     | ADD x: sem-add x
     | ADD-fmt x: sem-default-ternop-flrr-ro-generic i x
     | ADDI x: sem-addi x

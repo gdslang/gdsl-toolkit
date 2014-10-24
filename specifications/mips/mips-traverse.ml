@@ -29,7 +29,8 @@ type uarity =
 
 val traverse f insn = 
    case insn of
-      ABS-fmt x: f "ABS" (BINOP_FLR x)
+      UNPREDICTABLE: f "UNPREDICTABLE" (NULLOP)
+    | ABS-fmt x: f "ABS" (BINOP_FLR x)
     | ADD x: f "ADD" (TERNOP_LRR x)
     | ADD-fmt x: f "ADD" (TERNOP_FLRR x)
     | ADDI x: f "ADDI" (TERNOP_LRR x)

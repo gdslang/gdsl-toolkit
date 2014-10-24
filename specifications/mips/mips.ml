@@ -287,11 +287,13 @@ val / ['010010 00010 /rt /impl'] = binop CFC2 rt impl
 ###  - Count Leading Ones in Word
 val / ['011100 /rs /rt /rd 00000 100001']
  | cloz? = binop CLO rd (right rs)
+ | otherwise = nullop UNPREDICTABLE
 
 ### CLZ
 ###  - Count Leading Zeros in Word
 val / ['011100 /rs /rt /rd 00000 100000']
  | cloz? = binop CLZ rd (right rs)
+ | otherwise = nullop UNPREDICTABLE
 
 ### COP2
 ###  - Coprocessor Operation to Coprocessor 2
@@ -369,6 +371,7 @@ val / ['010000 1 0000000000000000000 011000'] = nullop ERET
 ###  - Extract Bit Field
 val / ['011111 /rs /rt /msbd /lsb 000000']
  | ext? = quadop EXT rt (right rs) lsb msbd
+ | otherwise = nullop UNPREDICTABLE
 
 ### FLOOR-L-fmt
 ###  - Floating Point Floor Convert to Long Fixed Point
@@ -394,11 +397,13 @@ val / ['000011 /instr_index'] = unop JAL instr_index
 ###  - Jump And Link Register
 val / ['000000 /rs 00000 /rd 00000 001001']
  | jalr? = binop JALR rd (right rs) 
+ | otherwise = nullop UNPREDICTABLE
 
 ### JALR-HB
 ###  - Jump and Link Register with Hazard Barrier
 val / ['000000 /rs 00000 /rd 1 0000 001001']
  | jalr? = binop JALR-HB rd (right rs) 
+ | otherwise = nullop UNPREDICTABLE
 
 ### JALX
 ###  - Jump and Link Exchange
@@ -1299,7 +1304,8 @@ end
 
 
 type instruction = 
-   ABS-fmt of binop-flr
+   UNPREDICTABLE
+ | ABS-fmt of binop-flr
  | ADD of ternop-lrr
  | ADD-fmt of ternop-flrr
  | ADDI of ternop-lrr
