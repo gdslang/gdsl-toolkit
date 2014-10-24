@@ -22,6 +22,7 @@ val show/instruction insn = let
     | LSS c: mnemonic +++ show/lss c
     | LSM c: mnemonic +++ show/lsm c
     | ML c: mnemonic +++ show/ml c
+    | MLL c: mnemonic +++ show/mll c
     | NONE: mnemonic
   end
 in
@@ -72,6 +73,13 @@ val traverse f insn =
     | BLX d: f "BLX" (BR d)
     | BX d: f "BX" (BR d)
     | BXJ d: f "BXJ" (BR d)
+    | MLA e: f "MLA" (ML e)
+    | MLS e: f "MLS" (ML e)
+    | MUL e: f "MUL" (ML e)
+    | SMLAL g: f "SMLAL" (MLL g)
+    | SMULL g: f "SMULL" (MLL g)
+    | UMLAL g: f "UMLAL" (MLL g)
+    | UMULL g: f "UMULL" (MLL g)
     | _: f "???" NONE
   end
 
@@ -92,7 +100,11 @@ val show/wback insn = if insn.w then "!" else ""
 # Show load/store (multiple) instructions
 val show/lsm insn = show/condition insn.cond -++ show/register insn.rn +++ "," -++ show/operand insn.register_list
 
+# Show multiplication instructions
 val show/ml insn = show/s insn +++ show/condition insn.cond -++ show/register insn.rd +++ "," -++ show/register insn.rn +++ "," -++ show/register insn.rm +++ "," -++ show/register insn.ra
+
+# Show long multiplication instructions
+val show/mll insn = show/s insn +++ show/condition insn.cond -++ show/register insn.rdlo +++ "," -++ show/register insn.rdhi +++ "," -++ show/register insn.rn +++ "." -++ show/register insn.rm
 
 val show/condition cond =
   case cond of
