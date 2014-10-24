@@ -706,7 +706,7 @@ val / ['/cond 101 1 imm24:24'] =
 val / ['1111 101 h:1 imm24:24'] =
   br BLX no_cond (immediate (IMMi(sx (imm24^h^'0'))))
 ###  - Branch with Link and Exchange (Register)
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0111 /rm'] =
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0011 /rm'] =
   br BLX cond (rx2operand rm)
 
 ### BX
@@ -790,8 +790,12 @@ val / ['/cond 0000010 s:1 rn:4 rd:4 /op2register'] = dp SUB cond s rn rd (op2reg
 val / ['/cond 0010010 s:1 rn:4 rd:4 /modimm'] = dp SUB cond s rn rd (modimm)
 
 ### TEQ
-val / ['/cond 0001001 s@1 rn:4 rd:4 /op2register'] = dp TEQ cond s rn rd (op2register)
-val / ['/cond 0011001 s@1 rn:4 rd:4 /modimm'] = dp TEQ cond s rn rd (modimm)
+###  - Test Equivalence (register)
+val / ['/cond 0001001 s@1 rn:4 rd@0000 /op2register'] =
+  dp TEQ cond s rn rd (op2register)
+###  - Test Equivalence (immediate)
+val / ['/cond 0011001 s@1 rn:4 rd@0000 /modimm'] =
+  dp TEQ cond s rn rd (modimm)
 
 ### TST
 val / ['/cond 0001000 s@1 rn:4 rd:4 /op2register'] = dp TST cond s rn rd (op2register)
