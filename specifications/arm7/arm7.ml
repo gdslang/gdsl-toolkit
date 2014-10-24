@@ -85,16 +85,20 @@ type instruction =
   | UMLAL of mull
   | UMULL of mull
   | LDR of ls
+  | LDRT of ls
   | LDRB of ls
+  | LDRBT of ls
   | LDRH of ls
+  | LDRHT of ls
+  | LDRSB of ls
+  | LDRSBT of ls
   | LDRSH of ls
+  | LDRSHT of ls
   | LDRD of ls
   | STR of ls
   | STRB of ls
   | STRD of ls
   | STRH of ls
-  | LDRSB of ls
-  | LDRSRH of ls
   | LDM of lsm
   | LDMDA of lsm
   | LDMDB of lsm
@@ -823,32 +827,33 @@ val / ['/cond 000 0 1 0 0 s:1 /rdhi /rdlo /rm 1001 /rn'] =
 # --- Load/store instructions ------------------------------------------
 
 val ldr_is_pop? s = ($rn s == '1101') and ($p s == '0') and ($u s == '1') and ($w s == '0') and ($imm12 s == '000000000100')
+val is_unprivileged? s = ($p s == '0') and ($w s)
 
-### LDR/POP
+### LDR/LDRT/POP
 val / ['/cond 010 /P /U 0 /W 1 /rn /rt /imm12']
 ###  - Pop Multiple Registers (Encoding A2)
   | ldr_is_pop? = lsm POP cond w rn combine_register_list
+###  - Load Register Unprivileged (Encoding A1)
+  | is_unprivileged? = ls LDRT cond set0 u set0 rn rt imm12
 ###  - Load Register (immediate/literal)
   | otherwise = ls LDR cond p u w rn rt imm12
+val / ['/cond 011 /P /U 0 /W 1 /rn /rt /immshift /rm']
+###  - Load Register Unprivileged (Encoding A2)
+  | is_unprivileged? = ls LDRT cond set0 u set0 rn rt op2register
 ###  - Load Register (register)
-val / ['/cond 011 /P /U 0 /W 1 /rn /rt /immshift /rm'] =
-  ls LDR cond p u w rn rt op2register
+  | otherwise = ls LDR cond p u w rn rt op2register
 
-### LDRB
+### LDRB/LDRBT
+val / ['/cond 010 /P /U 1 /W 1 /rn /rt /imm12']
+###  - Load Register Byte Unprivileged (Encoding A1)
+  | is_unprivileged? = ls LDRBT cond set0 u set0 rn rt imm12
 ###  - Load Register Byte (immediate/literal)
-val / ['/cond 010 /P /U 1 /W 1 /rn /rt /imm12'] =
-  ls LDRB cond p u w rn rt imm12
+  | otherwise = ls LDRB cond p u w rn rt imm12
+val / ['/cond 011 /P /U 1 /W 1 /rn /rt /immshift /rm']
+###  - Load Register Byte Unprivileged (Encoding A2)
+  | is_unprivileged? = ls LDRBT cond set0 u set0 rn rt op2register
 ###  - Load Register Byte (register)
-val / ['/cond 011 /P /U 1 /W 1 /rn /rt /immshift /rm'] =
-  ls LDRB cond p u w rn rt op2register
-
-### LDRH
-###  - Load Register Halfword (immediat/literal)
-val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1011 /imm4L'] =
-  ls LDRH cond p u w rn rt combine_imm8
-###  - Load Register Halfword (register)
-val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1011 /rm'] =
-  ls LDRH cond p u w rn rt (rx2operand rm)
+  | otherwise = ls LDRB cond p u w rn rt op2register
 
 ### LDRD
 ###  - Load Register Dual (immediate/literal)
@@ -858,21 +863,41 @@ val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1101 /imm4L'] =
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1101 /rm'] =
   ls LDRD cond p u w rn rt (rx2operand rm)
 
-### LDRSB
-###  - Load Register Signed Byte (immediate/literal)
-val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1101 /imm4L'] =
-  ls LDRSB cond p u w rn rt combine_imm8
-###  - Load Register Signed Byte (register)
-val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1101 /rm'] =
-  ls LDRSB cond p u w rn rt (rx2operand rm)
+### LDRH/LDRHT
+val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1011 /imm4L']
+###  - Load Register Halfword Unprivileged (Encoding A1)
+  | is_unprivileged? = ls LDRHT cond set0 u set0 rn rt combine_imm8
+###  - Load Register Halfword (immediat/literal)
+  | otherwise = ls LDRH cond p u w rn rt combine_imm8
+val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1011 /rm']
+###  - Load Register Halfword Unprivileged (Encoding A2)
+  | is_unprivileged? = ls LDRHT cond set0 u set0 rn rt (rx2operand rm)
+###  - Load Register Halfword (register)
+  | otherwise = ls LDRH cond p u w rn rt (rx2operand rm)
 
-### LDRSH
+### LDRSB/LDRSBT
+val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1101 /imm4L']
+###  - Load Register Signed Byte (Encoding A1)
+  | is_unprivileged? = ls LDRSBT cond set0 u set0 rn rt combine_imm8
+###  - Load Register Signed Byte (immediate/literal)
+  | otherwise = ls LDRSB cond p u w rn rt combine_imm8
+val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1101 /rm']
+###  - Load Register Signed Byte (Encoding A2)
+  | is_unprivileged? = ls LDRSBT cond set0 u set0 rn rt (rx2operand rm)
+###  - Load Register Signed Byte (register)
+  | otherwise = ls LDRSB cond p u w rn rt (rx2operand rm)
+
+### LDRSH/LDRSHT
+val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1111 /imm4L']
+###  - Load Register Signed Halfword Unprivileged (Encoding A1)
+  | is_unprivileged? = ls LDRSHT cond set0 u set0 rn rt combine_imm8
 ###  - Load Register Signed Halfword (immediat/literal)
-val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1111 /imm4L'] =
-  ls LDRSH cond p u w rn rt combine_imm8
+  | otherwise = ls LDRSH cond p u w rn rt combine_imm8
+val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1111 /rm']
+###  - Load Register Signed Halfword Unprivileged (Encoding A2)
+  | is_unprivileged? = ls LDRSHT cond set0 u set0 rn rt (rx2operand rm)
 ###  - Load Register Signed Halfword (register)
-val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1111 /rm'] =
-  ls LDRSH cond p u w rn rt (rx2operand rm)
+  | otherwise = ls LDRSH cond p u w rn rt (rx2operand rm)
 
 val str_is_push? s = ($rn s == '1101') and ($p s == '1') and ($u s == '0') and ($imm12 s == '000000000100')
 
