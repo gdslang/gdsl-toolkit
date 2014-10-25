@@ -10,7 +10,7 @@
 #include <gdsl.h>
 
 // evaluation paramters
-#define NUM_OF_CYCLES					0x1		// 4096
+#define NUM_OF_CYCLES					0x1000		// 4096
 #define START_CYCLE						0			// of 4096
 #define INSNS_PER_CYCLE					0x00100000  // 1'048'576
 
