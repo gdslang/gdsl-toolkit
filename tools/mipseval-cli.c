@@ -3,13 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <readhex.h>
 #include <gdsl.h>
 
 // evaluation paramters
-#define NUM_OF_CYLCES					0x1000		// 4096
+#define NUM_OF_CYCLES					0x1000		// 4096
 #define START_CYCLE						0			// of 4096
 #define INSNS_PER_CYCLE					0x00100000  // 1'048'576
 
@@ -79,7 +80,7 @@ int main(int argc, char** argv) {
 			string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 
 			// check for successful decoding
-			if (isInsn("UNDEFINED") || isInsn("UNPREDICTABLE"))
+			if (isInsn("UNDEFINED", fmt) || isInsn("UNPREDICTABLE", fmt))
 				continue;
 
 			// add instruction to decoded list in order to verify it later on
@@ -162,9 +163,9 @@ int main(int argc, char** argv) {
 			printf("case 3\n");
 
 			uint32_t *peep = (uint32_t*)as_buf;
-			for (int t = 0; t < inst_buf_entries; t++) {
+			for (unsigned int t = 0; t < inst_buf_entries; t++) {
 				if (inst_buf[t] != peep[t]) {
-					printf("\t\tmiss at 0x%X (0x%X, %d):  %08X  %08X\n", t*sizeof(uint32_t), t, t, invInsn(inst_buf[t]), invInsn(peep[t]));
+					printf("\t\tmiss at 0x%X (0x%X, %d):  %08X  %08X\n", t*4, t, t, invInsn(inst_buf[t]), invInsn(peep[t]));
 					break;
 				}
 			}
