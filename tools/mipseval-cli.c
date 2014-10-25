@@ -93,33 +93,10 @@ int main(int argc, char** argv) {
 
 			// special cases
 			if (isInsn("BREAK", fmt)								// code20 is limited to 10 bits; code10 endianess is swapped?
-					|| isInsn("PAUSE", fmt) || isInsn("TLBINV", fmt)
-					|| isInsn("TLBINVF", fmt)						// unknown op, but only single pattern
 					|| isInsn("DIV", fmt) || isInsn("DIVU", fmt)	// as catches division by zero ...
+
 					|| isInsn("BC2F", fmt) || isInsn("BC2T", fmt) || isInsn("BC2F", fmt) || isInsn("BC2FL", fmt)
 					|| isInsn("BC2T", fmt) || isInsn("BC2TL", fmt)	// assembler syntax?
-					|| isInsn("LWXC1", fmt)							// index(base) ...
-					|| isInsn("LB", fmt) || isInsn("LBE", fmt) || isInsn("LBU", fmt) || isInsn("LBUE", fmt)
-					|| isInsn("LDC1", fmt) || isInsn("LDC2", fmt) || isInsn("LDXC1", fmt)
-					|| isInsn("LH", fmt) || isInsn("LHE", fmt) || isInsn("LHU", fmt) || isInsn("LHUE", fmt)
-					|| isInsn("LL", fmt) || isInsn("LLE", fmt) || isInsn("LUXC1", fmt)
-					|| isInsn("LW", fmt) || isInsn("LWE", fmt) || isInsn("LWL", fmt) || isInsn("LWLE", fmt)
-					|| isInsn("LWR", fmt) || isInsn("LWRE", fmt) || isInsn("LWXC1", fmt)
-					|| isInsn("LWC1", fmt) || isInsn("LWC2", fmt)	// index(base), offset(base)
-					|| isInsn("SB", fmt) || isInsn("SBE", fmt) || isInsn("SC", fmt) || isInsn("SCE", fmt)
-					|| isInsn("SDC1", fmt) || isInsn("SDC2", fmt) || isInsn("SDXC1", fmt)
-					|| isInsn("SH", fmt) || isInsn("SHE", fmt) || isInsn("SUXC1", fmt)
-					|| isInsn("SW", fmt) || isInsn("SWE", fmt) || isInsn("SWC1", fmt) || isInsn("SWC2", fmt)
-					|| isInsn("SWL", fmt) || isInsn("SWLE", fmt) || isInsn("SWR", fmt) || isInsn("SWRE", fmt)
-					|| isInsn("SWXC1", fmt)							// index(base), offset(base)
-					|| isInsn("CACHE", fmt) || isInsn("CACHEE", fmt)// index(base), offset(base)
-					|| isInsn("PREF", fmt) || isInsn("PREFE", fmt)
-					|| isInsn("PREFX", fmt) || isInsn("SYNCI", fmt)	// index(base), offset(base)
-					|| isInsn("MTC1", fmt) || isInsn("CTC1", fmt)
-					|| isInsn("MTHC1", fmt)							// swapped dest and source; rt and fs
-					|| isInsn("MTC2", fmt) || isInsn("MFC2", fmt)
-					|| isInsn("CFC2", fmt) || isInsn("CTC2", fmt)	// impl field is in as just 0-31
-					|| isInsn("INS", fmt)							// operands depend on each other (msb, lsb) ... size/pos
 					) {
 				fwrite(conv, 1, strlen(conv), f);
 				continue;

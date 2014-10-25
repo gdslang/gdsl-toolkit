@@ -55,7 +55,6 @@ in case i of
  | OP i: inner i 5
 end end
 
-# -> sftl
 val generalize-ua ua =
    case ua of
       NULLOP: asm-opnds-none
@@ -90,5 +89,3 @@ val generalize-fmt ua =
     | QUADOP_FLRRR x: asm-anns-one (generalize-format x.fmt)
    end
 
-
-# <- sutl

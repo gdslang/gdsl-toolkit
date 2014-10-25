@@ -10,7 +10,6 @@ in
   traverse f insn
 end
 
-# -> sftl
 type uarity =
    NULLOP
  | UNOP_R of unop-r
@@ -246,7 +245,3 @@ val traverse f insn =
     | XOR x: f "XOR" (TERNOP_LRR x)
     | XORI x: f "XORI" (TERNOP_LRR x)
    end
-
-
-# <- sutl
-

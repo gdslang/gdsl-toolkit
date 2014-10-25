@@ -39,7 +39,7 @@ val show/immediate imm =
     | OFFSET16 x: show-int (sx x)
     | OFFSET18 x: show-int (sx x)
     | SEL x: show-int (zx x)
-    | IMPL x: show-int (zx x)
+    | IMPL x: as-prefix +++ show-int (zx x)
     | CODE10 x: show-int (zx x)
     | CODE19 x: show-int (zx x)
     | CODE20 x: show-int (zx x)
@@ -166,8 +166,6 @@ val show/fpr-register r =
     | F31: as-prefix +++ "f31"
    end
 
-# -> sftl
-
 val show/unop-r x = show/rvalue x.op
 val show/unop-l x = show/lvalue x.op
 val show/binop-rr x = show/rvalue x.op1 +++ ", " +++ show/rvalue x.op2
@@ -197,7 +195,4 @@ val show/instruction insn = let
 in
    traverse show/ua insn.insn
 end
-
-
-# <- sutl
 

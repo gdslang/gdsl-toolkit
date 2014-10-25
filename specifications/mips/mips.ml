@@ -9,35 +9,39 @@ val config-default = ''
 
 type insndata = {length:int, insn:instruction}
 
+
+
 ####################################################################
 ### architecture specific values can be set in the translator.ml ###
 ####################################################################
 
-## set true, this value reduces instruction count and transforms output
-## compatible to the mips evaluation assembler
+
+
+## being set true, the instruction set and printed output is adapted
+## to the mips evaluation assembler
 val assembler-mode = '1'
 
-type imm =
-   IMM5 of 5
- | IMM16 of 16
- | RTRD5 of 5
- | FSCTRL5 of 5
- | OFFSET9 of 9
- | OFFSET16 of 16
- | OFFSET18 of 18
- | SEL of 3
- | IMPL of 16
- | CODE10 of 10
- | CODE19 of 19
- | CODE20 of 20
- | STYPE of 5
- | MSB of 5
- | MSBD of 5
- | LSB of 5
- | HINT of 5
- | INSTRINDEX28 of 28
- | COFUN of 25
- | OP of 5
+
+#################################
+# decode and configure function
+####
+
+val decode config = do
+  set-endianness BIG_ENDIAN 4;
+  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',base='00000',index='00000',sel='000',impl='0000000000000000',code10='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
+  idx-before <- idxget;
+  insn <- /;
+  idx-after <- idxget;
+  return {length=(idx-after - idx-before), insn=insn}
+end
+
+
+
+##############################################
+# operand base types
+# - lvalue: left hand side value (dest/source)
+# - rvalue: right hand side value (source)
+####
 
 type lvalue =
    GPR of gpr-register
@@ -51,12 +55,24 @@ type rvalue =
  | INDEX/BASE of {index:gpr-register, base:gpr-register}
  | MSB/LSB of {msb:imm, lsb:imm}
 
+
+#########################################
+# format
+# - FPU, data format identifier
+####
+
 type format = 
    S
  | D
  | W
  | L
  | PS
+
+
+#########################################
+# floating point condition code
+# - single status bits of register FCSR
+####
 
 type fccode =
    FCC0
@@ -67,6 +83,12 @@ type fccode =
  | FCC5
  | FCC6
  | FCC7
+
+
+##############################
+# condition operand
+# - only in C-cond-fmt instr.
+####
 
 type condop =
    C_F
@@ -86,45 +108,34 @@ type condop =
  | C_LE
  | C_NGT
 
+
+################
+# transform a lvalue to rvalue
+####
+
 val right lvalue = do
   lvalue <- lvalue;
   return (LVALUE lvalue)
 end
 
 
+########################
+# guards conditions
+####
+
 val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101') and (not (assembler-mode))
 val jalr? s = not (s.rd == s.rs)
 val ext? s = (zx s.lsb) + (zx s.msbd) < 32
 val ins? s = (zx s.lsb) - (zx s.msb)  < 1
 val cloz? s = (s.rt == s.rd)
+val asimpl? s = ((zx s.impl) > 31) and assembler-mode
 val asmode? s = assembler-mode
 
-###
-# SLL not script handled yet
-#val / ['000000 00000 /rt /rd /sa 000000']
-# | pause? = nullop PAUSE
-# | otherwise = ternop SLL rd (right rt) sa
-#
-# JALR too
-#val / ['000000 /rs 00000 /rd 00000 001001']
-# | jalr? = binop JALR rd (right rs) 
-#
-# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched; WRPGPR swap params; EXT lsb and msbd; pretty printer offset *4 etc; ext guard; offset sign extend; switch FMT{ADD,MSUB,NMSUB,NMADD,SUB,MADD,MOVF,MOVN,MOVZ,DIV,CVT-PS-S,PLL.PS,PLU.PS,PUL.PS,PUU.PS}
-# guards for CLO/CLZ
-# C.cond.fmt cond-operand
-###
 
-# -> sftl
 
-val decode config = do
-  set-endianness BIG_ENDIAN 4;
-  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',base='00000',index='00000',sel='000',impl='0000000000000000',code10='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
-  idx-before <- idxget;
-  insn <- /;
-  idx-after <- idxget;
-  return {length=(idx-after - idx-before), insn=insn}
-end
-
+######################
+# decoder rules
+####
 
 ### ABS-fmt
 ###  - Floating Point Absolute Value
@@ -298,7 +309,9 @@ val / ['010001 00010 /rt /fs 00000000000'] = binop CFC1 rt (right fs)
 
 ### CFC2
 ###  - Move Control Word From Coprocessor 2
-val / ['010010 00010 /rt /impl'] = binop CFC2 rt impl 
+val / ['010010 00010 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop CFC2 rt impl 
 
 ### CLO
 ###  - Count Leading Ones in Word
@@ -322,7 +335,9 @@ val / ['010001 00110 /rt /fs 00000000000'] = binop CTC1 (right rt) fs/ctrl
 
 ### CTC2
 ###  - Move Control Word to Coprocessor 2
-val / ['010010 00110 /rt /impl'] = binop CTC2 (right rt) impl 
+val / ['010010 00110 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop CTC2 (right rt) impl 
 
 ### CVT-D-fmt
 ###  - Floating Point Convert To Double Floating Point
@@ -570,7 +585,9 @@ val / ['010001 00000 /rt /fs 00000000000'] = binop MFC1 rt (right fs)
 
 ### MFC2
 ###  - Move Word From Coprocessor 2
-val / ['010010 00000 /rt /impl'] = binop MFC2 rt impl 
+val / ['010010 00000 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop MFC2 rt impl 
 
 ### MFHC1
 ###  - Move Word From High Half of Floating Point Register
@@ -578,7 +595,9 @@ val / ['010001 00011 /rt /fs 00000000000'] = binop MFHC1 rt (right fs)
 
 ### MFHC2
 ###  - Move Word From High Half of Coprocessor 2 Register
-val / ['010010 00011 /rt /impl'] = binop MFHC2 rt impl
+val / ['010010 00011 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop MFHC2 rt impl
 
 ### MFHI
 ###  - Move From HI Register
@@ -646,7 +665,9 @@ val / ['010001 00100 /rt /fs 00000000000'] = binop MTC1 (right rt) fs
 
 ### MTC2
 ###  - Move Word to Coprocessor 2
-val / ['010010 00100 /rt /impl'] = binop MTC2 (right rt) impl 
+val / ['010010 00100 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop MTC2 (right rt) impl 
 
 ### MTHC1
 ###  - Move Word to High Half of Floating Point Register
@@ -654,7 +675,9 @@ val / ['010001 00111 /rt /fs 00000000000'] = binop MTHC1 (right rt) fs
 
 ### MTHC2
 ###  - Move Word to High Half of Coprocessor 2 Register
-val / ['010010 00111 /rt /impl'] = binop MTHC2 (right rt) impl 
+val / ['010010 00111 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop MTHC2 (right rt) impl 
 
 ### MTHI
 ###  - Move To HI Register
@@ -1056,6 +1079,11 @@ val / ['001110 /rs /rt /immediate'] = ternop XORI rt (right rs) immediate
 ### - Undefined Instruction
 val / [] = nullop UNDEFINED
 
+
+###########################
+# operand constructors
+####
+
 val rs = do
   rs <- query $rs;
   update @{rs='00000'};
@@ -1236,6 +1264,10 @@ val fmt = do
   return (format-from-bits (fmt))
 end
 
+############################
+# tuple constructors
+####
+
 val offset9/base = do
   offset9 <- query $offset9;
   base <- query $base;
@@ -1314,6 +1346,13 @@ val /fmt3sdps ['000'] = update@{fmt='10000'}
 val /fmt3sdps ['001'] = update@{fmt='10001'}
 val /fmt3sdps ['110'] = update@{fmt='10110'}
 
+####################################################################
+### operation type followed by letters showing the operand types
+### - l for lvalue
+### - r for rvalue
+### - f for format
+### - c for cond
+######################
 
 type unop-r = {op:rvalue}
 type unop-l = {op:lvalue}
@@ -1611,7 +1650,37 @@ type instruction =
  | XOR of ternop-lrr
  | XORI of ternop-lrr
 
-# <- sutl
+
+################################
+# all required immediate types
+####
+
+type imm =
+   IMM5 of 5
+ | IMM16 of 16
+ | RTRD5 of 5
+ | FSCTRL5 of 5
+ | OFFSET9 of 9
+ | OFFSET16 of 16
+ | OFFSET18 of 18
+ | SEL of 3
+ | IMPL of 16
+ | CODE10 of 10
+ | CODE19 of 19
+ | CODE20 of 20
+ | STYPE of 5
+ | MSB of 5
+ | MSBD of 5
+ | LSB of 5
+ | HINT of 5
+ | INSTRINDEX28 of 28
+ | COFUN of 25
+ | OP of 5
+
+
+#############################
+# general purpose registers
+####
 
 type gpr-register =
    ZERO
@@ -1647,11 +1716,21 @@ type gpr-register =
  | S8
  | RA
 
+
+#############################
+# special purpose registers
+####
+
 type sp-register =
    HI
  | LO
  | PC
  | SREG
+
+
+#############################
+# floating point registers
+####
 
 type fpr-register =
    F0
@@ -1688,11 +1767,22 @@ type fpr-register =
  | F31
  | FIR
 
+
+#####################################
+# floating point control registers
+####
+
 type fcr-register =
    FCCR
  | FEXR
  | FENR
  | FCSR
+
+
+##############################################
+# helpers to assign bit vectors to a register,
+# condition or a format
+####
 
 val gpr-from-bits bits =
  case bits of
