@@ -10,7 +10,7 @@
 #include <gdsl.h>
 
 // evaluation paramters
-#define NUM_OF_CYCLES					0x1000		// 4096
+#define NUM_OF_CYCLES					0x1		// 4096
 #define START_CYCLE						0			// of 4096
 #define INSNS_PER_CYCLE					0x00100000  // 1'048'576
 
@@ -18,6 +18,9 @@
 #define ELF_TEXT_SECTION_OFFSET			0x40
 #define ASSEMBLER_TEXT_INPUT_FILE		"asinput.txt"
 #define ASSEMBLER_BINARY_OUTPUT_FILE	"asoutput.out"
+
+unsigned int decoded_insns = 0;
+unsigned long handled_insns = 0;
 
 int isInsn(char *mnemonic, char *fmt)
 {
@@ -47,8 +50,8 @@ uint32_t invInsn(uint32_t insn)
 	return res;
 }
 
-int main(int argc, char** argv) {
-
+int evaluate()
+{
 	const unsigned int cycle_interval = INSNS_PER_CYCLE;
 	const unsigned int max_cycles = NUM_OF_CYCLES;
 	const unsigned int round_offset = START_CYCLE;
@@ -66,9 +69,11 @@ int main(int argc, char** argv) {
 		FILE *f;
 		f = fopen(ASSEMBLER_TEXT_INPUT_FILE, "w");
 
-		unsigned int inst_buf_entries = 0;
+		unsigned int inst_buf_entries = 0, m_decoded_insns = decoded_insns;
 		for (unsigned int pew = 0; pew < cycle_interval; pew++, cur_insn++)
 		{
+			handled_insns++;
+
 			gdsl_set_code(state, (char*)&cur_insn, sizeof(uint32_t), 0);
 			if(setjmp(*gdsl_err_tgt(state)))
 			{
@@ -82,6 +87,8 @@ int main(int argc, char** argv) {
 			// check for successful decoding
 			if (isInsn("UNDEFINED", fmt) || isInsn("UNPREDICTABLE", fmt))
 				continue;
+
+			decoded_insns++;
 
 			// add instruction to decoded list in order to verify it later on
 			inst_buf[inst_buf_entries++] = cur_insn;
@@ -175,7 +182,7 @@ int main(int argc, char** argv) {
 		free(as_buf);
 		fclose(f);
 
-		printf("%s\n\n", (bSucc == 1)?"succeeded":"failed");
+		printf("%s  %f%s\n\n", (bSucc == 1)?"succeeded":"failed", 100.0f * ((float)(decoded_insns-m_decoded_insns)/((float)INSNS_PER_CYCLE)), "%");
 
 		if (bSucc != 1)
 			break;
@@ -183,5 +190,12 @@ int main(int argc, char** argv) {
 	free(inst_buf);
 
 	return 0;
+}
+int main(int argc, char** argv)
+{
+	int res = evaluate();
+	printf("final report: %f%s\n\n", 100.0f * ((double)(decoded_insns)/((double)handled_insns)), "%");
+
+	return res;
 }
 
