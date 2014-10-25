@@ -6,11 +6,48 @@ val -++ a b = a +++ " " +++ b
 
 val as-prefix = if (assembler-mode) then "$" else ""
 
+
+########################################
+# convert instruction to string (rope)
+####
+
+val show/instruction insn = let
+   val show/ua mnemonic ua = case ua of
+      NULLOP: mnemonic
+    | UNOP_R x: mnemonic -++ show/unop-r x
+    | UNOP_L x: mnemonic -++ show/unop-l x
+    | BINOP_RR x: mnemonic -++ show/binop-rr x
+    | BINOP_RL x: mnemonic -++ show/binop-rl x
+    | BINOP_LR x: mnemonic -++ show/binop-lr x
+    | BINOP_FLR x: mnemonic +++ "." +++ show/format x.fmt -++ show/binop-lr x
+    | TERNOP_RRR x: mnemonic -++ show/ternop-rrr x
+    | TERNOP_LRR x: mnemonic -++ show/ternop-lrr x
+    | TERNOP_FLRR x: mnemonic +++ "." +++ show/format x.fmt -++ show/ternop-lrr x
+    | TERNOP_CFLRR x: mnemonic +++ "." +++ show/condop x.cond +++ "." +++ show/format x.fmt -++ show/ternop-lrr x
+    | QUADOP_LRRR x: mnemonic -++ show/quadop-lrrr x
+    | QUADOP_FLRRR x: mnemonic +++ "." +++ show/format x.fmt -++ show/quadop-lrrr x
+   end
+in
+   traverse show/ua insn.insn
+end
+
+
+val show/unop-r x = show/rvalue x.op
+val show/unop-l x = show/lvalue x.op
+val show/binop-rr x = show/rvalue x.op1 +++ ", " +++ show/rvalue x.op2
+val show/binop-rl x = show/rvalue x.op1 +++ ", " +++ show/lvalue x.op2
+val show/binop-lr x = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2
+val show/ternop-rrr x = show/rvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3
+val show/ternop-lrr x = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3
+val show/quadop-lrrr x = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3 +++ ", " +++ show/rvalue x.op4
+
+
 val show/lvalue opnd = 
    case opnd of
       GPR r: show/gpr-register r
     | FPR r: show/fpr-register r
     | FCC fcc: show/fccode fcc
+    | C2CC c2cc: show/cop2ccode c2cc
    end
 
 val show/rvalue opnd = let
@@ -94,6 +131,18 @@ val show/fccode fcc =
     | FCC7: as-prefix +++ "fcc7"
    end
 
+val show/cop2ccode c2cc = 
+   case c2cc of
+      C2CC0: as-prefix +++ "cc0"
+    | C2CC1: as-prefix +++ "cc1"
+    | C2CC2: as-prefix +++ "cc2"
+    | C2CC3: as-prefix +++ "cc3"
+    | C2CC4: as-prefix +++ "cc4"
+    | C2CC5: as-prefix +++ "cc5"
+    | C2CC6: as-prefix +++ "cc6"
+    | C2CC7: as-prefix +++ "cc7"
+   end
+
 val show/gpr-register r =
    case r of
       ZERO: as-prefix +++ "zero"
@@ -165,34 +214,4 @@ val show/fpr-register r =
     | F30: as-prefix +++ "f30"
     | F31: as-prefix +++ "f31"
    end
-
-val show/unop-r x = show/rvalue x.op
-val show/unop-l x = show/lvalue x.op
-val show/binop-rr x = show/rvalue x.op1 +++ ", " +++ show/rvalue x.op2
-val show/binop-rl x = show/rvalue x.op1 +++ ", " +++ show/lvalue x.op2
-val show/binop-lr x = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2
-val show/ternop-rrr x = show/rvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3
-val show/ternop-lrr x = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3
-val show/quadop-lrrr x = show/lvalue x.op1 +++ ", " +++ show/rvalue x.op2 +++ ", " +++ show/rvalue x.op3 +++ ", " +++ show/rvalue x.op4
-
-
-val show/instruction insn = let
-   val show/ua mnemonic ua = case ua of
-      NULLOP: mnemonic
-    | UNOP_R x: mnemonic -++ show/unop-r x
-    | UNOP_L x: mnemonic -++ show/unop-l x
-    | BINOP_RR x: mnemonic -++ show/binop-rr x
-    | BINOP_RL x: mnemonic -++ show/binop-rl x
-    | BINOP_LR x: mnemonic -++ show/binop-lr x
-    | BINOP_FLR x: mnemonic +++ "." +++ show/format x.fmt -++ show/binop-lr x
-    | TERNOP_RRR x: mnemonic -++ show/ternop-rrr x
-    | TERNOP_LRR x: mnemonic -++ show/ternop-lrr x
-    | TERNOP_FLRR x: mnemonic +++ "." +++ show/format x.fmt -++ show/ternop-lrr x
-    | TERNOP_CFLRR x: mnemonic +++ "." +++ show/condop x.cond +++ "." +++ show/format x.fmt -++ show/ternop-lrr x
-    | QUADOP_LRRR x: mnemonic -++ show/quadop-lrrr x
-    | QUADOP_FLRRR x: mnemonic +++ "." +++ show/format x.fmt -++ show/quadop-lrrr x
-   end
-in
-   traverse show/ua insn.insn
-end
 

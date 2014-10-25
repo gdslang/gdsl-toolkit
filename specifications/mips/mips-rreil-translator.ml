@@ -26,11 +26,23 @@ val lval sn x = let
        | FCC6: var (sem-reg-offset (semantic-fcr-of FCSR) 30)
        | FCC7: var (sem-reg-offset (semantic-fcr-of FCSR) 31)
       end
+   val from-c2cc c2cc = 
+      case c2cc of
+         C2CC0: var (sem-reg-offset (semantic-reg-of Sem_C2CCREG) 23)
+       | C2CC1: var (sem-reg-offset (semantic-reg-of Sem_C2CCREG) 25)
+       | C2CC2: var (sem-reg-offset (semantic-reg-of Sem_C2CCREG) 26)
+       | C2CC3: var (sem-reg-offset (semantic-reg-of Sem_C2CCREG) 27)
+       | C2CC4: var (sem-reg-offset (semantic-reg-of Sem_C2CCREG) 28)
+       | C2CC5: var (sem-reg-offset (semantic-reg-of Sem_C2CCREG) 29)
+       | C2CC6: var (sem-reg-offset (semantic-reg-of Sem_C2CCREG) 30)
+       | C2CC7: var (sem-reg-offset (semantic-reg-of Sem_C2CCREG) 31)
+      end
 in
    case x of
       GPR r: return (var (semantic-gpr-of r))
     | FPR f: return (var (semantic-fpr-of f))
     | FCC fc: return (from-fcc fc)
+    | C2CC c2c: return (from-c2cc c2c)
    end
 end
 
@@ -98,6 +110,7 @@ val sizeof-lval x =
       GPR r: 32
     | FPR f: 32
     | FCC fcc: 1
+    | C2CC c2cc: 1
    end
 
 val sizeof-rval x = 

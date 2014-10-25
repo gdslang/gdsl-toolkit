@@ -14,6 +14,7 @@ in case lval of
    GPR r: generalize-gpr-register r
  | FPR f: generalize-fpr-register f
  | FCC fc: generalize-fcc fc
+ | C2CC c2c: generalize-c2cc c2c
 end end
 
 val generalize-rvalue rval =
@@ -29,6 +30,7 @@ val generalize-format fmt = asm-ann-string (string-from-rope (show/format fmt))
 val generalize-condop cond = asm-ann-string (string-from-rope (show/condop cond))
 
 val generalize-fcc fcc = asm-reg (string-from-rope (show/fccode fcc))
+val generalize-c2cc c2cc = asm-reg (string-from-rope (show/cop2ccode c2cc))
 
 val generalize-immediate i = let
    val inner i sz = asm-bounded (asm-boundary-sz sz) (asm-imm (zx i))

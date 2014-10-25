@@ -28,7 +28,7 @@ val assembler-mode = '1'
 
 val decode config = do
   set-endianness BIG_ENDIAN 4;
-  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',base='00000',index='00000',sel='000',impl='0000000000000000',code10='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
+  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',base='00000',index='00000',sel='000',impl='0000000000000000',code10='0000000000',code10to20='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
   idx-before <- idxget;
   insn <- /;
   idx-after <- idxget;
@@ -47,6 +47,7 @@ type lvalue =
    GPR of gpr-register
  | FPR of fpr-register
  | FCC of fccode
+ | C2CC of cop2ccode
 
 type rvalue =
    LVALUE of lvalue
@@ -83,6 +84,21 @@ type fccode =
  | FCC5
  | FCC6
  | FCC7
+
+#########################################
+# coprocessor 2 condition code
+# - single status bits of an unspecified reg
+####
+
+type cop2ccode =
+   C2CC0
+ | C2CC1
+ | C2CC2
+ | C2CC3
+ | C2CC4
+ | C2CC5
+ | C2CC6
+ | C2CC7
 
 
 ##############################
@@ -129,6 +145,7 @@ val ext? s = (zx s.lsb) + (zx s.msbd) < 32
 val ins? s = (zx s.lsb) - (zx s.msb)  < 1
 val cloz? s = (s.rt == s.rd)
 val asimpl? s = ((zx s.impl) > 31) and assembler-mode
+val asbreak? s = (s.code10to20 == '0000000000') and assembler-mode
 val asmode? s = assembler-mode
 
 
@@ -183,35 +200,35 @@ val / ['001100 /rs /rt /immediate'] = ternop ANDI rt (right rs) immediate
 
 ### BC1F
 ###  - Branch on FP False
-val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F (right cc) offset18 
+val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F (right fcc) offset18 
 
 ### BC1FL
 ###  - Branch on FP False Likely
-val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL (right cc) offset18 
+val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL (right fcc) offset18 
 
 ### BC1T
 ###  - Branch on FP True
-val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T (right cc) offset18 
+val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T (right fcc) offset18 
 
 ### BC1TL
 ###  - Branch on FP True Likely
-val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL (right cc) offset18 
+val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL (right fcc) offset18 
 
 ### BC2F
 ###  - Branch on COP2 False
-val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F (right cc) offset18 
+val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F (right c2cc) offset18 
 
 ### BC2FL
 ###  - Branch on COP2 False Likely
-val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL (right cc) offset18 
+val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL (right c2cc) offset18 
 
 ### BC2T
 ###  - Branch on COP2 True
-val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T (right cc) offset18 
+val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T (right c2cc) offset18 
 
 ### BC2TL
 ###  - Branch on COP2 True Likely
-val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL (right cc) offset18 
+val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL (right c2cc) offset18 
 
 ### BEQ
 ###  - Branch on Equal
@@ -279,11 +296,14 @@ val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset18
 
 ### BREAK
 ###  - Breakpoint
-val / ['000000 /code20 001101'] = unop BREAK code20 
+val / ['000000 /code10 /code10to20 001101']
+ | asbreak? = unop BREAK code10
+ | asmode? = nullop UNDEFINED
+ | otherwise = unop BREAK code10to20 
 
 ### C-cond-fmt
 ###  - Floating Point Compare
-val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = ternop-cond-fmt C-cond-fmt cond fmt cc (right fs) (right ft)
+val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = ternop-cond-fmt C-cond-fmt cond fmt fcc (right fs) (right ft)
 
 ### CACHE
 ###  - Perform Cache Operation
@@ -613,11 +633,11 @@ val / ['010001 /fmt5sdps 00000 /fs /fd 000110'] = binop-fmt MOV-fmt fmt fd (righ
 
 ### MOVF
 ###  - Move Conditional on Floating Point False
-val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) (right cc) 
+val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) (right fcc) 
 
 ### MOVF-fmt
 ###  - Floating Point Move Conditional on Floating Point False
-val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) (right cc)
+val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) (right fcc)
 
 ### MOVN
 ###  - Move Conditional on Not Zero
@@ -629,11 +649,11 @@ val / ['010001 /fmt5sdps /rt /fs /fd 010011'] = ternop-fmt MOVN-fmt fmt fd (righ
 
 ### MOVT
 ###  - Move Conditional on Floating Point True
-val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) (right cc) 
+val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) (right fcc) 
 
 ### MOVT-fmt
 ###  - Floating Point Move Conditional on Floating Point True
-val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) (right cc)
+val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) (right fcc)
 
 ### MOVZ
 ###  - Move Conditional on Not Zero
@@ -1186,6 +1206,14 @@ val code10 = do
   return (IMM (CODE10 code10))
 end
 
+val code10to20 = do
+  code10 <- query $code10;
+  code10to20 <- query $code10to20;
+  update @{code10='0000000000'};
+  update @{code10to20='0000000000'};
+  return (IMM (CODE20 (code10 ^ code10to20)))
+end
+
 val code19 = do
   code19 <- query $code19;
   update @{code19='0000000000000000000'};
@@ -1234,10 +1262,16 @@ val cofun = do
   return (IMM (COFUN cofun))
 end
 
-val cc = do
+val fcc = do
   cc <- query $cc;
   update @{cc='000'};
   return (FCC (fcc-from-bits cc))
+end
+
+val c2cc = do
+  cc <- query $cc;
+  update @{cc='000'};
+  return (C2CC (c2cc-from-bits cc))
 end
 
 val cond = do
@@ -1316,6 +1350,7 @@ val /index ['index:5'] = update@{index=index}
 val /sel ['sel:3'] = update@{sel=sel}
 val /impl ['impl:16'] = update@{impl=impl}
 val /code10 ['code10:10'] = update@{code10=code10}
+val /code10to20 ['code10to20:10'] = update@{code10to20=code10to20}
 val /code19 ['code19:19'] = update@{code19=code19}
 val /code20 ['code20:20'] = update@{code20=code20}
 val /stype ['stype:5'] = update@{stype=stype}
@@ -1347,7 +1382,7 @@ val /fmt3sdps ['001'] = update@{fmt='10001'}
 val /fmt3sdps ['110'] = update@{fmt='10110'}
 
 ####################################################################
-### operation type followed by letters showing the operand types
+### operation type followed by letters expr. the operand types
 ### - l for lvalue
 ### - r for rvalue
 ### - f for format
@@ -1866,6 +1901,18 @@ val fcc-from-bits bits =
   | '101': FCC5
   | '110': FCC6
   | '111': FCC7
+ end
+
+val c2cc-from-bits bits =
+ case bits of
+    '000': C2CC0
+  | '001': C2CC1
+  | '010': C2CC2
+  | '011': C2CC3
+  | '100': C2CC4
+  | '101': C2CC5
+  | '110': C2CC6
+  | '111': C2CC7
  end
 
 val cond-from-bits bits =
