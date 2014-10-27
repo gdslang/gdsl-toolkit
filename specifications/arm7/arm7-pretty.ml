@@ -2,7 +2,7 @@
 
 export pretty : (insndata) -> rope
 
-val pretty insdata = show/instruction insdata.insn
+val pretty insndata = show-hex insndata.ip +++ ":\\t" -++ show/instruction insndata.insn
 
 val -++ a b = a +++ " " +++ b
 
@@ -110,29 +110,30 @@ val traverse f insn =
   end
 
 # Show branch instructions
-val show/br insn = show/condition insn.cond -++ show/operand insn.label
+val show/br insn = show/condition insn.cond +++ "\\t" +++ show/operand insn.label
 
 # Show data-processing instructions
 val show/dp insn insn_type = case insn_type of
-    CMN i: show/condition insn.cond -++ show/register insn.rn +++ "," -++ show/operand insn.op2
-  | MOV i: show/s insn +++ show/condition insn.cond -++ show/register insn.rd +++ "," -++ show/operand insn.op2
-  | _: show/s insn +++ show/condition insn.cond -++ show/register insn.rn +++ "," -++ show/register insn.rd +++ "," -++ show/operand insn.op2
+    CMN i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
+  | MOV i: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/operand insn.op2
+  | _: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/register insn.rn +++ "," -++ show/operand insn.op2
 end
 
 val show/s insn = if insn.s then "S" else ""
 
 # Show load/store (single) instructions
-val show/lss insn = show/condition insn.cond -++ show/register insn.rt +++ ", [" +++ show/register insn.rn +++ ", #" +++ show/sign insn +++ show/operand insn.offset +++ "]"
+val show/lss insn = show/condition insn.cond +++ "\\t" +++ show/register insn.rt +++ ", [" +++ show/register insn.rn +++ ", #" +++ show/sign insn +++ show/operand insn.offset +++ "]"
 
 val show/sign insn = if insn.u then "" else "-"
 val show/wback insn = if insn.w then "!" else ""
 
 # Show load/store (multiple) instructions
-val show/lsm insn insn_type = case insn_type of
-    POP i: show/condition insn.cond -++ show/operand insn.register_list
-  | PUSH i: show/condition insn.cond -++ show/operand insn.register_list
-  | _: show/condition insn.cond -++ show/register insn.rn +++ "," -++ show/operand insn.register_list
-end
+val show/lsm insn insn_type = show/condition insn.cond +++ "\\t" +++
+  (case insn_type of
+      POP i: show/operand insn.register_list
+    | PUSH i: show/operand insn.register_list
+    | _: show/register insn.rn +++ "," -++ show/operand insn.register_list
+end)
 
 # Show multiplication instructions
 val show/ml insn = show/s insn +++ show/condition insn.cond -++ show/register insn.rd +++ "," -++ show/register insn.rn +++ "," -++ show/register insn.rm +++ "," -++ show/register insn.ra
@@ -191,7 +192,7 @@ val show/shifttype t = case t of
 end
 
 val show/immediate imm = case imm of
-    IMMi i: if i > 8096 then show-hex i else show-int i
+    IMMi i: if i < 0 then "-0x" +++ show-hex (i - 2*i) else "+0x" +++ show-hex i
   | IMM4 i: show-int (zx i)
   | IMM5 i: show-int (zx i)
   | IMM8 i: show-int (zx i)

@@ -13,16 +13,13 @@
 export config-default: decoder-configuration
 export decode: (decoder-configuration) -> S insndata <{} => {}>
 export decoder-config : configuration[vec=decoder-configuration]
-export insn-length: (insndata) -> int
 
 type decoder-configuration = 0
 
-type insndata = {length:int, insn:instruction}
+type insndata = {ip:int, insn:instruction}
 
 val config-default = ''
 val decoder-config = END
-
-val insn-length insn = insn.length
 
 # ----------------------------------------------------------------------
 # Main Entry Point
@@ -36,9 +33,8 @@ val decode config = do
 
   idx-before <- get-ip;
   insn <- /;
-  idx-after <- get-ip;
 
-  return {length=(idx-after - idx-before), insn=insn}
+  return {ip=idx-before, insn=insn}
 end
 
 # ----------------------------------------------------------------------
