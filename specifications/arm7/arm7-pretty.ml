@@ -27,23 +27,27 @@ end
 type instruction_class =
     NONE
   | BR of br      # branch
-  | COOP of coop  # generic instruction w/ cond & operand
   | DP of dp      # data processing
   | LSS of ls     # load/store single
   | LSM of lsm    # load/store multiple
   | ML of mul     # multiply
   | MLL of mull   # mulitply long
+  | NULOP of nulop
+  | UNOP of unop
+  | BINOP of binop
 
 val show/instruction insn = let
   val show/insn mnemonic i = case i of
       BR c: mnemonic +++ show/br c
-    | COOP c: mnemonic +++ show/condition c.cond -++ show/operand c.op
     | DP c: mnemonic +++ show/dp c insn
     | LSS c: mnemonic +++ show/lss c
     | LSM c: mnemonic +++ show/lsm c insn
     | ML c: mnemonic +++ show/ml c
     | MLL c: mnemonic +++ show/mll c
     | NONE: mnemonic
+    | NULOP c: mnemonic +++ show/condition c.cond
+    | UNOP c: mnemonic +++ show/condition c.cond +++ "\\t" +++ show/operand c.opnd
+    | BINOP c: mnemonic +++ show/condition c.cond +++ "\\t" +++ show/operand c.opnd1 +++ ", " +++ show/operand c.opnd2
   end
 in
   traverse show/insn insn
@@ -104,8 +108,9 @@ val traverse f insn =
     | SMULL g: f "SMULL" (MLL g)
     | UMLAL g: f "UMLAL" (MLL g)
     | UMULL g: f "UMULL" (MLL g)
-    | DBG h: f "DBG" (COOP h)
-    | SVC h: f "SVC" (COOP h)
+    | DBG h: f "DBG" (UNOP h)
+    | SVC h: f "SVC" (UNOP h)
+    | CLZ i: f "CLZ" (BINOP i)
     | _: f "???" NONE
   end
 

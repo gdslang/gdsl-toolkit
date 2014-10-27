@@ -87,6 +87,7 @@ type instruction =
   | SMULL of mull
   | UMLAL of mull
   | UMULL of mull
+  | CLZ of binop
   | LDR of ls
   | LDRT of ls
   | LDRB of ls
@@ -119,15 +120,13 @@ type instruction =
   | BXJ of br
   | MRS of psr_transfer
   | MSR of psr_transfer
-  | NOP of hint
-  | SEV of hint
-  | WFE of hint
-  | WFI of hint
-  | YIELD of hint
-  | DBG of coop
-  | PLD of {u:1, r:1, rn:register, imm12:12}
-  | PLDW of {u:1, r:1, rn:register, imm12:12}
-  | SVC of coop
+  | NOP of nulop
+  | SEV of nulop
+  | WFE of nulop
+  | WFI of nulop
+  | YIELD of nulop
+  | DBG of unop
+  | SVC of unop
 
 type signed =
     SIGNED
@@ -145,23 +144,6 @@ type width =
 type psr =
     CPSR
   | SPSR # _<current mode>
-
-# Hint instructions
-type hint = {
-  cond:condition
-}
-
-# Generic instruction with co(ndition) and op(erand)
-type coop = {
-  cond:condition,
-  op:operand
-}
-
-# Special debug hint instruction
-type hint_dbg = {
-  cond:condition,
-  option:4        # Decoding specified by debug system
-}
 
 # Standard data-processing instruction
 type dp = {
@@ -215,6 +197,21 @@ type lsm = {
 type br = {
   cond:condition,
   label:operand
+}
+
+type nulop = {
+  cond:condition
+}
+
+type unop = {
+  cond:condition,
+  opnd:operand
+}
+
+type binop = {
+  cond:condition,
+  opnd1:operand,
+  opnd2:operand
 }
 
 type psr_transfer = {
@@ -394,15 +391,22 @@ val br cons cond label = do
   return (cons{cond=cond, label=label})
 end
 
-val coop cons cond op = do
-  cond <- cond;
-  op <- op;
-  return (cons{cond=cond, op=op})
-end
-
-val hint cons cond = do
+val nulop cons cond = do
   cond <- cond;
   return (cons{cond=cond})
+end
+
+val unop cons cond opnd = do
+  cond <- cond;
+  opnd <- opnd;
+  return (cons{cond=cond, opnd=opnd})
+end
+
+val binop cons cond opnd1 opnd2 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  return (cons{cond=cond, opnd1=opnd1, opnd2=opnd2})
 end
 
 val immediate cons = return (IMMEDIATE(cons))
@@ -622,21 +626,19 @@ val /register_list ['regs:16'] =
 
 val /register_list_one ['rt:4 000000000100'] =
   update@{register_list=(reglist-from-int (power 2 (zx rt)))}
-
+ 
 val /register_list_many ['regs@.............0..'] =
   update@{register_list=(reglist-from-int (zx regs))}
 
-
+# Returns the register list that was decoded most recently.
 val register_list = do
   register_list <- query $register_list;
   return register_list
 end
 
-# Helper function for decoding the LDR/POP instruction:
-val combine_register_list = do
-  rt <- query $rt;
-  imm12 <- query $imm12;
-  return (reglist-from-int(zx (rt ^ imm12)))
+val rx2reglist rx = do
+  reg <- rx;
+  return (reglist-from-int (power 2 (zx reg)))
 end
 
 # Register subdecoders
@@ -858,15 +860,21 @@ val / ['/cond 000 0 1 0 1 s:1 /rdhi /rdlo /rm 1001 /rn'] =
 val / ['/cond 000 0 1 0 0 s:1 /rdhi /rdlo /rm 1001 /rn'] =
   mull UMULL cond s rdhi rdlo rm rn
 
+# --- Miscellaneous data-processing instructions -----------------------
+
+### CLZ
+###  - Count Leading Zeros
+val / ['/cond 000 1 0 1 1 0 1111 /rd 1111 0001 /rm'] = binop CLZ cond (rx2operand rd)  (rx2operand rm)
+
 # --- Load/store instructions ------------------------------------------
 
-val ldr_is_pop? s = ($rn s == '1101') and ($p s == '0') and ($u s == '1') and ($w s == '0') and ($imm12 s == '000000000100')
+val ldr_is_pop? s = ($rn s == '1101') and ($p s == '0') and ($u s) and ($w s == '0') and ($imm12 s == '000000000100')
 val is_unprivileged? s = ($p s == '0') and ($w s)
 
 ### LDR/LDRT/POP
 val / ['/cond 010 /P /U 0 /W 1 /rn /rt /imm12']
 ###  - Pop Multiple Registers (Encoding A2)
-  | ldr_is_pop? = lsm POP cond w rn combine_register_list
+  | ldr_is_pop? = lsm POP cond w rn (rx2reglist rt)
 ###  - Load Register Unprivileged (Encoding A1)
   | is_unprivileged? = ls LDRT cond set0 u set0 rn rt imm12
 ###  - Load Register (immediate/literal)
@@ -938,7 +946,7 @@ val str_is_push? s = ($rn s == '1101') and ($p s == '1') and ($u s == '0') and (
 ### STR/PUSH
 val / ['/cond 010 /P /U 0 /W 0 /rn /rt /imm12']
 ###  - Push Multiple Registers (Encoding A2)
-  | str_is_push? = lsm PUSH cond w rn combine_register_list
+  | str_is_push? = lsm PUSH cond w rn (rx2reglist rt)
 ###  - Store Register (immediate)
   | otherwise = ls STR cond p u w rn rt imm12
 ###  - Store Register (register)
@@ -1022,28 +1030,27 @@ val / ['/cond 100 1 1 0 /W 0 /rn /register_list'] =
 
 ### DBG
 ###  - Debug Hint
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 opt:4'] =
-  coop DBG cond (immediate (IMM4(opt)))
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 opt:4'] = unop DBG cond (immediate (IMM4(opt)))
 
 ### NOP
 ###  - No Operation
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0000'] = hint NOP cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0000'] = nulop NOP cond
 
 ### SEV
 ###  - Send Event
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0100'] = hint SEV cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0100'] = nulop SEV cond
 
 ### YIELD
 ###  - Yield
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0001'] = hint YIELD cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0001'] = nulop YIELD cond
 
 ### WFE
 ###  - Wait For Event
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0010'] = hint WFE cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0010'] = nulop WFE cond
 
 ### WFI
 ###  - Wait For Interrupt
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0011'] = hint WFI cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0011'] = nulop WFI cond
 
 # --- Miscellaneous instructions ---------------------------------------
 
@@ -1051,4 +1058,4 @@ val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0011'] = hint WFI cond
 
 # --- Exception-generating/-handling instructions
 
-val / ['/cond 111 1 imm24:24'] = coop SVC cond (immediate (IMM24(imm24)))
+val / ['/cond 111 1 imm24:24'] = unop SVC cond (immediate (IMM24(imm24)))
