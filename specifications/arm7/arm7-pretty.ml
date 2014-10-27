@@ -17,10 +17,10 @@ val show-hex i = let
     | _: show-int (nibble)
   end
 in
-  if (/m i 16) === 0 then
+  if (/z i 16) === 0 then
     hex (mod i 16)
   else
-    show-hex (/m i 16) +++ hex (mod i 16)
+    show-hex (/z i 16) +++ hex (mod i 16)
 end
 
 # The instruction types for pretty printing
@@ -191,7 +191,7 @@ val show/shifttype t = case t of
 end
 
 val show/immediate imm = case imm of
-    IMMi i: if i > 8096 then "0x" +++ show-hex i else show-int i
+    IMMi i: if i > 8096 then show-hex i else show-int i
   | IMM4 i: show-int (zx i)
   | IMM5 i: show-int (zx i)
   | IMM8 i: show-int (zx i)

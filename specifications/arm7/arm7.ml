@@ -50,12 +50,18 @@ val reset = do
     b='0', p='0', w='0', s='0',
     ra='0000', rd='0000', rm='0000', rn='0000', rt='0000',
     rdhi='0000', rdlo='0000',
-    register_list=REGL_NIL,
     imm4='0000', imm4H='0000', imm4L='0000',
     imm12='000000000000',
     byte='00000000', rot='0000'
   }
 end
+
+# ----------------------------------------------------------------------
+# Utility Functions
+# ----------------------------------------------------------------------
+
+# I didn't see this operator anywhere else...
+val mod a b = a - (/z a b) * b
 
 # ----------------------------------------------------------------------
 # Type Definitions
@@ -238,7 +244,7 @@ type immediate =
   | IMM12 of 12
   | IMM16 of 16
   | IMM24 of 24
-  | MODIMM of {byte:8, rot:4}
+  | MODIMM of {byte:8, rot:4} # 8 bit immediate with 4 bit rotation
 
 # A list of registers (for load/store instructions)
 type registerlist =
@@ -420,9 +426,6 @@ val push cons cond registers = do
   registers <- registers;
   return (cons{cond=cond, registers=registers})
 end
-
-# I didn't see this operator anywhere else...
-val mod a b = a - (/m a b) * b
 
 # Creates a list of registers
 # NOTE: This function should be called by a wrapper like reglist-from-int
@@ -698,31 +701,25 @@ end
 
 ### B
 ### - Branch
-val / ['/cond 101 0 imm24:24'] =
-  br B cond (immediate (IMMi(sx (imm24^'00'))))
+val / ['/cond 101 0 imm24:24'] = br B cond (immediate (IMMi(sx (imm24^'00'))))
 
 ### BL
 ###  - Branch with Link
-val / ['/cond 101 1 imm24:24'] =
-  br BL cond (immediate (IMMi(sx (imm24^'00'))))
+val / ['/cond 101 1 imm24:24'] = br BL cond (immediate (IMMi(sx (imm24^'00'))))
 
 ### BLX
 ###  - Branch with Link and Exchange (Immediate)
-val / ['1111 101 h:1 imm24:24'] =
-  br BLX no_cond (immediate (IMMi(sx (imm24^h^'0'))))
+val / ['1111 101 h:1 imm24:24'] = br BLX no_cond (immediate (IMMi(sx (imm24^h^'0'))))
 ###  - Branch with Link and Exchange (Register)
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0011 /rm'] =
-  br BLX cond (rx2operand rm)
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0011 /rm'] = br BLX cond (rx2operand rm)
 
 ### BX
 ### - Branch and Exchange
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0001 /rm'] =
-  br BX cond (rx2operand rm)
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0001 /rm'] = br BX cond (rx2operand rm)
 
 ### BXJ
 ###  - Branch and Exchange Jazelle
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0010 /rm'] =
-  br BXJ cond (rx2operand rm)
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0010 /rm'] = br BXJ cond (rx2operand rm)
 
 # --- Data Processing Instructions -------------------------------------
 
