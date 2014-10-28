@@ -2,7 +2,7 @@
 
 export pretty : (insndata) -> rope
 
-val pretty insndata = show-hex insndata.ip +++ ":\\t" -++ show/instruction insndata.insn
+val pretty insndata = show-hex insndata.ip +++ ":\\t" -++ show/instruction insndata.insn insndata.ip
 
 val -++ a b = a +++ " " +++ b
 
@@ -36,9 +36,9 @@ type instruction_class =
   | UNOP of unop
   | BINOP of binop
 
-val show/instruction insn = let
+val show/instruction insn ip = let
   val show/insn mnemonic i = case i of
-      BR c: mnemonic +++ show/br c
+      BR c: mnemonic +++ show/br c ip
     | DP c: mnemonic +++ show/dp c insn
     | LSS c: mnemonic +++ show/lss c
     | LSM c: mnemonic +++ show/lsm c insn
@@ -115,7 +115,18 @@ val traverse f insn =
   end
 
 # Show branch instructions
-val show/br insn = show/condition insn.cond +++ "\\t" +++ show/operand insn.label
+val show/br insn ip = show/condition insn.cond +++ "\\t" +++ show/target insn.label ip
+
+val show/target label ip =
+  case label of
+      IMMEDIATE imm: (
+        case imm of
+            IMMi i: show-hex (ip + 8 + i)
+          | _: "???"
+        end)
+    | REGISTER reg: show/register reg
+    | _: "???"
+  end
 
 # Show data-processing instructions
 val show/dp insn insn_type = case insn_type of
