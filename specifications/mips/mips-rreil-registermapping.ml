@@ -93,6 +93,9 @@ type sem_id =
  | Sem_CCRES
  | Sem_ULR
 
+type sem_id =
+   Sem_C2CCREG
+
 val fIE = sem-reg-offset (semantic-reg-of Sem_SREG) 0
 val fRE = sem-reg-offset (semantic-reg-of Sem_SREG) 25
 val fCA = sem-reg-offset (semantic-reg-of Sem_CONFIG1) 2
@@ -130,6 +133,7 @@ val semantic-reg-of x =
     | Sem_CC		: {id=Sem_CC,offset=0,size=32}
     | Sem_CCRES		: {id=Sem_CCRES,offset=0,size=32}
     | Sem_ULR		: {id=Sem_ULR,offset=0,size=32}
+    | Sem_C2CCREG	: {id=Sem_C2CCREG,offset=0,size=32}
    end
 
 val semantic-gpr-of r =
@@ -203,7 +207,11 @@ val semantic-fpr-of f =
     | F30  : {id=Sem_F30 ,offset=0,size=32}
     | F31  : {id=Sem_F31 ,offset=0,size=32}
     | FIR  : {id=Sem_FIR ,offset=0,size=32}
-    | FCCR  : {id=Sem_FCCR ,offset=0,size=32}
+   end
+
+val semantic-fcr-of f =
+   case f of
+      FCCR  : {id=Sem_FCCR ,offset=0,size=32}
     | FEXR  : {id=Sem_FEXR ,offset=0,size=32}
     | FENR  : {id=Sem_FENR ,offset=0,size=32}
     | FCSR  : {id=Sem_FCSR ,offset=0,size=32}

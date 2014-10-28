@@ -90,6 +90,7 @@ val arch-show-id r =
 	 | Sem_CC: "CC"
 	 | Sem_CCRES: "CCRes"
 	 | Sem_ULR: "ULR"
+	 | Sem_C2CCREG: "Cop2CC"
    end
 
 val pretty-arch-id r = arch-show-id r
