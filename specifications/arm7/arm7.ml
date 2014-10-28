@@ -747,15 +747,15 @@ val / ['/cond 000 1 1 1 0 /S /rn /rd /shiftedreg'] = dp BIC cond s rn rd shifted
 
 ### CMN
 ###  - Compare Negative (immediate)
-val / ['/cond 001 1 0 1 1 1 /rn /rd /modimm'] = dp CMN cond set1 rn rd modimm
+val / ['/cond 001 1 0 1 1 1 /rn 0000 /modimm'] = dp CMN cond set1 rn (return '0000') modimm
 ###  - Compare Negative (shifted register)
-val / ['/cond 000 1 0 1 1 1 /rn /rd /shiftedreg'] = dp CMN cond s rn rd shiftedreg
+val / ['/cond 000 1 0 1 1 1 /rn 0000 /shiftedreg'] = dp CMN cond s rn (return '0000') shiftedreg
 
 ### CMP
 ###  - Compare (immediate)
-val / ['/cond 001 1 0 1 0 1 /rn /rd /modimm'] = dp CMP cond set1 rn rd modimm
+val / ['/cond 001 1 0 1 0 1 /rn 0000 /modimm'] = dp CMP cond set1 rn (return '0000') modimm
 ###  - Compare (shifted register)
-val / ['/cond 000 1 0 1 0 1 /rn /rd /shiftedreg'] = dp CMP cond set1 rn rd shiftedreg
+val / ['/cond 000 1 0 1 0 1 /rn 0000 /shiftedreg'] = dp CMP cond set1 rn (return '0000') shiftedreg
 
 ### EOR
 ###  - Bitwise Exclusive OR (immediate)
