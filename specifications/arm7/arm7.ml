@@ -54,8 +54,8 @@ end
 # Utility Functions
 # ----------------------------------------------------------------------
 
-# I didn't see this operator anywhere else...
-val mod a b = a - (/z a b) * b
+# Modulo. I didn't see this operator anywhere else...
+val /mod a b = a - (/z a b) * b
 
 # ----------------------------------------------------------------------
 # Type Definitions
@@ -326,7 +326,7 @@ val mls cons cond rd ra rm rn = do
   })
 end
 
-val mul cons cond s rd ra rm rn = do
+val ml cons cond s rd ra rm rn = do
   cond <- cond;
   s <- s;
   rd <- rd;
@@ -428,7 +428,7 @@ end
 # NOTE: This function should be called by a wrapper like reglist-from-int
 val create-reglist intlist reg_index reglist =
   if intlist > 0 then
-    if mod intlist 2 === 1 then
+    if /mod intlist 2 === 1 then
       REGL_CONS {
         head=(decode-register reg_index),
         tail=(create-reglist (/m intlist 2) (reg_index + 1) reglist)
@@ -825,17 +825,17 @@ val / ['/cond 000 1 0 0 0 1 /rn 0000 /shiftedreg'] = dp TST cond s rn (return '0
 ### MLA
 ###  - Multiply Accumulate
 val / ['/cond 000 0 0 0 1 /S /rd /ra /rm 1001 /rn'] =
-  mul MLA cond s rd ra rm rn
+  ml MLA cond s rd ra rm rn
 
 ### MLS
 ###  - Multiply and Subtract
 val / ['/cond 000 0 0 1 1 0 /rd /ra /rm 1001 /rn'] =
-  mul MLS cond set0 rd ra rm rn
+  ml MLS cond set0 rd ra rm rn
 
 ### MUL
 ###  - Multiply
 val / ['/cond 000 0 0 0 0 /S /rd ra@0000 /rm 1001 /rn'] =
-  mul MUL cond s rd (return ra) rm rn
+  ml MUL cond s rd (return ra) rm rn
 
 ### SMLAL
 ###  - Signed Multiply Accumulate Long

@@ -18,9 +18,9 @@ val show-hex i = let
   end
 in
   if (/z i 16) === 0 then
-    hex (mod i 16)
+    hex (/mod i 16)
   else
-    show-hex (/z i 16) +++ hex (mod i 16)
+    show-hex (/z i 16) +++ hex (/mod i 16)
 end
 
 # The instruction types for pretty printing
@@ -32,7 +32,7 @@ type instruction_class =
   | LSM of lsm    # load/store multiple
   | ML of mul     # multiply
   | MLL of mull   # mulitply long
-  | NULOP of nulop
+  | NULLOP of nullop
   | UNOP of unop
   | BINOP of binop
 
@@ -45,7 +45,7 @@ val show/instruction insn ip = let
     | ML c: mnemonic +++ show/ml c
     | MLL c: mnemonic +++ show/mll c
     | NONE: mnemonic
-    | NULOP c: mnemonic +++ show/condition c.cond
+    | NULLOP c: mnemonic +++ show/condition c.cond
     | UNOP c: mnemonic +++ show/condition c.cond +++ "\\t" +++ show/operand c.opnd
     | BINOP c: mnemonic +++ show/condition c.cond +++ "\\t" +++ show/operand c.opnd1 +++ ", " +++ show/operand c.opnd2
   end
