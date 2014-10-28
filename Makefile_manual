@@ -1,6 +1,6 @@
 include config.mk
 
-archs:=x86 avr mips arm
+archs:=x86 avr mips arm7
 
 $(archs):
 	$(MAKE) -f Makefile_$@
