@@ -26,7 +26,6 @@ val decoder-config = END
 # ----------------------------------------------------------------------
 
 val decode config = do
-  (* TODO: Maybe the endianess should be handled via cmdline options? *)
   endianness endian-little/instr32-little/access32;
 
   reset;
@@ -39,7 +38,6 @@ end
 
 # ----------------------------------------------------------------------
 
-(* NOTE: This function is most likely unnecessary... It doesn't really matter*)
 val reset = do
   update@{
     cond='0000',
@@ -56,8 +54,8 @@ end
 # Utility Functions
 # ----------------------------------------------------------------------
 
-# I didn't see this operator anywhere else...
-val mod a b = a - (/z a b) * b
+# Modulo. I didn't see this operator anywhere else...
+val /mod a b = a - (/z a b) * b
 
 # ----------------------------------------------------------------------
 # Type Definitions
@@ -120,12 +118,14 @@ type instruction =
   | BXJ of br
   | MRS of psr_transfer
   | MSR of psr_transfer
-  | NOP of nulop
-  | SEV of nulop
-  | WFE of nulop
-  | WFI of nulop
-  | YIELD of nulop
+  | CLREX of nullop
   | DBG of unop
+  | DMB of unop
+  | NOP of nullop
+  | SEV of nullop
+  | WFE of nullop
+  | WFI of nullop
+  | YIELD of nullop
   | SVC of unop
 
 type signed =
@@ -199,15 +199,18 @@ type br = {
   label:operand
 }
 
-type nulop = {
+# Generic instruction without any operands
+type nullop = {
   cond:condition
 }
 
+# Generic instruction with one operand
 type unop = {
   cond:condition,
   opnd:operand
 }
 
+# Generic instruction with two operands
 type binop = {
   cond:condition,
   opnd1:operand,
@@ -323,7 +326,7 @@ val mls cons cond rd ra rm rn = do
   })
 end
 
-val mul cons cond s rd ra rm rn = do
+val ml cons cond s rd ra rm rn = do
   cond <- cond;
   s <- s;
   rd <- rd;
@@ -391,7 +394,7 @@ val br cons cond label = do
   return (cons{cond=cond, label=label})
 end
 
-val nulop cons cond = do
+val nullop cons cond = do
   cond <- cond;
   return (cons{cond=cond})
 end
@@ -421,17 +424,11 @@ val psr_transfer cons condition source destination flagsonly = do
   return (cons{condition=condition, source=source, destination=destination, flagsonly=flagsonly})
 end
 
-val push cons cond registers = do
-  cond <- cond;
-  registers <- registers;
-  return (cons{cond=cond, registers=registers})
-end
-
 # Creates a list of registers
 # NOTE: This function should be called by a wrapper like reglist-from-int
 val create-reglist intlist reg_index reglist =
   if intlist > 0 then
-    if mod intlist 2 === 1 then
+    if /mod intlist 2 === 1 then
       REGL_CONS {
         head=(decode-register reg_index),
         tail=(create-reglist (/m intlist 2) (reg_index + 1) reglist)
@@ -528,7 +525,7 @@ val cond = do
   return (cond-from-bits cond)
 end
 
-val no_cond = return NV
+val none = return NV
 
 # Flag subdecoders
 val /P ['p:1'] = update@{p=p}
@@ -707,7 +704,7 @@ val / ['/cond 101 1 imm24:24'] = br BL cond (immediate (IMMi(sx (imm24^'00'))))
 
 ### BLX
 ###  - Branch with Link and Exchange (Immediate)
-val / ['1111 101 h:1 imm24:24'] = br BLX no_cond (immediate (IMMi(sx (imm24^h^'0'))))
+val / ['1111 101 h:1 imm24:24'] = br BLX none (immediate (IMMi(sx (imm24^h^'0'))))
 ###  - Branch with Link and Exchange (Register)
 val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0011 /rm'] = br BLX cond (rx2operand rm)
 
@@ -747,15 +744,15 @@ val / ['/cond 000 1 1 1 0 /S /rn /rd /shiftedreg'] = dp BIC cond s rn rd shifted
 
 ### CMN
 ###  - Compare Negative (immediate)
-val / ['/cond 001 1 0 1 1 1 /rn /rd /modimm'] = dp CMN cond set1 rn rd modimm
+val / ['/cond 001 1 0 1 1 1 /rn 0000 /modimm'] = dp CMN cond set1 rn (return '0000') modimm
 ###  - Compare Negative (shifted register)
-val / ['/cond 000 1 0 1 1 1 /rn /rd /shiftedreg'] = dp CMN cond s rn rd shiftedreg
+val / ['/cond 000 1 0 1 1 1 /rn 0000 /shiftedreg'] = dp CMN cond s rn (return '0000') shiftedreg
 
 ### CMP
 ###  - Compare (immediate)
-val / ['/cond 001 1 0 1 0 1 /rn /rd /modimm'] = dp CMP cond set1 rn rd modimm
+val / ['/cond 001 1 0 1 0 1 /rn 0000 /modimm'] = dp CMP cond set1 rn (return '0000') modimm
 ###  - Compare (shifted register)
-val / ['/cond 000 1 0 1 0 1 /rn /rd /shiftedreg'] = dp CMP cond set1 rn rd shiftedreg
+val / ['/cond 000 1 0 1 0 1 /rn 0000 /shiftedreg'] = dp CMP cond set1 rn (return '0000') shiftedreg
 
 ### EOR
 ###  - Bitwise Exclusive OR (immediate)
@@ -828,17 +825,17 @@ val / ['/cond 000 1 0 0 0 1 /rn 0000 /shiftedreg'] = dp TST cond s rn (return '0
 ### MLA
 ###  - Multiply Accumulate
 val / ['/cond 000 0 0 0 1 /S /rd /ra /rm 1001 /rn'] =
-  mul MLA cond s rd ra rm rn
+  ml MLA cond s rd ra rm rn
 
 ### MLS
 ###  - Multiply and Subtract
 val / ['/cond 000 0 0 1 1 0 /rd /ra /rm 1001 /rn'] =
-  mul MLS cond set0 rd ra rm rn
+  ml MLS cond set0 rd ra rm rn
 
 ### MUL
 ###  - Multiply
 val / ['/cond 000 0 0 0 0 /S /rd ra@0000 /rm 1001 /rn'] =
-  mul MUL cond s rd (return ra) rm rn
+  ml MUL cond s rd (return ra) rm rn
 
 ### SMLAL
 ###  - Signed Multiply Accumulate Long
@@ -1026,35 +1023,35 @@ val / ['/cond 100 0 0 0 /W 0 /rn /register_list'] =
 val / ['/cond 100 1 1 0 /W 0 /rn /register_list'] =
   lsm STMIB cond w rn register_list
 
-# --- Hint instructions ------------------------------------------------
+# --- Miscellaneous instructions ---------------------------------------
+
+### CLREX
+###  - Clear-Exclusive
+val / ['1111 010 1 0 1 1 1 1111 1111 0000 0001 1111'] = nullop CLREX none
 
 ### DBG
 ###  - Debug Hint
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 opt:4'] = unop DBG cond (immediate (IMM4(opt)))
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 option:4'] =unop DBG cond (immediate (IMM4(option)))
 
 ### NOP
 ###  - No Operation
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0000'] = nulop NOP cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0000'] = nullop NOP cond
 
 ### SEV
 ###  - Send Event
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0100'] = nulop SEV cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0100'] = nullop SEV cond
 
 ### YIELD
 ###  - Yield
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0001'] = nulop YIELD cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0001'] = nullop YIELD cond
 
 ### WFE
 ###  - Wait For Event
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0010'] = nulop WFE cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0010'] = nullop WFE cond
 
 ### WFI
 ###  - Wait For Interrupt
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0011'] = nulop WFI cond
-
-# --- Miscellaneous instructions ---------------------------------------
-
-# Coming soon...
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0011'] = nullop WFI cond
 
 # --- Exception-generating/-handling instructions
 

@@ -2,7 +2,7 @@
 
 export pretty : (insndata) -> rope
 
-val pretty insndata = show-hex insndata.ip +++ ":\\t" -++ show/instruction insndata.insn
+val pretty insndata = show-hex insndata.ip +++ ":\\t" -++ show/instruction insndata.insn insndata.ip
 
 val -++ a b = a +++ " " +++ b
 
@@ -18,9 +18,9 @@ val show-hex i = let
   end
 in
   if (/z i 16) === 0 then
-    hex (mod i 16)
+    hex (/mod i 16)
   else
-    show-hex (/z i 16) +++ hex (mod i 16)
+    show-hex (/z i 16) +++ hex (/mod i 16)
 end
 
 # The instruction types for pretty printing
@@ -32,20 +32,20 @@ type instruction_class =
   | LSM of lsm    # load/store multiple
   | ML of mul     # multiply
   | MLL of mull   # mulitply long
-  | NULOP of nulop
+  | NULLOP of nullop
   | UNOP of unop
   | BINOP of binop
 
-val show/instruction insn = let
+val show/instruction insn ip = let
   val show/insn mnemonic i = case i of
-      BR c: mnemonic +++ show/br c
+      BR c: mnemonic +++ show/br c ip
     | DP c: mnemonic +++ show/dp c insn
     | LSS c: mnemonic +++ show/lss c
     | LSM c: mnemonic +++ show/lsm c insn
     | ML c: mnemonic +++ show/ml c
     | MLL c: mnemonic +++ show/mll c
     | NONE: mnemonic
-    | NULOP c: mnemonic +++ show/condition c.cond
+    | NULLOP c: mnemonic +++ show/condition c.cond
     | UNOP c: mnemonic +++ show/condition c.cond +++ "\\t" +++ show/operand c.opnd
     | BINOP c: mnemonic +++ show/condition c.cond +++ "\\t" +++ show/operand c.opnd1 +++ ", " +++ show/operand c.opnd2
   end
@@ -115,12 +115,27 @@ val traverse f insn =
   end
 
 # Show branch instructions
-val show/br insn = show/condition insn.cond +++ "\\t" +++ show/operand insn.label
+val show/br insn ip = show/condition insn.cond +++ "\\t" +++ show/target insn.label ip
+
+val show/target label ip =
+  case label of
+      IMMEDIATE imm: (
+        case imm of
+            IMMi i: show-hex (ip + 8 + i)
+          | _: "???"
+        end)
+    | REGISTER reg: show/register reg
+    | _: "???"
+  end
 
 # Show data-processing instructions
 val show/dp insn insn_type = case insn_type of
     CMN i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
+  | CMP i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
   | MOV i: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/operand insn.op2
+  | MVN i: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/operand insn.op2
+  | TEQ i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
+  | TST i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
   | _: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/register insn.rn +++ "," -++ show/operand insn.op2
 end
 
