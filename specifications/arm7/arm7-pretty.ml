@@ -120,7 +120,11 @@ val show/br insn = show/condition insn.cond +++ "\\t" +++ show/operand insn.labe
 # Show data-processing instructions
 val show/dp insn insn_type = case insn_type of
     CMN i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
+  | CMP i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
   | MOV i: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/operand insn.op2
+  | MVN i: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/operand insn.op2
+  | TEQ i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
+  | TST i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
   | _: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/register insn.rn +++ "," -++ show/operand insn.op2
 end
 
