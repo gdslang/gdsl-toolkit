@@ -9,34 +9,62 @@ val config-default = ''
 
 type insndata = {length:int, insn:instruction}
 
-type imm =
-   IMM5 of 5
- | IMM16 of 16
- | RTRD5 of 5
- | OFFSET9 of 9
- | OFFSET16 of 16
- | SEL of 3
- | IMPL of 16
- | CODE10 of 10
- | CODE19 of 19
- | CODE20 of 20
- | STYPE of 5
- | POSSIZE of 5
- | SIZE of 5
- | POS of 5
- | HINT of 5
- | INSTRINDEX of 26
- | COFUN of 25
- | OP of 5
+
+
+####################################################################
+### architecture specific values can be set in the translator.ml ###
+####################################################################
+
+
+
+## being set true, the instruction set and printed output is adapted
+## to the mips evaluation assembler
+val assembler-mode = '1'
+
+
+#################################
+# decode and configure function
+####
+
+val decode config = do
+#  endianness endian-little/instr32-big/access64;
+#  endianness endian-little/instr32-big/access64;
+
+#  endianness endian-little/instr32-little/access32; #mipsel
+  endianness endian-big/instr32-big/access32; #mips
+  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',base='00000',index='00000',sel='000',impl='0000000000000000',code10='0000000000',code10to20='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
+  idx-before <- get-ip;
+  insn <- /;
+  idx-after <- get-ip;
+  return {length=(idx-after - idx-before), insn=insn}
+end
+
+
+
+##############################################
+# operand base types
+# - lvalue: left hand side value (dest/source)
+# - rvalue: right hand side value (source)
+####
 
 type lvalue =
-   GPR of register
- | FPR of register
+   GPR of gpr-register
+ | FPR of fpr-register
  | FCC of fccode
+ | C2CC of cop2ccode
 
 type rvalue =
    LVALUE of lvalue
  | IMM of imm
+ | OFFSET/BASE of {offset:imm, base:gpr-register}
+ | INDEX/BASE of {index:gpr-register, base:gpr-register}
+ | MSB/LSB of {msb:imm, lsb:imm}
+
+
+#########################################
+# format
+# - FPU, data format identifier
+####
 
 type format = 
    S
@@ -44,6 +72,12 @@ type format =
  | W
  | L
  | PS
+
+
+#########################################
+# floating point condition code
+# - single status bits of register FCSR
+####
 
 type fccode =
    FCC0
@@ -54,6 +88,27 @@ type fccode =
  | FCC5
  | FCC6
  | FCC7
+
+#########################################
+# coprocessor 2 condition code
+# - single status bits of an unspecified reg
+####
+
+type cop2ccode =
+   C2CC0
+ | C2CC1
+ | C2CC2
+ | C2CC3
+ | C2CC4
+ | C2CC5
+ | C2CC6
+ | C2CC7
+
+
+##############################
+# condition operand
+# - only in C-cond-fmt instr.
+####
 
 type condop =
    C_F
@@ -73,47 +128,35 @@ type condop =
  | C_LE
  | C_NGT
 
+
+################
+# transform a lvalue to rvalue
+####
+
 val right lvalue = do
   lvalue <- lvalue;
   return (LVALUE lvalue)
 end
 
 
-val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101')
+########################
+# guards conditions
+####
+
+val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101') and (not (assembler-mode))
 val jalr? s = not (s.rd == s.rs)
-val ext? s = (zx s.lsb) + (zx s.msbd)+1 < 33
+val ext? s = (zx s.lsb) + (zx s.msbd) < 32
+val ins? s = (zx s.lsb) - (zx s.msb)  < 1
 val cloz? s = (s.rt == s.rd)
+val asimpl? s = ((zx s.impl) > 31) and assembler-mode
+val asbreak? s = (s.code10to20 == '0000000000') and assembler-mode
+val asmode? s = assembler-mode
 
-###
-# SLL not script handled yet
-#val / ['000000 00000 /rt /rd /sa 000000']
-# | pause? = nullop PAUSE
-# | otherwise = ternop SLL rd (right rt) sa
-#
-# JALR too
-#val / ['000000 /rs 00000 /rd 00000 001001']
-# | jalr? = binop JALR rd (right rs) 
-#
-# SLLV, SRLV, SRAV, ROTRV rs and rt operands must be switched; WRPGPR swap params; EXT lsb and msbd; pretty printer offset *4 etc; ext guard; offset sign extend; switch FMT{ADD,MSUB,NMSUB,NMADD,SUB,MADD,MOVF,MOVN,MOVZ,DIV,CVT-PS-S,PLL.PS,PLU.PS,PUL.PS,PUU.PS}
-# guards for CLO/CLZ
-# C.cond.fmt cond-operand
-###
 
-# -> sftl
 
-val decode config = do
-#  endianness endian-little/instr32-big/access64;
-#  endianness endian-little/instr32-big/access64;
-
-#  endianness endian-little/instr32-little/access32; #mipsel
-  endianness endian-big/instr32-big/access32; #mips
-  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',sel='000',impl='0000000000000000',code10='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
-  idx-before <- get-ip;
-  insn <- /;
-  idx-after <- get-ip;
-  return {length=(idx-after - idx-before), insn=insn}
-end
-
+######################
+# decoder rules
+####
 
 ### ABS-fmt
 ###  - Floating Point Absolute Value
@@ -161,115 +204,120 @@ val / ['001100 /rs /rt /immediate'] = ternop ANDI rt (right rs) immediate
 
 ### BC1F
 ###  - Branch on FP False
-val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F (right cc) offset16 
+val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F (right fcc) offset18 
 
 ### BC1FL
 ###  - Branch on FP False Likely
-val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL (right cc) offset16 
+val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL (right fcc) offset18 
 
 ### BC1T
 ###  - Branch on FP True
-val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T (right cc) offset16 
+val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T (right fcc) offset18 
 
 ### BC1TL
 ###  - Branch on FP True Likely
-val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL (right cc) offset16 
+val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL (right fcc) offset18 
 
 ### BC2F
 ###  - Branch on COP2 False
-val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F (right cc) offset16 
+val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F (right c2cc) offset18 
 
 ### BC2FL
 ###  - Branch on COP2 False Likely
-val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL (right cc) offset16 
+val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL (right c2cc) offset18 
 
 ### BC2T
 ###  - Branch on COP2 True
-val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T (right cc) offset16 
+val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T (right c2cc) offset18 
 
 ### BC2TL
 ###  - Branch on COP2 True Likely
-val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL (right cc) offset16 
+val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL (right c2cc) offset18 
 
 ### BEQ
 ###  - Branch on Equal
-val / ['000100 /rs /rt /offset16'] = ternop BEQ (right rs) (right rt) offset16 
+val / ['000100 /rs /rt /offset16'] = ternop BEQ (right rs) (right rt) offset18 
 
 ### BEQL
 ###  - Branch on Equal Likely
-val / ['010100 /rs /rt /offset16'] = ternop BEQL (right rs) (right rt) offset16 
+val / ['010100 /rs /rt /offset16'] = ternop BEQL (right rs) (right rt) offset18
 
 ### BGEZ
 ###  - Branch on Greater Than or Equal to Zero
-val / ['000001 /rs 00001 /offset16'] = binop BGEZ (right rs) offset16 
+val / ['000001 /rs 00001 /offset16'] = binop BGEZ (right rs) offset18
 
 ### BGEZAL
 ###  - Branch on Greater Than or Equal to Zero and Link
-val / ['000001 /rs 10001 /offset16'] = binop BGEZAL (right rs) offset16 
+val / ['000001 /rs 10001 /offset16'] = binop BGEZAL (right rs) offset18
 
 ### BGEZALL
 ###  - Branch on Greater Than or Equal to Zero and Link Likely
-val / ['000001 /rs 10011 /offset16'] = binop BGEZALL (right rs) offset16 
+val / ['000001 /rs 10011 /offset16'] = binop BGEZALL (right rs) offset18
 
 ### BGEZL
 ###  - Branch on Greater Than or Equal to Zero Likely
-val / ['000001 /rs 00011 /offset16'] = binop BGEZL (right rs) offset16 
+val / ['000001 /rs 00011 /offset16'] = binop BGEZL (right rs) offset18
 
 ### BGTZ
 ###  - Branch on Greater Than Zero
-val / ['000111 /rs 00000 /offset16'] = binop BGTZ (right rs) offset16 
+val / ['000111 /rs 00000 /offset16'] = binop BGTZ (right rs) offset18
 
 ### BGTZL
 ###  - Branch on Greater Than Zero Likely
-val / ['010111 /rs 00000 /offset16'] = binop BGTZL (right rs) offset16 
+val / ['010111 /rs 00000 /offset16'] = binop BGTZL (right rs) offset18
 
 ### BLEZ
 ###  - Branch on Less Than or Equal to Zero
-val / ['000110 /rs 00000 /offset16'] = binop BLEZ (right rs) offset16 
+val / ['000110 /rs 00000 /offset16'] = binop BLEZ (right rs) offset18
 
 ### BLEZL
 ###  - Branch on Less Than or Equal to Zero Likely
-val / ['010110 /rs 00000 /offset16'] = binop BLEZL (right rs) offset16 
+val / ['010110 /rs 00000 /offset16'] = binop BLEZL (right rs) offset18
 
 ### BLTZ
 ###  - Branch on Less Than Zero
-val / ['000001 /rs 00000 /offset16'] = binop BLTZ (right rs) offset16 
+val / ['000001 /rs 00000 /offset16'] = binop BLTZ (right rs) offset18
 
 ### BLTZAL
 ###  - Branch on Less Than Zero And Link
-val / ['000001 /rs 10000 /offset16'] = binop BLTZAL (right rs) offset16 
+val / ['000001 /rs 10000 /offset16'] = binop BLTZAL (right rs) offset18
 
 ### BLTZALL
 ###  - Branch on Less Than Zero And Link Likely
-val / ['000001 /rs 10010 /offset16'] = binop BLTZALL (right rs) offset16 
+val / ['000001 /rs 10010 /offset16'] = binop BLTZALL (right rs) offset18
 
 ### BLTZL
 ###  - Branch on Less Than Zero Likely
-val / ['000001 /rs 00010 /offset16'] = binop BLTZL (right rs) offset16 
+val / ['000001 /rs 00010 /offset16'] = binop BLTZL (right rs) offset18
 
 ### BNE
 ###  - Branch on Not Equal
-val / ['000101 /rs /rt /offset16'] = ternop BNE (right rs) (right rt) offset16 
+val / ['000101 /rs /rt /offset16'] = ternop BNE (right rs) (right rt) offset18
 
 ### BNEL
 ###  - Branch on Not Equal Likely
-val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset16 
+val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset18
 
 ### BREAK
 ###  - Breakpoint
-val / ['000000 /code20 001101'] = unop BREAK code20 
+val / ['000000 /code10 /code10to20 001101']
+ | asbreak? = unop BREAK code10
+ | asmode? = nullop UNDEFINED
+ | otherwise = unop BREAK code10to20 
 
 ### C-cond-fmt
 ###  - Floating Point Compare
-val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = ternop-cond-fmt C-cond-fmt cond fmt cc (right fs) (right ft)
+val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = ternop-cond-fmt C-cond-fmt cond fmt fcc (right fs) (right ft)
 
 ### CACHE
 ###  - Perform Cache Operation
-val / ['101111 /rs /op /offset16'] = ternop CACHE (right rs) op offset16 
+val / ['101111 /base /op /offset16'] = binop CACHE op offset16/base
 
 ### CACHEE
 ###  - Perform Cache Operation EVA
-val / ['011111 /rs /op /offset9 0 011011'] = ternop CACHEE (right rs) op offset9 
+val / ['011111 /base /op /offset9 0 011011']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop CACHEE op offset9/base 
 
 ### CEIL-L-fmt
 ###  - Fixed Point Ceiling Convert to Long Fixed Point
@@ -285,17 +333,21 @@ val / ['010001 00010 /rt /fs 00000000000'] = binop CFC1 rt (right fs)
 
 ### CFC2
 ###  - Move Control Word From Coprocessor 2
-val / ['010010 00010 /rt /impl'] = binop CFC2 rt impl 
+val / ['010010 00010 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop CFC2 rt impl 
 
 ### CLO
 ###  - Count Leading Ones in Word
 val / ['011100 /rs /rt /rd 00000 100001']
  | cloz? = binop CLO rd (right rs)
+ | otherwise = nullop UNPREDICTABLE
 
 ### CLZ
 ###  - Count Leading Zeros in Word
 val / ['011100 /rs /rt /rd 00000 100000']
  | cloz? = binop CLZ rd (right rs)
+ | otherwise = nullop UNPREDICTABLE
 
 ### COP2
 ###  - Coprocessor Operation to Coprocessor 2
@@ -307,7 +359,9 @@ val / ['010001 00110 /rt /fs 00000000000'] = binop CTC1 (right rt) fs/ctrl
 
 ### CTC2
 ###  - Move Control Word to Coprocessor 2
-val / ['010010 00110 /rt /impl'] = binop CTC2 (right rt) impl 
+val / ['010010 00110 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop CTC2 (right rt) impl 
 
 ### CVT-D-fmt
 ###  - Floating Point Convert To Double Floating Point
@@ -373,6 +427,7 @@ val / ['010000 1 0000000000000000000 011000'] = nullop ERET
 ###  - Extract Bit Field
 val / ['011111 /rs /rt /msbd /lsb 000000']
  | ext? = quadop EXT rt (right rs) lsb msbd
+ | otherwise = nullop UNPREDICTABLE
 
 ### FLOOR-L-fmt
 ###  - Floating Point Floor Convert to Long Fixed Point
@@ -384,7 +439,9 @@ val / ['010001 /fmt5sd 00000 /fs /fd 001111'] = binop-fmt FLOOR-W-fmt fmt fd (ri
 
 ### INS
 ###  - Insert Bit Field
-val / ['011111 /rs /rt /msb /lsb 000100'] = quadop INS rt (right rs) msb lsb 
+val / ['011111 /rs /rt /msb /lsb 000100']
+ | ins? = ternop INS rt (right rs) msb/lsb 
+ | otherwise = nullop UNPREDICTABLE
 
 ### J
 ###  - Jump
@@ -398,11 +455,13 @@ val / ['000011 /instr_index'] = unop JAL instr_index
 ###  - Jump And Link Register
 val / ['000000 /rs 00000 /rd 00000 001001']
  | jalr? = binop JALR rd (right rs) 
+ | otherwise = nullop UNPREDICTABLE
 
 ### JALR-HB
 ###  - Jump and Link Register with Hazard Barrier
 val / ['000000 /rs 00000 /rd 1 0000 001001']
  | jalr? = binop JALR-HB rd (right rs) 
+ | otherwise = nullop UNPREDICTABLE
 
 ### JALX
 ###  - Jump and Link Exchange
@@ -418,55 +477,65 @@ val / ['000000 /rs 0000000000 1 0000 001000'] = unop JR-HB (right rs)
 
 ### LB
 ###  - Load Byte
-val / ['100000 /rs /rt /offset16'] = ternop LB rt (right rs) offset16 
+val / ['100000 /base /rt /offset16'] = binop LB rt offset16/base
 
 ### LBE
 ###  - Load Byte EVA
-val / ['011111 /rs /rt /offset9 0 101100'] = ternop LBE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101100']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LBE rt offset9/base 
 
 ### LBU
 ###  - Load Byte Unsigned
-val / ['100100 /rs /rt /offset16'] = ternop LBU rt (right rs) offset16 
+val / ['100100 /base /rt /offset16'] = binop LBU rt offset16/base
 
 ### LBUE
 ###  - Load Byte Unsigned EVA
-val / ['011111 /rs /rt /offset9 0 101000'] = ternop LBUE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101000']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LBUE rt offset9/base
 
 ### LDC1
 ###  - Load Doubleword to Floating Point
-val / ['110101 /rs /ft /offset16'] = ternop LDC1 ft (right rs) offset16 
+val / ['110101 /base /ft /offset16'] = binop LDC1 ft offset16/base 
 
 ### LDC2
 ###  - Load Doubleword to Coprocessor 2
-val / ['110110 /rs /rt /offset16'] = ternop LDC2 (right rs) rt/imm offset16 
+val / ['110110 /base /rt /offset16'] = binop LDC2 rt/imm offset16/base 
 
 ### LDXC1
 ###  - Load Doubleword Indexed to Floating Point
-val / ['010011 /rs /rt 00000 /fd 000001'] = ternop LDXC1 fd (right rs) (right rt) 
+val / ['010011 /base /index 00000 /fd 000001'] = binop LDXC1 fd index/base
 
 ### LH
 ###  - Load Halfword
-val / ['100001 /rs /rt /offset16'] = ternop LH rt (right rs) offset16 
+val / ['100001 /base /rt /offset16'] = binop LH rt offset16/base
 
 ### LHE
 ###  - Load Halfword EVA
-val / ['011111 /rs /rt /offset9 0 101101'] = ternop LHE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101101']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LHE rt offset9/base
 
 ### LHU
 ###  - Load Halfword Unsigned
-val / ['100101 /rs /rt /offset16'] = ternop LHU rt (right rs) offset16 
+val / ['100101 /base /rt /offset16'] = binop LHU rt offset16/base
 
 ### LHUE
 ###  - Load Halfword Unsigned EVA
-val / ['011111 /rs /rt /offset9 0 101001'] = ternop LHUE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101001']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LHUE rt offset9/base
 
 ### LL
 ###  - Load Linked Word
-val / ['110000 /rs /rt /offset16'] = ternop LL rt (right rs) offset16 
+val / ['110000 /base /rt /offset16'] = binop LL rt offset16/base
 
 ### LLE
 ###  - Load Linked Word EVA
-val / ['011111 /rs /rt /offset9 0 101110'] = ternop LLE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101110']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LLE rt offset9/base
 
 ### LUI
 ###  - Load Upper Immediate
@@ -474,43 +543,49 @@ val / ['001111 00000 /rt /immediate'] = binop LUI rt immediate
 
 ### LUXC1
 ###  - Load Doubleword Indexed Unaligned to Floating Point
-val / ['010011 /rs /rt 00000 /fd 000101'] = ternop LUXC1 fd (right rs) (right rt) 
+val / ['010011 /base /index 00000 /fd 000101'] = binop LUXC1 fd index/base
 
 ### LW
 ###  - Load word
-val / ['100011 /rs /rt /offset16'] = ternop LW rt (right rs) offset16 
+val / ['100011 /base /rt /offset16'] = binop LW rt offset16/base
 
 ### LWC1
 ###  - Load Word To Floating Point
-val / ['110001 /rs /ft /offset16'] = ternop LWC1 ft (right rs) offset16 
+val / ['110001 /base /ft /offset16'] = binop LWC1 ft offset16/base
 
 ### LWC2
 ###  - Load Word to Coprocessor 2
-val / ['110010 /rs /rt /offset16'] = ternop LWC2 (right rs) rt/imm offset16 
+val / ['110010 /base /rt /offset16'] = binop LWC2 rt/imm offset16/base 
 
 ### LWE
 ###  - Load Word EVA
-val / ['011111 /rs /rt /offset9 0 101111'] = ternop LWE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 101111']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LWE rt offset9/base
 
 ### LWL
 ###  - Load Word Left
-val / ['100010 /rs /rt /offset16'] = ternop LWL rt (right rs) offset16 
+val / ['100010 /base /rt /offset16'] = binop LWL rt offset16/base
 
 ### LWLE
 ###  - Load Word Left EVA
-val / ['011111 /rs /rt /offset9 0 011001'] = ternop LWLE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 011001']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LWLE rt offset9/base
 
 ### LWR
 ###  - Load Word Right
-val / ['100110 /rs /rt /offset16'] = ternop LWR rt (right rs) offset16 
+val / ['100110 /base /rt /offset16'] = binop LWR rt offset16/base
 
 ### LWRE
 ###  - Load Word Right EVA
-val / ['011111 /rs /rt /offset9 0 011010'] = ternop LWRE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 011010']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop LWRE rt offset9/base
 
 ### LWXC1
 ###  - Load Word Indexed to Floating Point
-val / ['010011 /rs /rt 00000 /fd 000000'] = ternop LWXC1 fd (right rs) (right rt) 
+val / ['010011 /base /index 00000 /fd 000000'] = binop LWXC1 fd index/base
 
 ### MADD
 ###  - Multiply and Add Word to Hi,Lo
@@ -534,7 +609,9 @@ val / ['010001 00000 /rt /fs 00000000000'] = binop MFC1 rt (right fs)
 
 ### MFC2
 ###  - Move Word From Coprocessor 2
-val / ['010010 00000 /rt /impl'] = binop MFC2 rt impl 
+val / ['010010 00000 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop MFC2 rt impl 
 
 ### MFHC1
 ###  - Move Word From High Half of Floating Point Register
@@ -542,7 +619,9 @@ val / ['010001 00011 /rt /fs 00000000000'] = binop MFHC1 rt (right fs)
 
 ### MFHC2
 ###  - Move Word From High Half of Coprocessor 2 Register
-val / ['010010 00011 /rt /impl'] = binop MFHC2 rt impl
+val / ['010010 00011 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop MFHC2 rt impl
 
 ### MFHI
 ###  - Move From HI Register
@@ -558,11 +637,11 @@ val / ['010001 /fmt5sdps 00000 /fs /fd 000110'] = binop-fmt MOV-fmt fmt fd (righ
 
 ### MOVF
 ###  - Move Conditional on Floating Point False
-val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) (right cc) 
+val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) (right fcc) 
 
 ### MOVF-fmt
 ###  - Floating Point Move Conditional on Floating Point False
-val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) (right cc)
+val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) (right fcc)
 
 ### MOVN
 ###  - Move Conditional on Not Zero
@@ -574,11 +653,11 @@ val / ['010001 /fmt5sdps /rt /fs /fd 010011'] = ternop-fmt MOVN-fmt fmt fd (righ
 
 ### MOVT
 ###  - Move Conditional on Floating Point True
-val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) (right cc) 
+val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) (right fcc) 
 
 ### MOVT-fmt
 ###  - Floating Point Move Conditional on Floating Point True
-val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) (right cc)
+val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) (right fcc)
 
 ### MOVZ
 ###  - Move Conditional on Not Zero
@@ -610,7 +689,9 @@ val / ['010001 00100 /rt /fs 00000000000'] = binop MTC1 (right rt) fs
 
 ### MTC2
 ###  - Move Word to Coprocessor 2
-val / ['010010 00100 /rt /impl'] = binop MTC2 (right rt) impl 
+val / ['010010 00100 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop MTC2 (right rt) impl 
 
 ### MTHC1
 ###  - Move Word to High Half of Floating Point Register
@@ -618,7 +699,9 @@ val / ['010001 00111 /rt /fs 00000000000'] = binop MTHC1 (right rt) fs
 
 ### MTHC2
 ###  - Move Word to High Half of Coprocessor 2 Register
-val / ['010010 00111 /rt /impl'] = binop MTHC2 (right rt) impl 
+val / ['010010 00111 /rt /impl']
+ | asimpl? = nullop UNDEFINED
+ | otherwise = binop MTHC2 (right rt) impl 
 
 ### MTHI
 ###  - Move To HI Register
@@ -686,15 +769,17 @@ val / ['010001 10110 /ft /fs /fd 101101'] = ternop PLU-PS fd (right fs) (right f
 
 ### PREF
 ###  - Prefetch
-val / ['110011 /rs /hint5 /offset16'] = ternop PREF (right rs) hint5 offset16 
+val / ['110011 /base /hint5 /offset16'] = binop PREF hint5 offset16/base
 
 ### PREFE
 ###  - Prefetch EVA
-val / ['011111 /rs /hint5 /offset9 0 100011'] = ternop PREFE (right rs) hint5 offset9 
+val / ['011111 /base /hint5 /offset9 0 100011']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop PREFE hint5 offset9/base
 
 ### PREFX
 ###  - Prefetch Indexed
-val / ['010011 /rs /rt /hint5 00000 001111'] = ternop PREFX (right rs) (right rt) hint5 
+val / ['010011 /base /index /hint5 00000 001111'] = binop PREFX hint5 index/base 
 
 ### PUL-PS
 ###  - Pair Upper Lower
@@ -738,19 +823,23 @@ val / ['010001 /fmt5sd 00000 /fs /fd 010110'] = binop-fmt RSQRT-fmt fmt fd (righ
 
 ### SB
 ###  - Store Byte
-val / ['101000 /rs /rt /offset16'] = ternop SB (right rs) (right rt) offset16 
+val / ['101000 /base /rt /offset16'] = binop SB (right rt) offset16/base
 
 ### SBE
 ###  - Store Byte EVA
-val / ['011111 /rs /rt /offset9 0 011100'] = ternop SBE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 011100']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SBE (right rt) offset9/base 
 
 ### SC
 ###  - Store Conditional Word
-val / ['111000 /rs /rt /offset16'] = ternop SC rt (right rs) offset16 
+val / ['111000 /base /rt /offset16'] = binop SC rt offset16/base
 
 ### SCE
 ###  - Store Conditional Word EVA
-val / ['011111 /rs /rt /offset9 0 011110'] = ternop SCE rt (right rs) offset9 
+val / ['011111 /base /rt /offset9 0 011110']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SCE rt offset9/base
 
 ### SDBBP
 ###  - Software Debug Breakpoint
@@ -758,15 +847,15 @@ val / ['011100 /code20 111111'] = unop SDBBP code20
 
 ### SDC1
 ###  - Store Doubleword from Floating Point
-val / ['111101 /rs /ft /offset16'] = ternop SDC1 (right rs) (right ft) offset16 
+val / ['111101 /base /ft /offset16'] = binop SDC1 (right ft) offset16/base
 
 ### SDC2
 ###  - Store Doubleword from Coprocessor 2
-val / ['111110 /rs /rt /offset16'] = ternop SDC2 (right rs) rt/imm offset16 
+val / ['111110 /base /rt /offset16'] = binop SDC2 rt/imm offset16/base 
 
 ### SDXC1
 ###  - Store Doubleword Indexed from Floating Point
-val / ['010011 /rs /rt /fs 00000 001001'] = ternop SDXC1 (right rs) (right rt) (right fs) 
+val / ['010011 /base /index /fs 00000 001001'] = binop SDXC1 (right fs) index/base
 
 ### SEB
 ###  - Sign-Extend Byte
@@ -778,11 +867,13 @@ val / ['011111 00000 /rt /rd 11000 100000'] = binop SEH rd (right rt)
 
 ### SH
 ###  - Store Halfword
-val / ['101001 /rs /rt /offset16'] = ternop SH (right rs) (right rt) offset16 
+val / ['101001 /base /rt /offset16'] = binop SH (right rt) offset16/base 
 
 ### SHE
 ###  - Store Halfword EVA
-val / ['011111 /rs /rt /offset9 0 011101'] = ternop SHE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 011101']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SHE (right rt) offset9/base 
 
 ### SLL
 ###  - Shift Word Left Logical
@@ -848,43 +939,49 @@ val / ['000000 /rs /rt /rd 00000 100011'] = ternop SUBU rd (right rs) (right rt)
 
 ### SUXC1
 ###  - Store Doubleword Indexed Unaligned from Floating Point
-val / ['010011 /rs /rt /fs 00000 001101'] = ternop SUXC1 (right rs) (right rt) (right fs) 
+val / ['010011 /base /index /fs 00000 001101'] = binop SUXC1 (right fs) index/base
 
 ### SW
 ###  - Store Word
-val / ['101011 /rs /rt /offset16'] = ternop SW (right rs) (right rt) offset16 
+val / ['101011 /base /rt /offset16'] = binop SW (right rt) offset16/base
 
 ### SWC1
 ###  - Store Word from Floating Point
-val / ['111001 /rs /ft /offset16'] = ternop SWC1 (right rs) (right ft) offset16 
+val / ['111001 /base /ft /offset16'] = binop SWC1 (right ft) offset16/base
 
 ### SWC2
 ###  - Store Word from Coprocessor 2
-val / ['111010 /rs /rt /offset16'] = ternop SWC2 (right rs) rt/imm offset16 
+val / ['111010 /base /rt /offset16'] = binop SWC2 rt/imm offset16/base
 
 ### SWE
 ###  - Store Word EVA
-val / ['011111 /rs /rt /offset9 0 011111'] = ternop SWE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 011111']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SWE (right rt) offset9/base 
 
 ### SWL
 ###  - Store Word Left
-val / ['101010 /rs /rt /offset16'] = ternop SWL (right rs) (right rt) offset16 
+val / ['101010 /base /rt /offset16'] = binop SWL (right rt) offset16/base 
 
 ### SWLE
 ###  - Store Word Left EVA
-val / ['011111 /rs /rt /offset9 0 100001'] = ternop SWLE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 100001']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SWLE (right rt) offset9/base 
 
 ### SWR
 ###  - Store Word Right
-val / ['101110 /rs /rt /offset16'] = ternop SWR (right rs) (right rt) offset16 
+val / ['101110 /base /rt /offset16'] = binop SWR (right rt) offset16/base 
 
 ### SWRE
 ###  - Store Word Right EVA
-val / ['011111 /rs /rt /offset9 0 100010'] = ternop SWRE (right rs) (right rt) offset9 
+val / ['011111 /base /rt /offset9 0 100010']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SWRE (right rt) offset9/base 
 
 ### SWXC1
 ###  - Store Word Indexed from Floating Point
-val / ['010011 /rs /rt /fs 00000 001000'] = ternop SWXC1 (right rs) (right rt) (right fs) 
+val / ['010011 /base /index /fs 00000 001000'] = binop SWXC1 (right fs) index/base
 
 ### SYNC
 ###  - Synchronize Shared Memory
@@ -892,7 +989,7 @@ val / ['000000 000000000000000 /stype 001111'] = unop SYNC stype
 
 ### SYNCI
 ###  - Synchronize Caches to Make Instruction Writes Effective
-val / ['000001 /rs 11111 /offset16'] = binop SYNCI (right rs) offset16 
+val / ['000001 /base 11111 /offset16'] = unop SYNCI offset16/base
 
 ### SYSCALL
 ###  - System Call
@@ -924,11 +1021,15 @@ val / ['000000 /rs /rt /code10 110001'] = ternop TGEU (right rs) (right rt) code
 
 ### TLBINV
 ###  - TLB Invalidate
-val / ['010000 1 0000000000000000000 000011'] = nullop TLBINV 
+val / ['010000 1 0000000000000000000 000011']
+ | asmode? = nullop UNDEFINED
+ | otherwise = nullop TLBINV 
 
 ### TLBINVF
 ###  - TLB Invalidate Flush
-val / ['010000 1 0000000000000000000 000100'] = nullop TLBINVF 
+val / ['010000 1 0000000000000000000 000100']
+ | asmode? = nullop UNDEFINED
+ | otherwise = nullop TLBINVF 
 
 ### TLBP
 ###  - Probe TLB for Matching Entry
@@ -998,6 +1099,14 @@ val / ['000000 /rs /rt /rd 00000 100110'] = ternop XOR rd (right rs) (right rt)
 ###  - Exclusive OR Immediate
 val / ['001110 /rs /rt /immediate'] = ternop XORI rt (right rs) immediate 
 
+### UNDEFINED
+### - Undefined Instruction
+val / [] = nullop UNDEFINED
+
+
+###########################
+# operand constructors
+####
 
 val rs = do
   rs <- query $rs;
@@ -1056,7 +1165,7 @@ end
 val fs/ctrl = do
   fs <- query $fs;
   update @{fs='00000'};
-  return (IMM (IMM5 fs))
+  return (IMM (FSCTRL5 fs))
 end
 
 val immediate = do
@@ -1065,16 +1174,22 @@ val immediate = do
   return (IMM (IMM16 immediate))
 end
 
+val offset9 = do
+  offset9 <- query $offset9;
+  update @{offset9='000000000'};
+  return (IMM (OFFSET9 offset9))
+end
+
 val offset16 = do
   offset16 <- query $offset16;
   update @{offset16='0000000000000000'};
   return (IMM (OFFSET16 offset16))
 end
 
-val offset9 = do
-  offset9 <- query $offset9;
-  update @{offset9='000000000'};
-  return (IMM (OFFSET9 offset9))
+val offset18 = do
+  offset16 <- query $offset16;
+  update @{offset16='0000000000000000'};
+  return (IMM (OFFSET18 (offset16 ^ '00')))
 end
 
 val sel = do
@@ -1095,6 +1210,14 @@ val code10 = do
   return (IMM (CODE10 code10))
 end
 
+val code10to20 = do
+  code10 <- query $code10;
+  code10to20 <- query $code10to20;
+  update @{code10='0000000000'};
+  update @{code10to20='0000000000'};
+  return (IMM (CODE20 (code10 ^ code10to20)))
+end
+
 val code19 = do
   code19 <- query $code19;
   update @{code19='0000000000000000000'};
@@ -1113,22 +1236,16 @@ val stype = do
   return (IMM (STYPE stype))
 end
 
-val msb = do
-  msb <- query $msb;
-  update @{msb='00000'};
-  return (IMM (POSSIZE msb))
-end
-
 val msbd = do
   msbd <- query $msbd;
   update @{msbd='00000'};
-  return (IMM (SIZE msbd))
+  return (IMM (MSBD msbd))
 end
 
 val lsb = do
   lsb <- query $lsb;
   update @{lsb='00000'};
-  return (IMM (POS lsb))
+  return (IMM (LSB lsb))
 end
 
 val sa = do
@@ -1140,7 +1257,7 @@ end
 val instr_index = do
   instr_index <- query $instr_index;
   update @{instr_index='00000000000000000000000000'};
-  return (IMM (INSTRINDEX instr_index))
+  return (IMM (INSTRINDEX28 (instr_index ^ '00')))
 end
 
 val cofun = do
@@ -1149,10 +1266,16 @@ val cofun = do
   return (IMM (COFUN cofun))
 end
 
-val cc = do
+val fcc = do
   cc <- query $cc;
   update @{cc='000'};
   return (FCC (fcc-from-bits cc))
+end
+
+val c2cc = do
+  cc <- query $cc;
+  update @{cc='000'};
+  return (C2CC (c2cc-from-bits cc))
 end
 
 val cond = do
@@ -1179,6 +1302,42 @@ val fmt = do
   return (format-from-bits (fmt))
 end
 
+############################
+# tuple constructors
+####
+
+val offset9/base = do
+  offset9 <- query $offset9;
+  base <- query $base;
+  update @{offset9='000000000'};
+  update @{base='00000'};
+  return (OFFSET/BASE {offset=(OFFSET9 offset9), base=(gpr-from-bits base)})
+end
+
+val offset16/base = do
+  offset16 <- query $offset16;
+  base <- query $base;
+  update @{offset16='0000000000000000'};
+  update @{base='00000'};
+  return (OFFSET/BASE {offset=(OFFSET16 offset16), base=(gpr-from-bits base)})
+end
+
+val index/base = do
+  index <- query $index;
+  base <- query $base;
+  update @{index='00000'};
+  update @{base='00000'};
+  return (INDEX/BASE {index=(gpr-from-bits index), base=(gpr-from-bits base)})
+end
+
+val msb/lsb = do
+  msb <- query $msb;
+  lsb <- query $lsb;
+  update @{msb='00000'};
+  update @{lsb='00000'};
+  return (MSB/LSB {msb=(MSB msb), lsb=(LSB lsb)})
+end
+
 
 val /rs ['rs:5'] = update@{rs=rs}
 val /rt ['rt:5'] = update@{rt=rt}
@@ -1188,11 +1347,14 @@ val /fs ['fs:5'] = update@{fs=fs}
 val /ft ['ft:5'] = update@{ft=ft}
 val /fd ['fd:5'] = update@{fd=fd}
 val /immediate ['immediate:16'] = update@{immediate=immediate}
-val /offset16 ['offset16:16'] = update@{offset16=offset16}
 val /offset9 ['offset9:9'] = update@{offset9=offset9}
+val /offset16 ['offset16:16'] = update@{offset16=offset16}
+val /base ['base:5'] = update@{base=base}
+val /index ['index:5'] = update@{index=index}
 val /sel ['sel:3'] = update@{sel=sel}
 val /impl ['impl:16'] = update@{impl=impl}
 val /code10 ['code10:10'] = update@{code10=code10}
+val /code10to20 ['code10to20:10'] = update@{code10to20=code10to20}
 val /code19 ['code19:19'] = update@{code19=code19}
 val /code20 ['code20:20'] = update@{code20=code20}
 val /stype ['stype:5'] = update@{stype=stype}
@@ -1223,6 +1385,13 @@ val /fmt3sdps ['000'] = update@{fmt='10000'}
 val /fmt3sdps ['001'] = update@{fmt='10001'}
 val /fmt3sdps ['110'] = update@{fmt='10110'}
 
+####################################################################
+### operation type followed by letters expr. the operand types
+### - l for lvalue
+### - r for rvalue
+### - f for format
+### - c for cond
+######################
 
 type unop-r = {op:rvalue}
 type unop-l = {op:lvalue}
@@ -1303,7 +1472,9 @@ end
 
 
 type instruction = 
-   ABS-fmt of binop-flr
+   UNPREDICTABLE
+ | UNDEFINED
+ | ABS-fmt of binop-flr
  | ADD of ternop-lrr
  | ADD-fmt of ternop-flrr
  | ADDI of ternop-lrr
@@ -1338,8 +1509,8 @@ type instruction =
  | BNEL of ternop-rrr
  | BREAK of unop-r
  | C-cond-fmt of ternop-cflrr
- | CACHE of ternop-rrr
- | CACHEE of ternop-rrr
+ | CACHE of binop-rr
+ | CACHEE of binop-rr
  | CEIL-L-fmt of binop-flr
  | CEIL-W-fmt of binop-flr
  | CFC1 of binop-lr
@@ -1366,7 +1537,7 @@ type instruction =
  | EXT of quadop-lrrr
  | FLOOR-L-fmt of binop-flr
  | FLOOR-W-fmt of binop-flr
- | INS of quadop-lrrr
+ | INS of ternop-lrr
  | J of unop-r
  | JAL of unop-r
  | JALR of binop-lr
@@ -1374,30 +1545,30 @@ type instruction =
  | JALX of unop-r
  | JR of unop-r
  | JR-HB of unop-r
- | LB of ternop-lrr
- | LBE of ternop-lrr
- | LBU of ternop-lrr
- | LBUE of ternop-lrr
- | LDC1 of ternop-lrr
- | LDC2 of ternop-rrr
- | LDXC1 of ternop-lrr
- | LH of ternop-lrr
- | LHE of ternop-lrr
- | LHU of ternop-lrr
- | LHUE of ternop-lrr
- | LL of ternop-lrr
- | LLE of ternop-lrr
+ | LB of binop-lr
+ | LBE of binop-lr
+ | LBU of binop-lr
+ | LBUE of binop-lr
+ | LDC1 of binop-lr
+ | LDC2 of binop-rr
+ | LDXC1 of binop-lr
+ | LH of binop-lr
+ | LHE of binop-lr
+ | LHU of binop-lr
+ | LHUE of binop-lr
+ | LL of binop-lr
+ | LLE of binop-lr
  | LUI of binop-lr
- | LUXC1 of ternop-lrr
- | LW of ternop-lrr
- | LWC1 of ternop-lrr
- | LWC2 of ternop-rrr
- | LWE of ternop-lrr
- | LWL of ternop-lrr
- | LWLE of ternop-lrr
- | LWR of ternop-lrr
- | LWRE of ternop-lrr
- | LWXC1 of ternop-lrr
+ | LUXC1 of binop-lr
+ | LW of binop-lr
+ | LWC1 of binop-lr
+ | LWC2 of binop-rr
+ | LWE of binop-lr
+ | LWL of binop-lr
+ | LWLE of binop-lr
+ | LWR of binop-lr
+ | LWRE of binop-lr
+ | LWXC1 of binop-lr
  | MADD of binop-rr
  | MADD-fmt of quadop-flrrr
  | MADDU of binop-rr
@@ -1437,11 +1608,12 @@ type instruction =
  | NOR of ternop-lrr
  | OR of ternop-lrr
  | ORI of ternop-lrr
+ | PAUSE
  | PLL-PS of ternop-lrr
  | PLU-PS of ternop-lrr
- | PREF of ternop-rrr
- | PREFE of ternop-rrr
- | PREFX of ternop-rrr
+ | PREF of binop-rr
+ | PREFE of binop-rr
+ | PREFX of binop-rr
  | PUL-PS of ternop-lrr
  | PUU-PS of ternop-lrr
  | RDHWR of binop-lr
@@ -1452,18 +1624,18 @@ type instruction =
  | ROUND-L-fmt of binop-flr
  | ROUND-W-fmt of binop-flr
  | RSQRT-fmt of binop-flr
- | SB of ternop-rrr
- | SBE of ternop-rrr
- | SC of ternop-lrr
- | SCE of ternop-lrr
+ | SB of binop-rr
+ | SBE of binop-rr
+ | SC of binop-lr
+ | SCE of binop-lr
  | SDBBP of unop-r
- | SDC1 of ternop-rrr
- | SDC2 of ternop-rrr
- | SDXC1 of ternop-rrr
+ | SDC1 of binop-rr
+ | SDC2 of binop-rr
+ | SDXC1 of binop-rr
  | SEB of binop-lr
  | SEH of binop-lr
- | SH of ternop-rrr
- | SHE of ternop-rrr
+ | SH of binop-rr
+ | SHE of binop-rr
  | SLL of ternop-lrr
  | SLLV of ternop-lrr
  | SLT of ternop-lrr
@@ -1478,18 +1650,18 @@ type instruction =
  | SUB of ternop-lrr
  | SUB-fmt of ternop-flrr
  | SUBU of ternop-lrr
- | SUXC1 of ternop-rrr
- | SW of ternop-rrr
- | SWC1 of ternop-rrr
- | SWC2 of ternop-rrr
- | SWE of ternop-rrr
- | SWL of ternop-rrr
- | SWLE of ternop-rrr
- | SWR of ternop-rrr
- | SWRE of ternop-rrr
- | SWXC1 of ternop-rrr
+ | SUXC1 of binop-rr
+ | SW of binop-rr
+ | SWC1 of binop-rr
+ | SWC2 of binop-rr
+ | SWE of binop-rr
+ | SWL of binop-rr
+ | SWLE of binop-rr
+ | SWR of binop-rr
+ | SWRE of binop-rr
+ | SWXC1 of binop-rr
  | SYNC of unop-r
- | SYNCI of binop-rr
+ | SYNCI of unop-r
  | SYSCALL of unop-r
  | TEQ of ternop-rrr
  | TEQI of binop-rr
@@ -1517,12 +1689,39 @@ type instruction =
  | XOR of ternop-lrr
  | XORI of ternop-lrr
 
-# <- sutl
 
-type instruction = 
-   PAUSE
+################################
+# all required immediate types
+####
 
-type register =
+type imm =
+   IMM5 of 5
+ | IMM16 of 16
+ | RTRD5 of 5
+ | FSCTRL5 of 5
+ | OFFSET9 of 9
+ | OFFSET16 of 16
+ | OFFSET18 of 18
+ | SEL of 3
+ | IMPL of 16
+ | CODE10 of 10
+ | CODE19 of 19
+ | CODE20 of 20
+ | STYPE of 5
+ | MSB of 5
+ | MSBD of 5
+ | LSB of 5
+ | HINT of 5
+ | INSTRINDEX28 of 28
+ | COFUN of 25
+ | OP of 5
+
+
+#############################
+# general purpose registers
+####
+
+type gpr-register =
    ZERO
  | AT
  | V0
@@ -1556,13 +1755,23 @@ type register =
  | S8
  | RA
 
-type register =
+
+#############################
+# special purpose registers
+####
+
+type sp-register =
    HI
  | LO
  | PC
  | SREG
 
-type register =
+
+#############################
+# floating point registers
+####
+
+type fpr-register =
    F0
  | F1
  | F2
@@ -1596,10 +1805,23 @@ type register =
  | F30
  | F31
  | FIR
- | FCCR
+
+
+#####################################
+# floating point control registers
+####
+
+type fcr-register =
+   FCCR
  | FEXR
  | FENR
  | FCSR
+
+
+##############################################
+# helpers to assign bit vectors to a register,
+# condition or a format
+####
 
 val gpr-from-bits bits =
  case bits of
@@ -1683,6 +1905,18 @@ val fcc-from-bits bits =
   | '101': FCC5
   | '110': FCC6
   | '111': FCC7
+ end
+
+val c2cc-from-bits bits =
+ case bits of
+    '000': C2CC0
+  | '001': C2CC1
+  | '010': C2CC2
+  | '011': C2CC3
+  | '100': C2CC4
+  | '101': C2CC5
+  | '110': C2CC6
+  | '111': C2CC7
  end
 
 val cond-from-bits bits =
