@@ -26,7 +26,6 @@ val decoder-config = END
 # ----------------------------------------------------------------------
 
 val decode config = do
-  (* TODO: Maybe the endianess should be handled via cmdline options? *)
   endianness endian-little/instr32-little/access32;
 
   reset;
@@ -39,7 +38,6 @@ end
 
 # ----------------------------------------------------------------------
 
-(* NOTE: This function is most likely unnecessary... It doesn't really matter*)
 val reset = do
   update@{
     cond='0000',
@@ -120,12 +118,14 @@ type instruction =
   | BXJ of br
   | MRS of psr_transfer
   | MSR of psr_transfer
-  | NOP of nulop
-  | SEV of nulop
-  | WFE of nulop
-  | WFI of nulop
-  | YIELD of nulop
+  | CLREX of nullop
   | DBG of unop
+  | DMB of unop
+  | NOP of nullop
+  | SEV of nullop
+  | WFE of nullop
+  | WFI of nullop
+  | YIELD of nullop
   | SVC of unop
 
 type signed =
@@ -199,15 +199,18 @@ type br = {
   label:operand
 }
 
-type nulop = {
+# Generic instruction without any operands
+type nullop = {
   cond:condition
 }
 
+# Generic instruction with one operand
 type unop = {
   cond:condition,
   opnd:operand
 }
 
+# Generic instruction with two operands
 type binop = {
   cond:condition,
   opnd1:operand,
@@ -391,7 +394,7 @@ val br cons cond label = do
   return (cons{cond=cond, label=label})
 end
 
-val nulop cons cond = do
+val nullop cons cond = do
   cond <- cond;
   return (cons{cond=cond})
 end
@@ -419,12 +422,6 @@ val psr_transfer cons condition source destination flagsonly = do
   condition <- condition;
   source <- source;
   return (cons{condition=condition, source=source, destination=destination, flagsonly=flagsonly})
-end
-
-val push cons cond registers = do
-  cond <- cond;
-  registers <- registers;
-  return (cons{cond=cond, registers=registers})
 end
 
 # Creates a list of registers
@@ -528,7 +525,7 @@ val cond = do
   return (cond-from-bits cond)
 end
 
-val no_cond = return NV
+val none = return NV
 
 # Flag subdecoders
 val /P ['p:1'] = update@{p=p}
@@ -707,7 +704,7 @@ val / ['/cond 101 1 imm24:24'] = br BL cond (immediate (IMMi(sx (imm24^'00'))))
 
 ### BLX
 ###  - Branch with Link and Exchange (Immediate)
-val / ['1111 101 h:1 imm24:24'] = br BLX no_cond (immediate (IMMi(sx (imm24^h^'0'))))
+val / ['1111 101 h:1 imm24:24'] = br BLX none (immediate (IMMi(sx (imm24^h^'0'))))
 ###  - Branch with Link and Exchange (Register)
 val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0011 /rm'] = br BLX cond (rx2operand rm)
 
@@ -1026,35 +1023,35 @@ val / ['/cond 100 0 0 0 /W 0 /rn /register_list'] =
 val / ['/cond 100 1 1 0 /W 0 /rn /register_list'] =
   lsm STMIB cond w rn register_list
 
-# --- Hint instructions ------------------------------------------------
+# --- Miscellaneous instructions ---------------------------------------
+
+### CLREX
+###  - Clear-Exclusive
+val / ['1111 010 1 0 1 1 1 1111 1111 0000 0001 1111'] = nullop CLREX none
 
 ### DBG
 ###  - Debug Hint
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 opt:4'] = unop DBG cond (immediate (IMM4(opt)))
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 option:4'] =unop DBG cond (immediate (IMM4(option)))
 
 ### NOP
 ###  - No Operation
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0000'] = nulop NOP cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0000'] = nullop NOP cond
 
 ### SEV
 ###  - Send Event
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0100'] = nulop SEV cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0100'] = nullop SEV cond
 
 ### YIELD
 ###  - Yield
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0001'] = nulop YIELD cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0001'] = nullop YIELD cond
 
 ### WFE
 ###  - Wait For Event
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0010'] = nulop WFE cond
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0010'] = nullop WFE cond
 
 ### WFI
 ###  - Wait For Interrupt
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0011'] = nulop WFI cond
-
-# --- Miscellaneous instructions ---------------------------------------
-
-# Coming soon...
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0011'] = nullop WFI cond
 
 # --- Exception-generating/-handling instructions
 
