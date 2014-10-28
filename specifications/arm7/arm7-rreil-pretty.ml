@@ -19,7 +19,7 @@ val arch-show-id r =
     | Sem_R9: "R9"
     | Sem_R10: "R10"
     | Sem_R11: "R11"
-    | Sem_IP: "IP"
+    | Sem_R12: "R12"
     | Sem_SP: "SP"
     | Sem_LR: "LR"
     | Sem_PC: "PC"
