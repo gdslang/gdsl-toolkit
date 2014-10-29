@@ -116,8 +116,6 @@ type instruction =
   | BLX of br
   | BX of br
   | BXJ of br
-  | MRS of psr_transfer
-  | MSR of psr_transfer
   | CLREX of nullop
   | DBG of unop
   | DMB of unop
@@ -140,10 +138,6 @@ type width =
     BYTE
   | WORD
   | HALFWORD
-
-type psr =
-    CPSR
-  | SPSR # _<current mode>
 
 # Standard data-processing instruction
 type dp = {
@@ -217,19 +211,11 @@ type binop = {
   opnd2:operand
 }
 
-type psr_transfer = {
-  condition:condition,
-  source:operand,
-  destination:operand,
-  flagsonly:1
-}
-
 type operand =
     IMMEDIATE of immediate
   | REGISTER of register
   | REGISTER_LIST of registerlist
   | SHIFTED_REGISTER of shiftedregister
-  | PSR of psr
 
 # Supertype for the various immediate values
 type immediate =
@@ -413,16 +399,6 @@ val binop cons cond opnd1 opnd2 = do
 end
 
 val immediate cons = return (IMMEDIATE(cons))
-
-val pld cons u r rn imm12 = do
-  return (cons{u=u, r=r, rn=(register-from-bits rn), imm12=imm12})
-end
-
-val psr_transfer cons condition source destination flagsonly = do
-  condition <- condition;
-  source <- source;
-  return (cons{condition=condition, source=source, destination=destination, flagsonly=flagsonly})
-end
 
 # Creates a list of registers
 # NOTE: This function should be called by a wrapper like reglist-from-int
