@@ -27,10 +27,9 @@ GDSL_RREIL_HL = \
 	specifications/rreil/rreil-pretty.ml \
 	specifications/rreil/rreil-translator.ml
 
-GDSL_ASM_HL=#specifications/asm/asm.ml specifications/asm/asm-pretty.ml specifications/asm/asm-cif.ml
-GDSL_OPT_HL=#specifications/rreil/rreil-liveness.ml specifications/rreil/rreil-cleanup.ml
+GDSL_ASM_HL=specifications/asm/asm.ml specifications/asm/asm-pretty.ml specifications/asm/asm-cif.ml
 
-GDSL_ARM7_HL=specifications/arm7/arm7.ml specifications/arm7/arm7-pretty.ml
+GDSL_ARM7_HL=specifications/arm7/arm7.ml specifications/arm7/arm7-pretty.ml specifications/arm7/arm7-asm.ml
 GDSL_ARM7_TRANS_HL=specifications/arm7/arm7-rreil-registermapping.ml specifications/arm7/arm7-rreil-translator.ml specifications/arm7/arm7-rreil-pretty.ml specifications/arm7/arm7-liveness.ml
 
 GDSL_SOURCES=$(GDSL_BASIS_HL) $(GDSL_RREIL_HL) $(GDSL_ASM_HL) $(GDSL_ARM7_HL) $(GDSL_ARM7_TRANS_HL) $(GDSL_OPT_HL)

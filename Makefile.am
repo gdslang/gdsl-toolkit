@@ -217,7 +217,8 @@ GDSL_MIPSSEM = \
 
 GDSL_ARM7 = \
 	$(srcdir)/specifications/arm7/arm7.ml \
-	$(srcdir)/specifications/arm7/arm7-pretty.ml
+	$(srcdir)/specifications/arm7/arm7-pretty.ml \
+	$(srcdir)/specifications/arm7/arm7-asm.ml
 
 GDSL_ARM7SEM = \
 	$(srcdir)/specifications/arm7/arm7-rreil-translator.ml \
