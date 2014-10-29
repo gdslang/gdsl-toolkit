@@ -23,4 +23,5 @@ val arch-show-id r =
     | Sem_SP: "SP"
     | Sem_LR: "LR"
     | Sem_PC: "PC"
+    | Sem_APSR: "ASPR"
   end
