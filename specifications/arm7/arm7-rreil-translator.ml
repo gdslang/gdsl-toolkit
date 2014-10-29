@@ -47,11 +47,92 @@ in
   end
 end
 
-
 val semantics insn =
   case insn of
       B x: sem-b x
   end
+
+# ----------------------------------------------------------------------
+# Bit shifts and rotations
+# ----------------------------------------------------------------------
+
+### Most significant bit
+val msb x = /z (/mod x 0x100000000) 0x80000000
+### Least significant bit
+val lsb x = /mod x 2
+
+### Logical Shift Left (with carry out)
+### (result, carry_out) = LSL_C(x, shift)
+val lsl_c x shift = let
+  val lsl_shift value amount carry_in =
+    if amount === 0 then
+      {result=value, carry_out=carry_in}
+    else
+      lsl_shift (value * 2) (amount - 1) (msb value)
+in
+  lsl_shift x shift 0
+end
+
+### Logical Shift Left
+val lsl x shift = (lsl_c x shift).result
+
+### Logical Shift Right (with carry out)
+### (result, carry_out) = LSR_C(x, shift)
+val lsr_c x shift = let
+  val lsr_shift value amount carry_in =
+    if amount === 0 then
+      {result=value, carry_out=carry_in}
+    else
+      lsr_shift (/z value 2) (amount - 1) (lsb value)
+in
+  lsr_shift x shift 0
+end
+
+### Logical Shift Right
+val lsr x shift = (lsr_c x shift).result
+
+### Arithmetic Shift Right (with carry out)
+### (result, carry_out) = ASR_C(x, shift)
+val asr_c x shift = let
+  val asr_shift value amount carry_in =
+    if amount === 0 then
+      {result=value, carry_out=carry_in}
+    else
+      asr_shift ((/z x 2) + (0x80000000 * (msb value))) (amount - 1) (lsb value)
+in
+  asr_shift x shift 0
+end
+
+### Arithmetic Shift Right
+val asr x shift = (asr_c x shift).result
+
+### Rotate Right (with carry out)
+### (result, carry_out) = ROR_C(x, shift)
+val ror_c x shift = let
+  val rotate_r value amount carry_in =
+    if amount === 0 then
+      {result=value, carry_out=carry_in}
+    else
+      rotate_r ((/z x 2) + (0x80000000 * (lsb value))) (amount - 1) (lsb value)
+in
+  rotate_r x shift 0
+end
+
+### Rotate Right
+val ror x shift = (ror_c x shift).result
+
+### Rotate Right with Extend (with carry out)
+### (result, carry_out) = RRX_C(x, carry_in)
+val rrx_c x carry_in = {
+  result=((/z x 2) + (0x80000000 * carry_in)), carry_out=(lsb x)
+}
+
+### Rotate Right with Extend
+val rrx x carry_in = (rrx_c x carry_in).result
+
+# ----------------------------------------------------------------------
+# Individual instruction translators
+# ----------------------------------------------------------------------
 
 val get-pc = return (semantic-register-of R15)
 val get-sp = return (semantic-register-of R13)
