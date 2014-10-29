@@ -8,6 +8,12 @@ val fCF = return (_var Sem_APSR _offset 2)
 val fVF = return (_var Sem_APSR _offset 3)
 val fQF = return (_var Sem_APSR _offset 4)
 
+val get-nf = (var (_var Sem_APSR _offset 0))
+val get-zf = (var (_var Sem_APSR _offset 1))
+val get-cf = (var (_var Sem_APSR _offset 2))
+val get-vf = (var (_var Sem_APSR _offset 3))
+val get-qf = (var (_var Sem_APSR _offset 4))
+
 type sem_id =
     Sem_R0
   | Sem_R1

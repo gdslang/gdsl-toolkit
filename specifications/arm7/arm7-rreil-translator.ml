@@ -62,118 +62,23 @@ val get-pc = semantic-register-of R15
 # Stack Pointer register (SP)
 val get-sp = semantic-register-of R13
 
-# condition: Equal
-val sem-eq? = do
-  zf <- fZF;
-  /eq 1 (var zf) (imm 1)
-end
-
-# condition: Not equal
-val sem-ne? = do
-  zf <- fZF;
-  /eq 1 (var zf) (imm 0)
-end
-
-# condition: Carry set
-val sem-cs? = do
-  cf <- fCF;
-  /eq 1 (var cf) (imm 1)
-end
-
-# condition: Carry clear
-val sem-cc? = do
-  cf <- fCF;
-  /eq 1 (var cf) (imm 0)
-end
-
-# condition: Minus, negative
-val sem-mi? = do
-  nf <- fNF;
-  /eq 1 (var nf) (imm 1)
-end
-
-# condition: Plus, positive or zero
-val sem-pl? = do
-  nf <- fNF;
-  /eq 1 (var nf) (imm 0)
-end
-
-# condition: Overflow
-val sem-vs? = do
-  vf <- fVF;
-  /eq 1 (var vf) (imm 1)
-end
-
-# condition: No overflow
-val sem-vc? = do
-  vf <- fVF;
-  /eq 1 (var vf) (imm 0)
-end
-
-# condition: Unsigned higher
-val sem-hi? = do
-  cf <- fCF;
-  zf <- fZF;
-  /and (/eq 1 (var cf) (imm 1)) (/eq 1 (var zf) (imm 0))
-end
-
-# condition: Unsigned lower or same
-val sem-ls? = do
-  cf <- fCF;
-  zf <- fZF;
-  /and (/eq 1 (var cf) (imm 0)) (/eq 1 (var zf) (imm 1))
-end
-
-# condition: Signed greater than or equal
-val sem-ge? = do
-  nf <- fNF;
-  vf <- fVF;
-  /eq 1 (var nf) (var vf)
-end
-
-# condition: Signed less than
-val sem-lt? = do
-  nf <- fNF;
-  vf <- fVF;
-  /neq 1 (var nf) (var vf)
-end
-
-# condition: Signed greather than
-val sem-gt? = do
-  zf <- fZF;
-  nf <- fNF;
-  vf <- fVF;
-  /and (/eq 1 (var zf) (imm 0)) (/eq 1 (var nf) (var vf))
-end
-
-# condition: Signed less than or equal
-val sem-le? = do
-  zf <- fZF;
-  nf <- fNF;
-  vf <- fVF;
-  /and (/eq 1 (var zf) (imm 1)) (/neq 1 (var nf) (var vf))
-end
-
-# condition Always (unconditional)
-val sem-al? = const 1
-
-val sem-cond cond =
+val sem-cc cond =
   case cond of
-      EQ: sem-eq?
-    | NE: sem-ne?
-    | CS: sem-cs?
-    | CC: sem-cc?
-    | MI: sem-mi?
-    | PL: sem-pl?
-    | VS: sem-vs?
-    | VC: sem-vc?
-    | HI: sem-hi?
-    | LS: sem-ls?
-    | GE: sem-ge?
-    | LT: sem-lt?
-    | GT: sem-gt?
-    | LE: sem-le?
-    | AL: sem-al?
+      EQ: /eq 1 get-zf (imm 1)
+    | NE: /eq 1 get-zf (imm 0)
+    | CS: /eq 1 get-cf (imm 1)
+    | CC: /eq 1 get-cf (imm 0)
+    | MI: /eq 1 get-nf (imm 1)
+    | PL: /eq 1 get-nf (imm 0)
+    | VS: /eq 1 get-vf (imm 1)
+    | VC: /eq 1 get-vf (imm 0)
+    | HI: /and (/eq 1 get-cf (imm 1)) (/eq 1 get-zf (imm 0))
+    | LS: /and (/eq 1 get-cf (imm 0)) (/eq 1 get-zf (imm 1))
+    | GE: /eq 1 get-nf get-vf
+    | LT: /neq 1 get-nf get-vf
+    | GT: /and (/eq 1 get-zf (imm 0)) (/eq 1 get-nf get-vf)
+    | LE: /and (/eq 1 get-zf (imm 1)) (/neq 1 get-nf get-vf)
+    | AL: const 1
   end
 
 # ----------------------------------------------------------------------
@@ -261,7 +166,7 @@ val rrx x carry_in = (rrx-c x carry_in).result
 
 val sem-b x = do
   offset <- rval Unsigned x.label;
-  _if (sem-cond x.cond) _then
+  _if (sem-cc x.cond) _then
     jump (address get-pc.size offset)
 end
 
