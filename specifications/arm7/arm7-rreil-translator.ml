@@ -53,6 +53,15 @@ val semantics insn =
   end
 
 # ----------------------------------------------------------------------
+# Utility functions
+# ----------------------------------------------------------------------
+
+# Returns the Program Counter register (PC/IP)
+val get-pc = semantic-register-of R15
+# Returns the Stack Pointer register (SP)
+val get-sp = semantic-register-of R13
+
+# ----------------------------------------------------------------------
 # Bit shifts and rotations
 # ----------------------------------------------------------------------
 
@@ -63,83 +72,80 @@ val lsb x = /mod x 2
 
 ### Logical Shift Left (with carry out)
 ### (result, carry_out) = LSL_C(x, shift)
-val lsl_c x shift = let
-  val lsl_shift value amount carry_in =
+val lsl-c x shift = let
+  val lsl-shift value amount carry_in =
     if amount === 0 then
       {result=value, carry_out=carry_in}
     else
-      lsl_shift (value * 2) (amount - 1) (msb value)
+      lsl-shift (value * 2) (amount - 1) (msb value)
 in
-  lsl_shift x shift 0
+  lsl-shift (/mod x 0x100000000) shift 0
 end
 
 ### Logical Shift Left
-val lsl x shift = (lsl_c x shift).result
+val lsl x shift = (lsl-c x shift).result
 
 ### Logical Shift Right (with carry out)
 ### (result, carry_out) = LSR_C(x, shift)
-val lsr_c x shift = let
-  val lsr_shift value amount carry_in =
+val lsr-c x shift = let
+  val lsr-shift value amount carry_in =
     if amount === 0 then
       {result=value, carry_out=carry_in}
     else
-      lsr_shift (/z value 2) (amount - 1) (lsb value)
+      lsr-shift (/z value 2) (amount - 1) (lsb value)
 in
-  lsr_shift x shift 0
+  lsr-shift (/mod x 0x100000000) shift 0
 end
 
 ### Logical Shift Right
-val lsr x shift = (lsr_c x shift).result
+val lsr x shift = (lsr-c x shift).result
 
 ### Arithmetic Shift Right (with carry out)
 ### (result, carry_out) = ASR_C(x, shift)
-val asr_c x shift = let
-  val asr_shift value amount carry_in =
+val asr-c x shift = let
+  val asr-shift value amount carry_in =
     if amount === 0 then
       {result=value, carry_out=carry_in}
     else
-      asr_shift ((/z x 2) + (0x80000000 * (msb value))) (amount - 1) (lsb value)
+      asr-shift ((/z x 2) + (0x80000000 * (msb value))) (amount - 1) (lsb value)
 in
-  asr_shift x shift 0
+  asr-shift (/mod x 0x100000000) shift 0
 end
 
 ### Arithmetic Shift Right
-val asr x shift = (asr_c x shift).result
+val asr x shift = (asr-c x shift).result
 
 ### Rotate Right (with carry out)
 ### (result, carry_out) = ROR_C(x, shift)
-val ror_c x shift = let
-  val rotate_r value amount carry_in =
+val ror-c x shift = let
+  val rotate-r value amount carry_in =
     if amount === 0 then
       {result=value, carry_out=carry_in}
     else
-      rotate_r ((/z x 2) + (0x80000000 * (lsb value))) (amount - 1) (lsb value)
+      rotate-r ((/z x 2) + (0x80000000 * (lsb value))) (amount - 1) (lsb value)
 in
-  rotate_r x shift 0
+  rotate-r (/mod x 0x100000000) shift 0
 end
 
 ### Rotate Right
-val ror x shift = (ror_c x shift).result
+val ror x shift = (ror-c x shift).result
 
 ### Rotate Right with Extend (with carry out)
 ### (result, carry_out) = RRX_C(x, carry_in)
-val rrx_c x carry_in = {
-  result=((/z x 2) + (0x80000000 * carry_in)), carry_out=(lsb x)
+val rrx-c x carry_in = {
+  result=((/z (/mod x 0x100000000) 2) + (0x80000000 * carry_in)),
+  carry_out=(lsb x)
 }
 
 ### Rotate Right with Extend
-val rrx x carry_in = (rrx_c x carry_in).result
+val rrx x carry_in = (rrx-c x carry_in).result
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
 # ----------------------------------------------------------------------
 
-val get-pc = return (semantic-register-of R15)
-val get-sp = return (semantic-register-of R13)
-
 val sem-b x = do
-  pc <- get-pc;
   offset <- rval Unsigned x.label;
-  jump (address pc.size offset)
+  jump (address get-pc.size offset)
 end
 
