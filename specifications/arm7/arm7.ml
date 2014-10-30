@@ -143,7 +143,7 @@ type width =
 type dp = {
   cond:condition, # condition code
   s:1,            # whether the C flag should be set
-  rn:register,    # first operand register
+  rn:operand,     # first operand register
   rd:register,    # destination register
   op2:operand     # second operand (immediate or register)
 }
@@ -247,6 +247,7 @@ type shifttype =
   | LSR  # Logical Shift Right
   | ASR  # Arithmetic Shift Right
   | ROR  # Rotate Right
+  | RRX  # Rotate Right with Extend
 
 # The 16 ARMv7 registers
 type register =
@@ -295,7 +296,7 @@ val dp cons cond s rn rd op2 = do
   return (cons{
     cond=cond,
     s=s,
-    rn=(register-from-bits rn),
+    rn=(REGISTER (register-from-bits rn)),
     rd=(register-from-bits rd),
     op2=op2
   })

@@ -31,26 +31,30 @@ type signedness =
     Signed
   | Unsigned
 
-val rval sn x = let
-  val from-vec sn vec =
+val lval x = return (semantic-register-of x)
+
+val rval sign x = let
+  val from-vec sn vector =
     case sn of
-        Signed: SEM_LIN_IMM {const=sx vec}
-      | Unsigned: SEM_LIN_IMM {const=zx vec}
+        Signed: imm (sx vector)
+      | Unsigned: imm (zx vector)
     end
-  val from-imm sn imm =
-    case imm of
-        IMMi i: SEM_LIN_IMM {const=i}
+  val from-imm sn immediate =
+    case immediate of
+        IMMi i: imm i
+      | MODIMM i: imm (armexpandimm i)
     end
 in
   case x of
       REGISTER r: return (var (semantic-register-of r))
-    | IMMEDIATE i: return (from-imm sn i)
+    | IMMEDIATE i: return (from-imm sign i)
   end
 end
 
 val semantics insn =
   case insn of
       B x: sem-b x
+    | ADD x: sem-add x
   end
 
 # ----------------------------------------------------------------------
@@ -62,6 +66,7 @@ val get-pc = semantic-register-of R15
 # Stack Pointer register (SP)
 val get-sp = semantic-register-of R13
 
+# Check the condition
 val sem-cc cond =
   case cond of
       EQ: /eq 1 get-zf (imm 1)
@@ -90,8 +95,8 @@ val msb x = /z (/mod x 0x100000000) 0x80000000
 ### Least significant bit
 val lsb x = /mod x 2
 
-### Logical Shift Left (with carry out)
-### (result, carry_out) = LSL_C(x, shift)
+### LSL_C
+###  - Logical Shift Left (w/ carry out)
 val lsl-c x shift = let
   val lsl-shift value amount carry_in =
     if amount === 0 then
@@ -102,11 +107,12 @@ in
   lsl-shift (/mod x 0x100000000) shift 0
 end
 
-### Logical Shift Left
+### LSL
+###  - Logical Shift Left
 val lsl x shift = (lsl-c x shift).result
 
-### Logical Shift Right (with carry out)
-### (result, carry_out) = LSR_C(x, shift)
+### LSR_C
+###  - Logical Shift Right (w/ carry out)
 val lsr-c x shift = let
   val lsr-shift value amount carry_in =
     if amount === 0 then
@@ -117,48 +123,76 @@ in
   lsr-shift (/mod x 0x100000000) shift 0
 end
 
-### Logical Shift Right
+### LSR
+###  - Logical Shift Right
 val lsr x shift = (lsr-c x shift).result
 
-### Arithmetic Shift Right (with carry out)
-### (result, carry_out) = ASR_C(x, shift)
+### ASR_C
+###  - Arithmetic Shift Right (w/ carry out)
 val asr-c x shift = let
   val asr-shift value amount carry_in =
     if amount === 0 then
       {result=value, carry_out=carry_in}
     else
-      asr-shift ((/z x 2) + (0x80000000 * (msb value))) (amount - 1) (lsb value)
+      asr-shift ((/z value 2) + (0x80000000 * (msb value))) (amount - 1) (lsb value)
 in
   asr-shift (/mod x 0x100000000) shift 0
 end
 
-### Arithmetic Shift Right
+### ASR
+###  - Arithmetic Shift Right
 val asr x shift = (asr-c x shift).result
 
-### Rotate Right (with carry out)
-### (result, carry_out) = ROR_C(x, shift)
+### ROR_C
+###  - Rotate Right (w/ carry out)
 val ror-c x shift = let
   val rotate-r value amount carry_in =
     if amount === 0 then
       {result=value, carry_out=carry_in}
     else
-      rotate-r ((/z x 2) + (0x80000000 * (lsb value))) (amount - 1) (lsb value)
+      rotate-r ((/z value 2) + (0x80000000 * (lsb value))) (amount - 1) (lsb value)
 in
   rotate-r (/mod x 0x100000000) shift 0
 end
 
-### Rotate Right
+### ROR
+###  - Rotate Right
 val ror x shift = (ror-c x shift).result
 
-### Rotate Right with Extend (with carry out)
-### (result, carry_out) = RRX_C(x, carry_in)
+### RRX_C
+###  - Rotate Right with Extend (w/ carry out)
 val rrx-c x carry_in = {
   result=((/z (/mod x 0x100000000) 2) + (0x80000000 * carry_in)),
   carry_out=(lsb x)
 }
 
-### Rotate Right with Extend
+### RRX
+###  - Rotate Right with Extend
 val rrx x carry_in = (rrx-c x carry_in).result
+
+### Shift_C [[A8.4.3]]
+val shift-c value stype amount carry_in =
+  if amount === 0 then
+    {result=value, carry_out=carry_in}
+  else
+    case stype of
+        LSL: lsl-c value amount
+      | LSR: lsr-c value amount
+      | ASR: asr-c value amount
+      | ROR: ror-c value amount
+      | RRX: rrx-c value carry_in
+    end
+
+### Shift [[A8.4.3]]
+val shift value stype amount carry_in =
+  (shift-c value stype amount carry_in).result
+
+### ArmExpandImm_C [[A5.2.4]]
+val armexpandimm-c modimm carry_in =
+  shift-c (zx modimm.byte) ROR (2 * (zx modimm.rot)) carry_in
+
+### ArmExpandImm [[A5.2.4]]
+val armexpandimm modimm = (armexpandimm-c modimm 0).result
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
@@ -168,5 +202,20 @@ val sem-b x = do
   offset <- rval Unsigned x.label;
   _if (sem-cc x.cond) _then
     jump (address get-pc.size offset)
+end
+
+val sem-add x =
+  case x.op2 of
+      IMMEDIATE i: sem-add-imm x
+  end
+
+val sem-add-imm x = do
+  imm32 <- rval Unsigned x.op2;
+  rd <- lval x.rd;
+  rn <- rval Unsigned x.rn;
+
+  _if (sem-cc x.cond) _then do
+    add 32 rd rn imm32
+  end
 end
 

@@ -130,13 +130,13 @@ val show/target label ip =
 
 # Show data-processing instructions
 val show/dp insn insn_type = case insn_type of
-    CMN i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
-  | CMP i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
+    CMN i: show/condition insn.cond +++ "\\t" +++ show/operand insn.rn +++ "," -++ show/operand insn.op2
+  | CMP i: show/condition insn.cond +++ "\\t" +++ show/operand insn.rn +++ "," -++ show/operand insn.op2
   | MOV i: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/operand insn.op2
   | MVN i: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/operand insn.op2
-  | TEQ i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
-  | TST i: show/condition insn.cond +++ "\\t" +++ show/register insn.rn +++ "," -++ show/operand insn.op2
-  | _: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/register insn.rn +++ "," -++ show/operand insn.op2
+  | TEQ i: show/condition insn.cond +++ "\\t" +++ show/operand insn.rn +++ "," -++ show/operand insn.op2
+  | TST i: show/condition insn.cond +++ "\\t" +++ show/operand insn.rn +++ "," -++ show/operand insn.op2
+  | _: show/s insn +++ show/condition insn.cond +++ "\\t" +++ show/register insn.rd +++ "," -++ show/operand insn.rn +++ "," -++ show/operand insn.op2
 end
 
 val show/s insn = if insn.s then "S" else ""
@@ -212,14 +212,14 @@ val show/shifttype t = case t of
 end
 
 val show/immediate imm = case imm of
-    IMMi i: if i < 0 then "-0x" +++ show-hex (i - 2*i) else "+0x" +++ show-hex i
+    IMMi i: show-int i
   | IMM4 i: show-int (zx i)
   | IMM5 i: show-int (zx i)
   | IMM8 i: show-int (zx i)
   | IMM12 i: show-int (zx i)
   | IMM16 i: "0x" +++ show-hex (zx i)
   | IMM24 i: "0x" +++ show-hex (zx i)
-  | MODIMM i: "#" +++ show-int(zx i.byte) +++ "," -++ "#" +++ show-int(zx i.rot)
+  | MODIMM i: "#" +++ show-int(zx i.byte) +++ "," -++ "#" +++ show-int(zx i.rot) +++ "\\t ; = " +++ show-int(armexpandimm i) +++ " (0x" +++ show-hex(armexpandimm i) +++ ")"
   | _: "???"
 end
 
