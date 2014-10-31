@@ -23,6 +23,9 @@ extern "C" {
 
 class gdsl {
 private:
+  uint64_t size;
+  uint64_t base;
+
   state_t gdsl_state = NULL;
   _frontend *frontend = NULL;
 
@@ -30,6 +33,7 @@ private:
 public:
   gdsl(_frontend *frontend);
   ~gdsl();
+  size_t bytes_left();
 
   /*
    * generic

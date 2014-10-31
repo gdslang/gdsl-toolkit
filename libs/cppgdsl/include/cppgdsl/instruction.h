@@ -29,7 +29,7 @@ public:
   std::string to_string();
   friend ostream& operator<< (ostream &out, instruction &_this);
 
-  std::vector<rreil::statement*> *translate();
+  rreil::statements_t *translate();
 
   obj_t get_native() const {
     return native;

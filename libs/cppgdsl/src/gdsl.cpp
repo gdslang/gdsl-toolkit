@@ -34,6 +34,10 @@ gdsl::gdsl::gdsl(_frontend *frontend) {
   this->gdsl_state = frontend->native().generic.init();
 }
 
+size_t gdsl::gdsl::bytes_left() {
+  return size - (get_ip() - base);
+}
+
 gdsl::gdsl::~gdsl() {
   if(setjmp(*frontend->native().generic.err_tgt(gdsl_state))) throw gdsl_exception("destructor failed",
       string(frontend->native().generic.get_error_message(gdsl_state)));
@@ -52,6 +56,8 @@ void gdsl::gdsl::set_code(unsigned char *buffer, uint64_t size, uint64_t base) {
   if(setjmp(*frontend->native().generic.err_tgt(gdsl_state))) throw gdsl_exception("set_code() failed",
       string(frontend->native().generic.get_error_message(gdsl_state)));
   frontend->native().generic.set_code(gdsl_state, buffer, size, base);
+  this->size = size;
+  this->base = base;
 }
 
 bool gdsl::gdsl::seek(int_t ip) {
