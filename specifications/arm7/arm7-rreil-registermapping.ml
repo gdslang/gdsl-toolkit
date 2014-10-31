@@ -14,6 +14,15 @@ val get-cf = (var (_var Sem_APSR _offset 2))
 val get-vf = (var (_var Sem_APSR _offset 3))
 val get-qf = (var (_var Sem_APSR _offset 4))
 
+# ISETSTATE status flags
+val fJF = return (_var Sem_ISETSTATE _offset 1)
+val fTF = return (_var Sem_ISETSTATE _offset 0)
+
+val get-jf = (var (_var Sem_ISETSTATE _offset 1))
+val get-tf = (var (_var Sem_ISETSTATE _offset 0))
+
+val isetstate = {id=Sem_ISETSTATE, offset=0, size=2}
+
 type sem_id =
     Sem_R0
   | Sem_R1
