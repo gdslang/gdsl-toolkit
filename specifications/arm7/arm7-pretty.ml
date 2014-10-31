@@ -150,9 +150,9 @@ val show/wback insn = if insn.w then "!" else ""
 # Show load/store (multiple) instructions
 val show/lsm insn insn_type = show/condition insn.cond +++ "\\t" +++
   (case insn_type of
-      POP i: show/operand insn.register_list
-    | PUSH i: show/operand insn.register_list
-    | _: show/register insn.rn +++ "," -++ show/operand insn.register_list
+      POP i: show/operand (REGISTER_LIST insn.register_list)
+    | PUSH i: show/operand (REGISTER_LIST insn.register_list)
+    | _: show/register insn.rn +++ "," -++ show/operand (REGISTER_LIST insn.register_list)
 end)
 
 # Show multiplication instructions
@@ -227,7 +227,7 @@ val show/operand op = case op of
     IMMEDIATE o: show/immediate o
   | REGISTER o: show/register o
   | REGISTER_LIST o: "{" +++ show/reglist o +++ "}"
-  | SHIFTED_REGISTER o: show/register o.register +++ show/shift o.shift
+  | SHIFTED_REGISTER o: show/register o.register +++ "," -++ show/shift o.shift
   | _: "???"
 end
 

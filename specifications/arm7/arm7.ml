@@ -16,7 +16,7 @@ export decoder-config : configuration[vec=decoder-configuration]
 
 type decoder-configuration = 0
 
-type insndata = {ip:int, insn:instruction}
+type insndata = {ip:int, length:int, insn:instruction}
 
 val config-default = ''
 val decoder-config = END
@@ -32,8 +32,9 @@ val decode config = do
 
   idx-before <- get-ip;
   insn <- /;
+  idx-after <- get-ip;
 
-  return {ip=idx-before, insn=insn}
+  return {ip=idx-before, length=(idx-after - idx-before), insn=insn}
 end
 
 # ----------------------------------------------------------------------
@@ -184,7 +185,7 @@ type lsm = {
   cond:condition,
   w:1,
   rn:register,
-  register_list:operand
+  register_list:registerlist
 }
 
 # Branch instructions
@@ -371,7 +372,7 @@ val lsm cons cond w rn register_list = do
   return (cons{
     cond=cond, w=w,
     rn=(register-from-bits rn),
-    register_list=(REGISTER_LIST(register_list))
+    register_list=register_list
   })
 end
 
