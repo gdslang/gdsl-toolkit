@@ -1,7 +1,7 @@
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
 val translate insn = do
-  update@{stack=SEM_NIL, tmp=0, lab=0};
+  update@{stack=SEM_NIL, tmp=0};
 
   translate-arm7 insn;
 
@@ -10,13 +10,13 @@ val translate insn = do
 end
 
 val translate-block-single insn = do
-  update@{tmp=0};
+  ic <- query $ins_count;
+  update@{tmp=0, ins_count=ic+1};
+
   translate-arm7 insn
 end
 
-val translate-arm7 insn = do
-  semantics insn.insn
-end
+val translate-arm7 insn = semantics insn
 
 val relative-next stmts = let
   val is_sem_ip x = case x of
@@ -27,13 +27,19 @@ in
   relative-next-generic is_sem_ip stmts
 end
 
+type instructionset =
+    InstrSet_ARM
+  | InstrSet_Thumb
+  | InstrSet_Jazelle
+  | InstrSet_ThumbEE
+
 type signedness =
     Signed
   | Unsigned
 
 val lval x = return (semantic-register-of x)
 
-val rval sign x = let
+val rvals sign x = let
   val from-vec sn vector =
     case sn of
         Signed: imm (sx vector)
@@ -46,15 +52,20 @@ val rval sign x = let
     end
 in
   case x of
-      REGISTER r: return (var (semantic-register-of r))
-    | IMMEDIATE i: return (from-imm sign i)
+      IMMEDIATE i: return (from-imm sign i)
+    | REGISTER r: return (var (semantic-register-of r))
   end
 end
 
+val rval x = rvals Unsigned x
+
 val semantics insn =
-  case insn of
+  case insn.insn of
       B x: sem-b x
+    | BX x: sem-bx x
     | ADD x: sem-add x
+    | PUSH x: sem-push x
+    | _: sem-default
   end
 
 # ----------------------------------------------------------------------
@@ -62,12 +73,11 @@ val semantics insn =
 # ----------------------------------------------------------------------
 
 # Program Counter register (PC/IP)
-val get-pc = semantic-register-of R15
+val get-pc = return (semantic-register-of R15)
 # Stack Pointer register (SP)
-val get-sp = semantic-register-of R13
+val get-sp = return (semantic-register-of R13)
 
-# Check the condition
-val sem-cc cond =
+val condition-passed? cond =
   case cond of
       EQ: /eq 1 get-zf (imm 1)
     | NE: /eq 1 get-zf (imm 0)
@@ -85,6 +95,18 @@ val sem-cc cond =
     | LE: /and (/eq 1 get-zf (imm 1)) (/neq 1 get-nf get-vf)
     | AL: const 1
   end
+
+# Set the N (negative) flag if the result is less than zero
+val emit-flag-n result = do
+  nf <- fNF;
+  cmplts 32 nf result (imm 0)
+end
+
+# Set the Z (zero) flag if the result is zero
+val emit-flag-z result = do
+  zf <- fZF;
+  cmpeq 32 zf result (imm 0)
+end
 
 # ----------------------------------------------------------------------
 # Bit shifts and rotations
@@ -199,23 +221,60 @@ val armexpandimm modimm = (armexpandimm-c modimm 0).result
 # ----------------------------------------------------------------------
 
 val sem-b x = do
-  offset <- rval Unsigned x.label;
-  _if (sem-cc x.cond) _then
-    jump (address get-pc.size offset)
+  _if (condition-passed? x.cond) _then do
+    offset <- rval x.label;
+    pc <- get-pc;
+    jump (address 32 (lin-sum (var pc) offset))
+  end
+end
+
+val sem-bx x = do
+  _if (condition-passed? x.cond) _then do
+    m <- rval x.label;
+    jump (address 32 m)
+  end
 end
 
 val sem-add x =
   case x.op2 of
       IMMEDIATE i: sem-add-imm x
+    | _: sem-default
   end
 
 val sem-add-imm x = do
-  imm32 <- rval Unsigned x.op2;
-  rd <- lval x.rd;
-  rn <- rval Unsigned x.rn;
+  _if (condition-passed? x.cond) _then do
+    imm32 <- rval x.op2;
+    rd <- lval x.rd;
+    rn <- rval x.rn;
 
-  _if (sem-cc x.cond) _then do
-    add 32 rd rn imm32
+    add 32 rd rn imm32;
+
+    if x.s then do
+      emit-flag-n (var rd);
+      emit-flag-z (var rd)
+    end else
+      return void
   end
 end
 
+val sem-push x = let
+  val store-registers reglist =
+    case reglist of
+        REGL_NIL: return void
+      | REGL_CONS c: do
+          sp <- get-sp;
+          store 32 (address 32 (var sp)) (var (semantic-register-of c.head));
+          add 32 sp (var sp) (imm 4);
+          (store-registers c.tail)
+      end
+    end
+in
+  _if (condition-passed? x.cond) _then do
+    store-registers x.register_list
+  end
+end
+
+val sem-default = do
+  pc <- get-pc;
+  add 32 pc (var pc) (imm 4)
+end
