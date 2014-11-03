@@ -90,6 +90,7 @@ val semantics insn =
     | MOV x: sem-mov x
     | SUB x: sem-sub x
     | LDR x: sem-ldr x
+    | POP x: sem-pop x
     | PUSH x: sem-push x
     | STR x: sem-str x
     | _: sem-default
@@ -316,30 +317,50 @@ val sem-mov x = do
 end
 
 val sem-ldr x = do
-  rt <- lval x.rt;
-  rn <- lval x.rn;
-  offset <- rval x.offset;
+  _if (condition-passed? x.cond) _then do
+    rt <- lval x.rt;
+    rn <- lval x.rn;
+    offset <- rval x.offset;
 
-  wback <- return (x.w or (not x.p));
-  index <- return x.p;
+    wback <- return (x.w or (not x.p));
+    index <- return x.p;
 
-  offset_addr <- return (
-    if x.u then
-      SEM_LIN_ADD {opnd1=var rn, opnd2=offset}
+    offset_addr <- return (
+      if x.u then
+        SEM_LIN_ADD {opnd1=var rn, opnd2=offset}
+      else
+        SEM_LIN_SUB {opnd1=var rn, opnd2=offset}
+    );
+
+    if wback then
+      mov 32 rn offset_addr
     else
-      SEM_LIN_SUB {opnd1=var rn, opnd2=offset}
-  );
+      return void
+    ;
 
-  if wback then
-    mov 32 rn offset_addr
-  else
-    return void
-  ;
+    if index then
+      load 32 rt 32 offset_addr
+    else
+      load 32 rt 32 (var rn)
+  end
+end
 
-  if index then
-    load 32 rt 32 offset_addr
-  else
-    load 32 rt 32 (var rn)
+val sem-pop x = let
+  val load-registers reglist =
+    case reglist of
+        REGL_NIL: return void
+      | REGL_CONS c: do
+          sp <- get-sp;
+          dest <- lval c.head;
+          load 32 dest 32 (var sp);
+          add sp.size sp (var sp) (imm 4);
+          load-registers c.tail
+        end
+    end
+in
+  _if (condition-passed? x.cond) _then do
+    load-registers x.register_list
+  end
 end
 
 val sem-push x = let
@@ -348,10 +369,11 @@ val sem-push x = let
         REGL_NIL: return void
       | REGL_CONS c: do
           sp <- get-sp;
-          store 32 (address 32 (var sp)) (var (semantic-register-of c.head));
+          src <- lval c.head;
+          store 32 (address 32 (var sp)) (var src);
           sub sp.size sp (var sp) (imm 4);
-          (store-registers c.tail)
-      end
+          store-registers c.tail
+        end
     end
 in
   _if (condition-passed? x.cond) _then do
@@ -360,30 +382,32 @@ in
 end
 
 val sem-str x = do
-  rt <- return (var (semantic-register-of x.rt));
-  rn <- lval x.rn;
-  offset <- rval x.offset;
+  _if (condition-passed? x.cond) _then do
+    rt <- return (var (semantic-register-of x.rt));
+    rn <- lval x.rn;
+    offset <- rval x.offset;
 
-  index <- return x.p;
-  wback <- return (x.w or (not x.p));
+    index <- return x.p;
+    wback <- return (x.w or (not x.p));
 
-  offset_addr <- return (
-    if x.u then
-      SEM_LIN_ADD {opnd1=var rn, opnd2=offset}
+    offset_addr <- return (
+      if x.u then
+        SEM_LIN_ADD {opnd1=var rn, opnd2=offset}
+      else
+        SEM_LIN_SUB {opnd1=var rn, opnd2=offset}
+    );
+
+    if index then
+      store 32 (address 32 offset_addr) rt
     else
-      SEM_LIN_SUB {opnd1=var rn, opnd2=offset}
-  );
+      store 32 (address 32 (var rn)) rt
+    ;
 
-  if index then
-    store 32 (address 32 offset_addr) rt
-  else
-    store 32 (address 32 (var rn)) rt
-  ;
-
-  if wback then
-    mov 32 rn offset_addr
-  else
-    return void
+    if wback then
+      mov 32 rn offset_addr
+    else
+      return void
+  end
 end
 
 val sem-default = do
