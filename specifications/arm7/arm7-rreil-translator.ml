@@ -1,7 +1,7 @@
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
 val translate insn = do
-  update@{stack=SEM_NIL, tmp=0};
+  update@{stack=SEM_NIL, tmp=0, carry=0};
 
   translate-arm7 insn;
 
@@ -11,7 +11,7 @@ end
 
 val translate-block-single insn = do
   ic <- query $ins_count;
-  update@{tmp=0, ins_count=ic+1};
+  update@{tmp=0, carry=0, ins_count=ic+1};
 
   translate-arm7 insn
 end
@@ -48,8 +48,8 @@ val rvals sign x = let
   val from-imm sn immediate =
     case immediate of
         IMMi i: imm i
-      | IMM5 i: imm (zx i)
-      | IMM12 i: imm (zx i)
+      | IMM5 i: from-vec sign i
+      | IMM12 i: from-vec sign i
       | MODIMM i: imm (armexpandimm i)
     end
 in
@@ -88,6 +88,7 @@ val semantics insn =
     | BX x: sem-bx x
     | ADD x: sem-add x
     | MOV x: sem-mov x
+    | SUB x: sem-sub x
     | LDR x: sem-ldr x
     | PUSH x: sem-push x
     | _: sem-default
@@ -268,11 +269,27 @@ end
 
 val sem-add x = do
   _if (condition-passed? x.cond) _then do
-    op2 <- rval x.op2;
-    rd <- lval x.rd;
     rn <- rval x.rn;
+    rd <- lval x.rd;
+    op2 <- rval x.op2;
 
     add 32 rd rn op2;
+
+    if x.s then do
+      emit-flag-n (var rd);
+      emit-flag-z (var rd)
+    end else
+      return void
+  end
+end
+
+val sem-sub x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    rn <- rval x.rn;
+    op2 <- rval x.op2;
+
+    sub 32 rd rn op2;
 
     if x.s then do
       emit-flag-n (var rd);
