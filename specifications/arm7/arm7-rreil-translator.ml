@@ -87,6 +87,7 @@ val semantics insn =
       B x: sem-b x
     | BX x: sem-bx x
     | ADD x: sem-add x
+    | MOV x: sem-mov x
     | LDR x: sem-ldr x
     | PUSH x: sem-push x
     | _: sem-default
@@ -281,13 +282,28 @@ val sem-add x = do
   end
 end
 
+val sem-mov x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    op2 <- rval x.op2;
+
+    mov 32 rd op2;
+
+    if x.s then do
+      emit-flag-n (var rd);
+      emit-flag-z (var rd)
+    end else
+      return void
+  end
+end
+
 val sem-ldr x = do
   rt <- lval x.rt;
   rn <- lval x.rn;
   offset <- rval x.offset;
 
   wback <- return (x.w or (not x.p));
-  index <- return (x.p);
+  index <- return x.p;
 
   offset_addr <- return (
     if x.u then
