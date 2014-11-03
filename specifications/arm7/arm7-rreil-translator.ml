@@ -48,22 +48,46 @@ val rvals sign x = let
   val from-imm sn immediate =
     case immediate of
         IMMi i: imm i
+      | IMM5 i: imm (zx i)
+      | IMM12 i: imm (zx i)
       | MODIMM i: imm (armexpandimm i)
     end
 in
   case x of
       IMMEDIATE i: return (from-imm sign i)
     | REGISTER r: return (var (semantic-register-of r))
+    | SHIFTED_REGISTER r: do
+        shift-register r.shift r.register;
+        rvals sign (REGISTER r.register)
+      end
   end
 end
 
 val rval x = rvals Unsigned x
+
+val shift-register shift reg = let
+  val do-shift stype amount = do
+    rm <- lval reg;
+    amount <- amount;
+    case stype of
+        LSL: shl 32 rm (var rm) amount
+      | LSR: shr 32 rm (var rm) amount
+      | ASR: shrs 32 rm (var rm) amount
+    end
+  end
+in
+    case shift of
+        IMMSHIFT s: do-shift s.shifttype (rval (IMMEDIATE s.immediate))
+      | REGSHIFT s: do-shift s.shifttype (rval (REGISTER s.register))
+    end
+end
 
 val semantics insn =
   case insn.insn of
       B x: sem-b x
     | BX x: sem-bx x
     | ADD x: sem-add x
+    | LDR x: sem-ldr x
     | PUSH x: sem-push x
     | _: sem-default
   end
@@ -76,6 +100,12 @@ val semantics insn =
 val get-pc = return (semantic-register-of R15)
 # Stack Pointer register (SP)
 val get-sp = return (semantic-register-of R13)
+
+val is-pc? sem-reg =
+  case sem-reg.id of
+      Sem_PC: '1'
+    | _: '0'
+  end
 
 val condition-passed? cond =
   case cond of
@@ -235,19 +265,13 @@ val sem-bx x = do
   end
 end
 
-val sem-add x =
-  case x.op2 of
-      IMMEDIATE i: sem-add-imm x
-    | _: sem-default
-  end
-
-val sem-add-imm x = do
+val sem-add x = do
   _if (condition-passed? x.cond) _then do
-    imm32 <- rval x.op2;
+    op2 <- rval x.op2;
     rd <- lval x.rd;
     rn <- rval x.rn;
 
-    add 32 rd rn imm32;
+    add 32 rd rn op2;
 
     if x.s then do
       emit-flag-n (var rd);
@@ -257,6 +281,33 @@ val sem-add-imm x = do
   end
 end
 
+val sem-ldr x = do
+  rt <- lval x.rt;
+  rn <- lval x.rn;
+  imm32 <- rval x.offset;
+
+  wback <- return (x.w or (not x.p));
+  index <- return (x.p);
+
+  offset_addr <- return (
+    if x.u then
+      SEM_LIN_ADD {opnd1=var rn, opnd2=imm32}
+    else
+      SEM_LIN_SUB {opnd1=var rn, opnd2=imm32}
+  );
+
+  if wback then
+    mov 32 rn offset_addr
+  else
+    return void
+  ;
+
+  if index then
+    load 32 rt 32 offset_addr
+  else
+    load 32 rt 32 (var rn)
+end
+
 val sem-push x = let
   val store-registers reglist =
     case reglist of
@@ -264,7 +315,7 @@ val sem-push x = let
       | REGL_CONS c: do
           sp <- get-sp;
           store 32 (address 32 (var sp)) (var (semantic-register-of c.head));
-          add 32 sp (var sp) (imm 4);
+          sub 32 sp (var sp) (imm 4);
           (store-registers c.tail)
       end
     end
@@ -276,5 +327,5 @@ end
 
 val sem-default = do
   pc <- get-pc;
-  add 32 pc (var pc) (imm 4)
+  add 32 pc (var pc) (imm 0)
 end
