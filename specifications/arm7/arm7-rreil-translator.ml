@@ -73,6 +73,7 @@ val shift-register shift reg = let
         LSL: shl 32 rm (var rm) amount
       | LSR: shr 32 rm (var rm) amount
       | ASR: shrs 32 rm (var rm) amount
+      | ROR: sem-ror-c 32 rm amount
     end
   end
 in
@@ -140,6 +141,25 @@ end
 val emit-flag-z result = do
   zf <- fZF;
   cmpeq 32 zf result (imm 0)
+end
+
+# Rotate operand register by register or immediate [[A2.2.1]]
+# NOTE: This operation updates the carry flag.
+val sem-ror-c size opnd shift = do
+  m <- mktemp;
+  mod size m shift (imm opnd.size); # in case shift > 32
+
+  right <- mktemp;
+  left <- mktemp;
+  shl_amount <- return (SEM_LIN_SUB {opnd1=imm size, opnd2=var m});
+
+  shr size right (var opnd) (var m);
+  shl size left (var opnd) shl_amount;
+
+  orb size opnd (var left) (var right);
+
+  cf <- fCF;
+  mov size cf (var opnd)
 end
 
 # ----------------------------------------------------------------------
