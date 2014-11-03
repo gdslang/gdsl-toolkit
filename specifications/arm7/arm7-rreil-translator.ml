@@ -91,6 +91,7 @@ val semantics insn =
     | SUB x: sem-sub x
     | LDR x: sem-ldr x
     | PUSH x: sem-push x
+    | STR x: sem-str x
     | _: sem-default
   end
 
@@ -356,6 +357,33 @@ in
   _if (condition-passed? x.cond) _then do
     store-registers x.register_list
   end
+end
+
+val sem-str x = do
+  rt <- return (var (semantic-register-of x.rt));
+  rn <- lval x.rn;
+  offset <- rval x.offset;
+
+  index <- return x.p;
+  wback <- return (x.w or (not x.p));
+
+  offset_addr <- return (
+    if x.u then
+      SEM_LIN_ADD {opnd1=var rn, opnd2=offset}
+    else
+      SEM_LIN_SUB {opnd1=var rn, opnd2=offset}
+  );
+
+  if index then
+    store 32 (address 32 offset_addr) rt
+  else
+    store 32 (address 32 (var rn)) rt
+  ;
+
+  if wback then
+    mov 32 rn offset_addr
+  else
+    return void
 end
 
 val sem-default = do
