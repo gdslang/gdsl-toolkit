@@ -489,6 +489,114 @@ val cond-from-bits bits =
   end
 
 # ----------------------------------------------------------------------
+# Bit Shifts and Rotations
+# ----------------------------------------------------------------------
+
+### Most significant bit
+val msb x = /z (/mod x 0x100000000) 0x80000000
+### Least significant bit
+val lsb x = /mod x 2
+
+### LSL_C
+###  - Logical Shift Left (w/ carry out)
+val lsl-c x shift = let
+  val lsl-shift value amount carry_in =
+    if amount === 0 then
+      {result=value, carry_out=carry_in}
+    else
+      lsl-shift (value * 2) (amount - 1) (msb value)
+in
+  lsl-shift (/mod x 0x100000000) shift 0
+end
+
+### LSL
+###  - Logical Shift Left
+val lsl x shift = (lsl-c x shift).result
+
+### LSR_C
+###  - Logical Shift Right (w/ carry out)
+val lsr-c x shift = let
+  val lsr-shift value amount carry_in =
+    if amount === 0 then
+      {result=value, carry_out=carry_in}
+    else
+      lsr-shift (/z value 2) (amount - 1) (lsb value)
+in
+  lsr-shift (/mod x 0x100000000) shift 0
+end
+
+### LSR
+###  - Logical Shift Right
+val lsr x shift = (lsr-c x shift).result
+
+### ASR_C
+###  - Arithmetic Shift Right (w/ carry out)
+val asr-c x shift = let
+  val asr-shift value amount carry_in =
+    if amount === 0 then
+      {result=value, carry_out=carry_in}
+    else
+      asr-shift ((/z value 2) + (0x80000000 * (msb value))) (amount - 1) (lsb value)
+in
+  asr-shift (/mod x 0x100000000) shift 0
+end
+
+### ASR
+###  - Arithmetic Shift Right
+val asr x shift = (asr-c x shift).result
+
+### ROR_C
+###  - Rotate Right (w/ carry out)
+val ror-c x shift = let
+  val rotate-r value amount carry_in =
+    if amount === 0 then
+      {result=value, carry_out=carry_in}
+    else
+      rotate-r ((/z value 2) + (0x80000000 * (lsb value))) (amount - 1) (lsb value)
+in
+  rotate-r (/mod x 0x100000000) shift 0
+end
+
+### ROR
+###  - Rotate Right
+val ror x shift = (ror-c x shift).result
+
+### RRX_C
+###  - Rotate Right with Extend (w/ carry out)
+val rrx-c x carry_in = {
+  result=((/z (/mod x 0x100000000) 2) + (0x80000000 * carry_in)),
+  carry_out=(lsb x)
+}
+
+### RRX
+###  - Rotate Right with Extend
+val rrx x carry_in = (rrx-c x carry_in).result
+
+### Shift_C [[A8.4.3]]
+val shift-c value stype amount carry_in =
+  if amount === 0 then
+    {result=value, carry_out=carry_in}
+  else
+    case stype of
+        LSL: lsl-c value amount
+      | LSR: lsr-c value amount
+      | ASR: asr-c value amount
+      | ROR: ror-c value amount
+      | RRX: rrx-c value carry_in
+    end
+
+### Shift [[A8.4.3]]
+val shift value stype amount carry_in =
+  (shift-c value stype amount carry_in).result
+
+### ArmExpandImm_C [[A5.2.4]]
+val armexpandimm-c modimm carry_in =
+  shift-c (zx modimm.byte) ROR (2 * (zx modimm.rot)) carry_in
+
+### ArmExpandImm [[A5.2.4]]
+val armexpandimm modimm = (armexpandimm-c modimm 0).result
+
+# ----------------------------------------------------------------------
 # Subdecoder
 # ----------------------------------------------------------------------
 
