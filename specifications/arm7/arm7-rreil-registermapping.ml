@@ -2,17 +2,17 @@ val _var x = {id=x, offset=0}
 val _var x _offset o = {id=x, offset=o}
 
 # APSR status flags
-val fNF = return (_var Sem_APSR _offset 0)
-val fZF = return (_var Sem_APSR _offset 1)
-val fCF = return (_var Sem_APSR _offset 2)
-val fVF = return (_var Sem_APSR _offset 3)
-val fQF = return (_var Sem_APSR _offset 4)
+val fNF = return (_var Sem_APSR _offset 31)
+val fZF = return (_var Sem_APSR _offset 30)
+val fCF = return (_var Sem_APSR _offset 29)
+val fVF = return (_var Sem_APSR _offset 28)
+val fQF = return (_var Sem_APSR _offset 27)
 
-val get-nf = (var (_var Sem_APSR _offset 0))
-val get-zf = (var (_var Sem_APSR _offset 1))
-val get-cf = (var (_var Sem_APSR _offset 2))
-val get-vf = (var (_var Sem_APSR _offset 3))
-val get-qf = (var (_var Sem_APSR _offset 4))
+val get-nf = (var (_var Sem_APSR _offset 31))
+val get-zf = (var (_var Sem_APSR _offset 30))
+val get-cf = (var (_var Sem_APSR _offset 29))
+val get-vf = (var (_var Sem_APSR _offset 28))
+val get-qf = (var (_var Sem_APSR _offset 27))
 
 # ISETSTATE status flags
 val fJF = return (_var Sem_ISETSTATE _offset 1)
