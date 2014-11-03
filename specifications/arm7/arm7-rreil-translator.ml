@@ -65,6 +65,7 @@ end
 
 val rval x = rvals Unsigned x
 
+(* TODO: Add RRX rotation. *)
 val shift-register shift reg = let
   val do-shift stype amount = do
     rm <- lval reg;
@@ -77,10 +78,14 @@ val shift-register shift reg = let
     end
   end
 in
-    case shift of
-        IMMSHIFT s: do-shift s.shifttype (rval (IMMEDIATE s.immediate))
-      | REGSHIFT s: do-shift s.shifttype (rval (REGISTER s.register))
-    end
+  case shift of
+      IMMSHIFT s:
+        if is-zero? s.immediate then
+          return void
+        else
+          do-shift s.shifttype (rval (IMMEDIATE s.immediate))
+    | REGSHIFT s: do-shift s.shifttype (rval (REGISTER s.register))
+  end
 end
 
 val semantics insn =

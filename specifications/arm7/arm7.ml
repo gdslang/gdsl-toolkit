@@ -402,6 +402,17 @@ end
 
 val immediate cons = return (IMMEDIATE(cons))
 
+val is-zero? imm =
+  case imm of
+      IMMi i: i === 0
+    | IMM4 i: is-zero? (IMMi (zx i))
+    | IMM5 i: is-zero? (IMMi (zx i))
+    | IMM8 i: is-zero? (IMMi (zx i))
+    | IMM12 i: is-zero? (IMMi (zx i))
+    | IMM24 i: is-zero? (IMMi (zx i))
+    | MODIMM i: is-zero? (IMMi (zx i.byte))
+  end
+
 # Creates a list of registers
 # NOTE: This function should be called by a wrapper like reglist-from-int
 val create-reglist intlist reg_index reglist =
