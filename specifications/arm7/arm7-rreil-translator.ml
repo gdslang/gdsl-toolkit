@@ -97,9 +97,9 @@ val semantics insn =
 # ----------------------------------------------------------------------
 
 # Program Counter register (PC/IP)
-val get-pc = return (semantic-register-of R15)
+val get-pc = lval R15
 # Stack Pointer register (SP)
-val get-sp = return (semantic-register-of R13)
+val get-sp = lval R13
 
 val is-pc? sem-reg =
   case sem-reg.id of
@@ -284,16 +284,16 @@ end
 val sem-ldr x = do
   rt <- lval x.rt;
   rn <- lval x.rn;
-  imm32 <- rval x.offset;
+  offset <- rval x.offset;
 
   wback <- return (x.w or (not x.p));
   index <- return (x.p);
 
   offset_addr <- return (
     if x.u then
-      SEM_LIN_ADD {opnd1=var rn, opnd2=imm32}
+      SEM_LIN_ADD {opnd1=var rn, opnd2=offset}
     else
-      SEM_LIN_SUB {opnd1=var rn, opnd2=imm32}
+      SEM_LIN_SUB {opnd1=var rn, opnd2=offset}
   );
 
   if wback then
@@ -315,7 +315,7 @@ val sem-push x = let
       | REGL_CONS c: do
           sp <- get-sp;
           store 32 (address 32 (var sp)) (var (semantic-register-of c.head));
-          sub 32 sp (var sp) (imm 4);
+          sub sp.size sp (var sp) (imm 4);
           (store-registers c.tail)
       end
     end
