@@ -24,4 +24,5 @@ val arch-show-id r =
     | Sem_LR: "LR"
     | Sem_PC: "PC"
     | Sem_APSR: "APSR"
+    | Sem_ISETSTATE: "ISETSTATE"
   end

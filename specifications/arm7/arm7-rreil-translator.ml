@@ -57,7 +57,7 @@ in
       IMMEDIATE i: return (from-imm sign i)
     | REGISTER r: return (var (semantic-register-of r))
     | SHIFTED_REGISTER r: do
-        shift-register r.shift r.register;
+        shift-register r.shift r.register (imm 0);
         rvals sign (REGISTER r.register)
       end
   end
@@ -66,7 +66,7 @@ end
 val rval x = rvals Unsigned x
 
 (* TODO: Add RRX rotation. *)
-val shift-register shift reg = let
+val shift-register shift reg carry_in = let
   val do-shift stype amount = do
     rm <- lval reg;
     amount <- amount;
@@ -75,6 +75,10 @@ val shift-register shift reg = let
       | LSR: shr 32 rm (var rm) amount
       | ASR: shrs 32 rm (var rm) amount
       | ROR: sem-ror-c 32 rm amount
+      | RRX: do
+          add 32 rm (var rm) carry_in;
+          sem-ror-c 32 rm (imm 1)
+        end
     end
   end
 in
@@ -91,6 +95,7 @@ end
 val semantics insn =
   case insn.insn of
       B x: sem-b x
+    | BL x: sem-bl x
     | BX x: sem-bx x
     | ADD x: sem-add x
     | MOV x: sem-mov x
@@ -108,13 +113,24 @@ val semantics insn =
 
 # Program Counter register (PC/IP)
 val get-pc = lval R15
+
 # Stack Pointer register (SP)
 val get-sp = lval R13
 
-val is-pc? sem-reg =
-  case sem-reg.id of
-      Sem_PC: '1'
-    | _: '0'
+# Link register (LR)
+val get-lr = lval R14
+
+val instr-set-arm? = /eq 1 (var isetstate) (imm 0)
+val instr-set-thumb? = /eq 1 (var isetstate) (imm 1)
+val instr-set-jazelle? = /eq 1 (var isetstate) (imm 2)
+val instr-set-thumbee? = /eq 1 (var isetstate) (imm 3)
+
+val select-instr-set iset =
+  case iset of
+      InstrSet_ARM: mov isetstate.size isetstate (imm 0)
+    | InstrSet_Thumb: mov isetstate.size isetstate (imm 1)
+    | InstrSet_Jazelle: mov isetstate.size isetstate (imm 2)
+    | InstrSet_ThumbEE: mov isetstate.size isetstate (imm 3)
   end
 
 val condition-passed? cond =
@@ -136,16 +152,28 @@ val condition-passed? cond =
     | AL: const 1
   end
 
-# Set the N (negative) flag if the result is less than zero
 val emit-flag-n result = do
   nf <- fNF;
   cmplts 32 nf result (imm 0)
 end
 
-# Set the Z (zero) flag if the result is zero
 val emit-flag-z result = do
   zf <- fZF;
   cmpeq 32 zf result (imm 0)
+end
+
+val emit-add-flags sum x y = do
+  emit-flag-n sum;
+  emit-flag-z sum;
+
+  cf <- fCF;
+  vf <- fVF;
+  tmp <- mktemp;
+
+  # Check for unsigned overflow (carry):
+  cmplts 1 cf sum x;
+  cmplts 1 tmp sum y;
+  orb 1 cf (var cf) (var tmp)
 end
 
 # Rotate operand register by register or immediate [[A2.2.1]]
@@ -175,7 +203,25 @@ val sem-b x = do
   _if (condition-passed? x.cond) _then do
     offset <- rval x.label;
     pc <- get-pc;
-    jump (address 32 (lin-sum (var pc) offset))
+    jump (address pc.size (lin-sum (var pc) offset))
+  end
+end
+
+val sem-bl x = do
+  _if (condition-passed? x.cond) _then do
+    offset <- rval x.label;
+    pc <- get-pc;
+    lr <- get-lr;
+
+    _if instr-set-arm? _then do
+      sub lr.size lr (var pc) (imm 4)
+    end _else do
+      orb lr.size lr (var pc) (imm 1) # set last bit to 1
+    end;
+
+    andb pc.size pc (var pc) (imm 0xfffffffa); # Align(PC, 4)
+    select-instr-set InstrSet_ARM;
+    jump (address pc.size (lin-sum (var pc) offset))
   end
 end
 
@@ -195,9 +241,7 @@ val sem-add x = do
     add 32 rd rn op2;
 
     if x.s then do
-      emit-flag-n (var rd);
-      emit-flag-z (var rd)
-      (* TODO: Update remaining flags *)
+      emit-add-flags (var rd) rn op2
     end else
       return void
   end
