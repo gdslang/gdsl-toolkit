@@ -110,6 +110,12 @@ val semantics insn =
 # Program Counter register (PC/IP)
 val get-pc = lval R15
 
+val is-pc? sem-reg =
+  case sem-reg.id of
+      Sem_PC: '1'
+    | _: '0'
+  end
+
 # Stack Pointer register (SP)
 val get-sp = lval R13
 
@@ -299,10 +305,14 @@ val sem-add x = do
 
     add rd.size rd rn opnd2;
 
-    if x.s then do
-      emit-add-flags rd.size (var rd) rn opnd2
-    end else
-      return void
+    if is-pc? rd then
+      alu-write-pc rd
+    else do
+      if x.s then do
+        emit-add-flags rd.size (var rd) rn opnd2
+      end else
+        return void
+    end
   end
 end
 
