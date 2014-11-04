@@ -57,7 +57,7 @@ in
       IMMEDIATE i: return (from-imm sign i)
     | REGISTER r: return (var (semantic-register-of r))
     | SHIFTED_REGISTER r: do
-        shift-register r.shift r.register (imm 0);
+        shift-register r.shift r.register;
         rvals sign (REGISTER r.register)
       end
   end
@@ -66,7 +66,7 @@ end
 val rval x = rvals Unsigned x
 
 (* TODO: Add RRX rotation. *)
-val shift-register shift reg carry_in = let
+val shift-register shift reg = let
   val do-shift stype amount = do
     rm <- lval reg;
     amount <- amount;
@@ -75,10 +75,6 @@ val shift-register shift reg carry_in = let
       | LSR: shr 32 rm (var rm) amount
       | ASR: shrs 32 rm (var rm) amount
       | ROR: sem-ror-c 32 rm amount
-      | RRX: do
-          add 32 rm (var rm) carry_in;
-          sem-ror-c 32 rm (imm 1)
-        end
     end
   end
 in
@@ -152,28 +148,37 @@ val condition-passed? cond =
     | AL: const 1
   end
 
+# Set the N flag, if the result is negative.
 val emit-flag-n result = do
   nf <- fNF;
   cmplts 32 nf result (imm 0)
 end
 
+# Set the Z flag, if the result is zero.
 val emit-flag-z result = do
   zf <- fZF;
   cmpeq 32 zf result (imm 0)
 end
 
-val emit-add-flags sum x y = do
+# Set all the flags for the add instruction.
+val emit-add-flags sz sum x y = do
   emit-flag-n sum;
   emit-flag-z sum;
 
   cf <- fCF;
   vf <- fVF;
-  tmp <- mktemp;
+  t1 <- mktemp;
+  t2 <- mktemp;
+  t3 <- mktemp;
 
-  # Check for unsigned overflow (carry):
-  cmplts 1 cf sum x;
-  cmplts 1 tmp sum y;
-  orb 1 cf (var cf) (var tmp)
+  # Set the C flag in case of unsigned overflow (carry).
+  cmpltu sz cf sum x;
+
+  # Set the V flag in case of signed overflow.
+  xorb sz t1 sum x;
+  xorb sz t2 sum y;
+  andb sz t3 (var t1) (var t2);
+  cmplts sz vf (var t3) (imm 0)
 end
 
 # Rotate operand register by register or immediate [[A2.2.1]]
@@ -239,12 +244,12 @@ val sem-add x = do
   _if (condition-passed? x.cond) _then do
     rn <- rval x.rn;
     rd <- lval x.rd;
-    op2 <- rval x.op2;
+    opnd2 <- rval x.op2;
 
-    add 32 rd rn op2;
+    add rd.size rd rn opnd2;
 
     if x.s then do
-      emit-add-flags (var rd) rn op2
+      emit-add-flags rd.size (var rd) rn opnd2
     end else
       return void
   end
