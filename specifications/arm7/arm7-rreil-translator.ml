@@ -148,6 +148,58 @@ val condition-passed? cond =
     | AL: const 1
   end
 
+# align lvalue to multiple of num_bytes
+val align lhs num_bytes =
+  andb lhs.size lhs (var lhs) (imm ((power 2 lhs.size) - num_bytes))
+
+# jump/branch to target address [[B1.3.2]]
+val branch-to target = jump (address 32 (var target))
+
+# simple branch [[A2.3.2]]
+val branch-write-pc addr = do
+  _if instr-set-arm? _then do # ARM
+    align addr 4;
+    branch-to addr
+  end _else do # Thumb
+    align addr 2;
+    branch-to addr
+  end
+  (* TODO: Jazelle branch handling is missing here... *)
+end
+
+# interworking branch (instruction set switch) [[A2.3.2]]
+val bx-write-pc addr = do
+  _if instr-set-thumbee? _then do
+    _if (/eq 1 (var addr) (imm 1)) _then do
+      align addr 2;
+      branch-to addr
+    end
+  end _else do
+    _if (/eq 1 (var addr) (imm 1)) _then do
+      select-instr-set InstrSet_Thumb;
+      align addr 2;
+      branch-to addr
+    end _else do
+      _if (/eq 2 (var addr) (imm 0)) _then do
+        select-instr-set InstrSet_ARM;
+        branch-to addr
+      end
+    end
+  end
+end
+
+# architecture version specific branch [[A2.3.2]]
+val load-write-pc addr = bx-write-pc addr
+
+# instrset/arch version specific branch [[A2.3.2]]
+val alu-write-pc addr = do
+  _if instr-set-arm? _then do
+    bx-write-pc addr
+  end _else do
+    branch-write-pc addr
+  end
+end
+
 # Set the N flag, if the result is negative.
 val emit-flag-n result = do
   nf <- fNF;
@@ -160,7 +212,7 @@ val emit-flag-z result = do
   cmpeq 32 zf result (imm 0)
 end
 
-# Set all the flags for the add instruction.
+# Set all the flags for the ADD instruction.
 val emit-add-flags sz sum x y = do
   emit-flag-n sum;
   emit-flag-z sum;
@@ -183,25 +235,24 @@ end
 
 # Rotate operand register by register or immediate [[A2.2.1]]
 # NOTE: This operation updates the carry flag.
-val sem-ror-c size opnd shift = do
+val sem-ror-c sz opnd shift = do
   m <- mktemp;
-  mod size m shift (imm opnd.size); # in case shift > 32
+  mod sz m shift (imm opnd.size); # in case shift > 32
 
   right <- mktemp;
   left <- mktemp;
-  shl_amount <- return (SEM_LIN_SUB {opnd1=imm size, opnd2=var m});
 
-  shr size right (var opnd) (var m);
-  shl size left (var opnd) shl_amount;
+  shr sz right (var opnd) (var m);
+  shl sz left (var opnd) (lin-sub (imm sz) (var m));
 
-  orb size opnd (var left) (var right);
+  orb sz opnd (var left) (var right);
 
   cf <- fCF;
-  mov size cf (var opnd)
+  mov sz cf (var opnd)
 end
 
-val align reg num_bytes =
-  andb reg.size reg (var reg) (imm (0x100000000 - num_bytes))
+# equivalent to lin-sum from 'specifications/rreil/rreil.ml'
+val lin-sub x y = SEM_LIN_SUB {opnd1=x, opnd2=y}
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
@@ -299,9 +350,9 @@ val sem-ldr x = do
 
     offset_addr <- return (
       if x.u then
-        SEM_LIN_ADD {opnd1=var rn, opnd2=offset}
+        lin-sum (var rn) (offset)
       else
-        SEM_LIN_SUB {opnd1=var rn, opnd2=offset}
+        lin-sub (var rn) (offset)
     );
 
     if wback then
