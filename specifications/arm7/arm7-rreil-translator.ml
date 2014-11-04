@@ -94,6 +94,9 @@ val semantics insn =
     | BL x: sem-bl x
     | BX x: sem-bx x
     | ADD x: sem-add x
+    | ADC x: sem-adc x
+    | CMN x: sem-cmn x
+    | CMP x: sem-cmp x
     | MOV x: sem-mov x
     | SUB x: sem-sub x
     | LDR x: sem-ldr x
@@ -218,25 +221,32 @@ val emit-flag-z result = do
   cmpeq 32 zf result (imm 0)
 end
 
-# Set all the flags for the ADD instruction.
-val emit-add-flags sz sum x y = do
-  emit-flag-n sum;
-  emit-flag-z sum;
+# sum = x + y + carry_in [[A2.2.1]]
+# NOTE: This operation updates the APSR flags.
+val add-with-carry sz sum x y carry_in setflags = do
+  add sz sum x y;
+  add sz sum (var sum) carry_in;
 
-  cf <- fCF;
-  vf <- fVF;
-  t1 <- mktemp;
-  t2 <- mktemp;
-  t3 <- mktemp;
+  if setflags then do
+    emit-flag-n (var sum);
+    emit-flag-z (var sum);
 
-  # Set the C flag in case of unsigned overflow (carry).
-  cmpltu sz cf sum x;
+    cf <- fCF;
+    vf <- fVF;
+    t1 <- mktemp;
+    t2 <- mktemp;
+    t3 <- mktemp;
 
-  # Set the V flag in case of signed overflow.
-  xorb sz t1 sum x;
-  xorb sz t2 sum y;
-  andb sz t3 (var t1) (var t2);
-  cmplts sz vf (var t3) (imm 0)
+    # Set the C flag in case of unsigned overflow (carry).
+    cmpltu sz cf (var sum) x;
+
+    # Set the V flag in case of signed overflow.
+    xorb sz t1 (var sum) x;
+    xorb sz t2 (var sum) y;
+    andb sz t3 (var t1) (var t2);
+    cmplts sz vf (var t3) (imm 0)
+  end else
+    return void
 end
 
 # Rotate operand register by register or immediate [[A2.2.1]]
@@ -297,39 +307,58 @@ val sem-bx x = do
   end
 end
 
+val sem-adc x = do
+  _if (condition-passed? x.cond) _then do
+    rn <- rval x.rn;
+    rd <- lval x.rd;
+    opnd2 <- rval x.op2;
+
+    cf <- fCF;
+
+    if is-pc? rd then do
+      add-with-carry 32 rd rn opnd2 (var cf) '0';
+      alu-write-pc rd
+    end else
+      add-with-carry 32 rd rn opnd2 (var cf) x.s
+  end
+end
+
 val sem-add x = do
   _if (condition-passed? x.cond) _then do
     rn <- rval x.rn;
     rd <- lval x.rd;
     opnd2 <- rval x.op2;
 
-    add rd.size rd rn opnd2;
-
-    if is-pc? rd then
+    if is-pc? rd then do
+      add-with-carry 32 rd rn opnd2 (imm 0) '0';
       alu-write-pc rd
-    else do
-      if x.s then do
-        emit-add-flags rd.size (var rd) rn opnd2
-      end else
-        return void
-    end
+    end else
+      add-with-carry 32 rd rn opnd2 (imm 0) x.s
   end
+end
+
+val sem-cmn x = do
+  return void
+end
+
+val sem-cmp x = do
+  return void
 end
 
 val sem-sub x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rd;
     rn <- rval x.rn;
-    op2 <- rval x.op2;
+    opnd2 <- rval x.op2;
 
-    sub 32 rd rn op2;
+    not_opnd2 <- mktemp;
+    xorb rd.size not_opnd2 opnd2 (imm 0);
 
-    if x.s then do
-      emit-flag-n (var rd);
-      emit-flag-z (var rd)
-      (* TODO: Update remaining flags *)
+    if is-pc? rd then do
+      add-with-carry 32 rd rn (var not_opnd2) (imm 1) '0';
+      alu-write-pc rd
     end else
-      return void
+      add-with-carry 32 rd rn (var not_opnd2) (imm 1) x.s
   end
 end
 
