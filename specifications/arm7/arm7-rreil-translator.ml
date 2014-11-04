@@ -195,6 +195,9 @@ val sem-ror-c size opnd shift = do
   mov size cf (var opnd)
 end
 
+val align reg num_bytes =
+  andb reg.size reg (var reg) (imm (0x100000000 - num_bytes))
+
 # ----------------------------------------------------------------------
 # Individual instruction translators
 # ----------------------------------------------------------------------
@@ -219,7 +222,7 @@ val sem-bl x = do
       orb lr.size lr (var pc) (imm 1) # set last bit to 1
     end;
 
-    andb pc.size pc (var pc) (imm 0xfffffffa); # Align(PC, 4)
+    align pc 4;
     select-instr-set InstrSet_ARM;
     jump (address pc.size (lin-sum (var pc) offset))
   end
