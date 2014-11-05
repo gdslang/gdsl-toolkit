@@ -22,7 +22,7 @@ val config-default = ''
 val decoder-config = END
 
 # ----------------------------------------------------------------------
-# Main Entry Point
+# Entry Point
 # ----------------------------------------------------------------------
 
 val decode config = do
@@ -49,13 +49,6 @@ val reset = do
     operands=OPNDL_NIL
   }
 end
-
-# ----------------------------------------------------------------------
-# Utility Functions
-# ----------------------------------------------------------------------
-
-# Modulo. I didn't see this operator anywhere else...
-val /mod a b = a - (/z a b) * b
 
 # ----------------------------------------------------------------------
 # Type Definitions
@@ -196,7 +189,7 @@ type operand =
     IMMEDIATE of immediate
   | REGISTER of register
   | SHIFTED_REGISTER of shiftedregister
-  | OPERAND_LIST of operandlist
+  | OPERAND_LIST of operandlist (* TODO: Replace with operand tuple, maybe? *)
 
 type immediate =
     IMMi of int
@@ -280,6 +273,10 @@ type condition =
   | AL   # Always (unconditional)
   | NV   # Never: Dummy condition (NV is not an actual ARM condition)
 
+# ----------------------------------------------------------------------
+# Utility Functions
+# ----------------------------------------------------------------------
+
 val dp cons cond s rn rd opnd2 = do
   cond <- cond;
   s <- s;
@@ -360,6 +357,9 @@ val is-zero? imm =
     | IMM24 i: is-zero? (IMMi (zx i))
     | MODIMM i: is-zero? (IMMi (zx i.byte))
   end
+
+# Modulo. I didn't see this operator anywhere else...
+val /mod a b = a - (/z a b) * b
 
 # Creates a operand list from a (16 bit) bit vector.
 # If bit i is set, then the register Ri is added to the list.
