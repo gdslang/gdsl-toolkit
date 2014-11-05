@@ -74,10 +74,10 @@ val shift-register shift reg = let
     rm <- return (semantic-register-of reg);
     amount <- amount;
     case stype of
-        LSL: shl 32 rm (var rm) amount
+        LSL: sem-lsl 32 rm amount
       | LSR: shr 32 rm (var rm) amount
       | ASR: shrs 32 rm (var rm) amount
-      | ROR: sem-ror-c 32 rm amount
+      | ROR: sem-ror 32 rm amount
     end
   end
 in
@@ -98,6 +98,7 @@ val semantics insn =
     | BX x: sem-bx x
     | ADD x: sem-add x
     | ADC x: sem-adc x
+    | AND x: sem-and x
     | CMN x: sem-cmn x
     | CMP x: sem-cmp x
     | MOV x: sem-mov x
@@ -252,9 +253,22 @@ val add-with-carry sz sum x y carry_in setflags = do
     return void
 end
 
+val sem-lsl sz opnd shift = do
+  cf <- fCF;
+  _if (/gtu sz shift (imm 32)) _then do
+    mov 1 cf (imm 0)
+  end _else do
+    shift_inv <- mktemp;
+    shr sz shift_inv (var opnd) (lin-sub (imm 32) shift);
+    mov 1 cf (var shift_inv)
+  end;
+
+  shl sz opnd (var opnd) shift
+end
+
 # Rotate operand register by register or immediate [[A2.2.1]]
 # NOTE: This operation updates the carry flag.
-val sem-ror-c sz opnd shift = do
+val sem-ror sz opnd shift = do
   m <- mktemp;
   mod sz m shift (imm opnd.size); # in case shift > 32
 
@@ -267,7 +281,7 @@ val sem-ror-c sz opnd shift = do
   orb sz opnd (var left) (var right);
 
   cf <- fCF;
-  mov sz cf (var opnd)
+  mov 1 cf (var opnd)
 end
 
 # equivalent to lin-sum from 'specifications/rreil/rreil.ml'
@@ -337,6 +351,26 @@ val sem-add x = do
       alu-write-pc rd
     end else
       add-with-carry 32 rd rn opnd2 (imm 0) x.s
+  end
+end
+
+val sem-and x = do
+  _if (condition-passed? x.cond) _then do
+    rn <- rval x.rn;
+    rd <- lval x.rd;
+    opnd2 <- rval x.opnd2;
+
+    andb 32 rd rn opnd2;
+
+    if is-pc? rd then do
+      alu-write-pc rd
+    end else
+      if x.s then do
+        emit-flag-z (var rd);
+        emit-flag-n (var rd)
+        # the carry flag is updated with 'rval x.opnd2'
+      end else
+        return void
   end
 end
 
