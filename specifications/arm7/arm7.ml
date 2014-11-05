@@ -43,7 +43,6 @@ val reset = do
   update@{
     cond='0000',
     b='0', p='0', w='0', s='0',
-    ra=R0, rd=R0, rm=R0, rn=R0, rt=R0, rdhi=R0, rdlo=R0,
     imm4='0000', imm4H='0000', imm4L='0000',
     imm12='000000000000',
     byte='00000000', rot='0000',
@@ -302,6 +301,7 @@ end
 
 val mull cons cond s rdhi rdlo rm rn = do
   cond <- cond;
+  s <- s;
   rdhi <- rdhi;
   rdlo <- rdlo;
   rm <- rm;
@@ -579,8 +579,6 @@ val s = do
   return s
 end
 
-# set0 and set1 can be used if one of the flags for a particular
-# instruction has a fix value:
 val set0 = return '0'
 val set1 = return '1'
 
@@ -591,27 +589,36 @@ val /imm12 ['imm12:12'] = update@{imm12=imm12}
 
 val imm12 = do
   imm12 <- query $imm12;
-  imm <- immediate (IMM12(imm12));
+  imm <- immediate (IMM12 (imm12));
   return imm
 end
+
+(* TODO: Why does the 24bit subdecoder not compile??? *)
+val /imm24 ['imm24:25'] = update@{imm24=imm24}
 
 val /imm4H ['imm4H:4'] = update@{imm4H=imm4H}
 val /imm4L ['imm4L:4'] = update@{imm4L=imm4L}
 
-val combine_imm8 = do
+val combine-imm8 = do
   imm4H <- query $imm4H;
   imm4L <- query $imm4L;
-  imm <- immediate (IMM8(imm4H^imm4L));
+  imm <- immediate (IMM8 (imm4H^imm4L));
   return imm
 end
 
 val /imm4 ['imm4:4'] = update@{imm4=imm4}
 
+val imm4 = do
+  imm4 <- query $imm4;
+  imm <- immediate (IMM4 (imm4));
+  return imm
+end
+
 # concats the 4 bit and 12 bit immediates that were decoded most recently
-val combine_imm16 = do
+val combine-imm16 = do
   imm4 <- query $imm4;
   imm12 <- query $imm12;
-  imm <- immediate (IMMi(zx (imm4^imm12)));
+  imm <- immediate (IMMi (zx (imm4^imm12)));
   return imm
 end
 
@@ -621,7 +628,7 @@ val /modimm ['rot:4 byte:8'] = update@{rot=rot, byte=byte}
 val modimm = do
   rot <- query $rot;
   byte <- query $byte;
-  ret <- immediate (MODIMM{byte=byte, rot=rot});
+  ret <- immediate (MODIMM {byte=byte, rot=rot});
   return ret
 end
 
@@ -648,14 +655,7 @@ end
 
 # --- operand list/register list subdecoders ---------------------------
 
-val /registerlist ['regs:16'] =
-  update@{operands=(decode-registerlist regs)}
-
-val /registerlist-one ['rt:4 000000000100'] =
-  update@{operands=(opndl-one (register (decode-register rt)))}
-
-val /registerlist-many ['regs@.............0..'] =
-  update@{operands=(decode-registerlist regs)}
+val /registerlist ['regs:16'] = update@{operands=(decode-registerlist regs)}
 
 val registerlist = do
   operands <- query $operands;
@@ -791,7 +791,7 @@ val / ['/cond 000 0 0 0 1 /S /rn /rd /shiftedreg'] = dp EOR cond s rn rd shifted
 ###  - Move (immediate) (Encoding A1)
 val / ['/cond 001 1 1 0 1 /S 0000 /rd /modimm'] = dp MOV cond s r0 rd modimm
 ###  - Move (immediate) (Encoding A2)
-val / ['/cond 001 1 0 0 0 0 /imm4 /rd /imm12'] = dp MOV cond set0 r0 rd combine_imm16
+val / ['/cond 001 1 0 0 0 0 /imm4 /rd /imm12'] = dp MOV cond set0 r0 rd combine-imm16
 ###  - Move (shifted register)
 val / ['/cond 000 1 1 0 1 /S 0000 /rd /shiftedreg'] = dp MOV cond s r0 rd shiftedreg
 
@@ -863,19 +863,19 @@ val / ['/cond 000 0 0 0 0 /S /rd 0000 /rm 1001 /rn'] = ml MUL cond s rd r0 rm rn
 
 ### SMLAL
 ###  - Signed Multiply Accumulate Long
-val / ['/cond 000 0 1 1 1 s:1 /rdhi /rdlo /rm 1001 /rn'] = mull SMLAL cond s rdhi rdlo rm rn
+val / ['/cond 000 0 1 1 1 /S /rdhi /rdlo /rm 1001 /rn'] = mull SMLAL cond s rdhi rdlo rm rn
 
 ### SMULL
 ###  - Signed Multiply Long
-val / ['/cond 000 0 1 1 0 s:1 /rdhi /rdlo /rm 1001 /rn'] = mull SMULL cond s rdhi rdlo rm rn
+val / ['/cond 000 0 1 1 0 /S /rdhi /rdlo /rm 1001 /rn'] = mull SMULL cond s rdhi rdlo rm rn
 
 ### UMLAL
 ###  - Unsigned Multiply Accumulate Long
-val / ['/cond 000 0 1 0 1 s:1 /rdhi /rdlo /rm 1001 /rn'] = mull UMLAL cond s rdhi rdlo rm rn
+val / ['/cond 000 0 1 0 1 /S /rdhi /rdlo /rm 1001 /rn'] = mull UMLAL cond s rdhi rdlo rm rn
 
 ### UMULL
 ###  - Unsigned Multiply Long
-val / ['/cond 000 0 1 0 0 s:1 /rdhi /rdlo /rm 1001 /rn'] = mull UMULL cond s rdhi rdlo rm rn
+val / ['/cond 000 0 1 0 0 /S /rdhi /rdlo /rm 1001 /rn'] = mull UMULL cond s rdhi rdlo rm rn
 
 # --- Miscellaneous data-processing instructions -----------------------
 
@@ -886,38 +886,38 @@ val / ['/cond 000 1 0 1 1 0 1111 /rd 1111 0001 /rm'] = binop CLZ cond rd rm
 # --- Load/store instructions ------------------------------------------
 
 val ldr_is_pop? s = (is-sp? s.rn) and (not s.p) and s.u and (not s.w) and (s.imm12 == '000000000100')
-val is_unprivileged? s = (not s.p) and s.w
+val unprivileged? s = (not s.p) and s.w
 
 ### LDR/LDRT/POP
 val / ['/cond 010 /P /U 0 /W 1 /rn /rt /imm12']
 ###  - Pop Multiple Registers (Encoding A2)
   | ldr_is_pop? = lsm POP cond w rn (registerlist-one rt)
 ###  - Load Register Unprivileged (Encoding A1)
-  | is_unprivileged? = ls LDRT cond set0 u set0 rn rt imm12
+  | unprivileged? = ls LDRT cond set0 u set0 rn rt imm12
 ###  - Load Register (immediate/literal)
   | otherwise = ls LDR cond p u w rn rt imm12
 val / ['/cond 011 /P /U 0 /W 1 /rn /rt /immshift /rm']
 ###  - Load Register Unprivileged (Encoding A2)
-  | is_unprivileged? = ls LDRT cond set0 u set0 rn rt shiftedreg
+  | unprivileged? = ls LDRT cond set0 u set0 rn rt shiftedreg
 ###  - Load Register (register)
   | otherwise = ls LDR cond p u w rn rt shiftedreg
 
 ### LDRB/LDRBT
 val / ['/cond 010 /P /U 1 /W 1 /rn /rt /imm12']
 ###  - Load Register Byte Unprivileged (Encoding A1)
-  | is_unprivileged? = ls LDRBT cond set0 u set0 rn rt imm12
+  | unprivileged? = ls LDRBT cond set0 u set0 rn rt imm12
 ###  - Load Register Byte (immediate/literal)
   | otherwise = ls LDRB cond p u w rn rt imm12
 val / ['/cond 011 /P /U 1 /W 1 /rn /rt /immshift /rm']
 ###  - Load Register Byte Unprivileged (Encoding A2)
-  | is_unprivileged? = ls LDRBT cond set0 u set0 rn rt shiftedreg
+  | unprivileged? = ls LDRBT cond set0 u set0 rn rt shiftedreg
 ###  - Load Register Byte (register)
   | otherwise = ls LDRB cond p u w rn rt shiftedreg
 
 ### LDRD
 val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1101 /imm4L'] =
 ###  - Load Register Dual (immediate/literal)
-  ls LDRD cond p u w rn rt combine_imm8
+  ls LDRD cond p u w rn rt combine-imm8
 ###  - Load Register Dual (register)
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1101 /rm'] =
   ls LDRD cond p u w rn rt rm
@@ -925,49 +925,45 @@ val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1101 /rm'] =
 ### LDRH/LDRHT
 val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1011 /imm4L']
 ###  - Load Register Halfword Unprivileged (Encoding A1)
-  | is_unprivileged? = ls LDRHT cond set0 u set0 rn rt combine_imm8
+  | unprivileged? = ls LDRHT cond set0 u set0 rn rt combine-imm8
 ###  - Load Register Halfword (immediat/literal)
-  | otherwise = ls LDRH cond p u w rn rt combine_imm8
+  | otherwise = ls LDRH cond p u w rn rt combine-imm8
 val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1011 /rm']
 ###  - Load Register Halfword Unprivileged (Encoding A2)
-  | is_unprivileged? = ls LDRHT cond set0 u set0 rn rt rm
+  | unprivileged? = ls LDRHT cond set0 u set0 rn rt rm
 ###  - Load Register Halfword (register)
   | otherwise = ls LDRH cond p u w rn rt rm
 
 ### LDRSB/LDRSBT
 val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1101 /imm4L']
 ###  - Load Register Signed Byte (Encoding A1)
-  | is_unprivileged? = ls LDRSBT cond set0 u set0 rn rt combine_imm8
+  | unprivileged? = ls LDRSBT cond set0 u set0 rn rt combine-imm8
 ###  - Load Register Signed Byte (immediate/literal)
-  | otherwise = ls LDRSB cond p u w rn rt combine_imm8
+  | otherwise = ls LDRSB cond p u w rn rt combine-imm8
 val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1101 /rm']
 ###  - Load Register Signed Byte (Encoding A2)
-  | is_unprivileged? = ls LDRSBT cond set0 u set0 rn rt rm
+  | unprivileged? = ls LDRSBT cond set0 u set0 rn rt rm
 ###  - Load Register Signed Byte (register)
   | otherwise = ls LDRSB cond p u w rn rt rm
 
 ### LDRSH/LDRSHT
 val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1111 /imm4L']
 ###  - Load Register Signed Halfword Unprivileged (Encoding A1)
-  | is_unprivileged? = ls LDRSHT cond set0 u set0 rn rt combine_imm8
-###  - Load Register Signed Halfword (immediat/literal)
-  | otherwise = ls LDRSH cond p u w rn rt combine_imm8
+  | unprivileged? = ls LDRSHT cond set0 u set0 rn rt combine-imm8
+###  - Load Register Signed Halfword (immediate/literal)
+  | otherwise = ls LDRSH cond p u w rn rt combine-imm8
 val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1111 /rm']
 ###  - Load Register Signed Halfword Unprivileged (Encoding A2)
-  | is_unprivileged? = ls LDRSHT cond set0 u set0 rn rt rm
+  | unprivileged? = ls LDRSHT cond set0 u set0 rn rt rm
 ###  - Load Register Signed Halfword (register)
   | otherwise = ls LDRSH cond p u w rn rt rm
 
-val str_is_push? s =
-  case $rn s of
-      R13: ($p s) and not ($u s) and ($imm12 s == '000000000100')
-    | _: '0'
-  end
+val str-is-push? s = (is-sp? s.rn) and (not s.u) and (s.imm12 == '000000000100')
 
 ### STR/PUSH
 val / ['/cond 010 /P /U 0 /W 0 /rn /rt /imm12']
 ###  - Push Multiple Registers (Encoding A2)
-  | str_is_push? = lsm PUSH cond w rn (registerlist-one rt)
+  | str-is-push? = lsm PUSH cond w rn (registerlist-one rt)
 ###  - Store Register (immediate)
   | otherwise = ls STR cond p u w rn rt imm12
 ###  - Store Register (register)
@@ -985,7 +981,7 @@ val / ['/cond 011 /P /U 1 /W 0 /rn /rt /immshift /rm'] =
 ### STRD
 ###  - Store Register Dual (immediate)
 val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1111 /imm4L'] =
-  ls STRD cond p u w rn rt combine_imm8
+  ls STRD cond p u w rn rt combine-imm8
 ###  - Store Register Dual (register)
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1111 /rm'] =
   ls STRD cond p u w rn rt rm
@@ -993,23 +989,19 @@ val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1111 /rm'] =
 ### STRH
 ###  - Store Register Halfword (immediate)
 val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1011 /imm4L'] =
-  ls STRH cond p u w rn rt combine_imm8
+  ls STRH cond p u w rn rt combine-imm8
 ###  - Store Register Halfword (register)
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1011 /rm'] =
   ls STRH cond p u w rn rt rm
 
 # --- Load/store multiple instructions ---------------------------------
 
-val ldm_is_pop? s =
-  case $rn s of
-      R13: ($w s) and (opndl-length ($operands s)) > 1
-    | _: '0'
-  end
+val ldm-is-pop? s = (is-sp? s.rn) and s.w and (opndl-length s.operands) > 1
 
 ### LDM/POP
 val / ['/cond 100 0 1 0 /W 1 /rn /registerlist']
 ###  - Pop Multiple Registers (Encoding A1)
-  | ldm_is_pop? = lsm POP cond set1 rn registerlist
+  | ldm-is-pop? = lsm POP cond set1 rn registerlist
 ###  - Load Multiple
   | otherwise = lsm LDM cond (return '1') rn registerlist
 
@@ -1029,16 +1021,12 @@ val / ['/cond 100 1 1 0 /W 1 /rn /registerlist'] = lsm LDMIB cond w rn registerl
 ###  - Store Multiple
 val / ['/cond 100 0 1 0 /W 0 /rn /registerlist'] = lsm STM cond w rn registerlist
 
-val stmdb_is_push? s =
-  case $rn s of
-      R13: ($w s) and (opndl-length ($operands s)) > 1
-    | _: '0'
-  end
+val stmdb-is-push? s = (is-sp? s.rn) and s.w and (opndl-length s.operands) > 1
 
 ### STMDB/PUSH
 val / ['/cond 100 1 0 0 /W 0 /rn /registerlist']
-###  - Push Multiple Registers
-  | stmdb_is_push? = lsm PUSH cond w rn registerlist
+###  - Push Multiple Registers (Encoding A1)
+  | stmdb-is-push? = lsm PUSH cond w rn registerlist
 ###  - Store Multiple Decrement Before
   | otherwise = lsm STMDB cond w rn registerlist
 
@@ -1058,7 +1046,7 @@ val / ['1111 010 1 0 1 1 1 1111 1111 0000 0001 1111'] = nullop CLREX none
 
 ### DBG
 ###  - Debug Hint
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 option:4'] = unop DBG cond (immediate (IMM4(option)))
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 /imm4'] = unop DBG cond imm4
 
 ### NOP
 ###  - No Operation
