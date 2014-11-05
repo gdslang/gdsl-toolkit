@@ -43,11 +43,11 @@ val reset = do
   update@{
     cond='0000',
     b='0', p='0', w='0', s='0',
-    ra='0000', rd='0000', rm='0000', rn='0000', rt='0000',
-    rdhi='0000', rdlo='0000',
+    ra=R0, rd=R0, rm=R0, rn=R0, rt=R0, rdhi=R0, rdlo=R0,
     imm4='0000', imm4H='0000', imm4L='0000',
     imm12='000000000000',
-    byte='00000000', rot='0000'
+    byte='00000000', rot='0000',
+    operands=OPNDL_NIL
   }
 end
 
@@ -112,11 +112,11 @@ type instruction =
   | STMDB of lsm
   | STMIB of lsm
   | PUSH of lsm
-  | B of br
-  | BL of br
-  | BLX of br
-  | BX of br
-  | BXJ of br
+  | B of unop
+  | BL of unop
+  | BLX of unop
+  | BX of unop
+  | BXJ of unop
   | CLREX of nullop
   | DBG of unop
   | DMB of unop
@@ -127,46 +127,33 @@ type instruction =
   | YIELD of nullop
   | SVC of unop
 
-type signed =
-    SIGNED
-  | UNSIGNED
-
-type updown =
-    UP
-  | DOWN
-
-type width =
-    BYTE
-  | WORD
-  | HALFWORD
-
 # Standard data-processing instruction
 type dp = {
   cond:condition, # condition code
-  s:1,            # whether the C flag should be set
+  s:1,            # whether the APSR flags should be set
   rn:operand,     # first operand register
-  rd:register,    # destination register
-  op2:operand     # second operand (immediate or register)
+  rd:operand,     # destination register
+  opnd2:operand   # second operand (immediate or register)
 }
 
 # Standard multiplication instructions
 type mul = {
   cond:condition,
   s:1,
-  rd:register,
-  ra:register,
-  rm:register,
-  rn:register
+  rd:operand,
+  ra:operand,
+  rm:operand,
+  rn:operand
 }
 
 # Long mulitplication instructions
 type mull = {
   cond:condition,
   s:1,
-  rdhi:register,
-  rdlo:register,
-  rn:register,
-  rm:register
+  rdhi:operand,
+  rdlo:operand,
+  rn:operand,
+  rm:operand
 }
 
 # Load/store instruction
@@ -175,8 +162,8 @@ type ls = {
   p:1,
   u:1,
   w:1,
-  rn:register,
-  rt:register,
+  rn:operand,
+  rt:operand,
   offset:operand
 }
 
@@ -184,14 +171,8 @@ type ls = {
 type lsm = {
   cond:condition,
   w:1,
-  rn:register,
-  register_list:registerlist
-}
-
-# Branch instructions
-type br = {
-  cond:condition,
-  label:operand
+  rn:operand,
+  registers:operand
 }
 
 # Generic instruction without any operands
@@ -215,10 +196,9 @@ type binop = {
 type operand =
     IMMEDIATE of immediate
   | REGISTER of register
-  | REGISTER_LIST of registerlist
   | SHIFTED_REGISTER of shiftedregister
+  | OPERAND_LIST of operandlist
 
-# Supertype for the various immediate values
 type immediate =
     IMMi of int
   | IMM4 of 4
@@ -229,10 +209,19 @@ type immediate =
   | IMM24 of 24
   | MODIMM of {byte:8, rot:4} # 8 bit immediate with 4 bit rotation
 
-# A list of registers (for load/store instructions)
-type registerlist =
-    REGL_NIL
-  | REGL_CONS of {head:register, tail:registerlist}
+type operandlist =
+    OPNDL_NIL
+  | OPNDL_CONS of {hd:operand, tl:operandlist}
+
+val opndl-none = OPNDL_NIL
+val opndl-one op = OPNDL_CONS {hd=op, tl=OPNDL_NIL}
+val opndl-more op tl = OPNDL_CONS {hd=op, tl=tl}
+
+val opndl-length opndl =
+  case opndl of
+      OPNDL_NIL: 0
+    | OPNDL_CONS l: 1 + (opndl-length l.tl)
+  end
 
 # A register with a shift applied to its value
 type shiftedregister = {register:register, shift:shift}
@@ -242,7 +231,6 @@ type shift =
     IMMSHIFT of {immediate:immediate, shifttype:shifttype}
   | REGSHIFT of {register:register, shifttype:shifttype}
 
-# Available shift methods
 type shifttype =
     LSL  # Logical Shift Left
   | LSR  # Logical Shift Right
@@ -250,7 +238,6 @@ type shifttype =
   | ROR  # Rotate Right
   | RRX  # Rotate Right with Extend
 
-# The 16 ARMv7 registers
 type register =
     R0   # Argument1, Return Value: Temporory register
   | R1   # Argument2, Second 32-bits if double/int Return Value: Temporary register
@@ -268,6 +255,12 @@ type register =
   | R13  # Stack pointer: permanent register
   | R14  # Link register: permanent register
   | R15  # Program Counter
+
+val is-sp? r =
+  case r of
+      R13: '1'
+    | _: '0'
+  end
 
 # ARM condition codes [[A8.3]]
 type condition =
@@ -288,30 +281,13 @@ type condition =
   | AL   # Always (unconditional)
   | NV   # Never: Dummy condition (NV is not an actual ARM condition)
 
-val dp cons cond s rn rd op2 = do
+val dp cons cond s rn rd opnd2 = do
   cond <- cond;
   s <- s;
   rn <- rn;
   rd <- rd;
-  op2 <- op2;
-  return (cons{
-    cond=cond,
-    s=s,
-    rn=(REGISTER (register-from-bits rn)),
-    rd=(register-from-bits rd),
-    op2=op2
-  })
-end
-
-val mls cons cond rd ra rm rn = do
-  cond <- cond;
-  return (cons{
-    cond=cond,
-    rd=(register-from-bits rd),
-    ra=(register-from-bits ra),
-    rm=(register-from-bits rm),
-    rn=(register-from-bits rn)
-  })
+  opnd2 <- opnd2;
+  return (cons {cond=cond, s=s, rn=rn, rd=rd, opnd2=opnd2})
 end
 
 val ml cons cond s rd ra rm rn = do
@@ -321,14 +297,7 @@ val ml cons cond s rd ra rm rn = do
   ra <- ra;
   rm <- rm;
   rn <- rn;
-  return (cons{
-    cond=cond,
-    s=s,
-    rd=(register-from-bits rd),
-    ra=(register-from-bits ra),
-    rm=(register-from-bits rm),
-    rn=(register-from-bits rn)
-  })
+  return (cons {cond=cond, s=s, rd=rd, ra=ra, rm=rm, rn=rn})
 end
 
 val mull cons cond s rdhi rdlo rm rn = do
@@ -337,14 +306,7 @@ val mull cons cond s rdhi rdlo rm rn = do
   rdlo <- rdlo;
   rm <- rm;
   rn <- rn;
-  return (cons{
-    cond=cond,
-    s=s,
-    rdhi=(register-from-bits rdhi),
-    rdlo=(register-from-bits rdlo),
-    rn=(register-from-bits rn),
-    rm=(register-from-bits rm)
-  })
+  return (cons {cond=cond, s=s, rdhi=rdhi, rdlo=rdlo, rn=rn, rm=rm})
 end
 
 val ls cons cond p u w rn rd offset = do
@@ -355,31 +317,15 @@ val ls cons cond p u w rn rd offset = do
   rn <- rn;
   rt <- rt;
   offset <- offset;
-  return (cons{
-    cond=cond,
-    p=p, u=u, w=w,
-    rn=(register-from-bits rn),
-    rt=(register-from-bits rt),
-    offset=offset
-  })
+  return (cons {cond=cond, p=p, u=u, w=w, rn=rn, rt=rt, offset=offset})
 end
 
-val lsm cons cond w rn register_list = do
+val lsm cons cond w rn registers = do
   cond <- cond;
   w <- w;
   rn <- rn;
-  register_list <- register_list;
-  return (cons{
-    cond=cond, w=w,
-    rn=(register-from-bits rn),
-    register_list=register_list
-  })
-end
-
-val br cons cond label = do
-  cond <- cond;
-  label <- label;
-  return (cons{cond=cond, label=label})
+  registers <- registers;
+  return (cons {cond=cond, w=w, rn=rn, registers=registers})
 end
 
 val nullop cons cond = do
@@ -400,7 +346,9 @@ val binop cons cond opnd1 opnd2 = do
   return (cons{cond=cond, opnd1=opnd1, opnd2=opnd2})
 end
 
-val immediate cons = return (IMMEDIATE(cons))
+val register cons = REGISTER cons
+val immediate cons = return (IMMEDIATE cons)
+val operandlist cons = OPERAND_LIST cons
 
 val is-zero? imm =
   case imm of
@@ -413,32 +361,22 @@ val is-zero? imm =
     | MODIMM i: is-zero? (IMMi (zx i.byte))
   end
 
-# Creates a list of registers
-# NOTE: This function should be called by a wrapper like reglist-from-int
-val create-reglist intlist reg_index reglist =
-  if intlist > 0 then
-    if /mod intlist 2 === 1 then
-      REGL_CONS {
-        head=(decode-register reg_index),
-        tail=(create-reglist (/m intlist 2) (reg_index + 1) reglist)
-      }
+# Creates a operand list from a (16 bit) bit vector.
+# If bit i is set, then the register Ri is added to the list.
+val decode-registerlist bitvec = let
+  val from-int i index =
+    if i > 0 then
+      if /mod i 2 === 1 then
+        opndl-more (register (register-from-int index)) (from-int (/z i 2) (index + 1))
+      else
+        from-int (/z i 2) (index + 1)
     else
-      create-reglist (/m intlist 2) (reg_index + 1) reglist
-  else
-    reglist
+      opndl-none
+in
+  from-int (zx bitvec) 0
+end
 
-# Returns the number of registers in a register list
-val reglist-length reglist =
-  case reglist of
-      REGL_NIL: 0
-    | REGL_CONS l: 1 + (reglist-length l.tail)
-  end
-
-# Creates a register list from a (16 bit) bit vector (for load/store insns)
-val reglist-from-bits bits = reglist-from-int (zx bits)
-val reglist-from-int intlist = create-reglist intlist 0 REGL_NIL
-
-val decode-register i =
+val register-from-int i =
   case i of
       0: R0
     | 1: R1
@@ -458,19 +396,7 @@ val decode-register i =
     | 15: R15
   end
 
-val register-from-bits bits = decode-register (zx bits)
-
-val updown-from-bits bits =
-  case bits of
-      '0' : DOWN
-    | '1' : UP
-  end
-
-val width-from-bits bits =
-  case bits of
-      '0' : WORD
-    | '1' : BYTE
-  end
+val decode-register bitvec = register-from-int (zx bitvec)
 
 val shifttype-from-bits bits =
   case bits of
@@ -611,7 +537,9 @@ val armexpandimm modimm = (armexpandimm-c modimm 0).result
 # Subdecoder
 # ----------------------------------------------------------------------
 
-# Condition subdecoder (4 bit condition code; cannot be '1111')
+# --- condition subdecoders --------------------------------------------
+
+# 4 bit condition code; cannot be '1111'
 val /cond ['cond@0...'] = update@{cond=cond}
 val /cond ['cond@10..'] = update@{cond=cond}
 val /cond ['cond@110.'] = update@{cond=cond}
@@ -624,7 +552,8 @@ end
 
 val none = return NV
 
-# Flag subdecoders
+# --- flag subdecoders -------------------------------------------------
+
 val /P ['p:1'] = update@{p=p}
 val /W ['w:1'] = update@{w=w}
 val /U ['u:1'] = update@{u=u}
@@ -651,11 +580,13 @@ val s = do
 end
 
 # set0 and set1 can be used if one of the flags for a particular
-# instruction has a fixed value:
+# instruction has a fix value:
 val set0 = return '0'
 val set1 = return '1'
 
-# Immediate subdecoder (default 12 bit immediate)
+# --- immediate subdecoders --------------------------------------------
+
+# default 12 bit immediate
 val /imm12 ['imm12:12'] = update@{imm12=imm12}
 
 val imm12 = do
@@ -676,6 +607,7 @@ end
 
 val /imm4 ['imm4:4'] = update@{imm4=imm4}
 
+# concats the 4 bit and 12 bit immediates that were decoded most recently
 val combine_imm16 = do
   imm4 <- query $imm4;
   imm12 <- query $imm12;
@@ -683,7 +615,7 @@ val combine_imm16 = do
   return imm
 end
 
-# Immediate subdecoder (modified 12 bit immediate)
+# modified 12 bit immediate (8 bit immediate with rotation)
 val /modimm ['rot:4 byte:8'] = update@{rot=rot, byte=byte}
 
 val modimm = do
@@ -696,94 +628,92 @@ end
 val /shiftedreg ['/immshift /rm'] = (return 0)
 val /shiftedreg ['/regshift /rm'] = (return 0)
 
-# Operand subdecoder: Register + Immediate shift
+# operand subdecoder: register + immediate shift
 val /immshift ['imm5:5 stype:2 0'] =
   update@{
     shiftop=IMMSHIFT{immediate=IMM5(imm5), shifttype=(shifttype-from-bits stype)}
   }
 
-# Operand subdecoder: Register + Register controlled shift
+# operand subdecoder: register + register controlled shift
 val /regshift ['rs:4 0 stype:2 1'] =
   update@{
-    shiftop=REGSHIFT{register=(register-from-bits rs), shifttype=(shifttype-from-bits stype)}
+    shiftop=REGSHIFT{register=(decode-register rs), shifttype=(shifttype-from-bits stype)}
   }
 
 val shiftedreg = do
   shiftoperation <- query $shiftop;
   rm <- query $rm;
-  return (SHIFTED_REGISTER{register=(register-from-bits rm), shift=shiftoperation})
+  return (SHIFTED_REGISTER{register=rm, shift=shiftoperation})
 end
 
-# Subdecoder for (16 bit) register_lists for load/store instructions
-val /register_list ['regs:16'] =
-  update@{register_list=(reglist-from-int (zx regs))}
+# --- operand list/register list subdecoders ---------------------------
 
-val /register_list_one ['rt:4 000000000100'] =
-  update@{register_list=(reglist-from-int (power 2 (zx rt)))}
- 
-val /register_list_many ['regs@.............0..'] =
-  update@{register_list=(reglist-from-int (zx regs))}
+val /registerlist ['regs:16'] =
+  update@{operands=(decode-registerlist regs)}
 
-# Returns the register list that was decoded most recently.
-val register_list = do
-  register_list <- query $register_list;
-  return register_list
+val /registerlist-one ['rt:4 000000000100'] =
+  update@{operands=(opndl-one (register (decode-register rt)))}
+
+val /registerlist-many ['regs@.............0..'] =
+  update@{operands=(decode-registerlist regs)}
+
+val registerlist = do
+  operands <- query $operands;
+  return (operandlist operands)
 end
 
-val rx2reglist rx = do
+val registerlist-one rx = do
   reg <- rx;
-  return (reglist-from-int (power 2 (zx reg)))
+  return (operandlist (opndl-one reg))
 end
 
-# Register subdecoders
-val /ra ['ra:4'] = update@{ra=ra}
-val /rd ['rd:4'] = update@{rd=rd}
-val /rm ['rm:4'] = update@{rm=rm}
-val /rn ['rn:4'] = update@{rn=rn}
-val /rt ['rt:4'] = update@{rt=rt}
+# --- register subdecoders ---------------------------------------------
 
-val /rdhi ['rdhi:4'] = update@{rdhi=rdhi}
-val /rdlo ['rdlo:4'] = update@{rdlo=rdlo}
+val /ra ['ra:4'] = update@{ra=(decode-register ra)}
+val /rd ['rd:4'] = update@{rd=(decode-register rd)}
+val /rm ['rm:4'] = update@{rm=(decode-register rm)}
+val /rn ['rn:4'] = update@{rn=(decode-register rn)}
+val /rt ['rt:4'] = update@{rt=(decode-register rt)}
+
+val /rdhi ['rdhi:4'] = update@{rdhi=(decode-register rdhi)}
+val /rdlo ['rdlo:4'] = update@{rdlo=(decode-register rdlo)}
 
 val ra = do
   ra <- query $ra;
-  return ra
+  return (register ra)
 end
 
 val rd = do
   rd <- query $rd;
-  return rd
+  return (register rd)
 end
 
 val rm = do
   rm <- query $rm;
-  return rm
+  return (register rm)
 end
 
 val rn = do
   rn <- query $rn;
-  return rn
+  return (register rn)
 end
 
 val rt = do
   rt <- query $rt;
-  return rt
+  return (register rt)
 end
 
 val rdhi = do
   rdhi <- query $rdhi;
-  return rdhi
+  return (register rdhi)
 end
 
 val rdlo = do
   rdlo <- query $rdlo;
-  return rdlo
+  return (register rdlo)
 end
 
-val rx2operand rx = do
-  reg <- rx;
-  return (REGISTER(register-from-bits reg))
-end
+val r0 = return (register R0)
 
 # ----------------------------------------------------------------------
 # Instruction Decoding
@@ -793,25 +723,25 @@ end
 
 ### B
 ### - Branch
-val / ['/cond 101 0 imm24:24'] = br B cond (immediate (IMMi(sx (imm24^'00'))))
+val / ['/cond 101 0 imm24:24'] = unop B cond (immediate (IMMi(sx (imm24^'00'))))
 
 ### BL
 ###  - Branch with Link
-val / ['/cond 101 1 imm24:24'] = br BL cond (immediate (IMMi(sx (imm24^'00'))))
+val / ['/cond 101 1 imm24:24'] = unop BL cond (immediate (IMMi(sx (imm24^'00'))))
 
 ### BLX
 ###  - Branch with Link and Exchange (Immediate)
-val / ['1111 101 h:1 imm24:24'] = br BLX none (immediate (IMMi(sx (imm24^h^'0'))))
+val / ['1111 101 h:1 imm24:24'] = unop BLX none (immediate (IMMi(sx (imm24^h^'0'))))
 ###  - Branch with Link and Exchange (Register)
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0011 /rm'] = br BLX cond (rx2operand rm)
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0011 /rm'] = unop BLX cond rm
 
 ### BX
 ### - Branch and Exchange
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0001 /rm'] = br BX cond (rx2operand rm)
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0001 /rm'] = unop BX cond rm
 
 ### BXJ
 ###  - Branch and Exchange Jazelle
-val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0010 /rm'] = br BXJ cond (rx2operand rm)
+val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0010 /rm'] = unop BXJ cond rm
 
 # --- Data Processing Instructions -------------------------------------
 
@@ -841,15 +771,15 @@ val / ['/cond 000 1 1 1 0 /S /rn /rd /shiftedreg'] = dp BIC cond s rn rd shifted
 
 ### CMN
 ###  - Compare Negative (immediate)
-val / ['/cond 001 1 0 1 1 1 /rn 0000 /modimm'] = dp CMN cond set1 rn (return '0000') modimm
+val / ['/cond 001 1 0 1 1 1 /rn 0000 /modimm'] = dp CMN cond set1 rn r0 modimm
 ###  - Compare Negative (shifted register)
-val / ['/cond 000 1 0 1 1 1 /rn 0000 /shiftedreg'] = dp CMN cond s rn (return '0000') shiftedreg
+val / ['/cond 000 1 0 1 1 1 /rn 0000 /shiftedreg'] = dp CMN cond s rn r0 shiftedreg
 
 ### CMP
 ###  - Compare (immediate)
-val / ['/cond 001 1 0 1 0 1 /rn 0000 /modimm'] = dp CMP cond set1 rn (return '0000') modimm
+val / ['/cond 001 1 0 1 0 1 /rn 0000 /modimm'] = dp CMP cond set1 rn r0 modimm
 ###  - Compare (shifted register)
-val / ['/cond 000 1 0 1 0 1 /rn 0000 /shiftedreg'] = dp CMP cond set1 rn (return '0000') shiftedreg
+val / ['/cond 000 1 0 1 0 1 /rn 0000 /shiftedreg'] = dp CMP cond set1 rn r0 shiftedreg
 
 ### EOR
 ###  - Bitwise Exclusive OR (immediate)
@@ -859,17 +789,17 @@ val / ['/cond 000 0 0 0 1 /S /rn /rd /shiftedreg'] = dp EOR cond s rn rd shifted
 
 ### MOV
 ###  - Move (immediate) (Encoding A1)
-val / ['/cond 001 1 1 0 1 /S 0000 /rd /modimm'] = dp MOV cond s (return '0000') rd modimm
+val / ['/cond 001 1 1 0 1 /S 0000 /rd /modimm'] = dp MOV cond s r0 rd modimm
 ###  - Move (immediate) (Encoding A2)
-val / ['/cond 001 1 0 0 0 0 /imm4 /rd /imm12'] = dp MOV cond set0 (return '0000') rd combine_imm16
+val / ['/cond 001 1 0 0 0 0 /imm4 /rd /imm12'] = dp MOV cond set0 r0 rd combine_imm16
 ###  - Move (shifted register)
-val / ['/cond 000 1 1 0 1 /S 0000 /rd /shiftedreg'] = dp MOV cond s (return '0000') rd shiftedreg
+val / ['/cond 000 1 1 0 1 /S 0000 /rd /shiftedreg'] = dp MOV cond s r0 rd shiftedreg
 
 ### MVN
 ###  - Bitwise NOT (immediate)
-val / ['/cond 001 1 1 1 1 /S 0000 /rd /modimm'] = dp MVN cond s (return '0000') rd modimm
+val / ['/cond 001 1 1 1 1 /S 0000 /rd /modimm'] = dp MVN cond s r0 rd modimm
 ###  - Bitwise NOT (shifted register)
-val / ['/cond 000 1 1 1 1 /S 0000 /rd /shiftedreg'] = dp MVN cond s (return '0000') rd shiftedreg
+val / ['/cond 000 1 1 1 1 /S 0000 /rd /shiftedreg'] = dp MVN cond s r0 rd shiftedreg
 
 ### ORR
 ###  - Bitwise OR (immediate)
@@ -903,72 +833,65 @@ val / ['/cond 000 0 0 1 0 /S /rn /rd /shiftedreg'] = dp SUB cond s rn rd shifted
 
 ### TEQ
 ###  - Test Equivalence (immediate)
-val / ['/cond 001 1 0 0 1 1 /rn 0000 /modimm'] = dp TEQ cond set1 rn (return '0000') modimm
+val / ['/cond 001 1 0 0 1 1 /rn 0000 /modimm'] = dp TEQ cond set1 rn r0 modimm
 ###  - Test Equivalence (shifted register)
-val / ['/cond 000 1 0 0 1 1 /rn 0000 /shiftedreg'] = dp TEQ cond set1 rn (return '0000') shiftedreg
+val / ['/cond 000 1 0 0 1 1 /rn 0000 /shiftedreg'] = dp TEQ cond set1 rn r0 shiftedreg
 
 ### TST
 ###  - Test (immediate)
-val / ['/cond 001 1 0 0 0 1 /rn 0000 /modimm'] = dp TST cond set1 rn (return '0000') modimm
+val / ['/cond 001 1 0 0 0 1 /rn 0000 /modimm'] = dp TST cond set1 rn r0 modimm
 ###  - Test (shifted register)
-val / ['/cond 000 1 0 0 0 1 /rn 0000 /shiftedreg'] = dp TST cond s rn (return '0000') shiftedreg
+val / ['/cond 000 1 0 0 0 1 /rn 0000 /shiftedreg'] = dp TST cond s rn r0 shiftedreg
 
 # --- Shift instructions -----------------------------------------------
 
-(* NOTE: These instructions are implemented by MOV (shifted-register) *)
+(* NOTE: These instructions are implemented by MOV (shifted register) *)
 
 # --- Multiply instructions --------------------------------------------
 
 ### MLA
 ###  - Multiply Accumulate
-val / ['/cond 000 0 0 0 1 /S /rd /ra /rm 1001 /rn'] =
-  ml MLA cond s rd ra rm rn
+val / ['/cond 000 0 0 0 1 /S /rd /ra /rm 1001 /rn'] = ml MLA cond s rd ra rm rn
 
 ### MLS
 ###  - Multiply and Subtract
-val / ['/cond 000 0 0 1 1 0 /rd /ra /rm 1001 /rn'] =
-  ml MLS cond set0 rd ra rm rn
+val / ['/cond 000 0 0 1 1 0 /rd /ra /rm 1001 /rn'] = ml MLS cond set0 rd ra rm rn
 
 ### MUL
 ###  - Multiply
-val / ['/cond 000 0 0 0 0 /S /rd ra@0000 /rm 1001 /rn'] =
-  ml MUL cond s rd (return ra) rm rn
+val / ['/cond 000 0 0 0 0 /S /rd 0000 /rm 1001 /rn'] = ml MUL cond s rd r0 rm rn
 
 ### SMLAL
 ###  - Signed Multiply Accumulate Long
-val / ['/cond 000 0 1 1 1 s:1 /rdhi /rdlo /rm 1001 /rn'] =
-  mull SMLAL cond s rdhi rdlo rm rn
+val / ['/cond 000 0 1 1 1 s:1 /rdhi /rdlo /rm 1001 /rn'] = mull SMLAL cond s rdhi rdlo rm rn
 
 ### SMULL
 ###  - Signed Multiply Long
-val / ['/cond 000 0 1 1 0 s:1 /rdhi /rdlo /rm 1001 /rn'] =
-  mull SMULL cond s rdhi rdlo rm rn
+val / ['/cond 000 0 1 1 0 s:1 /rdhi /rdlo /rm 1001 /rn'] = mull SMULL cond s rdhi rdlo rm rn
 
 ### UMLAL
 ###  - Unsigned Multiply Accumulate Long
-val / ['/cond 000 0 1 0 1 s:1 /rdhi /rdlo /rm 1001 /rn'] =
-  mull UMLAL cond s rdhi rdlo rm rn
+val / ['/cond 000 0 1 0 1 s:1 /rdhi /rdlo /rm 1001 /rn'] = mull UMLAL cond s rdhi rdlo rm rn
 
 ### UMULL
 ###  - Unsigned Multiply Long
-val / ['/cond 000 0 1 0 0 s:1 /rdhi /rdlo /rm 1001 /rn'] =
-  mull UMULL cond s rdhi rdlo rm rn
+val / ['/cond 000 0 1 0 0 s:1 /rdhi /rdlo /rm 1001 /rn'] = mull UMULL cond s rdhi rdlo rm rn
 
 # --- Miscellaneous data-processing instructions -----------------------
 
 ### CLZ
 ###  - Count Leading Zeros
-val / ['/cond 000 1 0 1 1 0 1111 /rd 1111 0001 /rm'] = binop CLZ cond (rx2operand rd)  (rx2operand rm)
+val / ['/cond 000 1 0 1 1 0 1111 /rd 1111 0001 /rm'] = binop CLZ cond rd rm
 
 # --- Load/store instructions ------------------------------------------
 
-val ldr_is_pop? s = ($rn s == '1101') and ($p s == '0') and ($u s) and ($w s == '0') and ($imm12 s == '000000000100')
-val is_unprivileged? s = ($p s == '0') and ($w s)
+val ldr_is_pop? s = (is-sp? s.rn) and (not s.p) and s.u and (not s.w) and (s.imm12 == '000000000100')
+val is_unprivileged? s = (not s.p) and s.w
 
 ### LDR/LDRT/POP
 val / ['/cond 010 /P /U 0 /W 1 /rn /rt /imm12']
 ###  - Pop Multiple Registers (Encoding A2)
-  | ldr_is_pop? = lsm POP cond w rn (rx2reglist rt)
+  | ldr_is_pop? = lsm POP cond w rn (registerlist-one rt)
 ###  - Load Register Unprivileged (Encoding A1)
   | is_unprivileged? = ls LDRT cond set0 u set0 rn rt imm12
 ###  - Load Register (immediate/literal)
@@ -992,12 +915,12 @@ val / ['/cond 011 /P /U 1 /W 1 /rn /rt /immshift /rm']
   | otherwise = ls LDRB cond p u w rn rt shiftedreg
 
 ### LDRD
-###  - Load Register Dual (immediate/literal)
 val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1101 /imm4L'] =
+###  - Load Register Dual (immediate/literal)
   ls LDRD cond p u w rn rt combine_imm8
 ###  - Load Register Dual (register)
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1101 /rm'] =
-  ls LDRD cond p u w rn rt (rx2operand rm)
+  ls LDRD cond p u w rn rt rm
 
 ### LDRH/LDRHT
 val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1011 /imm4L']
@@ -1007,9 +930,9 @@ val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1011 /imm4L']
   | otherwise = ls LDRH cond p u w rn rt combine_imm8
 val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1011 /rm']
 ###  - Load Register Halfword Unprivileged (Encoding A2)
-  | is_unprivileged? = ls LDRHT cond set0 u set0 rn rt (rx2operand rm)
+  | is_unprivileged? = ls LDRHT cond set0 u set0 rn rt rm
 ###  - Load Register Halfword (register)
-  | otherwise = ls LDRH cond p u w rn rt (rx2operand rm)
+  | otherwise = ls LDRH cond p u w rn rt rm
 
 ### LDRSB/LDRSBT
 val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1101 /imm4L']
@@ -1019,9 +942,9 @@ val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1101 /imm4L']
   | otherwise = ls LDRSB cond p u w rn rt combine_imm8
 val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1101 /rm']
 ###  - Load Register Signed Byte (Encoding A2)
-  | is_unprivileged? = ls LDRSBT cond set0 u set0 rn rt (rx2operand rm)
+  | is_unprivileged? = ls LDRSBT cond set0 u set0 rn rt rm
 ###  - Load Register Signed Byte (register)
-  | otherwise = ls LDRSB cond p u w rn rt (rx2operand rm)
+  | otherwise = ls LDRSB cond p u w rn rt rm
 
 ### LDRSH/LDRSHT
 val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1111 /imm4L']
@@ -1031,16 +954,20 @@ val / ['/cond 000 /P /U 1 /W 1 /rn /rt /imm4H 1111 /imm4L']
   | otherwise = ls LDRSH cond p u w rn rt combine_imm8
 val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1111 /rm']
 ###  - Load Register Signed Halfword Unprivileged (Encoding A2)
-  | is_unprivileged? = ls LDRSHT cond set0 u set0 rn rt (rx2operand rm)
+  | is_unprivileged? = ls LDRSHT cond set0 u set0 rn rt rm
 ###  - Load Register Signed Halfword (register)
-  | otherwise = ls LDRSH cond p u w rn rt (rx2operand rm)
+  | otherwise = ls LDRSH cond p u w rn rt rm
 
-val str_is_push? s = ($rn s == '1101') and ($p s == '1') and ($u s == '0') and ($imm12 s == '000000000100')
+val str_is_push? s =
+  case $rn s of
+      R13: ($p s) and not ($u s) and ($imm12 s == '000000000100')
+    | _: '0'
+  end
 
 ### STR/PUSH
 val / ['/cond 010 /P /U 0 /W 0 /rn /rt /imm12']
 ###  - Push Multiple Registers (Encoding A2)
-  | str_is_push? = lsm PUSH cond w rn (rx2reglist rt)
+  | str_is_push? = lsm PUSH cond w rn (registerlist-one rt)
 ###  - Store Register (immediate)
   | otherwise = ls STR cond p u w rn rt imm12
 ###  - Store Register (register)
@@ -1061,7 +988,7 @@ val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1111 /imm4L'] =
   ls STRD cond p u w rn rt combine_imm8
 ###  - Store Register Dual (register)
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1111 /rm'] =
-  ls STRD cond p u w rn rt (rx2operand rm)
+  ls STRD cond p u w rn rt rm
 
 ### STRH
 ###  - Store Register Halfword (immediate)
@@ -1069,56 +996,59 @@ val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1011 /imm4L'] =
   ls STRH cond p u w rn rt combine_imm8
 ###  - Store Register Halfword (register)
 val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1011 /rm'] =
-  ls STRH cond p u w rn rt (rx2operand rm)
+  ls STRH cond p u w rn rt rm
 
 # --- Load/store multiple instructions ---------------------------------
 
-val ldm_is_pop? s = ($w s == '1') and (($rn s) == '1101') and (reglist-length ($register_list s)) > 1
+val ldm_is_pop? s =
+  case $rn s of
+      R13: ($w s) and (opndl-length ($operands s)) > 1
+    | _: '0'
+  end
 
 ### LDM/POP
-val / ['/cond 100 0 1 0 /W 1 /rn /register_list']
-  | ldm_is_pop? = lsm POP cond set1 rn register_list
+val / ['/cond 100 0 1 0 /W 1 /rn /registerlist']
+###  - Pop Multiple Registers (Encoding A1)
+  | ldm_is_pop? = lsm POP cond set1 rn registerlist
 ###  - Load Multiple
-  | otherwise = lsm LDM cond (return '1') rn register_list
+  | otherwise = lsm LDM cond (return '1') rn registerlist
 
 ### LDMDA
 ###  - Load Multiple Decrement After
-val / ['/cond 100 0 0 0 /W 1 /rn /register_list'] =
-  lsm LDMDA cond w rn register_list
+val / ['/cond 100 0 0 0 /W 1 /rn /registerlist'] = lsm LDMDA cond w rn registerlist
 
 ### LDMDB
 ###  - Load Multiple Decrement Before
-val / ['/cond 100 1 0 0 /W 1 /rn /register_list'] =
-  lsm LDMDB cond w rn register_list
+val / ['/cond 100 1 0 0 /W 1 /rn /registerlist'] = lsm LDMDB cond w rn registerlist
 
 ### LDMIB
 ###  - Load Multiple Increment Before
-val / ['/cond 100 1 1 0 /W 1 /rn /register_list'] =
-  lsm LDMIB cond w rn register_list
+val / ['/cond 100 1 1 0 /W 1 /rn /registerlist'] = lsm LDMIB cond w rn registerlist
 
 ### STM
 ###  - Store Multiple
-val / ['/cond 100 0 1 0 /W 0 /rn /register_list'] =
-  lsm STM cond w rn register_list
+val / ['/cond 100 0 1 0 /W 0 /rn /registerlist'] = lsm STM cond w rn registerlist
 
-val stmdb_is_push? s = ($w s == '1') and ($rn s == '1101') and (reglist-length ($register_list s)) > 1
+val stmdb_is_push? s =
+  case $rn s of
+      R13: ($w s) and (opndl-length ($operands s)) > 1
+    | _: '0'
+  end
 
 ### STMDB/PUSH
-val / ['/cond 100 1 0 0 /W 0 /rn /register_list']
+val / ['/cond 100 1 0 0 /W 0 /rn /registerlist']
 ###  - Push Multiple Registers
-  | stmdb_is_push? = lsm PUSH cond w rn register_list
+  | stmdb_is_push? = lsm PUSH cond w rn registerlist
 ###  - Store Multiple Decrement Before
-  | otherwise = lsm STMDB cond w rn register_list
+  | otherwise = lsm STMDB cond w rn registerlist
 
 ### STMDA
 ###  - Store Multiple Decrement After
-val / ['/cond 100 0 0 0 /W 0 /rn /register_list'] =
-  lsm STMDA cond w rn register_list
+val / ['/cond 100 0 0 0 /W 0 /rn /registerlist'] = lsm STMDA cond w rn registerlist
 
 ### STMIB
 ###  - Store Multiple Increment Before
-val / ['/cond 100 1 1 0 /W 0 /rn /register_list'] =
-  lsm STMIB cond w rn register_list
+val / ['/cond 100 1 1 0 /W 0 /rn /registerlist'] = lsm STMIB cond w rn registerlist
 
 # --- Miscellaneous instructions ---------------------------------------
 
@@ -1128,7 +1058,7 @@ val / ['1111 010 1 0 1 1 1 1111 1111 0000 0001 1111'] = nullop CLREX none
 
 ### DBG
 ###  - Debug Hint
-val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 option:4'] =unop DBG cond (immediate (IMM4(option)))
+val / ['/cond 001 1 0 0 1 0 0000 1111 0000 1111 option:4'] = unop DBG cond (immediate (IMM4(option)))
 
 ### NOP
 ###  - No Operation

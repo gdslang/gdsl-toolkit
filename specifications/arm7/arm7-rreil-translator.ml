@@ -37,7 +37,10 @@ type signedness =
     Signed
   | Unsigned
 
-val lval x = return (semantic-register-of x)
+val lval x =
+  case x of
+      REGISTER r: return (semantic-register-of r)
+  end
 
 val rvals sign x = let
   val from-vec sn vector =
@@ -68,7 +71,7 @@ val rval x = rvals Unsigned x
 (* TODO: Add RRX rotation. *)
 val shift-register shift reg = let
   val do-shift stype amount = do
-    rm <- lval reg;
+    rm <- return (semantic-register-of reg);
     amount <- amount;
     case stype of
         LSL: shl 32 rm (var rm) amount
@@ -111,7 +114,7 @@ val semantics insn =
 # ----------------------------------------------------------------------
 
 # Program Counter register (PC/IP)
-val get-pc = lval R15
+val get-pc = lval (REGISTER R15)
 
 val is-pc? sem-reg =
   case sem-reg.id of
@@ -120,10 +123,10 @@ val is-pc? sem-reg =
   end
 
 # Stack Pointer register (SP)
-val get-sp = lval R13
+val get-sp = lval (REGISTER R13)
 
 # Link register (LR)
-val get-lr = lval R14
+val get-lr = lval (REGISTER R14)
 
 val instr-set-arm? = /eq 1 (var isetstate) (imm 0)
 val instr-set-thumb? = /eq 1 (var isetstate) (imm 1)
@@ -209,13 +212,13 @@ val alu-write-pc addr = do
   end
 end
 
-# Set the N flag, if the result is negative.
+# set the N flag, if the result is negative.
 val emit-flag-n result = do
   nf <- fNF;
   cmplts 32 nf result (imm 0)
 end
 
-# Set the Z flag, if the result is zero.
+# set the Z flag, if the result is zero.
 val emit-flag-z result = do
   zf <- fZF;
   cmpeq 32 zf result (imm 0)
@@ -276,7 +279,7 @@ val lin-sub x y = SEM_LIN_SUB {opnd1=x, opnd2=y}
 
 val sem-b x = do
   _if (condition-passed? x.cond) _then do
-    offset <- rval x.label;
+    offset <- rval x.opnd;
     pc <- get-pc;
     jump (address pc.size (lin-sum (var pc) offset))
   end
@@ -284,7 +287,7 @@ end
 
 val sem-bl x = do
   _if (condition-passed? x.cond) _then do
-    offset <- rval x.label;
+    offset <- rval x.opnd;
     pc <- get-pc;
     lr <- get-lr;
 
@@ -302,7 +305,7 @@ end
 
 val sem-bx x = do
   _if (condition-passed? x.cond) _then do
-    m <- rval x.label;
+    m <- rval x.opnd;
     jump (address 32 m)
   end
 end
@@ -311,7 +314,7 @@ val sem-adc x = do
   _if (condition-passed? x.cond) _then do
     rn <- rval x.rn;
     rd <- lval x.rd;
-    opnd2 <- rval x.op2;
+    opnd2 <- rval x.opnd2;
 
     cf <- fCF;
 
@@ -327,7 +330,7 @@ val sem-add x = do
   _if (condition-passed? x.cond) _then do
     rn <- rval x.rn;
     rd <- lval x.rd;
-    opnd2 <- rval x.op2;
+    opnd2 <- rval x.opnd2;
 
     if is-pc? rd then do
       add-with-carry 32 rd rn opnd2 (imm 0) '0';
@@ -349,7 +352,7 @@ val sem-sub x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rd;
     rn <- rval x.rn;
-    opnd2 <- rval x.op2;
+    opnd2 <- rval x.opnd2;
 
     not_opnd2 <- mktemp;
     xorb rd.size not_opnd2 opnd2 (imm 0);
@@ -365,7 +368,7 @@ end
 val sem-mov x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rd;
-    op2 <- rval x.op2;
+    op2 <- rval x.opnd2;
 
     mov 32 rd op2;
 
@@ -408,44 +411,60 @@ val sem-ldr x = do
 end
 
 val sem-pop x = let
-  val load-registers reglist =
-    case reglist of
-        REGL_NIL: return void
-      | REGL_CONS c: do
+  val load-operand opnd =
+    case opnd of
+        OPERAND_LIST l: load-operandlist l
+      | _: do
           sp <- get-sp;
-          dest <- lval c.head;
+          dest <- lval opnd;
           load 32 dest 32 (var sp);
-          add sp.size sp (var sp) (imm 4);
-          load-registers c.tail
+          add sp.size sp (var sp) (imm 4)
+        end
+    end
+
+  val load-operandlist opndl =
+    case opndl of
+        OPNDL_NIL: return void
+      | OPNDL_CONS c: do
+          load-operand c.hd;
+          load-operandlist c.tl
         end
     end
 in
   _if (condition-passed? x.cond) _then do
-    load-registers x.register_list
+    load-operand x.registers
   end
 end
 
 val sem-push x = let
-  val store-registers reglist =
-    case reglist of
-        REGL_NIL: return void
-      | REGL_CONS c: do
+  val store-operand opnd =
+    case opnd of
+        OPERAND_LIST l: store-operandlist l
+      | _: do
           sp <- get-sp;
-          src <- lval c.head;
+          src <- lval opnd;
           store 32 (address 32 (var sp)) (var src);
-          sub sp.size sp (var sp) (imm 4);
-          store-registers c.tail
+          sub sp.size sp (var sp) (imm 4)
+        end
+    end
+
+  val store-operandlist opndl =
+    case opndl of
+        OPNDL_NIL: return void
+      | OPNDL_CONS c: do
+          store-operand c.hd;
+          store-operandlist c.tl
         end
     end
 in
   _if (condition-passed? x.cond) _then do
-    store-registers x.register_list
+    store-operand x.registers
   end
 end
 
 val sem-str x = do
   _if (condition-passed? x.cond) _then do
-    rt <- return (var (semantic-register-of x.rt));
+    rt <- rval x.rt;
     rn <- lval x.rn;
     offset <- rval x.offset;
 
