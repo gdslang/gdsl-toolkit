@@ -120,9 +120,12 @@ val semantics insn =
     | AND x: sem-and x
     | CMN x: sem-cmn x
     | CMP x: sem-cmp x
+    | EOR x: sem-eor x
     | MOV x: sem-mov x
     | SBC x: sem-sbc x
     | SUB x: sem-sub x
+    | TEQ x: sem-teq x
+    | TST x: sem-tst x
     | LDR x: sem-ldr x
     | POP x: sem-pop x
     | PUSH x: sem-push x
@@ -443,6 +446,43 @@ val sem-cmp x = do
   end
 end
 
+val sem-eor x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    rn <- rval x.rn;
+    opnd2 <- rval-c x.opnd2 x.s; # update carry!
+
+    xorb 32 rd rn opnd2;
+
+    if is-sem-pc? rd then
+      alu-write-pc rd
+    else
+      if x.s then do
+        emit-flag-n (var rd);
+        emit-flag-z (var rd)
+      end else
+        return void
+  end
+end
+
+val sem-mov x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    opnd2 <- rval-c x.opnd2 x.s;
+
+    mov 32 rd opnd2;
+
+    if is-sem-pc? rd then
+      alu-write-pc rd
+    else
+      if x.s then do
+        emit-flag-n (var rd);
+        emit-flag-z (var rd)
+      end else
+        return void
+  end
+end
+
 val sem-sbc x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rn;
@@ -480,21 +520,29 @@ val sem-sub x = do
   end
 end
 
-val sem-mov x = do
+val sem-tst x = do
   _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    opnd2 <- rval-c x.opnd2 x.s;
+    rn <- rval x.rn;
+    opnd2 <- rval-c x.opnd2 '1'; # update carry!
+    tst_result <- mktemp;
 
-    mov 32 rd opnd2;
+    andb 32 tst_result rn opnd2;
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      if x.s then do
-        emit-flag-n (var rd);
-        emit-flag-z (var rd)
-      end else
-        return void
+    emit-flag-n (var tst_result);
+    emit-flag-z (var tst_result)
+  end
+end
+
+val sem-teq x = do
+  _if (condition-passed? x.cond) _then do
+    rn <- rval x.rn;
+    opnd2 <- rval-c x.opnd2 '1'; # update carry!
+    teq_result <- mktemp;
+
+    xorb 32 teq_result rn opnd2;
+
+    emit-flag-n (var teq_result);
+    emit-flag-z (var teq_result)
   end
 end
 
