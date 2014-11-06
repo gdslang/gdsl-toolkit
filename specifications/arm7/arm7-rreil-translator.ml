@@ -121,6 +121,7 @@ val semantics insn =
     | CMN x: sem-cmn x
     | CMP x: sem-cmp x
     | MOV x: sem-mov x
+    | SBC x: sem-sbc x
     | SUB x: sem-sub x
     | LDR x: sem-ldr x
     | POP x: sem-pop x
@@ -247,11 +248,19 @@ val emit-add-adc-flags sz sum x y = do
   cmplts sz fVF (var t3) (imm 0)
 end
 
+val emit-sub-sbc-flags sz difference x y = do
+  y_2comp <- mktemp;
+  xorb 32 y_2comp y (imm 0);
+  add 32 y_2comp (var y_2comp) (imm 1);
+
+  emit-add-adc-flags sz difference x y
+end
+
 # --- Shift/rotate functions -------------------------------------------
 
 # logic shift left
 val sem-lsl sz opnd shiftamount setcarry = do
-  shift_minus_one <- return (lin-sub shiftamount (imm 1));
+  shift_minus_one <- return (lin-diff shiftamount (imm 1));
 
   shl sz opnd (var opnd) shift_minus_one;
 
@@ -266,7 +275,7 @@ end
 
 # logic or arithmetic shift right
 val sem-lsr-asr sz opnd shiftamount shiftop setcarry = do
-  shift_minus_one <- return (lin-sub shiftamount (imm 1));
+  shift_minus_one <- return (lin-diff shiftamount (imm 1));
 
   shiftop sz opnd (var opnd) shift_minus_one;
 
@@ -288,7 +297,7 @@ val sem-ror sz opnd shiftamount setcarry = do
   left <- mktemp;
 
   shr sz right (var opnd) (var m);
-  shl sz left (var opnd) (lin-sub (imm sz) (var m));
+  shl sz left (var opnd) (lin-diff (imm sz) (var m));
 
   orb sz opnd (var left) (var right);
 
@@ -315,7 +324,7 @@ val sem-rrx sz opnd carry_in setcarry = do
   orb sz opnd (var opnd) (var t0)
 end
 
-val lin-sub x y = SEM_LIN_SUB {opnd1=x, opnd2=y}
+val lin-diff x y = SEM_LIN_SUB {opnd1=x, opnd2=y}
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
@@ -411,11 +420,46 @@ val sem-and x = do
 end
 
 val sem-cmn x = do
-  return void
+  _if (condition-passed? x.cond) _then do
+    rn <- rval x.rn;
+    opnd2 <- rval x.opnd2;
+    cmn_result <- mktemp;
+
+    add 32 cmn_result rn opnd2;
+
+    emit-add-adc-flags 32 cmn_result rn opnd2
+  end
 end
 
 val sem-cmp x = do
-  return void
+  _if (condition-passed? x.cond) _then do
+    rn <- rval x.rn;
+    opnd2 <- rval x.opnd2;
+    cmp_result <- mktemp;
+
+    sub 32 cmp_result rn opnd2;
+
+    emit-sub-sbc-flags 32 cmp_result rn opnd2
+  end
+end
+
+val sem-sbc x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rn;
+    rn <- rval x.rn;
+    opnd2 <- rval x.opnd2;
+
+    sub 32 rd rn opnd2;
+    sub 32 rd (var rd) (var fCF);
+
+    if is-sem-pc? rd then
+      alu-write-pc rd
+    else
+      if x.s then
+        emit-sub-sbc-flags 32 rd rn opnd2
+      else
+        return void
+  end
 end
 
 val sem-sub x = do
@@ -426,26 +470,31 @@ val sem-sub x = do
 
     sub 32 rd rn opnd2;
 
-    if is-sem-pc? rd then do
+    if is-sem-pc? rd then
       alu-write-pc rd
-    end else
-      return void
+    else
+      if x.s then
+        emit-sub-sbc-flags 32 rd rn opnd2
+      else
+        return void
   end
 end
 
 val sem-mov x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rd;
-    op2 <- rval x.opnd2;
+    opnd2 <- rval-c x.opnd2 x.s;
 
-    mov 32 rd op2;
+    mov 32 rd opnd2;
 
-    if x.s then do
-      emit-flag-n (var rd);
-      emit-flag-z (var rd)
-      (* TODO: Update carry flag *)
-    end else
-      return void
+    if is-sem-pc? rd then
+      alu-write-pc rd
+    else
+      if x.s then do
+        emit-flag-n (var rd);
+        emit-flag-z (var rd)
+      end else
+        return void
   end
 end
 
@@ -462,7 +511,7 @@ val sem-ldr x = do
       if x.u then
         lin-sum (var rn) (offset)
       else
-        lin-sub (var rn) (offset)
+        lin-diff (var rn) (offset)
     );
 
     if wback then
@@ -541,9 +590,9 @@ val sem-str x = do
 
     offset_addr <- return (
       if x.u then
-        SEM_LIN_ADD {opnd1=var rn, opnd2=offset}
+        lin-sum (var rn) (offset)
       else
-        SEM_LIN_SUB {opnd1=var rn, opnd2=offset}
+        lin-diff (var rn) (offset)
     );
 
     if index then
