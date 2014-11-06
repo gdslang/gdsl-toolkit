@@ -80,8 +80,11 @@ val rval-c x setcarry = rvals-c Unsigned x setcarry
 val rval x = rvals Unsigned x
 
 val shift-operand sz opnd shift setcarry = let
-  val sem-shift amount stype = do
-    amount <- rval-c amount setcarry;
+  val sem-shift samount stype = do
+    amount <- case samount of
+        REGISTER r: return (var (varl 8 (semantic-register-of r)))
+      | _: rval-c samount setcarry
+    end;
     sem_opnd <- lval opnd;
     case stype of
         LSL: sem-lsl sz sem_opnd amount setcarry
