@@ -349,16 +349,20 @@ val immediate cons = return (IMMEDIATE cons)
 val shiftedoperand cons = SHIFTED_OPERAND cons
 val operandlist cons = OPERAND_LIST cons
 
-val is-zero? imm =
+val immint i = IMMEDIATE (IMMi i)
+
+val imm-to-int imm =
   case imm of
-      IMMi i: i === 0
-    | IMM4 i: is-zero? (IMMi (zx i))
-    | IMM5 i: is-zero? (IMMi (zx i))
-    | IMM8 i: is-zero? (IMMi (zx i))
-    | IMM12 i: is-zero? (IMMi (zx i))
-    | IMM24 i: is-zero? (IMMi (zx i))
-    | MODIMM i: is-zero? (IMMi (zx i.byte))
+      IMMi i: i
+    | IMM4 i: zx i
+    | IMM5 i: zx i
+    | IMM8 i: zx i
+    | IMM12 i: zx i
+    | IMM24 i: zx i
+    | MODIMM i: armexpandimm i
   end
+
+val is-zero? imm = (imm-to-int imm) === 0
 
 # Modulo. I didn't see this operator anywhere else...
 val /mod a b = a - (/z a b) * b

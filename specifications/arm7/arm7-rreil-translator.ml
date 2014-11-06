@@ -1,7 +1,7 @@
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
 val translate insn = do
-  update@{stack=SEM_NIL, tmp=0, setcarry='0'};
+  update@{stack=SEM_NIL, tmp=0};
 
   translate-arm7 insn;
 
@@ -11,7 +11,7 @@ end
 
 val translate-block-single insn = do
   ic <- query $ins_count;
-  update@{tmp=0, setcarry='0', ins_count=ic+1};
+  update@{tmp=0, ins_count=ic+1};
 
   translate-arm7 insn
 end
@@ -48,16 +48,24 @@ val rvals-c sign x setcarry = let
         Signed: imm (sx vector)
       | Unsigned: imm (zx vector)
     end
-  val from-imm sn immediate =
+  val from-imm sn immediate setcarry =
     case immediate of
-        IMMi i: imm i
-      | IMM5 i: from-vec sign i
-      | IMM12 i: from-vec sign i
-      | MODIMM i: imm (armexpandimm i)
+        IMMi i: return (imm i)
+      | IMM5 i: return (from-vec sn i)
+      | IMM12 i: return (from-vec sn i)
+      | MODIMM i: do
+          expanded <- return (armexpandimm-c i 0);
+          if setcarry then
+            mov 1 fCF (imm expanded.carry_out)
+          else
+            return void
+          ;
+          return (imm expanded.result)
+        end
     end
 in
   case x of
-      IMMEDIATE i: return (from-imm sign i)
+      IMMEDIATE i: from-imm sign i setcarry
     | REGISTER r: return (var (semantic-register-of r))
     | SHIFTED_OPERAND r: do
         shift-operand 32 r.opnd r.shift setcarry;
@@ -89,8 +97,10 @@ in
         if is-zero? i then
           case shift.shifttype of
               ROR: sem-shift shift.amount RRX
+            | LSR: sem-shift (immint 32) LSR
+            | ASR: sem-shift (immint 32) ASR
             | _: return void
-          end
+          end  # See [[A8.4.3]] DecodeImmShift()
         else
           sem-shift shift.amount shift.shifttype
     | _: sem-shift shift.amount shift.shifttype
@@ -382,7 +392,7 @@ val sem-and x = do
   _if (condition-passed? x.cond) _then do
     rn <- rval x.rn;
     rd <- lval x.rd;
-    opnd2 <- rval x.opnd2;
+    opnd2 <- rval-c x.opnd2 x.s; # update carry!
 
     andb 32 rd rn opnd2;
 
@@ -392,7 +402,6 @@ val sem-and x = do
       if x.s then do
         emit-flag-z (var rd);
         emit-flag-n (var rd)
-        # the carry flag is updated with 'rval x.opnd2'
       end else
         return void
   end
