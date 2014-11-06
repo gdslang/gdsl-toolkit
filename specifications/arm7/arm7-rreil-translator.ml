@@ -118,10 +118,13 @@ val semantics insn =
     | ADD x: sem-add x
     | ADC x: sem-adc x
     | AND x: sem-and x
+    | BIC x: sem-bic x
     | CMN x: sem-cmn x
     | CMP x: sem-cmp x
     | EOR x: sem-eor x
     | MOV x: sem-mov x
+    | MVN x: sem-mvn x
+    | ORR x: sem-orr x
     | SBC x: sem-sbc x
     | SUB x: sem-sub x
     | TEQ x: sem-teq x
@@ -422,6 +425,27 @@ val sem-and x = do
   end
 end
 
+val sem-bic x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    rn <- rval x.rn;
+    opnd2 <- rval-c x.opnd2 x.s; # update carry!
+    not_opnd2 <- mktemp;
+
+    xorb 32 not_opnd2 opnd2 (imm 0);
+    andb 32 rd rn (var not_opnd2);
+
+    if is-sem-pc? rd then
+      alu-write-pc rd
+    else
+      if x.s then do
+        emit-flag-n (var rd);
+        emit-flag-z (var rd)
+      end else
+        return void
+  end
+end
+
 val sem-cmn x = do
   _if (condition-passed? x.cond) _then do
     rn <- rval x.rn;
@@ -471,6 +495,43 @@ val sem-mov x = do
     opnd2 <- rval-c x.opnd2 x.s;
 
     mov 32 rd opnd2;
+
+    if is-sem-pc? rd then
+      alu-write-pc rd
+    else
+      if x.s then do
+        emit-flag-n (var rd);
+        emit-flag-z (var rd)
+      end else
+        return void
+  end
+end
+
+val sem-mvn x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    opnd2 <- rval-c x.opnd2 x.s; # update carry!
+
+    xorb 32 rd opnd2 (imm 0); # NOT (opnd2)
+
+    if is-sem-pc? rd then
+      alu-write-pc rd
+    else
+      if x.s then do
+        emit-flag-n (var rd);
+        emit-flag-z (var rd)
+      end else
+        return void
+  end
+end
+
+val sem-orr x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    rn <- rval x.rn;
+    opnd2 <- rval-c x.opnd2 x.s; # update carry!
+
+    orb 32 rd rn opnd2; # NOT (opnd2)
 
     if is-sem-pc? rd then
       alu-write-pc rd
