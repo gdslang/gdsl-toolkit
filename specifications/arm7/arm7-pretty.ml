@@ -200,10 +200,7 @@ val show/register reg = case reg of
   | _: "??"
 end
 
-val show/shift s = case s of
-    IMMSHIFT s: show/shifttype s.shifttype -++ "#" +++ show/immediate s.immediate
-  | REGSHIFT s: show/shifttype s.shifttype -++ show/register s.register
-end
+val show/shift s = show/shifttype s.shifttype -++ "#" +++ show/op s.amount
 
 val show/shifttype t = case t of
     LSL: "LSL"
@@ -228,7 +225,7 @@ val show/op op = case op of
     IMMEDIATE o: show/immediate o
   | REGISTER o: show/register o
   | OPERAND_LIST o: show/opndl o
-  | SHIFTED_REGISTER o: show/register o.register +++ "," -++ show/shift o.shift
+  | SHIFTED_OPERAND o: show/op o.opnd +++ "," -++ show/shift o.shift
   | _: "???"
 end
 

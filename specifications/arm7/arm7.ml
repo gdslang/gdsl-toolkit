@@ -188,7 +188,7 @@ type binop = {
 type operand =
     IMMEDIATE of immediate
   | REGISTER of register
-  | SHIFTED_REGISTER of shiftedregister
+  | SHIFTED_OPERAND of shiftedoperand
   | OPERAND_LIST of operandlist (* TODO: Replace with operand tuple, maybe? *)
 
 type immediate =
@@ -215,13 +215,8 @@ val opndl-length opndl =
     | OPNDL_CONS l: 1 + (opndl-length l.tl)
   end
 
-# A register with a shift applied to its value
-type shiftedregister = {register:register, shift:shift}
-
-# Shift types for shifted register values
-type shift =
-    IMMSHIFT of {immediate:immediate, shifttype:shifttype}
-  | REGSHIFT of {register:register, shifttype:shifttype}
+type shiftedoperand = {opnd:operand, shift:shift}
+type shift = {amount:operand, shifttype:shifttype}
 
 type shifttype =
     LSL  # Logical Shift Left
@@ -247,6 +242,12 @@ type register =
   | R13  # Stack pointer: permanent register
   | R14  # Link register: permanent register
   | R15  # Program Counter
+
+val is-pc? r =
+  case r of
+      R15: '1'
+    | _: '0'
+  end
 
 val is-sp? r =
   case r of
@@ -345,6 +346,7 @@ end
 
 val register cons = REGISTER cons
 val immediate cons = return (IMMEDIATE cons)
+val shiftedoperand cons = SHIFTED_OPERAND cons
 val operandlist cons = OPERAND_LIST cons
 
 val is-zero? imm =
@@ -398,16 +400,16 @@ val register-from-int i =
 
 val decode-register bitvec = register-from-int (zx bitvec)
 
-val shifttype-from-bits bits =
-  case bits of
+val decode-shifttype bitvec =
+  case bitvec of
       '00' : LSL
     | '01' : LSR
     | '10' : ASR
     | '11' : ROR
   end
 
-val cond-from-bits bits =
-  case bits of
+val decode-condition bitvec =
+  case bitvec of
      '0000': EQ
    | '0001': NE
    | '0010': CS
@@ -547,7 +549,7 @@ val /cond ['cond@1110'] = update@{cond=cond}
 
 val cond = do
   cond <- query $cond;
-  return (cond-from-bits cond)
+  return (decode-condition cond)
 end
 
 val none = return NV
@@ -632,25 +634,27 @@ val modimm = do
   return ret
 end
 
+# --- shifted operand decoders -----------------------------------------
+
 val /shiftedreg ['/immshift /rm'] = (return 0)
 val /shiftedreg ['/regshift /rm'] = (return 0)
 
 # operand subdecoder: register + immediate shift
-val /immshift ['imm5:5 stype:2 0'] =
-  update@{
-    shiftop=IMMSHIFT{immediate=IMM5(imm5), shifttype=(shifttype-from-bits stype)}
-  }
+val /immshift ['imm5:5 stype:2 0'] = do
+  imm <- immediate (IMM5 imm5);
+  update@{shift={amount=imm, shifttype=(decode-shifttype stype)}}
+end
 
 # operand subdecoder: register + register controlled shift
-val /regshift ['rs:4 0 stype:2 1'] =
-  update@{
-    shiftop=REGSHIFT{register=(decode-register rs), shifttype=(shifttype-from-bits stype)}
-  }
+val /regshift ['rs:4 0 stype:2 1'] = do
+  reg <- return (register (decode-register rs));
+  update@{shift={amount=reg, shifttype=(decode-shifttype stype)}}
+end
 
 val shiftedreg = do
-  shiftoperation <- query $shiftop;
+  shift <- query $shift;
   rm <- query $rm;
-  return (SHIFTED_REGISTER{register=rm, shift=shiftoperation})
+  return (shiftedoperand {opnd=(register rm), shift=shift})
 end
 
 # --- operand list/register list subdecoders ---------------------------
