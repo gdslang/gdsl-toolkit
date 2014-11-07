@@ -131,8 +131,10 @@ val semantics insn =
     | SUB x: sem-sub x
     | TEQ x: sem-teq x
     | TST x: sem-tst x
+    | MLA x: sem-mla x
     | MLS x: sem-mls x
     | MUL x: sem-mul x
+    | SMLAL x: sem-smlal x
     | LDR x: sem-ldr x
     | POP x: sem-pop x
     | PUSH x: sem-push x
@@ -623,7 +625,7 @@ val sem-mla x = do
     mul 32 result opnd1 opnd2;
     add 32 result (var result) addend;
 
-    emit-flags-nz (var result) x.s
+    emit-flags-nz (var result) x.setflags
   end
 end
 
@@ -646,6 +648,30 @@ val sem-mul x = do
     opnd2 <- rval x.rm;
 
     mul 32 result opnd1 opnd2;
+
+    emit-flags-nz (var result) x.setflags
+  end
+end
+
+val sem-smlal x = do
+  _if (condition-passed? x.cond) _then do
+    opnd1 <- rval x.rn;
+    opnd2 <- rval x.rm;
+    high <- lval x.rdhi;
+    low <- lval x.rdlo;
+
+    result <- mktemp;
+    addend <- mktemp;
+
+    mov 64 addend (var high);
+    shl 64 addend (var addend) (imm 32);
+    orb 64 addend (var addend) (var low);
+
+    mul 64 result opnd1 opnd2;
+    add 64 result (var result) (var addend);
+
+    mov 32 high (var (at-offset result 32));
+    mov 32 low (var result);
 
     emit-flags-nz (var result) x.setflags
   end
