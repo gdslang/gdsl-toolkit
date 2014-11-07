@@ -131,6 +131,7 @@ val semantics insn =
     | SUB x: sem-sub x
     | TEQ x: sem-teq x
     | TST x: sem-tst x
+    | MLS x: sem-mls x
     | MUL x: sem-mul x
     | LDR x: sem-ldr x
     | POP x: sem-pop x
@@ -517,7 +518,7 @@ val sem-orr x = do
     rn <- rval x.rn;
     opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
 
-    orb 32 rd rn opnd2; # NOT (opnd2)
+    orb 32 rd rn opnd2;
 
     if is-sem-pc? rd then
       alu-write-pc rd
@@ -612,15 +613,41 @@ val sem-teq x = do
   end
 end
 
+val sem-mla x = do
+  _if (condition-passed? x.cond) _then do
+    result <- lval x.rd;
+    opnd1 <- rval x.rn;
+    opnd2 <- rval x.rm;
+    addend <- rval x.ra;
+
+    mul 32 result opnd1 opnd2;
+    add 32 result (var result) addend;
+
+    emit-flags-nz (var result) x.s
+  end
+end
+
+val sem-mls x = do
+  _if (condition-passed? x.cond) _then do
+    result <- lval x.rd;
+    opnd1 <- rval x.rn;
+    opnd2 <- rval x.rm;
+    addend <- rval x.ra;
+
+    mul 32 result opnd1 opnd2;
+    sub 32 result addend (var result)
+  end
+end
+
 val sem-mul x = do
   _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    rm <- rval x.rm;
-    rn <- rval x.rn;
+    result <- lval x.rd;
+    opnd1 <- rval x.rn;
+    opnd2 <- rval x.rm;
 
-    mul 32 rd rn rm;
+    mul 32 result opnd1 opnd2;
 
-    emit-flags-nz (var rd) x.setflags
+    emit-flags-nz (var result) x.setflags
   end
 end
 
