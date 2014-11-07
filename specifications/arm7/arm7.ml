@@ -605,7 +605,6 @@ val imm12 = do
   return (immediate (IMM12 (imm12)))
 end
 
-(* TODO: Why does the 24bit subdecoder not compile??? *)
 val /imm24 ['a:8 b:8 c:8'] = update@{imm24=(a^b^c)}
 
 val imm24 = do

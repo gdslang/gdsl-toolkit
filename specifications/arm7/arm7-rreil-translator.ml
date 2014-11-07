@@ -140,6 +140,7 @@ in
     | MUL x: conditional sem-mul x
     | SMLAL x: conditional sem-smlal x
     | SMULL x: conditional sem-smull x
+    | LDM x: conditional sem-ldm x
     | LDR x: conditional sem-ldr x
     | LDRB x: conditional sem-ldrb x
     | POP x: conditional sem-pop x
@@ -380,17 +381,37 @@ val lin-diff x y = SEM_LIN_SUB {opnd1=x, opnd2=y}
 
 val combine-vars x y add = return (if add then lin-sum x y else lin-diff x y)
 
+val load-operands opndsz opndlist addrsz target_addr = let
+  val load-operand opnd addr offset =
+    case opnd of
+        OPERAND_LIST l: load-operandlist l addr offset
+      | _: do
+          dst <- lval opnd;
+          load opndsz dst addrsz (lin-sum (var addr) (imm offset))
+        end
+    end
+  val load-operandlist opndl addr start_offset =
+    case opndl of
+        OPNDL_NIL: return void
+      | OPNDL_CONS c: do
+          load-operand c.hd addr start_offset;
+          load-operandlist c.tl addr (start_offset + (/z addrsz 8))
+        end
+    end
+in
+  load-operand opndlist target_addr 0
+end
+
 val store-operands opndsz opndlist addrsz target_addr = let
   val store-operand opnd addr offset =
     case opnd of
         OPERAND_LIST l: store-operandlist l addr offset
       | _: do
-          src <- rval opnd; (* TODO: Increase by 8 if opnd == PC ? *)
+          src <- rval opnd;
           dst <- combine-vars (var addr) (imm offset) (not (is-sem-sp? addr));
           store opndsz (address addrsz dst) src
         end
     end
-
   val store-operandlist opndl addr start_offset =
     case opndl of
         OPNDL_NIL: return void
@@ -699,6 +720,16 @@ val sem-smull x = do
   emit-flags-nz (var result) x.setflags
 end
 
+val sem-ldm x = do
+  rn <- lval x.rn;
+  load-operands 32 x.registers 32 rn;
+
+  if x.w then
+    add 32 rn (var rn) (imm (4 * num-opnds x.registers))
+  else
+    return void
+end
+
 val sem-ldr x = do
   rt <- lval x.rt;
   rn <- lval x.rn;
@@ -738,28 +769,10 @@ val sem-ldrb x = do
   movzx 32 rt 8 (var byte)
 end
 
-val sem-pop x = let
-  val load-operand opnd =
-    case opnd of
-        OPERAND_LIST l: load-operandlist l
-      | _: do
-          sp <- get-sem-sp;
-          dest <- lval opnd;
-          load 32 dest 32 (var sp);
-          add sp.size sp (var sp) (imm 4)
-        end
-    end
-
-  val load-operandlist opndl =
-    case opndl of
-        OPNDL_NIL: return void
-      | OPNDL_CONS c: do
-          load-operand c.hd;
-          load-operandlist c.tl
-        end
-    end
-in
-  load-operand x.registers
+val sem-pop x = do
+  sp <- get-sem-sp;
+  load-operands 32 x.registers 32 sp;
+  add 32 sp (var sp) (imm (4 * num-opnds x.registers))
 end
 
 val sem-push x = do
