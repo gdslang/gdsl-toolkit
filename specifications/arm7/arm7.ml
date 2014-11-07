@@ -216,6 +216,12 @@ val opndl-length opndl =
     | OPNDL_CONS l: 1 + (opndl-length l.tl)
   end
 
+val num-opnds opnd =
+  case opnd of
+      OPERAND_LIST l: opndl-length l
+    | _: 1
+  end
+
 type shiftedoperand = {opnd:operand, shift:shift}
 type shift = {amount:operand, shifttype:shifttype}
 

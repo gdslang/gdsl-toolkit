@@ -110,37 +110,47 @@ in
   end
 end
 
-val semantics insn =
+val semantics insn = let
+  val conditional translator x =
+    _if (condition-passed? x.cond) _then
+      translator x
+in
   case insn.insn of
-      B x: sem-b x
-    | BL x: sem-bl x
-    | BX x: sem-bx x
-    | ADC x: sem-adc x
-    | ADD x: sem-add x
-    | AND x: sem-and x
-    | BIC x: sem-bic x
-    | CMN x: sem-cmn x
-    | CMP x: sem-cmp x
-    | EOR x: sem-eor x
-    | MOV x: sem-mov x
-    | MVN x: sem-mvn x
-    | ORR x: sem-orr x
-    | RSB x: sem-rsb x
-    | RSC x: sem-rsc x
-    | SBC x: sem-sbc x
-    | SUB x: sem-sub x
-    | TEQ x: sem-teq x
-    | TST x: sem-tst x
-    | MLA x: sem-mla x
-    | MLS x: sem-mls x
-    | MUL x: sem-mul x
-    | SMLAL x: sem-smlal x
-    | LDR x: sem-ldr x
-    | POP x: sem-pop x
-    | PUSH x: sem-push x
-    | STR x: sem-str x
-    | _: sem-default
+      B x: conditional sem-b x
+    | BL x: conditional sem-bl x
+    | BX x: conditional sem-bx x
+    | ADC x: conditional sem-adc x
+    | ADD x: conditional sem-add x
+    | AND x: conditional sem-and x
+    | BIC x: conditional sem-bic x
+    | CMN x: conditional sem-cmn x
+    | CMP x: conditional sem-cmp x
+    | EOR x: conditional sem-eor x
+    | MOV x: conditional sem-mov x
+    | MVN x: conditional sem-mvn x
+    | ORR x: conditional sem-orr x
+    | RSB x: conditional sem-rsb x
+    | RSC x: conditional sem-rsc x
+    | SBC x: conditional sem-sbc x
+    | SUB x: conditional sem-sub x
+    | TEQ x: conditional sem-teq x
+    | TST x: conditional sem-tst x
+    | MLA x: conditional sem-mla x
+    | MLS x: conditional sem-mls x
+    | MUL x: conditional sem-mul x
+    | SMLAL x: conditional sem-smlal x
+    | SMULL x: conditional sem-smull x
+    | LDR x: conditional sem-ldr x
+    | LDRB x: conditional sem-ldrb x
+    | POP x: conditional sem-pop x
+    | PUSH x: conditional sem-push x
+    | STM x: conditional sem-stm x
+    | STR x: conditional sem-str x
+    | STRB x: conditional sem-strb x
+    | SVC x: conditional sem-svc x
+    | _: sem-default insn.insn insn.ip
   end
+end
 
 # ----------------------------------------------------------------------
 # Utility functions
@@ -197,6 +207,7 @@ val condition-passed? cond =
     | GT: /and (/eq 1 (var fZF) (imm 0)) (/eq 1 (var fNF) (var fVF))
     | LE: /and (/eq 1 (var fZF) (imm 1)) (/neq 1 (var fNF) (var fVF))
     | AL: const 1
+    | NV: const 1
   end
 
 # --- Simplyfied jumps (without Thumb/ThumbEE/Jazelle handling) --------
@@ -349,361 +360,382 @@ val sem-rrx sz opnd carry_in setcarry = do
   orb sz opnd (var opnd) (var t0)
 end
 
+# --- load/store helper functions --------------------------------------
+
+val cwrite sz target addr cond = do
+  if cond then
+    mov sz target addr
+  else
+    return void
+end
+
+val str sz value asz postidx_addr preidx_addr indexed? = do
+  if indexed? then
+    store sz (address asz postidx_addr) value
+  else
+    store sz (address asz preidx_addr) value
+end
+
 val lin-diff x y = SEM_LIN_SUB {opnd1=x, opnd2=y}
+
+val combine-vars x y add = return (if add then lin-sum x y else lin-diff x y)
+
+val store-operands opndsz opndlist addrsz target_addr = let
+  val store-operand opnd addr offset =
+    case opnd of
+        OPERAND_LIST l: store-operandlist l addr offset
+      | _: do
+          src <- rval opnd; (* TODO: Increase by 8 if opnd == PC ? *)
+          dst <- combine-vars (var addr) (imm offset) (not (is-sem-sp? addr));
+          store opndsz (address addrsz dst) src
+        end
+    end
+
+  val store-operandlist opndl addr start_offset =
+    case opndl of
+        OPNDL_NIL: return void
+      | OPNDL_CONS c: do
+          store-operand c.hd addr start_offset;
+          store-operandlist c.tl addr (start_offset + (/z addrsz 8))
+        end
+    end
+in
+  store-operand opndlist target_addr 0
+end
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
 # ----------------------------------------------------------------------
 
 val sem-b x = do
-  _if (condition-passed? x.cond) _then do
-    offset <- rval x.opnd;
-    pc <- get-sem-pc;
-    jump (address pc.size (lin-sum (var pc) offset))
-  end
+  offset <- rval x.opnd;
+  pc <- get-sem-pc;
+  jump (address pc.size (lin-sum (var pc) offset))
 end
 
 val sem-bl x = do
-  _if (condition-passed? x.cond) _then do
-    offset <- rval x.opnd;
-    pc <- get-sem-pc;
-    lr <- get-sem-lr;
+  offset <- rval x.opnd;
+  pc <- get-sem-pc;
+  lr <- get-sem-lr;
 
-    sub 32 lr (var pc) (imm 4);
+  sub 32 lr (var pc) (imm 4);
 
-    align pc 4;
-    add 32 pc (var pc) offset;
-    branch-write-pc pc
-  end
+  align pc 4;
+  add 32 pc (var pc) offset;
+  branch-write-pc pc
 end
 
 val sem-bx x = do
-  _if (condition-passed? x.cond) _then do
-    m <- rval x.opnd;
-    jump (address 32 m)
-  end
+  m <- rval x.opnd;
+  jump (address 32 m)
 end
 
 val sem-adc x = do
-  _if (condition-passed? x.cond) _then do
-    rn <- rval x.rn;
-    rd <- lval x.rd;
-    opnd2 <- rval x.opnd2;
+  rn <- rval x.rn;
+  rd <- lval x.rd;
+  opnd2 <- rval x.opnd2;
 
-    add 32 rd rn opnd2;
-    add 32 rd (var rd) (var fCF);
+  add 32 rd rn opnd2;
+  add 32 rd (var rd) (var fCF);
 
-    if is-sem-pc? rd then do
-      alu-write-pc rd
-    end else
-      emit-add-adc-flags 32 rd rn opnd2 x.setflags
-  end
+  if is-sem-pc? rd then do
+    alu-write-pc rd
+  end else
+    emit-add-adc-flags 32 rd rn opnd2 x.setflags
 end
 
 val sem-add x = do
-  _if (condition-passed? x.cond) _then do
-    rn <- rval x.rn;
-    rd <- lval x.rd;
-    opnd2 <- rval x.opnd2;
+  rn <- rval x.rn;
+  rd <- lval x.rd;
+  opnd2 <- rval x.opnd2;
 
-    add 32 rd rn opnd2;
+  add 32 rd rn opnd2;
 
-    if is-sem-pc? rd then do
-      alu-write-pc rd
-    end else
-      emit-add-adc-flags 32 rd rn opnd2 x.setflags
-  end
+  if is-sem-pc? rd then do
+    alu-write-pc rd
+  end else
+    emit-add-adc-flags 32 rd rn opnd2 x.setflags
 end
 
 val sem-and x = do
-  _if (condition-passed? x.cond) _then do
-    rn <- rval x.rn;
-    rd <- lval x.rd;
-    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  rn <- rval x.rn;
+  rd <- lval x.rd;
+  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
 
-    andb 32 rd rn opnd2;
+  andb 32 rd rn opnd2;
 
-    if is-sem-pc? rd then do
-      alu-write-pc rd
-    end else
-      emit-flags-nz (var rd) x.setflags
-  end
+  if is-sem-pc? rd then do
+    alu-write-pc rd
+  end else
+    emit-flags-nz (var rd) x.setflags
 end
 
 val sem-bic x = do
-  _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    rn <- rval x.rn;
-    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
-    not_opnd2 <- mktemp;
+  rd <- lval x.rd;
+  rn <- rval x.rn;
+  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  not_opnd2 <- mktemp;
 
-    xorb 32 not_opnd2 opnd2 (imm 0);
-    andb 32 rd rn (var not_opnd2);
+  xorb 32 not_opnd2 opnd2 (imm 0);
+  andb 32 rd rn (var not_opnd2);
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      emit-flags-nz (var rd) x.setflags
-  end
+  if is-sem-pc? rd then
+    alu-write-pc rd
+  else
+    emit-flags-nz (var rd) x.setflags
 end
 
 val sem-cmn x = do
-  _if (condition-passed? x.cond) _then do
-    rn <- rval x.rn;
-    opnd2 <- rval x.opnd2;
-    cmn_result <- mktemp;
+  rn <- rval x.rn;
+  opnd2 <- rval x.opnd2;
+  cmn_result <- mktemp;
 
-    add 32 cmn_result rn opnd2;
+  add 32 cmn_result rn opnd2;
 
-    emit-add-adc-flags 32 cmn_result rn opnd2 '1'
-  end
+  emit-add-adc-flags 32 cmn_result rn opnd2 '1'
 end
 
 val sem-cmp x = do
-  _if (condition-passed? x.cond) _then do
-    rn <- rval x.rn;
-    opnd2 <- rval x.opnd2;
-    cmp_result <- mktemp;
+  rn <- rval x.rn;
+  opnd2 <- rval x.opnd2;
+  cmp_result <- mktemp;
 
-    sub 32 cmp_result rn opnd2;
+  sub 32 cmp_result rn opnd2;
 
-    emit-sub-sbc-flags 32 cmp_result rn opnd2 '1'
-  end
+  emit-sub-sbc-flags 32 cmp_result rn opnd2 '1'
 end
 
 val sem-eor x = do
-  _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    rn <- rval x.rn;
-    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  rd <- lval x.rd;
+  rn <- rval x.rn;
+  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
 
-    xorb 32 rd rn opnd2;
+  xorb 32 rd rn opnd2;
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      emit-flags-nz (var rd) x.setflags
-  end
+  if is-sem-pc? rd then
+    alu-write-pc rd
+  else
+    emit-flags-nz (var rd) x.setflags
 end
 
 val sem-mov x = do
-  _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    opnd2 <- rval-c x.opnd2 x.setflags;
+  rd <- lval x.rd;
+  opnd2 <- rval-c x.opnd2 x.setflags;
 
-    mov 32 rd opnd2;
+  mov 32 rd opnd2;
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      emit-flags-nz (var rd) x.setflags
-  end
+  if is-sem-pc? rd then
+    alu-write-pc rd
+  else
+    emit-flags-nz (var rd) x.setflags
 end
 
 val sem-mvn x = do
-  _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  rd <- lval x.rd;
+  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
 
-    xorb 32 rd opnd2 (imm 0); # NOT (opnd2)
+  xorb 32 rd opnd2 (imm 0); # NOT (opnd2)
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      emit-flags-nz (var rd) x.setflags
-  end
+  if is-sem-pc? rd then
+    alu-write-pc rd
+  else
+    emit-flags-nz (var rd) x.setflags
 end
 
 val sem-orr x = do
-  _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    rn <- rval x.rn;
-    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  rd <- lval x.rd;
+  rn <- rval x.rn;
+  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
 
-    orb 32 rd rn opnd2;
+  orb 32 rd rn opnd2;
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      emit-flags-nz (var rd) x.setflags
-  end
+  if is-sem-pc? rd then
+    alu-write-pc rd
+  else
+    emit-flags-nz (var rd) x.setflags
 end
 
 val sem-rsb x = do
-  _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    rn <- rval x.rn;
-    opnd2 <- rval x.opnd2;
+  rd <- lval x.rd;
+  rn <- rval x.rn;
+  opnd2 <- rval x.opnd2;
 
-    sub 32 rd opnd2 rn;
+  sub 32 rd opnd2 rn;
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      emit-rsb-rsc-flags 32 rd opnd2 rn x.setflags
-  end
+  if is-sem-pc? rd then
+    alu-write-pc rd
+  else
+    emit-rsb-rsc-flags 32 rd opnd2 rn x.setflags
 end
 
 val sem-rsc x = do
-  _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    rn <- rval x.rn;
-    opnd2 <- rval x.opnd2;
+  rd <- lval x.rd;
+  rn <- rval x.rn;
+  opnd2 <- rval x.opnd2;
 
-    sub 32 rd opnd2 rn;
-    sub 32 rd (var rd) (var fCF);
+  sub 32 rd opnd2 rn;
+  sub 32 rd (var rd) (var fCF);
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      emit-rsb-rsc-flags 32 rd opnd2 rn x.setflags
-  end
+  if is-sem-pc? rd then
+    alu-write-pc rd
+  else
+    emit-rsb-rsc-flags 32 rd opnd2 rn x.setflags
 end
 
 val sem-sbc x = do
-  _if (condition-passed? x.cond) _then do
-    rd <- lval x.rn;
-    rn <- rval x.rn;
-    opnd2 <- rval x.opnd2;
+  rd <- lval x.rn;
+  rn <- rval x.rn;
+  opnd2 <- rval x.opnd2;
 
-    sub 32 rd rn opnd2;
-    sub 32 rd (var rd) (var fCF);
+  sub 32 rd rn opnd2;
+  sub 32 rd (var rd) (var fCF);
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      emit-sub-sbc-flags 32 rd rn opnd2 x.setflags
-  end
+  if is-sem-pc? rd then
+    alu-write-pc rd
+  else
+    emit-sub-sbc-flags 32 rd rn opnd2 x.setflags
 end
 
 val sem-sub x = do
-  _if (condition-passed? x.cond) _then do
-    rd <- lval x.rd;
-    rn <- rval x.rn;
-    opnd2 <- rval x.opnd2;
+  rd <- lval x.rd;
+  rn <- rval x.rn;
+  opnd2 <- rval x.opnd2;
 
-    sub 32 rd rn opnd2;
+  sub 32 rd rn opnd2;
 
-    if is-sem-pc? rd then
-      alu-write-pc rd
-    else
-      emit-sub-sbc-flags 32 rd rn opnd2 x.setflags
-  end
+  if is-sem-pc? rd then
+    alu-write-pc rd
+  else
+    emit-sub-sbc-flags 32 rd rn opnd2 x.setflags
 end
 
 val sem-tst x = do
-  _if (condition-passed? x.cond) _then do
-    rn <- rval x.rn;
-    opnd2 <- rval-c x.opnd2 '1'; # update carry!
-    tst_result <- mktemp;
+  rn <- rval x.rn;
+  opnd2 <- rval-c x.opnd2 '1'; # update carry!
+  tst_result <- mktemp;
 
-    andb 32 tst_result rn opnd2;
+  andb 32 tst_result rn opnd2;
 
-    emit-flags-nz (var tst_result) '1'
-  end
+  emit-flags-nz (var tst_result) '1'
 end
 
 val sem-teq x = do
-  _if (condition-passed? x.cond) _then do
-    rn <- rval x.rn;
-    opnd2 <- rval-c x.opnd2 '1'; # update carry!
-    teq_result <- mktemp;
+  rn <- rval x.rn;
+  opnd2 <- rval-c x.opnd2 '1'; # update carry!
+  teq_result <- mktemp;
 
-    xorb 32 teq_result rn opnd2;
+  xorb 32 teq_result rn opnd2;
 
-    emit-flags-nz (var teq_result) '1'
-  end
+  emit-flags-nz (var teq_result) '1'
 end
 
 val sem-mla x = do
-  _if (condition-passed? x.cond) _then do
-    result <- lval x.rd;
-    opnd1 <- rval x.rn;
-    opnd2 <- rval x.rm;
-    addend <- rval x.ra;
+  result <- lval x.rd;
+  opnd1 <- rval x.rn;
+  opnd2 <- rval x.rm;
+  addend <- rval x.ra;
 
-    mul 32 result opnd1 opnd2;
-    add 32 result (var result) addend;
+  mul 32 result opnd1 opnd2;
+  add 32 result (var result) addend;
 
-    emit-flags-nz (var result) x.setflags
-  end
+  emit-flags-nz (var result) x.setflags
 end
 
 val sem-mls x = do
-  _if (condition-passed? x.cond) _then do
-    result <- lval x.rd;
-    opnd1 <- rval x.rn;
-    opnd2 <- rval x.rm;
-    addend <- rval x.ra;
+  result <- lval x.rd;
+  opnd1 <- rval x.rn;
+  opnd2 <- rval x.rm;
+  addend <- rval x.ra;
 
-    mul 32 result opnd1 opnd2;
-    sub 32 result addend (var result)
-  end
+  mul 32 result opnd1 opnd2;
+  sub 32 result addend (var result)
 end
 
 val sem-mul x = do
-  _if (condition-passed? x.cond) _then do
-    result <- lval x.rd;
-    opnd1 <- rval x.rn;
-    opnd2 <- rval x.rm;
+  result <- lval x.rd;
+  opnd1 <- rval x.rn;
+  opnd2 <- rval x.rm;
 
-    mul 32 result opnd1 opnd2;
+  mul 32 result opnd1 opnd2;
 
-    emit-flags-nz (var result) x.setflags
-  end
+  emit-flags-nz (var result) x.setflags
 end
 
 val sem-smlal x = do
-  _if (condition-passed? x.cond) _then do
-    opnd1 <- rval x.rn;
-    opnd2 <- rval x.rm;
-    high <- lval x.rdhi;
-    low <- lval x.rdlo;
+  opnd1 <- rval x.rn;
+  opnd2 <- rval x.rm;
+  high <- lval x.rdhi;
+  low <- lval x.rdlo;
 
-    result <- mktemp;
-    addend <- mktemp;
+  result <- mktemp;
+  addend <- mktemp;
 
-    mov 64 addend (var high);
-    shl 64 addend (var addend) (imm 32);
-    orb 64 addend (var addend) (var low);
+  mov 64 addend (var high);
+  shl 64 addend (var addend) (imm 32);
+  orb 64 addend (var addend) (var low);
 
-    mul 64 result opnd1 opnd2;
-    add 64 result (var result) (var addend);
+  mul 64 result opnd1 opnd2;
+  add 64 result (var result) (var addend);
 
-    mov 32 high (var (at-offset result 32));
-    mov 32 low (var result);
+  mov 32 high (var (at-offset result 32));
+  mov 32 low (var result);
 
-    emit-flags-nz (var result) x.setflags
-  end
+  emit-flags-nz (var result) x.setflags
+end
+
+val sem-smull x = do
+  opnd1 <- rval x.rn;
+  opnd2 <- rval x.rm;
+  high <- lval x.rdhi;
+  low <- lval x.rdlo;
+
+  result <- mktemp;
+
+  mul 64 result opnd1 opnd2;
+
+  mov 32 high (var (at-offset result 32));
+  mov 32 low (var result);
+
+  emit-flags-nz (var result) x.setflags
 end
 
 val sem-ldr x = do
-  _if (condition-passed? x.cond) _then do
-    rt <- lval x.rt;
-    rn <- lval x.rn;
-    offset <- rval x.offset;
+  rt <- lval x.rt;
+  rn <- lval x.rn;
+  offset <- rval x.offset;
 
-    wback <- return (x.w or (not x.p));
-    index <- return x.p;
+  index <- return x.p;
 
-    offset_addr <- return (
-      if x.u then
-        lin-sum (var rn) (offset)
-      else
-        lin-diff (var rn) (offset)
-    );
+  offset_addr <- combine-vars (var rn) offset x.u;
 
-    if wback then
-      mov 32 rn offset_addr
-    else
-      return void
-    ;
+  wback <- return (x.w or (not x.p));
+  cwrite 32 rn offset_addr wback;
 
-    if index then
-      load 32 rt 32 offset_addr
-    else
-      load 32 rt 32 (var rn)
-  end
+  if index then
+    load 32 rt 32 offset_addr
+  else
+    load 32 rt 32 (var rn)
+end
+
+val sem-ldrb x = do
+  rt <- lval x.rt;
+  rn <- lval x.rn;
+  offset <- rval x.offset;
+
+  offset_addr <- combine-vars (var rn) offset x.u;
+
+  wback <- return (x.w or (not x.p));
+  cwrite 32 rn offset_addr wback;
+
+  byte <- mktemp;
+
+  if x.p then
+    load 8 byte 32 offset_addr
+  else
+    load 8 byte 32 (var rn)
+  ;
+
+  movzx 32 rt 8 (var byte)
 end
 
 val sem-pop x = let
@@ -727,67 +759,55 @@ val sem-pop x = let
         end
     end
 in
-  _if (condition-passed? x.cond) _then do
-    load-operand x.registers
-  end
+  load-operand x.registers
 end
 
-val sem-push x = let
-  val store-operand opnd =
-    case opnd of
-        OPERAND_LIST l: store-operandlist l
-      | _: do
-          sp <- get-sem-sp;
-          src <- lval opnd;
-          store 32 (address 32 (var sp)) (var src);
-          sub sp.size sp (var sp) (imm 4)
-        end
-    end
+val sem-push x = do
+  sp <- get-sem-sp;
+  store-operands 32 x.registers 32 sp;
+  sub 32 sp (var sp) (imm (4 * num-opnds x.registers))
+end
 
-  val store-operandlist opndl =
-    case opndl of
-        OPNDL_NIL: return void
-      | OPNDL_CONS c: do
-          store-operand c.hd;
-          store-operandlist c.tl
-        end
-    end
-in
-  _if (condition-passed? x.cond) _then do
-    store-operand x.registers
-  end
+val sem-stm x = do
+  rn <- lval x.rn;
+  store-operands 32 x.registers 32 rn;
+
+  op <- return (if is-sem-pc? rn then sub else add);
+
+  if x.w then
+    op 32 rn (var rn) (imm (4 * num-opnds x.registers))
+  else
+    return void
 end
 
 val sem-str x = do
-  _if (condition-passed? x.cond) _then do
-    rt <- rval x.rt;
-    rn <- lval x.rn;
-    offset <- rval x.offset;
+  rt <- rval x.rt;
+  rn <- lval x.rn;
+  offset <- rval x.offset;
 
-    index <- return x.p;
-    wback <- return (x.w or (not x.p));
+  offset_addr <- combine-vars (var rn) offset x.u;
 
-    offset_addr <- return (
-      if x.u then
-        lin-sum (var rn) (offset)
-      else
-        lin-diff (var rn) (offset)
-    );
+  str 32 rt 32 offset_addr (var rn) x.p;
 
-    if index then
-      store 32 (address 32 offset_addr) rt
-    else
-      store 32 (address 32 (var rn)) rt
-    ;
-
-    if wback then
-      mov 32 rn offset_addr
-    else
-      return void
-  end
+  wback <- return (x.w or (not x.p));
+  cwrite 32 rn offset_addr wback
 end
 
-val sem-default = do
-  pc <- get-sem-pc;
-  add 32 pc (var pc) (imm 0)
+val sem-strb x = do
+  rt <- rval x.rt;
+  rn <- lval x.rn;
+  offset <- rval x.offset;
+
+  offset_addr <- combine-vars (var rn) offset x.u;
+
+  str 8 rt 32 offset_addr (var rn) x.p;
+
+  wback <- return (x.w or (not x.p));
+  cwrite 32 rn offset_addr wback
 end
+
+val sem-svc x = prim-generic "SUPERVISOR CALL" varls-none varls-none
+
+val sem-default insn ip =
+  prim-generic ("TRANSLATOR MISSING:\\t" +++ show/instruction insn ip) varls-none varls-none
+
