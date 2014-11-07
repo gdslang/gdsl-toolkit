@@ -45,6 +45,7 @@ val reset = do
     b='0', p='0', w='0', s='0',
     imm4='0000', imm4H='0000', imm4L='0000',
     imm12='000000000000',
+    imm24='000000000000000000000000',
     byte='00000000', rot='0000',
     operands=OPNDL_NIL
   }
@@ -345,11 +346,11 @@ val binop cons cond opnd1 opnd2 = do
 end
 
 val register cons = REGISTER cons
-val immediate cons = return (IMMEDIATE cons)
+val immediate cons = IMMEDIATE cons
 val shiftedoperand cons = SHIFTED_OPERAND cons
 val operandlist cons = OPERAND_LIST cons
 
-val immint i = IMMEDIATE (IMMi i)
+val opnd-from-int i = IMMEDIATE (IMMi i)
 
 val imm-to-int imm =
   case imm of
@@ -595,12 +596,21 @@ val /imm12 ['imm12:12'] = update@{imm12=imm12}
 
 val imm12 = do
   imm12 <- query $imm12;
-  imm <- immediate (IMM12 (imm12));
-  return imm
+  return (immediate (IMM12 (imm12)))
 end
 
 (* TODO: Why does the 24bit subdecoder not compile??? *)
-val /imm24 ['imm24:25'] = update@{imm24=imm24}
+val /imm24 ['a:8 b:8 c:8'] = update@{imm24=(a^b^c)}
+
+val imm24 = do
+  imm24 <- query $imm24;
+  return (immediate (IMM24 imm24))
+end
+
+val sx-imm24 bitvec = do
+  imm24 <- query $imm24;
+  return (opnd-from-int (sx (imm24^bitvec)))
+end
 
 val /imm4H ['imm4H:4'] = update@{imm4H=imm4H}
 val /imm4L ['imm4L:4'] = update@{imm4L=imm4L}
@@ -608,24 +618,21 @@ val /imm4L ['imm4L:4'] = update@{imm4L=imm4L}
 val combine-imm8 = do
   imm4H <- query $imm4H;
   imm4L <- query $imm4L;
-  imm <- immediate (IMM8 (imm4H^imm4L));
-  return imm
+  return (immediate (IMM8 (imm4H^imm4L)))
 end
 
 val /imm4 ['imm4:4'] = update@{imm4=imm4}
 
 val imm4 = do
   imm4 <- query $imm4;
-  imm <- immediate (IMM4 (imm4));
-  return imm
+  return (immediate (IMM4 (imm4)))
 end
 
 # concats the 4 bit and 12 bit immediates that were decoded most recently
 val combine-imm16 = do
   imm4 <- query $imm4;
   imm12 <- query $imm12;
-  imm <- immediate (IMMi (zx (imm4^imm12)));
-  return imm
+  return (opnd-from-int (zx (imm4^imm12)))
 end
 
 # modified 12 bit immediate (8 bit immediate with rotation)
@@ -634,18 +641,17 @@ val /modimm ['rot:4 byte:8'] = update@{rot=rot, byte=byte}
 val modimm = do
   rot <- query $rot;
   byte <- query $byte;
-  ret <- immediate (MODIMM {byte=byte, rot=rot});
-  return ret
+  return (immediate (MODIMM {byte=byte, rot=rot}))
 end
 
 # --- shifted operand decoders -----------------------------------------
 
-val /shiftedreg ['/immshift /rm'] = (return 0)
-val /shiftedreg ['/regshift /rm'] = (return 0)
+val /shfreg ['/immshift /rm'] = (return 0)
+val /shfreg ['/regshift /rm'] = (return 0)
 
 # operand subdecoder: register + immediate shift
 val /immshift ['imm5:5 stype:2 0'] = do
-  imm <- immediate (IMM5 imm5);
+  imm <- return (immediate (IMM5 imm5));
   update@{shift={amount=imm, shifttype=(decode-shifttype stype)}}
 end
 
@@ -655,7 +661,7 @@ val /regshift ['rs:4 0 stype:2 1'] = do
   update@{shift={amount=reg, shifttype=(decode-shifttype stype)}}
 end
 
-val shiftedreg = do
+val shfreg = do
   shift <- query $shift;
   rm <- query $rm;
   return (shiftedoperand {opnd=(register rm), shift=shift})
@@ -663,14 +669,14 @@ end
 
 # --- operand list/register list subdecoders ---------------------------
 
-val /registerlist ['regs:16'] = update@{operands=(decode-registerlist regs)}
+val /reglst ['regs:16'] = update@{operands=(decode-registerlist regs)}
 
-val registerlist = do
+val reglst = do
   operands <- query $operands;
   return (operandlist operands)
 end
 
-val registerlist-one rx = do
+val reglst-one rx = do
   reg <- rx;
   return (operandlist (opndl-one reg))
 end
@@ -731,15 +737,15 @@ val r0 = return (register R0)
 
 ### B
 ### - Branch
-val / ['/cond 101 0 imm24:24'] = unop B cond (immediate (IMMi(sx (imm24^'00'))))
+val / ['/cond 101 0 imm24:24'] = unop B cond (sx-imm24 '00')
 
 ### BL
 ###  - Branch with Link
-val / ['/cond 101 1 imm24:24'] = unop BL cond (immediate (IMMi(sx (imm24^'00'))))
+val / ['/cond 101 1 imm24:24'] = unop BL cond (sx-imm24 '00')
 
 ### BLX
 ###  - Branch with Link and Exchange (Immediate)
-val / ['1111 101 h:1 imm24:24'] = unop BLX none (immediate (IMMi(sx (imm24^h^'0'))))
+val / ['1111 101 h:1 imm24:24'] = unop BLX none (sx-imm24 (h^'0'))
 ###  - Branch with Link and Exchange (Register)
 val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0011 /rm'] = unop BLX cond rm
 
@@ -757,43 +763,43 @@ val / ['/cond 000 1 0 0 1 0 1111 1111 1111 0010 /rm'] = unop BXJ cond rm
 ###  - Add with Carry (immediate)
 val / ['/cond 001 0 1 0 1 /S /rn /rd /modimm'] = dp ADC cond s rn rd modimm
 ###  - Add with Carry (shifted register)
-val / ['/cond 000 0 1 0 1 /S /rn /rd /shiftedreg'] = dp ADC cond s rn rd shiftedreg
+val / ['/cond 000 0 1 0 1 /S /rn /rd /shfreg'] = dp ADC cond s rn rd shfreg
 
 ### ADD
 ###  - Add (immediate)
 val / ['/cond 001 0 1 0 0 /S /rn /rd /modimm'] = dp ADD cond s rn rd modimm
 ###  - Add (shifted register)
-val / ['/cond 000 0 1 0 0 /S /rn /rd /shiftedreg'] = dp ADD cond s rn rd shiftedreg
+val / ['/cond 000 0 1 0 0 /S /rn /rd /shfreg'] = dp ADD cond s rn rd shfreg
 
 ### AND
 ###  - And (immediate)
 val / ['/cond 001 0 0 0 0 /S /rn /rd /modimm'] = dp AND cond s rn rd modimm
 ###  - And (shifted register)
-val / ['/cond 000 0 0 0 0 /S /rn /rd /shiftedreg'] = dp AND cond s rn rd shiftedreg
+val / ['/cond 000 0 0 0 0 /S /rn /rd /shfreg'] = dp AND cond s rn rd shfreg
 
 ### BIC
 ###  - Bitwise Bit Clear (immediate)
 val / ['/cond 001 1 1 1 0 /S /rn /rd /modimm'] = dp BIC cond s rn rd modimm
 ###  - Bitwise Bit Clear (shifted register)
-val / ['/cond 000 1 1 1 0 /S /rn /rd /shiftedreg'] = dp BIC cond s rn rd shiftedreg
+val / ['/cond 000 1 1 1 0 /S /rn /rd /shfreg'] = dp BIC cond s rn rd shfreg
 
 ### CMN
 ###  - Compare Negative (immediate)
 val / ['/cond 001 1 0 1 1 1 /rn 0000 /modimm'] = dp CMN cond set1 rn r0 modimm
 ###  - Compare Negative (shifted register)
-val / ['/cond 000 1 0 1 1 1 /rn 0000 /shiftedreg'] = dp CMN cond s rn r0 shiftedreg
+val / ['/cond 000 1 0 1 1 1 /rn 0000 /shfreg'] = dp CMN cond s rn r0 shfreg
 
 ### CMP
 ###  - Compare (immediate)
 val / ['/cond 001 1 0 1 0 1 /rn 0000 /modimm'] = dp CMP cond set1 rn r0 modimm
 ###  - Compare (shifted register)
-val / ['/cond 000 1 0 1 0 1 /rn 0000 /shiftedreg'] = dp CMP cond set1 rn r0 shiftedreg
+val / ['/cond 000 1 0 1 0 1 /rn 0000 /shfreg'] = dp CMP cond set1 rn r0 shfreg
 
 ### EOR
 ###  - Bitwise Exclusive OR (immediate)
 val / ['/cond 001 0 0 0 1 /S /rn /rd /modimm'] = dp EOR cond s rn rd modimm
 ###  - Bitwise Exclusive OR (shifted register)
-val / ['/cond 000 0 0 0 1 /S /rn /rd /shiftedreg'] = dp EOR cond s rn rd shiftedreg
+val / ['/cond 000 0 0 0 1 /S /rn /rd /shfreg'] = dp EOR cond s rn rd shfreg
 
 ### MOV
 ###  - Move (immediate) (Encoding A1)
@@ -801,55 +807,55 @@ val / ['/cond 001 1 1 0 1 /S 0000 /rd /modimm'] = dp MOV cond s r0 rd modimm
 ###  - Move (immediate) (Encoding A2)
 val / ['/cond 001 1 0 0 0 0 /imm4 /rd /imm12'] = dp MOV cond set0 r0 rd combine-imm16
 ###  - Move (shifted register)
-val / ['/cond 000 1 1 0 1 /S 0000 /rd /shiftedreg'] = dp MOV cond s r0 rd shiftedreg
+val / ['/cond 000 1 1 0 1 /S 0000 /rd /shfreg'] = dp MOV cond s r0 rd shfreg
 
 ### MVN
 ###  - Bitwise NOT (immediate)
 val / ['/cond 001 1 1 1 1 /S 0000 /rd /modimm'] = dp MVN cond s r0 rd modimm
 ###  - Bitwise NOT (shifted register)
-val / ['/cond 000 1 1 1 1 /S 0000 /rd /shiftedreg'] = dp MVN cond s r0 rd shiftedreg
+val / ['/cond 000 1 1 1 1 /S 0000 /rd /shfreg'] = dp MVN cond s r0 rd shfreg
 
 ### ORR
 ###  - Bitwise OR (immediate)
 val / ['/cond 001 1 1 0 0 /S /rn /rd /modimm'] = dp ORR cond s rn rd modimm
 ###  - Bitwise OR (shifted register)
-val / ['/cond 000 1 1 0 0 /S /rn /rd /shiftedreg'] = dp ORR cond s rn rd shiftedreg
+val / ['/cond 000 1 1 0 0 /S /rn /rd /shfreg'] = dp ORR cond s rn rd shfreg
 
 ### RSB
 ###  - Reverse Subtract (immediate)
 val / ['/cond 001 0 0 1 1 /S /rn /rd /modimm'] = dp RSB cond s rn rd modimm
 ###  - Reverse Subtract (shifted-register)
-val / ['/cond 000 0 0 1 1 /S /rn /rd /shiftedreg'] = dp RSB cond s rn rd shiftedreg
+val / ['/cond 000 0 0 1 1 /S /rn /rd /shfreg'] = dp RSB cond s rn rd shfreg
 
 ### RSC
 ###  - Reverse Subtract with Carry (immediate)
 val / ['/cond 001 0 1 1 1 /S /rn /rd /modimm'] = dp RSC cond s rn rd modimm
 ###  - Reverse Subtract with Carry (shifted register)
-val / ['/cond 000 0 1 1 1 /S /rn /rd /shiftedreg'] = dp RSC cond s rn rd shiftedreg
+val / ['/cond 000 0 1 1 1 /S /rn /rd /shfreg'] = dp RSC cond s rn rd shfreg
 
 ### SBC
 ###  - Subtract with Carry (immediate)
 val / ['/cond 001 0 1 1 0 /S /rn /rd /modimm'] = dp SBC cond s rn rd modimm
 ###  - Subtract with Carry (shifted register)
-val / ['/cond 000 0 1 1 0 /S /rn /rd /shiftedreg'] = dp SBC cond s rn rd shiftedreg
+val / ['/cond 000 0 1 1 0 /S /rn /rd /shfreg'] = dp SBC cond s rn rd shfreg
 
 ### SUB
 ###  - Subtract (immediate)
 val / ['/cond 001 0 0 1 0 /S /rn /rd /modimm'] = dp SUB cond s rn rd modimm
 ###  - Subtract (shifted register)
-val / ['/cond 000 0 0 1 0 /S /rn /rd /shiftedreg'] = dp SUB cond s rn rd shiftedreg
+val / ['/cond 000 0 0 1 0 /S /rn /rd /shfreg'] = dp SUB cond s rn rd shfreg
 
 ### TEQ
 ###  - Test Equivalence (immediate)
 val / ['/cond 001 1 0 0 1 1 /rn 0000 /modimm'] = dp TEQ cond set1 rn r0 modimm
 ###  - Test Equivalence (shifted register)
-val / ['/cond 000 1 0 0 1 1 /rn 0000 /shiftedreg'] = dp TEQ cond set1 rn r0 shiftedreg
+val / ['/cond 000 1 0 0 1 1 /rn 0000 /shfreg'] = dp TEQ cond set1 rn r0 shfreg
 
 ### TST
 ###  - Test (immediate)
 val / ['/cond 001 1 0 0 0 1 /rn 0000 /modimm'] = dp TST cond set1 rn r0 modimm
 ###  - Test (shifted register)
-val / ['/cond 000 1 0 0 0 1 /rn 0000 /shiftedreg'] = dp TST cond s rn r0 shiftedreg
+val / ['/cond 000 1 0 0 0 1 /rn 0000 /shfreg'] = dp TST cond s rn r0 shfreg
 
 # --- Shift instructions -----------------------------------------------
 
@@ -899,16 +905,16 @@ val unprivileged? s = (not s.p) and s.w
 ### LDR/LDRT/POP
 val / ['/cond 010 /P /U 0 /W 1 /rn /rt /imm12']
 ###  - Pop Multiple Registers (Encoding A2)
-  | ldr_is_pop? = lsm POP cond w rn (registerlist-one rt)
+  | ldr_is_pop? = lsm POP cond w rn (reglst-one rt)
 ###  - Load Register Unprivileged (Encoding A1)
   | unprivileged? = ls LDRT cond set0 u set0 rn rt imm12
 ###  - Load Register (immediate/literal)
   | otherwise = ls LDR cond p u w rn rt imm12
 val / ['/cond 011 /P /U 0 /W 1 /rn /rt /immshift /rm']
 ###  - Load Register Unprivileged (Encoding A2)
-  | unprivileged? = ls LDRT cond set0 u set0 rn rt shiftedreg
+  | unprivileged? = ls LDRT cond set0 u set0 rn rt shfreg
 ###  - Load Register (register)
-  | otherwise = ls LDR cond p u w rn rt shiftedreg
+  | otherwise = ls LDR cond p u w rn rt shfreg
 
 ### LDRB/LDRBT
 val / ['/cond 010 /P /U 1 /W 1 /rn /rt /imm12']
@@ -918,9 +924,9 @@ val / ['/cond 010 /P /U 1 /W 1 /rn /rt /imm12']
   | otherwise = ls LDRB cond p u w rn rt imm12
 val / ['/cond 011 /P /U 1 /W 1 /rn /rt /immshift /rm']
 ###  - Load Register Byte Unprivileged (Encoding A2)
-  | unprivileged? = ls LDRBT cond set0 u set0 rn rt shiftedreg
+  | unprivileged? = ls LDRBT cond set0 u set0 rn rt shfreg
 ###  - Load Register Byte (register)
-  | otherwise = ls LDRB cond p u w rn rt shiftedreg
+  | otherwise = ls LDRB cond p u w rn rt shfreg
 
 ### LDRD
 val / ['/cond 000 /P /U 1 /W 0 /rn /rt /imm4H 1101 /imm4L'] =
@@ -971,12 +977,12 @@ val str-is-push? s = (is-sp? s.rn) and (not s.u) and (s.imm12 == '000000000100')
 ### STR/PUSH
 val / ['/cond 010 /P /U 0 /W 0 /rn /rt /imm12']
 ###  - Push Multiple Registers (Encoding A2)
-  | str-is-push? = lsm PUSH cond w rn (registerlist-one rt)
+  | str-is-push? = lsm PUSH cond w rn (reglst-one rt)
 ###  - Store Register (immediate)
   | otherwise = ls STR cond p u w rn rt imm12
 ###  - Store Register (register)
 val / ['/cond 011 /P /U 0 /W 0 /rn /rt /immshift /rm'] =
-  ls STR cond p u w rn rt shiftedreg
+  ls STR cond p u w rn rt shfreg
 
 ### STRB
 ###  - Store Register Byte (immediate)
@@ -984,7 +990,7 @@ val / ['/cond 010 /P /U 1 /W 0 /rn /rt /imm12'] =
   ls STRB cond p u w rn rt imm12
 ###  - Store Register Byte (register)
 val / ['/cond 011 /P /U 1 /W 0 /rn /rt /immshift /rm'] =
-  ls STRB cond p u w rn rt shiftedreg
+  ls STRB cond p u w rn rt shfreg
 
 ### STRD
 ###  - Store Register Dual (immediate)
@@ -1007,44 +1013,44 @@ val / ['/cond 000 /P /U 0 /W 0 /rn /rt 0000 1011 /rm'] =
 val ldm-is-pop? s = (is-sp? s.rn) and s.w and (opndl-length s.operands) > 1
 
 ### LDM/POP
-val / ['/cond 100 0 1 0 /W 1 /rn /registerlist']
+val / ['/cond 100 0 1 0 /W 1 /rn /reglst']
 ###  - Pop Multiple Registers (Encoding A1)
-  | ldm-is-pop? = lsm POP cond set1 rn registerlist
+  | ldm-is-pop? = lsm POP cond set1 rn reglst
 ###  - Load Multiple
-  | otherwise = lsm LDM cond (return '1') rn registerlist
+  | otherwise = lsm LDM cond (return '1') rn reglst
 
 ### LDMDA
 ###  - Load Multiple Decrement After
-val / ['/cond 100 0 0 0 /W 1 /rn /registerlist'] = lsm LDMDA cond w rn registerlist
+val / ['/cond 100 0 0 0 /W 1 /rn /reglst'] = lsm LDMDA cond w rn reglst
 
 ### LDMDB
 ###  - Load Multiple Decrement Before
-val / ['/cond 100 1 0 0 /W 1 /rn /registerlist'] = lsm LDMDB cond w rn registerlist
+val / ['/cond 100 1 0 0 /W 1 /rn /reglst'] = lsm LDMDB cond w rn reglst
 
 ### LDMIB
 ###  - Load Multiple Increment Before
-val / ['/cond 100 1 1 0 /W 1 /rn /registerlist'] = lsm LDMIB cond w rn registerlist
+val / ['/cond 100 1 1 0 /W 1 /rn /reglst'] = lsm LDMIB cond w rn reglst
 
 ### STM
 ###  - Store Multiple
-val / ['/cond 100 0 1 0 /W 0 /rn /registerlist'] = lsm STM cond w rn registerlist
+val / ['/cond 100 0 1 0 /W 0 /rn /reglst'] = lsm STM cond w rn reglst
 
 val stmdb-is-push? s = (is-sp? s.rn) and s.w and (opndl-length s.operands) > 1
 
 ### STMDB/PUSH
-val / ['/cond 100 1 0 0 /W 0 /rn /registerlist']
+val / ['/cond 100 1 0 0 /W 0 /rn /reglst']
 ###  - Push Multiple Registers (Encoding A1)
-  | stmdb-is-push? = lsm PUSH cond w rn registerlist
+  | stmdb-is-push? = lsm PUSH cond w rn reglst
 ###  - Store Multiple Decrement Before
-  | otherwise = lsm STMDB cond w rn registerlist
+  | otherwise = lsm STMDB cond w rn reglst
 
 ### STMDA
 ###  - Store Multiple Decrement After
-val / ['/cond 100 0 0 0 /W 0 /rn /registerlist'] = lsm STMDA cond w rn registerlist
+val / ['/cond 100 0 0 0 /W 0 /rn /reglst'] = lsm STMDA cond w rn reglst
 
 ### STMIB
 ###  - Store Multiple Increment Before
-val / ['/cond 100 1 1 0 /W 0 /rn /registerlist'] = lsm STMIB cond w rn registerlist
+val / ['/cond 100 1 1 0 /W 0 /rn /reglst'] = lsm STMIB cond w rn reglst
 
 # --- Miscellaneous instructions ---------------------------------------
 
@@ -1078,4 +1084,6 @@ val / ['/cond 001 1 0 0 1 0 0000 1111 0000 0000 0011'] = nullop WFI cond
 
 # --- Exception-generating/-handling instructions
 
-val / ['/cond 111 1 imm24:24'] = unop SVC cond (immediate (IMM24(imm24)))
+### SVC
+###  - Supervisor Call
+val / ['/cond 111 1 /imm24'] = unop SVC cond imm24

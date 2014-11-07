@@ -100,8 +100,8 @@ in
         if is-zero? i then
           case shift.shifttype of
               ROR: sem-shift shift.amount RRX
-            | LSR: sem-shift (immint 32) LSR
-            | ASR: sem-shift (immint 32) ASR
+            | LSR: sem-shift (opnd-from-int 32) LSR
+            | ASR: sem-shift (opnd-from-int 32) ASR
             | _: return void
           end  # See [[A8.4.3]] DecodeImmShift()
         else
@@ -355,15 +355,11 @@ val sem-bl x = do
     pc <- get-sem-pc;
     lr <- get-sem-lr;
 
-    _if instr-set-arm? _then do
-      sub lr.size lr (var pc) (imm 4)
-    end _else do
-      orb lr.size lr (var pc) (imm 1) # set last bit to 1
-    end;
+    sub 32 lr (var pc) (imm 4);
 
     align pc 4;
-    select-instr-set InstrSet_ARM;
-    jump (address pc.size (lin-sum (var pc) offset))
+    add 32 pc (var pc) offset;
+    branch-write-pc pc
   end
 end
 
