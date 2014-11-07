@@ -131,6 +131,7 @@ val semantics insn =
     | SUB x: sem-sub x
     | TEQ x: sem-teq x
     | TST x: sem-tst x
+    | MUL x: sem-mul x
     | LDR x: sem-ldr x
     | POP x: sem-pop x
     | PUSH x: sem-push x
@@ -238,34 +239,44 @@ val emit-flag-n result = cmplts 32 fNF result (imm 0)
 # set the Z flag, if the result is zero.
 val emit-flag-z result = cmpeq 32 fZF result (imm 0)
 
-val emit-add-adc-flags sz sum x y = do
-  emit-flag-n (var sum);
-  emit-flag-z (var sum);
-
-  t1 <- mktemp;
-  t2 <- mktemp;
-  t3 <- mktemp;
-
-  # Set the C flag in case of unsigned overflow (carry).
-  cmpltu sz fCF (var sum) x;
-
-  # Set the V flag in case of signed overflow.
-  xorb sz t1 (var sum) x;
-  xorb sz t2 (var sum) y;
-  andb sz t3 (var t1) (var t2);
-  cmplts sz fVF (var t3) (imm 0)
+val emit-flags-nz result setflags = do
+  if setflags then do
+    emit-flag-n result;
+    emit-flag-z result
+  end else
+    return void
 end
 
-val emit-sub-sbc-flags sz difference x y = do
+val emit-add-adc-flags sz sum x y setflags = do
+  emit-flags-nz (var sum) setflags;
+
+  if setflags then do
+    t1 <- mktemp;
+    t2 <- mktemp;
+    t3 <- mktemp;
+
+    # Set the C flag in case of unsigned overflow (carry).
+    cmpltu sz fCF (var sum) x;
+
+    # Set the V flag in case of signed overflow.
+    xorb sz t1 (var sum) x;
+    xorb sz t2 (var sum) y;
+    andb sz t3 (var t1) (var t2);
+    cmplts sz fVF (var t3) (imm 0)
+  end else
+    return void
+end
+
+val emit-sub-sbc-flags sz difference x y setflags = do
   minus_y <- mktemp;
   xorb 32 minus_y y (imm 0); # 2 complement
   add 32 minus_y (var minus_y) (imm 1);
 
-  emit-add-adc-flags sz difference x y
+  emit-add-adc-flags sz difference x y setflags
 end
 
-val emit-rsb-rsc-flags sz difference x y =
-  emit-sub-sbc-flags sz difference y x
+val emit-rsb-rsc-flags sz difference x y setflags =
+  emit-sub-sbc-flags sz difference y x setflags
 
 # --- Shift/rotate functions -------------------------------------------
 
@@ -382,10 +393,7 @@ val sem-adc x = do
     if is-sem-pc? rd then do
       alu-write-pc rd
     end else
-      if x.s then
-        emit-add-adc-flags 32 rd rn opnd2
-      else
-        return void
+      emit-add-adc-flags 32 rd rn opnd2 x.setflags
   end
 end
 
@@ -400,10 +408,7 @@ val sem-add x = do
     if is-sem-pc? rd then do
       alu-write-pc rd
     end else
-      if x.s then
-        emit-add-adc-flags 32 rd rn opnd2
-      else
-        return void
+      emit-add-adc-flags 32 rd rn opnd2 x.setflags
   end
 end
 
@@ -411,18 +416,14 @@ val sem-and x = do
   _if (condition-passed? x.cond) _then do
     rn <- rval x.rn;
     rd <- lval x.rd;
-    opnd2 <- rval-c x.opnd2 x.s; # update carry!
+    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
 
     andb 32 rd rn opnd2;
 
     if is-sem-pc? rd then do
       alu-write-pc rd
     end else
-      if x.s then do
-        emit-flag-z (var rd);
-        emit-flag-n (var rd)
-      end else
-        return void
+      emit-flags-nz (var rd) x.setflags
   end
 end
 
@@ -430,7 +431,7 @@ val sem-bic x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rd;
     rn <- rval x.rn;
-    opnd2 <- rval-c x.opnd2 x.s; # update carry!
+    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
     not_opnd2 <- mktemp;
 
     xorb 32 not_opnd2 opnd2 (imm 0);
@@ -439,11 +440,7 @@ val sem-bic x = do
     if is-sem-pc? rd then
       alu-write-pc rd
     else
-      if x.s then do
-        emit-flag-n (var rd);
-        emit-flag-z (var rd)
-      end else
-        return void
+      emit-flags-nz (var rd) x.setflags
   end
 end
 
@@ -455,7 +452,7 @@ val sem-cmn x = do
 
     add 32 cmn_result rn opnd2;
 
-    emit-add-adc-flags 32 cmn_result rn opnd2
+    emit-add-adc-flags 32 cmn_result rn opnd2 '1'
   end
 end
 
@@ -467,7 +464,7 @@ val sem-cmp x = do
 
     sub 32 cmp_result rn opnd2;
 
-    emit-sub-sbc-flags 32 cmp_result rn opnd2
+    emit-sub-sbc-flags 32 cmp_result rn opnd2 '1'
   end
 end
 
@@ -475,54 +472,42 @@ val sem-eor x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rd;
     rn <- rval x.rn;
-    opnd2 <- rval-c x.opnd2 x.s; # update carry!
+    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
 
     xorb 32 rd rn opnd2;
 
     if is-sem-pc? rd then
       alu-write-pc rd
     else
-      if x.s then do
-        emit-flag-n (var rd);
-        emit-flag-z (var rd)
-      end else
-        return void
+      emit-flags-nz (var rd) x.setflags
   end
 end
 
 val sem-mov x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rd;
-    opnd2 <- rval-c x.opnd2 x.s;
+    opnd2 <- rval-c x.opnd2 x.setflags;
 
     mov 32 rd opnd2;
 
     if is-sem-pc? rd then
       alu-write-pc rd
     else
-      if x.s then do
-        emit-flag-n (var rd);
-        emit-flag-z (var rd)
-      end else
-        return void
+      emit-flags-nz (var rd) x.setflags
   end
 end
 
 val sem-mvn x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rd;
-    opnd2 <- rval-c x.opnd2 x.s; # update carry!
+    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
 
     xorb 32 rd opnd2 (imm 0); # NOT (opnd2)
 
     if is-sem-pc? rd then
       alu-write-pc rd
     else
-      if x.s then do
-        emit-flag-n (var rd);
-        emit-flag-z (var rd)
-      end else
-        return void
+      emit-flags-nz (var rd) x.setflags
   end
 end
 
@@ -530,18 +515,14 @@ val sem-orr x = do
   _if (condition-passed? x.cond) _then do
     rd <- lval x.rd;
     rn <- rval x.rn;
-    opnd2 <- rval-c x.opnd2 x.s; # update carry!
+    opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
 
     orb 32 rd rn opnd2; # NOT (opnd2)
 
     if is-sem-pc? rd then
       alu-write-pc rd
     else
-      if x.s then do
-        emit-flag-n (var rd);
-        emit-flag-z (var rd)
-      end else
-        return void
+      emit-flags-nz (var rd) x.setflags
   end
 end
 
@@ -556,10 +537,7 @@ val sem-rsb x = do
     if is-sem-pc? rd then
       alu-write-pc rd
     else
-      if x.s then
-        emit-rsb-rsc-flags 32 rd opnd2 rn
-      else
-        return void
+      emit-rsb-rsc-flags 32 rd opnd2 rn x.setflags
   end
 end
 
@@ -575,10 +553,7 @@ val sem-rsc x = do
     if is-sem-pc? rd then
       alu-write-pc rd
     else
-      if x.s then
-        emit-rsb-rsc-flags 32 rd opnd2 rn
-      else
-        return void
+      emit-rsb-rsc-flags 32 rd opnd2 rn x.setflags
   end
 end
 
@@ -594,10 +569,7 @@ val sem-sbc x = do
     if is-sem-pc? rd then
       alu-write-pc rd
     else
-      if x.s then
-        emit-sub-sbc-flags 32 rd rn opnd2
-      else
-        return void
+      emit-sub-sbc-flags 32 rd rn opnd2 x.setflags
   end
 end
 
@@ -612,10 +584,7 @@ val sem-sub x = do
     if is-sem-pc? rd then
       alu-write-pc rd
     else
-      if x.s then
-        emit-sub-sbc-flags 32 rd rn opnd2
-      else
-        return void
+      emit-sub-sbc-flags 32 rd rn opnd2 x.setflags
   end
 end
 
@@ -627,8 +596,7 @@ val sem-tst x = do
 
     andb 32 tst_result rn opnd2;
 
-    emit-flag-n (var tst_result);
-    emit-flag-z (var tst_result)
+    emit-flags-nz (var tst_result) '1'
   end
 end
 
@@ -640,8 +608,19 @@ val sem-teq x = do
 
     xorb 32 teq_result rn opnd2;
 
-    emit-flag-n (var teq_result);
-    emit-flag-z (var teq_result)
+    emit-flags-nz (var teq_result) '1'
+  end
+end
+
+val sem-mul x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    rm <- rval x.rm;
+    rn <- rval x.rn;
+
+    mul 32 rd rn rm;
+
+    emit-flags-nz (var rd) x.setflags
   end
 end
 

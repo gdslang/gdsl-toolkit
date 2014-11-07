@@ -123,7 +123,7 @@ type instruction =
 # Standard data-processing instruction
 type dp = {
   cond:condition, # condition code
-  s:1,            # whether the APSR flags should be set
+  setflags:1,     # whether the APSR status flags should be set
   rn:operand,     # first operand register
   rd:operand,     # destination register
   opnd2:operand   # second operand (immediate or register)
@@ -132,7 +132,7 @@ type dp = {
 # Standard multiplication instructions
 type mul = {
   cond:condition,
-  s:1,
+  setflags:1,
   rd:operand,
   ra:operand,
   rm:operand,
@@ -142,7 +142,7 @@ type mul = {
 # Long mulitplication instructions
 type mull = {
   cond:condition,
-  s:1,
+  setflags:1,
   rdhi:operand,
   rdlo:operand,
   rn:operand,
@@ -285,7 +285,7 @@ val dp cons cond s rn rd opnd2 = do
   rn <- rn;
   rd <- rd;
   opnd2 <- opnd2;
-  return (cons {cond=cond, s=s, rn=rn, rd=rd, opnd2=opnd2})
+  return (cons {cond=cond, setflags=s, rn=rn, rd=rd, opnd2=opnd2})
 end
 
 val ml cons cond s rd ra rm rn = do
@@ -295,7 +295,7 @@ val ml cons cond s rd ra rm rn = do
   ra <- ra;
   rm <- rm;
   rn <- rn;
-  return (cons {cond=cond, s=s, rd=rd, ra=ra, rm=rm, rn=rn})
+  return (cons {cond=cond, setflags=s, rd=rd, ra=ra, rm=rm, rn=rn})
 end
 
 val mull cons cond s rdhi rdlo rm rn = do
@@ -305,7 +305,7 @@ val mull cons cond s rdhi rdlo rm rn = do
   rdlo <- rdlo;
   rm <- rm;
   rn <- rn;
-  return (cons {cond=cond, s=s, rdhi=rdhi, rdlo=rdlo, rn=rn, rm=rm})
+  return (cons {cond=cond, setflags=s, rdhi=rdhi, rdlo=rdlo, rn=rn, rm=rm})
 end
 
 val ls cons cond p u w rn rd offset = do
