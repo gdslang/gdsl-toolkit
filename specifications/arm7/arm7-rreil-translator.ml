@@ -115,8 +115,8 @@ val semantics insn =
       B x: sem-b x
     | BL x: sem-bl x
     | BX x: sem-bx x
-    | ADD x: sem-add x
     | ADC x: sem-adc x
+    | ADD x: sem-add x
     | AND x: sem-and x
     | BIC x: sem-bic x
     | CMN x: sem-cmn x
@@ -125,6 +125,8 @@ val semantics insn =
     | MOV x: sem-mov x
     | MVN x: sem-mvn x
     | ORR x: sem-orr x
+    | RSB x: sem-rsb x
+    | RSC x: sem-rsc x
     | SBC x: sem-sbc x
     | SUB x: sem-sub x
     | TEQ x: sem-teq x
@@ -255,12 +257,15 @@ val emit-add-adc-flags sz sum x y = do
 end
 
 val emit-sub-sbc-flags sz difference x y = do
-  y_2comp <- mktemp;
-  xorb 32 y_2comp y (imm 0);
-  add 32 y_2comp (var y_2comp) (imm 1);
+  minus_y <- mktemp;
+  xorb 32 minus_y y (imm 0); # 2 complement
+  add 32 minus_y (var minus_y) (imm 1);
 
   emit-add-adc-flags sz difference x y
 end
+
+val emit-rsb-rsc-flags sz difference x y =
+  emit-sub-sbc-flags sz difference y x
 
 # --- Shift/rotate functions -------------------------------------------
 
@@ -540,6 +545,43 @@ val sem-orr x = do
         emit-flag-n (var rd);
         emit-flag-z (var rd)
       end else
+        return void
+  end
+end
+
+val sem-rsb x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    rn <- rval x.rn;
+    opnd2 <- rval x.opnd2;
+
+    sub 32 rd opnd2 rn;
+
+    if is-sem-pc? rd then
+      alu-write-pc rd
+    else
+      if x.s then
+        emit-rsb-rsc-flags 32 rd opnd2 rn
+      else
+        return void
+  end
+end
+
+val sem-rsc x = do
+  _if (condition-passed? x.cond) _then do
+    rd <- lval x.rd;
+    rn <- rval x.rn;
+    opnd2 <- rval x.opnd2;
+
+    sub 32 rd opnd2 rn;
+    sub 32 rd (var rd) (var fCF);
+
+    if is-sem-pc? rd then
+      alu-write-pc rd
+    else
+      if x.s then
+        emit-rsb-rsc-flags 32 rd opnd2 rn
+      else
         return void
   end
 end
