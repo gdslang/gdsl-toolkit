@@ -118,6 +118,7 @@ in
   case insn.insn of
       B x: conditional sem-b x
     | BL x: conditional sem-bl x
+    | BLX x: conditional sem-blx x
     | BX x: conditional sem-bx x
     | ADC x: conditional sem-adc x
     | ADD x: conditional sem-add x
@@ -143,8 +144,8 @@ in
     | LDM x: conditional sem-ldm x
     | LDR x: conditional sem-ldr x
     | LDRB x: conditional sem-ldrb x
-    | POP x: conditional sem-pop x
-    | PUSH x: conditional sem-push x
+    | POP x: conditional sem-ldm x
+    | PUSH x: conditional sem-stm x
     | STM x: conditional sem-stm x
     | STR x: conditional sem-str x
     | STRB x: conditional sem-strb x
@@ -214,31 +215,19 @@ val condition-passed? cond =
 # --- Simplyfied jumps (without Thumb/ThumbEE/Jazelle handling) --------
 
 # align lvalue to multiple of num_bytes
-val align lhs num_bytes =
-  andb lhs.size lhs (var lhs) (imm ((power 2 lhs.size) - num_bytes))
+val align sz lhs rhs num_bytes =
+  andb lhs.size lhs rhs (imm ((power 2 sz) - num_bytes))
 
-# jump/branch to target address [[B1.3.2]]
 val branch-to target = jump (address 32 (var target))
 
 # simple branch [[A2.3.2]]
 val branch-write-pc addr = do
-  align addr 4;
+  align 32 addr (var addr) 4;
   branch-to addr
 end
 
 # interworking branch (instruction set switch) [[A2.3.2]]
-val bx-write-pc addr = do
-  _if (/eq 1 (var addr) (imm 1)) _then do
-    select-instr-set InstrSet_Thumb;
-    align addr 2;
-    branch-to addr
-  end _else do
-    _if (/eq 2 (var addr) (imm 0)) _then do
-      select-instr-set InstrSet_ARM;
-      branch-to addr
-    end
-  end
-end
+val bx-write-pc addr = branch-to addr
 
 # architecture version specific branch [[A2.3.2]]
 val load-write-pc addr = bx-write-pc addr
@@ -431,7 +420,7 @@ end
 val sem-b x = do
   offset <- rval x.opnd;
   pc <- get-sem-pc;
-  jump (address pc.size (lin-sum (var pc) offset))
+  jump (address 32 (lin-sum (var pc) offset))
 end
 
 val sem-bl x = do
@@ -440,11 +429,21 @@ val sem-bl x = do
   lr <- get-sem-lr;
 
   sub 32 lr (var pc) (imm 4);
-
-  align pc 4;
-  add 32 pc (var pc) offset;
-  branch-write-pc pc
+  call (address 32 (lin-sum (var pc) offset))
 end
+
+val sem-blx x =
+  case x.opnd of
+      IMMEDIATE i: sem-bl x
+    | REGISTER r: do
+        target <- rval x.opnd;
+        pc <- get-sem-pc;
+        lr <- get-sem-lr;
+
+        sub 32 lr (var pc) (imm 4);
+        call (address 32 target)
+      end
+  end
 
 val sem-bx x = do
   m <- rval x.opnd;
@@ -769,23 +768,11 @@ val sem-ldrb x = do
   movzx 32 rt 8 (var byte)
 end
 
-val sem-pop x = do
-  sp <- get-sem-sp;
-  load-operands 32 x.registers 32 sp;
-  add 32 sp (var sp) (imm (4 * num-opnds x.registers))
-end
-
-val sem-push x = do
-  sp <- get-sem-sp;
-  store-operands 32 x.registers 32 sp;
-  sub 32 sp (var sp) (imm (4 * num-opnds x.registers))
-end
-
 val sem-stm x = do
   rn <- lval x.rn;
   store-operands 32 x.registers 32 rn;
 
-  op <- return (if is-sem-pc? rn then sub else add);
+  op <- return (if is-sem-sp? rn then sub else add);
 
   if x.w then
     op 32 rn (var rn) (imm (4 * num-opnds x.registers))
