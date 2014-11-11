@@ -11,7 +11,7 @@
 
 // evaluation paramters
 #define NUM_OF_CYCLES					0x1000		// 4096
-#define START_CYCLE						0			// of 4096
+#define START_CYCLE						15			// of 4096
 #define INSNS_PER_CYCLE					0x00100000  // 1'048'576
 
 // intput/output defines
@@ -50,7 +50,7 @@ uint32_t invInsn(uint32_t insn)
 	return res;
 }
 
-int evaluate()
+int validate()
 {
 	const unsigned int cycle_interval = INSNS_PER_CYCLE;
 	const unsigned int max_cycles = NUM_OF_CYCLES;
@@ -193,7 +193,7 @@ int evaluate()
 }
 int main(int argc, char** argv)
 {
-	int res = evaluate();
+	int res = validate();
 	printf("final report: %f%s\n\n", 100.0f * ((double)(decoded_insns)/((double)handled_insns)), "%");
 
 	return res;

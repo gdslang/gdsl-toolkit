@@ -144,7 +144,7 @@ val jalr? s = not (s.rd == s.rs)
 val ext? s = (zx s.lsb) + (zx s.msbd) < 32
 val ins? s = (zx s.lsb) - (zx s.msb)  < 1
 val cloz? s = (s.rt == s.rd)
-val asimpl? s = ((zx s.impl) > 31) and assembler-mode
+val asimpl? s = assembler-mode #and ((zx s.impl) > 31)
 val asbreak? s = (s.code10to20 == '0000000000') and assembler-mode
 val asmode? s = assembler-mode
 
@@ -1800,7 +1800,6 @@ type fpr-register =
  | F29
  | F30
  | F31
- | FIR
 
 
 #####################################
@@ -1812,7 +1811,7 @@ type fcr-register =
  | FEXR
  | FENR
  | FCSR
-
+ | FIR
 
 ##############################################
 # helpers to assign bit vectors to a register,

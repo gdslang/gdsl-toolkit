@@ -206,7 +206,6 @@ val semantic-fpr-of f =
     | F29  : {id=Sem_F29 ,offset=0,size=32}
     | F30  : {id=Sem_F30 ,offset=0,size=32}
     | F31  : {id=Sem_F31 ,offset=0,size=32}
-    | FIR  : {id=Sem_FIR ,offset=0,size=32}
    end
 
 val semantic-fcr-of f =
@@ -215,4 +214,5 @@ val semantic-fcr-of f =
     | FEXR  : {id=Sem_FEXR ,offset=0,size=32}
     | FENR  : {id=Sem_FENR ,offset=0,size=32}
     | FCSR  : {id=Sem_FCSR ,offset=0,size=32}
+    | FIR   : {id=Sem_FIR  ,offset=0,size=32}
    end
