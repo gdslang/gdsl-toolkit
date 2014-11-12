@@ -14,19 +14,26 @@ export config-default: decoder-configuration
 export decode: (decoder-configuration) -> S insndata <{} => {}>
 export decoder-config : configuration[vec=decoder-configuration]
 
-type decoder-configuration = 0
-
 type insndata = {ip:int, length:int, insn:instruction}
 
-val config-default = ''
-val decoder-config = END
+type decoder-configuration = |1|
+
+val decoder-config =
+  conf '0' "little-endian" "assume input is little-endian (default)" &*
+  conf '1' "big-endian" "assume input is big-endian"
+
+val config-default = '0'
 
 # ----------------------------------------------------------------------
 # Entry Point
 # ----------------------------------------------------------------------
 
 val decode config = do
-  endianness endian-little/instr32-little/access32;
+  if config == '0' then
+    endianness endian-little/instr32-little/access32
+  else
+    endianness endian-big/instr32-big/access32
+  ;
 
   reset;
 
