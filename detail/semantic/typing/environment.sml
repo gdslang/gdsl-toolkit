@@ -170,8 +170,9 @@ structure Environment : sig
    val topToString : environment -> string
    val topToStringSI : environment * TVar.varmap -> string * TVar.varmap
    val kappaToString : environment -> string
-   (*show the nth kappa on the stack, if second arg is non-zero, then only show the nth argument of the function*)
-   val kappaToStringSI : (int * int) * environment * TVar.varmap -> string * TVar.varmap
+   (*show the nth kappa on the stack, the second arg says only show the nth argument
+     of the function, recursively, with 0 being the return value *)
+   val kappaToStringSI : (int * int list) * environment * TVar.varmap -> string * TVar.varmap
    val funTypeToStringSI  : environment * VarInfo.symid * TVar.varmap ->
                             string * TVar.varmap
    val finalize : unit -> unit
@@ -599,9 +600,9 @@ end = struct
          val k = getKappa (kappaNo,env)
          val tt = Scope.getTypeTable env
          val ty = TT.peekSymbol (k,tt)
-         val ty = if argSel<=0 then ty else case ty of
-            FUN (tys,_) => List.nth (tys,argSel-1)
-          | _ => ty
+         fun getArg (FUN (args,res), n :: ns) = getArg (if n=0 then res else List.nth (args,n-1), ns)
+           | getArg (ty, _) = ty
+         val ty = getArg (ty, argSel)
          val (tStr, si) = showTypeSI (ty,si)
       in
          (tStr ^ "\n", si)
@@ -617,7 +618,7 @@ end = struct
 
    fun kappaToString env =
       let
-         val (str, _) = kappaToStringSI ((1,0), env,TVar.emptyShowInfo)
+         val (str, _) = kappaToStringSI ((1,[]), env,TVar.emptyShowInfo)
       in
          str
       end

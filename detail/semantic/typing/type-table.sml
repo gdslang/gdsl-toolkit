@@ -912,7 +912,7 @@ end = struct
                         let
                            val fType = gT (Path.appendFieldStep f s,ft)
                            val fBVar = Path.getFlag (fp,(s,Path.mkFieldLeaf f))
-                              handle NotFound => (TextIO.print ("cannot find path " ^ #1 (Path.toStringSI (Path.createFlowpoints [(s,Path.mkFieldLeaf f)],TVar.emptyShowInfo)) ^ "\nin" ^ #1 (Path.toStringSI (fp,TVar.emptyShowInfo)) ^ "\n" ^ #1 (dumpTableSI (table,TVar.emptyShowInfo))); raise IndexError)
+                              handle NotFound => ((*TextIO.print ("cannot find path " ^ #1 (Path.toStringSI (Path.createFlowpoints [(s,Path.mkFieldLeaf f)],TVar.emptyShowInfo)) ^ "\nin" ^ #1 (Path.toStringSI (fp,TVar.emptyShowInfo)) ^ "\n"); *)BD.freshBVar ())
                         in
                            RField { name = f, fty = fType, exists = fBVar }
                         end
@@ -1332,6 +1332,9 @@ end = struct
 
    fun unify (v1,v2, table : table) =
       let
+         val hasError = ref (NONE : (S.FailureKind * string) option)
+         fun raiseUnificationFailure err = hasError := SOME err
+         
          val tt = #typeTable table
          val st = #symTable table
 
@@ -1412,7 +1415,7 @@ end = struct
            | unifyTT (v1, v2, TERM t1, LEAF (NONE,symSet)) = substVar (v2,symSet,v1,t1)
            | unifyTT _ = raise TypeTableError
       and genPairs (v1,v2,TT_FUN (f1, f2), TT_FUN (g1, g2)) = if List.length f1<>List.length g1
-         then raise S.UnificationFailure (S.Clash, 
+         then raiseUnificationFailure (S.Clash, 
                "function with different number of arguments (" ^
                Int.toString (List.length f1) ^ " and " ^
                Int.toString (List.length g1) ^ ")"
@@ -1427,7 +1430,7 @@ end = struct
         | genPairs (v1,v2,TT_UNIT, TT_UNIT) = ()
         | genPairs (v1,v2,TT_VEC t1, TT_VEC t2) = (setMinVar (v1,v2,TT_VEC (tVarMin (t1,t2))); fixpoint [(t1, t2)])
         | genPairs (v1,v2,TT_CONST c1, TT_CONST c2) =
-           if c1=c2 then () else raise S.UnificationFailure (S.Clash,
+           if c1=c2 then () else raiseUnificationFailure (S.Clash,
             "incompatible bit vectors sizes (" ^ Int.toString c1 ^ " and " ^
             Int.toString c2 ^ ")")
         | genPairs (v1,v2,TT_RECORD r1, TT_RECORD r2) =
@@ -1487,7 +1490,7 @@ end = struct
             fixpoint [(r1, r2), (f1, f2), (t1, t2)]
         | genPairs (v1,v2,TT_ALG (ty1, l1), TT_ALG (ty2, l2)) =
          let 
-            fun incompat () = raise S.UnificationFailure (S.Clash,
+            fun incompat () = raiseUnificationFailure (S.Clash,
                "cannot match constructor " ^
                SymbolTable.getString(!SymbolTables.typeTable, ty1) ^
                " with " ^
@@ -1574,7 +1577,7 @@ end = struct
               | descr (TT_MONAD _) = "an action"
               | descr _ = "something that shouldn't be here"
          in
-            raise S.UnificationFailure (S.Clash, "cannot match " ^ descr t1 ^
+            raiseUnificationFailure (S.Clash, "cannot match " ^ descr t1 ^
                                         " against " ^ descr t2)
          end
       and substVar (vVar,symSet,rVar,termType) = 
@@ -1603,12 +1606,12 @@ end = struct
                       SC.RESULT (newConsts,sCons) => (scRef := sCons;
                          List.map (fn (v,c) => (v, newType (CONST c,table))) newConsts
                          )
-                     | SC.UNSATISFIABLE => raise S.UnificationFailure (S.Clash,
-                        "size constraints over vectors are unsatisfiable")
-                     | SC.FRACTIONAL => raise S.UnificationFailure (S.Clash,
-                        "solution to size constraint is not integral")
-                     | SC.NEGATIVE => raise S.UnificationFailure (S.Clash,
-                        "constraint implies that vector has non-positive size")
+                     | SC.UNSATISFIABLE => (raiseUnificationFailure (S.Clash,
+                        "size constraints over vectors are unsatisfiable"); [])
+                     | SC.FRACTIONAL => (raiseUnificationFailure (S.Clash,
+                        "solution to size constraint is not integral"); [])
+                     | SC.NEGATIVE => (raiseUnificationFailure (S.Clash,
+                        "constraint implies that vector has non-positive size"); [])
                     )
                | _ => []
          in                              
@@ -1688,11 +1691,12 @@ end = struct
          end
 
    in
-      fixpoint [(v1,v2)]
-         handle S.UnificationFailure str =>
+      (fixpoint [(v1,v2)];
+      case !hasError of NONE => () | SOME err =>
             (List.app (fn (v,t) => DA.update (tt,v,t)) (!undoTISet)
             ;List.app (fn (s,e) => HT.insert st (s,e)) (!undoSTSet)
-            ;raise S.UnificationFailure str)
+            ;raise S.UnificationFailure err)
+      )
    end
          
    and equateSymbols (sym1,sym2,table : table) =

@@ -351,8 +351,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                fun raiseError (str,env) =
                   let
                      val si = TVar.emptyShowInfo
-                     val (sFun, si) = E.kappaToStringSI ((1,0), env, si)
-                     val (sCall, si) = E.kappaToStringSI ((2,0), env, si)
+                     val (sFun, si) = E.kappaToStringSI ((1,[]), env, si)
+                     val (sCall, si) = E.kappaToStringSI ((2,[]), env, si)
                      val env = E.pushTop env
                      val env = E.popToFunction (sym,env)
                   in 
@@ -500,7 +500,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   val sStr = SymbolTable.getString
                      (!SymbolTables.varTable, sym)
                   val env = E.pushSymbol (sym, SymbolTable.noSpan,  useFunctionSets, E.Normal, env)
-                  val (sType, si) = E.kappaToStringSI ((1,0), env, si)
+                  val (sType, si) = E.kappaToStringSI ((1,[]), env, si)
                   val env = E.popKappa env
                in
                   (res ^ pre ^ sStr ^ " : " ^ sType, ", ", si)
@@ -532,8 +532,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                handle S.UnificationFailure str =>
                   refineError (env, str,
                                " when checking guard",
-                               [((2,0), "required guard type        "),
-                                ((1,0), "guard " ^ showProg (20, PP.exp, g))])
+                               [((2,[]), "required guard type        "),
+                                ((1,[]), "guard " ^ showProg (20, PP.exp, g))])
                val env = E.popKappa env
                val env = E.popKappa env
             in
@@ -592,8 +592,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (env, str,
                             " while merging decoder rule",
-                            [((2,0), "rules so far "),
-                             ((1,0), "next rule    ")])
+                            [((2,[]), "rules so far "),
+                             ((1,[]), "next rule    ")])
          val env = E.popKappa env
          val env = E.popToFunction (v,env)
          val env = E.leaveFunction (v,env)
@@ -615,8 +615,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   handle S.UnificationFailure str =>
                      refineError (env, str,
                                   " while merging guarded decoder rule",
-                                  [((2,0), "rules so far "),
-                                   ((1,0), "next rule    ")])
+                                  [((2,[]), "rules so far "),
+                                   ((1,[]), "next rule    ")])
                val env = E.popKappa env
                val env = E.popToFunction (v, env)
             in
@@ -686,8 +686,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   handle S.UnificationFailure str =>
                      refineError (env, str,
                                   " in the branches of if-statment",
-                                  [((2,0), "then-branch "),
-                                   ((1,0), "else-branch ")])
+                                  [((2,[]), "then-branch "),
+                                   ((1,[]), "else-branch ")])
          val env = E.popKappa env
          (*val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString env)*)
       in
@@ -714,8 +714,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   handle S.UnificationFailure str =>
                      refineError (env, str,
                                   " while checking right-hand-side of branches",
-                                  [((2,0), "branches so far               "),
-                                   ((1,0), showProg (30, PP.exp, exp))])
+                                  [((2,[]), "branches so far               "),
+                                   ((1,[]), showProg (30, PP.exp, exp))])
                val env = E.popKappa env
                val env = E.reduceFlow env
             in
@@ -786,10 +786,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                             " while passing",
                             (#1 (List.foldr
                             (fn (e2,(res,argNo)) => 
-                              (((2,argNo), "argument    " ^ showProg (20, PP.exp, e2))::res,
+                              (((2,[argNo]), "argument    " ^ showProg (20, PP.exp, e2))::res,
                                argNo-1)
                             ) ([], noOfArgs) es2)) @
-                            [((1,0), "to function " ^ showProg (20, PP.exp, e1))])
+                            [((1,[]), "to function " ^ showProg (20, PP.exp, e1))])
 
          val env = E.popKappa env
          (*val _ = TextIO.print ("**** app fun,res unified:\n" ^ E.topToString env)*)
@@ -965,7 +965,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure (kind, str) =>
                raise S.UnificationFailure (kind, str ^ " in statement\n\t" ^
                    showProg (20, PP.exp, e) ^ " : " ^
-                   #1 (E.kappaToStringSI ((1,1), env, TVar.emptyShowInfo)))
+                   #1 (E.kappaToStringSI ((1,[1]), env, TVar.emptyShowInfo)))
          val env = E.popKappa env
          val env = E.reduceToResult env
          val env = case vOpt of
@@ -977,10 +977,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.flipKappas env
          val env = E.equateKappasFlow env
             handle S.UnificationFailure str =>
-               refineError (env, str,
-                            " when merging the requirements gathered after",
-                            [((1,1), "statement " ^ showProg (21, PP.exp, e)),
-                             ((2,1), "with the following transformer ")])
+            case vOpt of
+               SOME v =>
+                  refineError (env, str,
+                               " when merging the output/result of",
+                               [((1,[1,0]), "statement " ^ showProg (21, PP.exp, e)),
+                                ((1,[1,1]), "with result " ^ showProg (19, PP.var_use, v)),
+                                ((2,[1,0]), "with the following transformer "),
+                                ((2,[1,1]), "that requires " ^ showProg (17, PP.var_use, v))
+                                ])
+             | NONE =>
+                     refineError (env, str,
+                                  " when matching the output state of",
+                                  [((1,[1]), "statement " ^ showProg (21, PP.exp, e)),
+                                   ((2,[1]), "with the input state of ")])
          val env = E.popKappa env
          val env = E.reduceToResult env
          (*val _ = TextIO.print ("monadic actions: after reducing to res\n")*)
@@ -1004,8 +1014,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (env, str,
                             " when checking bits in token",
-                            [((2,0), "previous patterns                     "),
-                             ((1,0), "pattern " ^ showProg (30, PP.decodepat, (AST.BITdecodepat l)))])
+                            [((2,[]), "previous patterns                     "),
+                             ((1,[]), "pattern " ^ showProg (30, PP.decodepat, (AST.BITdecodepat l)))])
          val env = E.popKappa env
          val env = E.popKappa env
       in
@@ -1042,8 +1052,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
               refineError (env, str,
                           " when checking decoder",
-                          [((1,0), "decoder " ^ SymbolTable.getString(!SymbolTables.varTable, sym)),
-                           ((2,0), "token   " ^ showProg (20, PP.tokpat, AST.TOKtokpat (size,i)))])
+                          [((1,[]), "decoder " ^ SymbolTable.getString(!SymbolTables.varTable, sym)),
+                           ((2,[]), "token   " ^ showProg (20, PP.tokpat, AST.TOKtokpat (size,i)))])
          val env = E.popKappa env
          val env = E.popKappa env
       in
@@ -1057,8 +1067,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          handle S.UnificationFailure str =>
             refineError (env, str,
                         " when checking decoder",
-                        [((1,0), "decoder " ^ SymbolTable.getString(!SymbolTables.varTable, sym)),
-                         ((2,0), "sub-decoder     " ^ showProg (20, PP.tokpat, (AST.NAMEDtokpat v)))])
+                        [((1,[]), "decoder " ^ SymbolTable.getString(!SymbolTables.varTable, sym)),
+                         ((2,[]), "sub-decoder     " ^ showProg (20, PP.tokpat, (AST.NAMEDtokpat v)))])
          val env = E.popKappa env
          val env = E.popKappa env
       in
@@ -1074,8 +1084,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (env, str,
                             " when checking case scrutinee",
-                            [((1,0), "scrutinee and patterns so far "),
-                             ((2,0),     "pattern " ^ showProg (22, PP.pat, p))])
+                            [((1,[]), "scrutinee and patterns so far "),
+                             ((2,[]),     "pattern " ^ showProg (22, PP.pat, p))])
          (*val _ = TextIO.print ("**** after mgu:\n" ^ E.topToString env)*)
          val env = E.popKappa env
          val env = E.popKappa env
@@ -1233,8 +1243,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             (refineError (env, str,
                          " when checking export declaration of " ^
                          SymbolTable.getString(!SymbolTables.varTable, sym),
-                         [((2,0), "inferred type      "),
-                          ((1,0), "export declaration ")])
+                         [((2,[]), "inferred type      "),
+                          ((1,[]), "export declaration ")])
                handle S.UnificationFailure (kind, str) =>
                   Error.errorAt (errStrm, s, [str])
             ;env)
