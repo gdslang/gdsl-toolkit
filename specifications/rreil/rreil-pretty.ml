@@ -77,14 +77,15 @@ val rreil-show-hint x =
 
 val rreil-show-label l = "l" +++ show-int l +++ ":"
 
+# TODO remove size arg 
 val rreil-show-op-cmp size cmp =
-  case cmp of
-     SEM_CMPEQ x: rreil-show-cmp x ("==:" +++ show-int size)
-   | SEM_CMPNEQ x: rreil-show-cmp x ("!=:" +++ show-int size)
-   | SEM_CMPLES x: rreil-show-cmp x ("<=s:" +++ show-int size)
-   | SEM_CMPLEU x: rreil-show-cmp x ("<=u:" +++ show-int size)
-   | SEM_CMPLTS x: rreil-show-cmp x ("<s:" +++ show-int size)
-   | SEM_CMPLTU x: rreil-show-cmp x ("<u:" +++ show-int size)
+  case cmp.cmp of
+     SEM_CMPEQ x: rreil-show-cmp x ("==:" +++ show-int cmp.size)
+   | SEM_CMPNEQ x: rreil-show-cmp x ("!=:" +++ show-int cmp.size)
+   | SEM_CMPLES x: rreil-show-cmp x ("<=s:" +++ show-int cmp.size)
+   | SEM_CMPLEU x: rreil-show-cmp x ("<=u:" +++ show-int cmp.size)
+   | SEM_CMPLTS x: rreil-show-cmp x ("<s:" +++ show-int cmp.size)
+   | SEM_CMPLTU x: rreil-show-cmp x ("<u:" +++ show-int cmp.size)
   end
 
 val rreil-show-expr size expr =

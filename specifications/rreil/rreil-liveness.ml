@@ -73,8 +73,9 @@ val lv-gen gens stmt =
             (visit-lin gens size x.opnd1)
             (visit-lin gens size x.opnd2)
 
+ 		    # TODO use size here
 			val visit-op-cmp size gens cmp =
-			  case cmp of
+			  case cmp.cmp of
            SEM_CMPEQ x: visit-arity2 size gens x
          | SEM_CMPNEQ x: visit-arity2 size gens x
          | SEM_CMPLES x: visit-arity2 size gens x

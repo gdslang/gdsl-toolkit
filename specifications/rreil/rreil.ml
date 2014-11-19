@@ -27,7 +27,7 @@ type sem_linear =
 
  type sem_sexpr =
    SEM_SEXPR_LIN of sem_linear
- | SEM_SEXPR_CMP of sem_expr_cmp
+ | SEM_SEXPR_CMP of {size:int, cmp:sem_expr_cmp}
  | SEM_SEXPR_ARB
 
 type sem_expr_cmp =
@@ -218,12 +218,12 @@ val mods sz a b c = push (/ASSIGN sz a (SEM_MODS{opnd1=b,opnd2=c}))
 val movsx szA a szB b = push (/ASSIGN szA a (SEM_SX{fromsize=szB,opnd1=b}))
 val movzx szA a szB b = push (/ASSIGN szA a (SEM_ZX{fromsize=szB,opnd1=b}))
 val convert szA a szB b = push (/ASSIGN szA a (SEM_ZX{fromsize=szB,opnd1=b}))
-val cmpeq sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPEQ{opnd1=a,opnd2=b}))))
-val cmpneq sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPNEQ{opnd1=a,opnd2=b}))))
-val cmples sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPLES{opnd1=a,opnd2=b}))))
-val cmpleu sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPLEU{opnd1=a,opnd2=b}))))
-val cmplts sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPLTS{opnd1=a,opnd2=b}))))
-val cmpltu sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPLTU{opnd1=a,opnd2=b}))))
+val cmpeq sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP {size=sz,cmp=(SEM_CMPEQ{opnd1=a,opnd2=b})})))
+val cmpneq sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP {size=sz,cmp=(SEM_CMPNEQ{opnd1=a,opnd2=b})})))
+val cmples sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP {size=sz,cmp=(SEM_CMPLES{opnd1=a,opnd2=b})})))
+val cmpleu sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP {size=sz,cmp=(SEM_CMPLEU{opnd1=a,opnd2=b})})))
+val cmplts sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP {size=sz,cmp=(SEM_CMPLTS{opnd1=a,opnd2=b})})))
+val cmpltu sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP {size=sz,cmp=(SEM_CMPLTU{opnd1=a,opnd2=b})})))
 val ite c t e = push (/ITE (SEM_SEXPR_LIN c) t e)
 val while c b = push (/WHILE (SEM_SEXPR_LIN c) b)
 val jump address = do
