@@ -1586,7 +1586,73 @@ val sem-wsbh x = do
 	write x.op1 (var res)	
 end
 
-val sem-unpredictable = return void
+val sem-unpredictable = do
+	zero <- return (semantic-gpr-of ZERO);
+	undef zero.size zero;
+	at <- return (semantic-gpr-of AT);
+	undef at.size at;
+	v0 <- return (semantic-gpr-of V0);
+	undef v0.size v0;
+	v1 <- return (semantic-gpr-of V1);
+	undef v1.size v1;
+	a0 <- return (semantic-gpr-of T0);
+	undef a0.size a0;
+	a1 <- return (semantic-gpr-of T1);
+	undef a1.size a1;
+	a2 <- return (semantic-gpr-of T2);
+	undef a2.size a2;
+	a3 <- return (semantic-gpr-of T3);
+	undef a3.size a3;
+	t0 <- return (semantic-gpr-of T0);
+	undef t0.size t0;
+	t1 <- return (semantic-gpr-of T1);
+	undef t1.size t1;
+	t2 <- return (semantic-gpr-of T2);
+	undef t2.size t2;
+	t3 <- return (semantic-gpr-of T3);
+	undef t3.size t3;
+	t4 <- return (semantic-gpr-of T4);
+	undef t4.size t4;
+	t5 <- return (semantic-gpr-of T5);
+	undef t5.size t5;
+	t6 <- return (semantic-gpr-of T6);
+	undef t6.size t6;
+	t7 <- return (semantic-gpr-of T7);
+	undef t7.size t7;
+	s0 <- return (semantic-gpr-of S0);
+	undef s0.size s0;
+	s1 <- return (semantic-gpr-of S1);
+	undef s1.size s1;
+	s2 <- return (semantic-gpr-of S2);
+	undef s2.size s2;
+	s3 <- return (semantic-gpr-of S3);
+	undef s3.size s3;
+	s4 <- return (semantic-gpr-of S4);
+	undef s4.size s4;
+	s5 <- return (semantic-gpr-of S5);
+	undef s5.size s5;
+	s6 <- return (semantic-gpr-of S6);
+	undef s6.size s6;
+	s7 <- return (semantic-gpr-of S7);
+	undef s7.size s7;
+	t8 <- return (semantic-gpr-of T8);
+	undef t8.size t8;
+	t9 <- return (semantic-gpr-of T9);
+	undef t9.size t9;
+	k0 <- return (semantic-gpr-of K0);
+	undef k0.size k0;
+	k1 <- return (semantic-gpr-of K1);
+	undef k1.size k1;
+	gp <- return (semantic-gpr-of GP);
+	undef gp.size gp;
+	sp <- return (semantic-gpr-of SP);
+	undef sp.size sp;
+	s8 <- return (semantic-gpr-of S8);
+	undef s8.size s8;
+	ra <- return (semantic-gpr-of RA);
+	undef ra.size ra
+end
+
 val sem-undefined = return void
 
 val semantics i =
