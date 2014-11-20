@@ -390,7 +390,7 @@ libgdsl_arm7_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_arm7_demo_SOURCES = gdsl-arm7.c
 gdsl_arm7_demo_CFLAGS = -std=c99 -DWITHMAIN
 
-GS_ARM7 = $(GDSL_BASIS) $(GDSL_ARM7)
+GS_ARM7 = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_ARM7)
 gdsl-arm7.c: $(GDSLC_DEP) $(GS_ARM7)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_ARM7)
 

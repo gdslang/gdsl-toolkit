@@ -60,7 +60,7 @@ FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil arm7 arm7-rreil";
 AC_ARG_WITH([frontend],
   [AS_HELP_STRING(
     [--with-frontend=frontend],
-    [one of: x86 x86-rreil avr avr-rreil mips mips-rreil arm7])],
+    [one of: x86 x86-rreil avr avr-rreil mips mips-rreil arm7 arm7-rreil])],
   [], [with_frontend=all])
 
 case $with_frontend in
