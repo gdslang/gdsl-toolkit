@@ -67,7 +67,7 @@
 
 type bbtree [a] = 
    Lf
- | Br of {size: int, left: bbtree, right: bbtree, payload: a}
+ | Br of {size: int, left: bbtree[a], right: bbtree, payload: a}
 
 val bbtree-size t =
    case t of
