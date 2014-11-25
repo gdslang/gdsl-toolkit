@@ -24,4 +24,16 @@
 #
 export propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
 
-val propagate-values stmts = return stmts
+val propagate-values stmts = return (prop-worker subst-map-initial stmts )
+
+val prop-worker state stmts = case stmts of
+		SEM_CONS s : let val new-stmt = s.hd
+						 val new-state = state
+					 in SEM_CONS {hd=new-stmt, tl=prop-worker new-state s.tl}
+					 end
+	|	SEM_NIL    : SEM_NIL
+	end 
+
+#type sem_stmt_list =
+#   SEM_CONS of {hd:sem_stmt, tl:sem_stmt_list}
+# | SEM_NIL

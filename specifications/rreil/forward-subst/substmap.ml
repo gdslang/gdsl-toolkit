@@ -23,6 +23,7 @@
 
 type subst-map = Subst-map-empty
 
+val subst-map-initial = Subst-map-empty
 
 
 # substitute values in a given right hand side
