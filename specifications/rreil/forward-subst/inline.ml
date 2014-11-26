@@ -38,31 +38,83 @@ val subst-stmt-list state stmts = case stmts of
 	end 
 
 
-#TODO
 export update-substmap: (subst-map, sem_stmt) -> subst-map
 val update-substmap state stmt = case stmt of
-    SEM_ASSIGN s : substmap-bind-expr state s.size s.lhs s.rhs
-  | SEM_LOAD   s : substmap-mark-overwritten state s.size s.lhs
-  | SEM_STORE  s : state
+    SEM_ASSIGN  s  : substmap-bind-expr state s.size s.lhs s.rhs
+  | SEM_LOAD    s  : substmap-mark-var-overwritten state s.lhs.offset s.size s.lhs.id
+  | SEM_STORE   s  : state
+  | SEM_ITE     s  : subst-map-initial # no join of branches, so we "approximate"
+  | SEM_WHILE   s  : subst-map-initial # no fixpoint calculation, so we "approximate"
+  | SEM_CBRANCH s  : state
+  | SEM_BRANCH  s  : state
+  | SEM_FLOP    s  : substmap-mark-varl-overwritten state s.lhs
+  | SEM_PRIM    s  : substmap-mark-varl-list-overwritten state s.lhs
+  | SEM_THROW   s  : state
 	end 
 
-#type sem_stmt =
-#   SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr} #size denotes the size of right-hand side operands
-# | SEM_LOAD of {size:int, lhs:sem_var, address:sem_address}
-# | SEM_STORE of {size:int, address:sem_address, rhs:sem_linear}
-# | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmt_list, else_branch:sem_stmt_list}
-# | SEM_WHILE of {cond:sem_sexpr, body:sem_stmt_list}
-# | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}
-# | SEM_BRANCH of {hint:branch_hint, target:sem_address}
-# | SEM_FLOP of {op:sem_flop, flags:sem_var, lhs:sem_varl, rhs:sem_varl_list}
-# | SEM_PRIM of {op:string, lhs:sem_varl_list, rhs:sem_varl_list}
-# | SEM_THROW of sem_exception
- 
-#TODO
+
+# only bind linear expressions
 export substmap-bind-expr : (subst-map, int, sem_var, sem_expr) -> subst-map
-val substmap-bind-expr state size var expr = state
- 
+val substmap-bind-expr state size var expr = case expr of
+    SEM_SEXPR sexpr : substmap-bind-sexpr state size var sexpr
+  | x               : substmap-mark-var-overwritten state var.offset size var.id
+    end
+  
+export substmap-bind-sexpr : (subst-map, int, sem_var, sem_sexpr) -> subst-map
+val substmap-bind-sexpr state size var sexpr 
+	=	case sexpr of
+    	    SEM_SEXPR_LIN linear :
+    	    	if linear-does-not-ref-to-var linear size var 
+				then substmap-bind-linear state var.offset size var.id linear
+				else substmap-mark-var-overwritten state var.offset size var.id
+    	  | x : substmap-mark-var-overwritten state var.offset size var.id
+    end
+
+
+export linear-does-not-ref-to-var : (sem_linear, int, sem_var) -> |1|
+val linear-does-not-ref-to-var linear size var = case linear of
+	SEM_LIN_VAR var2 : vars-do-not-overlap size var var2
+  | SEM_LIN_IMM s    : '1'
+  | SEM_LIN_ADD s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var 
+  | SEM_LIN_SUB s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
+  | SEM_LIN_SCALE s  : linear-does-not-ref-to-var s.opnd size var 
+  end
+
+
+export vars-do-not-overlap : (int, sem_var, sem_var) -> |1|
+val vars-do-not-overlap size var1 var2 = case var1.id of
+  	VIRT_T v1 : case var2.id of
+        VIRT_T v2 : if v1 === v2 
+  	  				then ranges-do-not-overlap size var1.offset var2.offset
+  	  				else '1'
+  	  | _ : '1'
+  	  	end
+  | _ : if index var1.id === index var2.id # we hope that noone defines a sem_id with fields... 
+    	then ranges-do-not-overlap size var1.offset var2.offset
+    	else '1' 
+    end
+
 #TODO
-export substmap-mark-overwritten : (subst-map, int, sem_var) -> subst-map
-val substmap-mark-overwritten state size var = state
- 
+export ranges-do-not-overlap : (int,int,int) -> |1|
+val ranges-do-not-overlap size o1 o2 = '0'
+
+
+export substmap-mark-varl-list-overwritten : (subst-map, sem_varl_list) -> subst-map
+val substmap-mark-varl-list-overwritten state varl = case varl of
+    SEM_VARLS_CONS s : substmap-mark-varl-list-overwritten (substmap-mark-varl-overwritten state s.hd) s.tl
+  | SEM_VARLS_NIL    : state
+	end
+
+
+export substmap-mark-varl-overwritten : (subst-map, sem_varl) -> subst-map
+val substmap-mark-varl-overwritten state varl = substmap-mark-var-overwritten state varl.offset varl.size varl.id 
+
+
+#TODO
+export substmap-bind-linear : (subst-map, int, int, sem_id, sem_linear) -> subst-map
+val substmap-bind-linear state offset size var linear = state 
+
+#TODO
+export substmap-mark-var-overwritten : (subst-map, int, int, sem_id) -> subst-map
+val substmap-mark-var-overwritten state offset size var = state
+
