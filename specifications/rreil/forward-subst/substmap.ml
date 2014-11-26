@@ -36,11 +36,11 @@ val subst-map-initial = Subst-map-empty
 # Returns:
 #   right hand side with substituted values
 #
-export subst-expr : (subst-map, int, sem_expr) -> sem_expr
+#export subst-expr : (subst-map, int, sem_expr) -> sem_expr
 
-val subst-expr map size rhs = case map of
-		Subst-map-empty : rhs
-	end
+#val subst-expr map size rhs = case map of
+#		Subst-map-empty : rhs
+#	end
 
 
 

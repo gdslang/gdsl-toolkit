@@ -42,7 +42,7 @@ val decode-translate-block-optimized-preserve config limit pres do-propagate= ca
      				println (rreil-pretty translated);
      				println "-------------------";
      	  			println "propagating...";
-     	  			p <- propagate-values translated;
+     	  			p <- return (propagate-values translated);
 					println "-------------------";
      				println "after propagation";
      				println (rreil-pretty p);

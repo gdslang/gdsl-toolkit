@@ -21,8 +21,8 @@ type sem_var = {id:sem_id, offset:int}
 type sem_linear =
    SEM_LIN_VAR of sem_var
  | SEM_LIN_IMM of {const:int}
- | SEM_LIN_ADD of {opnd1:sem_linear, opnd2:sem_linear}
- | SEM_LIN_SUB of {opnd1:sem_linear, opnd2:sem_linear}
+ | SEM_LIN_ADD of sem_arity2
+ | SEM_LIN_SUB of sem_arity2
  | SEM_LIN_SCALE of {const:int, opnd:sem_linear}
 
  type sem_sexpr =
