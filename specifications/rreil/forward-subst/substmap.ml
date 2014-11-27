@@ -20,43 +20,79 @@
 #
 #   type subst-map = Subst-map-empty
 #
+type subst-map = 
+    Substmap-empty
+  | Substmap-bind-linear of {offset:int, size:int, id:sem_id, rhs:sem_linear, cont:subst-map}
+  | Substmap-mark-overwritten of {offset:int, size:int, id:sem_id, cont:subst-map}
 
-type subst-map = Subst-map-empty
-
-val subst-map-initial = Subst-map-empty
+val substmap-initial = Substmap-empty
 
 
-# substitute values in a given right hand side
+# bind right hand side to a location
 #
 # Parameters:
-#   right hand side
-#   size of read access
 #   current subst map
+#   offset, size and register-id of write location
+#   right hand side to be bound
 #
 # Returns:
-#   right hand side with substituted values
+#   subst map with right hand side bound to write location
 #
-#export subst-expr : (subst-map, int, sem_expr) -> sem_expr
-
-#val subst-expr map size rhs = case map of
-#		Subst-map-empty : rhs
-#	end
+export substmap-bind-linear : (subst-map, int, int, sem_id, sem_linear) -> subst-map
+val substmap-bind-linear state offset size var linear = Substmap-bind-linear {offset=offset, size=size, id=var, rhs=linear, cont=state}  
 
 
 
-# add an entry at write
+# mark a location as overwritten.
 #
-# may only bind rhs to lhs if lhs does not occur in rhs
+# removes its binding and all bindings whose right hand side refers to
+# this location
+# 
+# Parameters:
+#   current subst map
+#   offset, size and register-id of overwritten location
+# 
+# Returns:
+#   subst map with removed bindings
+#
+export substmap-mark-overwritten : (subst-map, int, int, sem_id) -> subst-map
+val substmap-mark-overwritten state offset size var = Substmap-mark-overwritten {offset=offset, size=size, id=var, cont=state}
+
+
+type maybe-linear = Nothing-linear | Just-linear of sem_linear
+
+
+
+# lookup binding for location
 #
 # Parameters:
-#    left hand side
-#    right hand side with substituted values
-#    old subst map
+#   current subst map
+#   offset, size and var of location
 #
 # Returns:
-#    new subst map
+#   linear expression that substitutes value at location
 #
-export add-entry : (sem_varl, sem_expr, subst-map) -> subst-map 
+export substmap-var-to-lin: (subst-map, int, int, sem_id) -> sem_linear
+val substmap-var-to-lin state offset size var = case substmap-lookup-var state offset size var of
+    Nothing-linear     : SEM_LIN_VAR {id=var, offset=offset}
+  | Just-linear linear : linear
+	end
 
-val add-entry lhs rhs map = map
-
+# lookup binding for location, recursive worker function
+#
+# Parameters:
+#   current subst map
+#   offset, size and var of location
+#
+# Returns:
+#   just the linear expression that substitutes value at location
+#   or nothing (if binding is nonexisting or overwritten or if rhs
+#   of binding refers to variables that are invalidated since then)  
+#
+export substmap-lookup-var: (subst-map, int, int, sem_id) -> maybe-linear
+val substmap-lookup-var state offset size var = case state of
+    Substmap-bind-linear      s : Nothing-linear # TODO
+  | Substmap-mark-overwritten s : Nothing-linear # TODO
+  |	Substmap-empty              : Nothing-linear
+    end
+	

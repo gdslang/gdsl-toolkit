@@ -81,18 +81,14 @@ val subst-varl-list state varlist = case varlist of
   | SEM_VARLS_NIL    : varlist
     end
 
-# ******************************************************************
-# TODO 
+
 export subst-varl-to-varl: (subst-map, sem_varl) -> sem_varl
-val subst-varl-to-varl state varl = varl 
+val subst-varl-to-varl state varl = case substmap-var-to-lin state varl.offset varl.size varl.id of
+    SEM_LIN_VAR v : {id=v.id, offset=v.offset, size=varl.size}
+  | _ : varl
+	end  
 
-#type sem_varl = {id:sem_id, offset:int, size:int}
-
-
-# TODO
+# 
 export subst-var-to-lin: (subst-map, int, sem_var) -> sem_linear
-val subst-var-to-lin state size var = SEM_LIN_VAR var
-
-#type sem_var = {id:sem_id, offset:int}
-# ******************************************************************
+val subst-var-to-lin state size var = substmap-var-to-lin state var.offset size var.id 
 
