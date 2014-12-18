@@ -98,7 +98,6 @@ val id-eq? id1 id2 = case id1 of
     end
 
 
-
 export ranges-do-not-overlap : (int,int,int) -> |1|
 val ranges-do-not-overlap size o1 o2 = o1+size <= o2 or o2+size <= o1
 

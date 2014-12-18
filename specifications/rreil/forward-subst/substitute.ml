@@ -69,7 +69,7 @@ export subst-linear: (subst-map, int, sem_linear) -> sem_linear
 val subst-linear state size linear = case linear of
     SEM_LIN_VAR var : subst-var-to-lin state size var
   | SEM_LIN_IMM s   : linear
-  | SEM_LIN_ADD s   : SEM_LIN_ADD (subst-arity2 state size s)
+  | SEM_LIN_ADD s   : simplify-lin-add (subst-linear state size s.opnd1) (subst-linear state size s.opnd2)
   | SEM_LIN_SUB s   : SEM_LIN_SUB (subst-arity2 state size s)
   | SEM_LIN_SCALE s : SEM_LIN_SCALE {const=s.const, opnd=subst-linear state size s.opnd}
 	end

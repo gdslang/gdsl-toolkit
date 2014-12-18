@@ -78,6 +78,7 @@ val substmap-var-to-lin state offset size var = case substmap-lookup-var state o
   | Just-linear linear : linear
 	end
 
+
 # lookup binding for location, recursive worker function
 #
 # Parameters:
@@ -90,9 +91,41 @@ val substmap-var-to-lin state offset size var = case substmap-lookup-var state o
 #   of binding refers to variables that are invalidated since then)  
 #
 export substmap-lookup-var: (subst-map, int, int, sem_id) -> maybe-linear
-val substmap-lookup-var state offset size var = case state of
-    Substmap-bind-linear      s : Nothing-linear # TODO
-  | Substmap-mark-overwritten s : Nothing-linear # TODO
+val substmap-lookup-var state offset size var = #Nothing-linear
+ case state of
+    Substmap-bind-linear      s :
+    	if id-eq? var s.id
+    	then (if size+offset <= s.offset or s.size+s.offset <= offset
+    		then  checkOverwritten s.offset s.size s.id size (substmap-lookup-var s.cont offset size var) # checkoverwrites
+    		else (if size+offset <= s.offset+s.size
+    			then (if offset===s.offset
+    				then Just-linear s.rhs
+    				else Nothing-linear)
+    			else Nothing-linear))
+    	else checkOverwritten s.offset s.size s.id size (substmap-lookup-var s.cont offset size var)
+  | Substmap-mark-overwritten s :
+      	if id-eq? var s.id
+    	then (if size+offset <= s.offset or s.size+s.offset <= offset
+    		then checkOverwritten s.offset s.size s.id size (substmap-lookup-var s.cont offset size var)  # checkoverwrites
+    		else Nothing-linear)
+    	else checkOverwritten s.offset s.size s.id size (substmap-lookup-var s.cont offset size var)
   |	Substmap-empty              : Nothing-linear
     end
-	
+
+ 
+ export checkOverwritten : (int, int, sem_id, int, maybe-linear) -> maybe-linear
+ val checkOverwritten offset size var rhssize maybeRhs = case maybeRhs of
+     Nothing-linear : maybeRhs
+   | Just-linear l  : if lin-uses-location offset size var rhssize l
+   		then Nothing-linear
+   		else maybeRhs
+   	end
+
+export lin-uses-location : (int,int,sem_id, int,sem_linear) -> |1|
+val lin-uses-location o s v rs lin = case lin of
+    SEM_LIN_VAR   lr : id-eq? v lr.id and o+s> lr.offset and lr.offset+rs>o
+  | SEM_LIN_IMM   lr : '0'
+  | SEM_LIN_ADD   lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2 
+  | SEM_LIN_SUB   lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2 
+  | SEM_LIN_SCALE lr : lin-uses-location o s v rs lr.opnd 
+    end
