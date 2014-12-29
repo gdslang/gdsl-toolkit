@@ -37,6 +37,7 @@ public:
 
   std::string to_string();
   friend std::ostream &operator<< (std::ostream &out, variable &_this);
+  bool operator== (variable &other);
 
   virtual void accept(visitor &v);
 };

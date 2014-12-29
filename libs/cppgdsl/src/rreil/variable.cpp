@@ -38,3 +38,7 @@ std::ostream &gdsl::rreil::operator <<(std::ostream &out, variable &_this) {
 void gdsl::rreil::variable::accept(visitor &v) {
   v.visit(this);
 }
+
+bool gdsl::rreil::variable::operator ==(variable &other) {
+  return this->offset == other.offset && this->_id == other._id;
+}

@@ -25,6 +25,7 @@ public:
 
   int_t get_t();
 
+  bool operator== (id &other);
   void accept(id_visitor &v);
 };
 

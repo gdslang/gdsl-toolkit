@@ -79,10 +79,10 @@ void demo_single(gdsl::gdsl &g) {
             if(a->get_op() == BIN_LIN_ADD) {
               linear_visitor lv;
               lv._([&](lin_var *v) {
-                    if(v->get_var()->get_id()->to_string() == "IP") {
-                      ip = true;
-                    }
-                  });
+                if(v->get_var()->get_id()->to_string() == "IP") {
+                  ip = true;
+                }
+              });
               a->get_opnd1()->accept(lv);
               lv._([&](lin_imm *i) {
                     ip_offset = i->get_imm();
@@ -114,6 +114,7 @@ void demo_single(gdsl::gdsl &g) {
     });
 
     v->_([&](variable *a) {
+      std::cout << (*a == *a ? "The variable equals itself" : ":-(") << std::endl;
       vars++;
       printf("Variable!\n");
     });
