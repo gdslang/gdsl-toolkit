@@ -8,9 +8,19 @@ val generalize-ua ua = case ua of
  | UA2 u: asm-opnds-more (generalize-opnd u.opnd1) (asm-opnds-one (generalize-opnd u.opnd2))
  | UA3 u: asm-opnds-more (generalize-opnd u.opnd1) (asm-opnds-more (generalize-opnd u.opnd2) (asm-opnds-one (generalize-opnd u.opnd3)))
  | UA4 u: asm-opnds-more (generalize-opnd u.opnd1) (asm-opnds-more (generalize-opnd u.opnd2) (asm-opnds-more (generalize-opnd u.opnd3) (asm-opnds-one (generalize-opnd u.opnd4))))
-# | UAF u: asm-opnds-one (asm-copnd (string-from-rope "flow") (asm-ropnd (asm-rel (generalize-opnd u.opnd1))))
+ | UAF u: asm-opnds-one (asm-annotated (asm-ann-string (string-from-rope "flow")) (generalize-flow u.opnd1))
 end
 
+val generalize-flow opnd = case opnd of
+   REL8 r: asm-rel (generalize-immediate 8 (sx r))
+ | REL16 r: asm-rel (generalize-immediate 16 (sx r))
+ | REL32 r: asm-rel (generalize-immediate 32 (sx r))
+ | REL64 r: asm-rel (generalize-immediate 64 (sx r))
+ | PTR16/16 p: generalize-immediate 8 (sx p)
+ | PTR16/32 p: generalize-immediate 8 (sx p)
+ | NEARABS o: asm-annotated (asm-ann-string (string-from-rope "nearabs")) (generalize-opnd o)
+ | FARABS o: asm-annotated (asm-ann-string (string-from-rope "farabs")) (generalize-opnd o)
+end
 
 val generalize-opnd opnd = case opnd of
    IMM8 i: generalize-immediate 8 (zx i.imm)
