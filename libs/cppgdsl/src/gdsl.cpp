@@ -32,6 +32,9 @@ std::vector<gdsl::rreil::statement*> *gdsl::gdsl::convert(obj_t rreil) {
 gdsl::gdsl::gdsl(_frontend *frontend) {
   this->frontend = frontend;
   this->gdsl_state = frontend->native().generic.init();
+
+  this->size = 0;
+  this->base = 0;
 }
 
 size_t gdsl::gdsl::bytes_left() {
