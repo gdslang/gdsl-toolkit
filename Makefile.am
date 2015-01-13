@@ -236,7 +236,10 @@ GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/rreil-forward-subst.ml \
 	$(srcdir)/specifications/rreil/rreil-cleanup.ml \
 	$(srcdir)/specifications/rreil/rreil-opt.ml \
-	$(srcdir)/specifications/rreil/rreil-translator.ml
+	$(srcdir)/specifications/rreil/rreil-translator.ml \
+	$(srcdir)/specifications/rreil/forward-subst/inline.ml \
+	$(srcdir)/specifications/rreil/forward-subst/substitute.ml \
+	$(srcdir)/specifications/rreil/forward-subst/substmap.ml
 
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la

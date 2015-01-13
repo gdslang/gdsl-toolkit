@@ -1,5 +1,4 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
-
 export select_live: S sem_stmt_list <{live: sem_stmt_list} => {live: sem_stmt_list}>
 export liveness: (sem_stmt_list) -> S lv-state-t <{} => {}>
 export liveness_super: (translate-result) -> S lv-super-result <{} => {}>
@@ -9,7 +8,6 @@ export lv-pretty: (lv-state-t) -> rope
 
 type interval = {lo: int, hi: int}
 type id_intervals = {id: sem_id, fields: bbtree[a=interval]}
-type lv-state-t = bbtree[a=id_intervals]
 
 val visit-semvarls visitor-semvar set varls = case varls of
    SEM_VARLS_CONS c: lv-union (visitor-semvar set c.hd.size c.hd) (visit-semvarls visitor-semvar set c.tl)
@@ -31,7 +29,7 @@ val lv-kill kills stmt =
          case stmt of
             SEM_ASSIGN x: visit-semvar kills (size-lhs x.size x.rhs) x.lhs
           | SEM_LOAD x: visit-semvar kills x.size x.lhs
-			 | SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
+		  | SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
           | SEM_FLOP x: visit-semvar kills x.lhs.size x.lhs
           | SEM_PRIM x: visit-semvarls visit-semvar kills x.lhs
           | _ : kills
@@ -73,8 +71,9 @@ val lv-gen gens stmt =
             (visit-lin gens size x.opnd1)
             (visit-lin gens size x.opnd2)
 
+ 		    # TODO use size here
 			val visit-op-cmp size gens cmp =
-			  case cmp of
+			  case cmp.cmp of
            SEM_CMPEQ x: visit-arity2 size gens x
          | SEM_CMPNEQ x: visit-arity2 size gens x
          | SEM_CMPLES x: visit-arity2 size gens x
@@ -482,3 +481,5 @@ in do
   lv-state <- lv-analyze live-registers (rreil-stmts-rev data.insns);
   return {initial=live-registers, after=lv-state.greedy}
 end end
+
+type lv-state-t = bbtree[a=id_intervals]

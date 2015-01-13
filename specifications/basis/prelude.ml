@@ -10,8 +10,31 @@ export conf-long[vec] : (configuration[vec]) -> string
 export conf-data[vec] : (configuration[vec]) -> int
 export conf-next[vec] : (configuration[vec]) -> configuration[vec]
 
+
+# ##### the Maybe data type #####
+type maybe [maybe-value] = Nothing | Just of maybe-value
+
+#val maybe default f mv = case mv of
+#		Nothing : default
+#	|	Just v  : f v
+#	end
+
+#val fromMaybe default mv = case mv of
+#		Nothing : default
+#	|	Just v  : v
+#	end
+
+#val maybeS default f mv = case mv of
+#		Nothing : return Nothing
+#	|	Just v  : f v
+#	end
+
+
+# #####  the rope data type #####
+
 type rope = RopeLeaf of { rope-size : int, rope-string: string }
           | RopeInner of { rope-size : int, rope-left : rope, rope-right : rope }
+
 
 val rope-length r =
    case r of
@@ -66,6 +89,10 @@ val +++ r1 r2 =
 
 val println r = rope-print (r +++ "\n")
 
+
+
+# ##### Integer arithmetics #####
+
 # division with rounding towards minus infinity
 val /m a b =
    if b<0 then ~ (/p a (~ b)) else
@@ -107,6 +134,9 @@ val io-binop binop a b =
 
 val int-max = 0x7fffffffffffffff
 
+
+# ##### logical operations #####
+
 # logical and for guards: since a guard is a function that is applied to the
 # internal state, stating that two guards must hold requires special functions
 # that apply each of the guard to the internal state and that returns the
@@ -140,7 +170,7 @@ val otherwise s = '1'
 
 # define a data structure to store configuration data in a generic way:
 # a configuration is a bit vector, it has several on off options
-# represented by one bit each, each option has a short descrption
+# represented by one bit each, each option has a short description
 # without spaces and a long description
 
 type configuration [vec]
@@ -186,7 +216,7 @@ end
 
 val &* c cs = case c of
     END : cs
-  | CONF r : CONF (@{confNext = cs} r)
+  | CONF r : CONF (@{confNext = (conf-next c) &* cs} r)
 end
 
 val conf data short long = CONF

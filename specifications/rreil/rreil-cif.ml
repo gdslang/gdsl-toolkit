@@ -141,7 +141,8 @@ val rreil-convert-sem-sexpr cbs sexpr = case sexpr of
  | SEM_SEXPR_ARB: cbs.sem_sexpr.sem_sexpr_arb () #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
-val rreil-convert-sem-expr-cmp cbs expr-cmp = case expr-cmp of
+# TODO use size here
+val rreil-convert-sem-expr-cmp cbs expr-cmp = case expr-cmp.cmp of
    SEM_CMPEQ c: cbs.sem_expr_cmp.sem_cmpeq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
  | SEM_CMPNEQ c: cbs.sem_expr_cmp.sem_cmpneq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
  | SEM_CMPLES c: cbs.sem_expr_cmp.sem_cmples (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
