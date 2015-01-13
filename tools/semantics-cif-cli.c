@@ -535,34 +535,34 @@ static obj_t sem_sexpr_arb(state_t state) {
 }
 
 // sem_expr_cmp
-static obj_t sem_cmpeq(state_t state, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpeq(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmpeq\n");
+  printf("> cmpeq {size=%lld}\n", size);
   return indent;
 }
-static obj_t sem_cmpneq(state_t state, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpneq(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmpneq\n");
+  printf("> cmpneq {size=%lld}\n", size);
   return indent;
 }
-static obj_t sem_cmples(state_t state, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmples(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmples\n");
+  printf("> cmples {size=%lld}\n", size);
   return indent;
 }
-static obj_t sem_cmpleu(state_t state, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpleu(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmpleu\n");
+  printf("> cmpleu {size=%lld}\n", size);
   return indent;
 }
-static obj_t sem_cmplts(state_t state, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmplts(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmplts\n");
+  printf("> cmplts {size=%lld}\n", size);
   return indent;
 }
-static obj_t sem_cmpltu(state_t state, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpltu(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmpltu\n");
+  printf("> cmpltu {size=%lld}\n", size);
   return indent;
 }
 

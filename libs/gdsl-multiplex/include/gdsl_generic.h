@@ -95,12 +95,12 @@ typedef struct {
 } unboxed_sem_expr_callbacks_t;
 typedef unboxed_sem_expr_callbacks_t* sem_expr_callbacks_t;
 typedef struct {
-  obj_t (*sem_cmpeq)(state_t,obj_t,obj_t);
-  obj_t (*sem_cmples)(state_t,obj_t,obj_t);
-  obj_t (*sem_cmpleu)(state_t,obj_t,obj_t);
-  obj_t (*sem_cmplts)(state_t,obj_t,obj_t);
-  obj_t (*sem_cmpltu)(state_t,obj_t,obj_t);
-  obj_t (*sem_cmpneq)(state_t,obj_t,obj_t);
+  obj_t (*sem_cmpeq)(state_t,int_t,obj_t,obj_t);
+  obj_t (*sem_cmples)(state_t,int_t,obj_t,obj_t);
+  obj_t (*sem_cmpleu)(state_t,int_t,obj_t,obj_t);
+  obj_t (*sem_cmplts)(state_t,int_t,obj_t,obj_t);
+  obj_t (*sem_cmpltu)(state_t,int_t,obj_t,obj_t);
+  obj_t (*sem_cmpneq)(state_t,int_t,obj_t,obj_t);
 } unboxed_sem_expr_cmp_callbacks_t;
 typedef unboxed_sem_expr_cmp_callbacks_t* sem_expr_cmp_callbacks_t;
 typedef struct {
