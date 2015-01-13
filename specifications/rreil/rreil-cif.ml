@@ -24,12 +24,12 @@ type sem_sexpr_callbacks = {
   sem_sexpr_arb: () -> sem_sexpr_obj
 }
 type sem_expr_cmp_callbacks = {
-  sem_cmpeq: (sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
-  sem_cmpneq: (sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
-  sem_cmples: (sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
-  sem_cmpleu: (sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
-  sem_cmplts: (sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
-  sem_cmpltu: (sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj
+  sem_cmpeq: (int, sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
+  sem_cmpneq: (int, sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
+  sem_cmples: (int, sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
+  sem_cmpleu: (int, sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
+  sem_cmplts: (int, sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj,
+  sem_cmpltu: (int, sem_linear_obj, sem_linear_obj) -> sem_expr_cmp_obj
 }
 type sem_expr_callbacks = {
   sem_sexpr: (sem_sexpr_obj) -> sem_expr_obj,
@@ -141,14 +141,13 @@ val rreil-convert-sem-sexpr cbs sexpr = case sexpr of
  | SEM_SEXPR_ARB: cbs.sem_sexpr.sem_sexpr_arb () #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
-# TODO use size here
 val rreil-convert-sem-expr-cmp cbs expr-cmp = case expr-cmp.cmp of
-   SEM_CMPEQ c: cbs.sem_expr_cmp.sem_cmpeq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPNEQ c: cbs.sem_expr_cmp.sem_cmpneq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLES c: cbs.sem_expr_cmp.sem_cmples (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLEU c: cbs.sem_expr_cmp.sem_cmpleu (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLTS c: cbs.sem_expr_cmp.sem_cmplts (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLTU c: cbs.sem_expr_cmp.sem_cmpltu (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+   SEM_CMPEQ c: cbs.sem_expr_cmp.sem_cmpeq expr-cmp.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPNEQ c: cbs.sem_expr_cmp.sem_cmpneq expr-cmp.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLES c: cbs.sem_expr_cmp.sem_cmples expr-cmp.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLEU c: cbs.sem_expr_cmp.sem_cmpleu expr-cmp.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLTS c: cbs.sem_expr_cmp.sem_cmplts expr-cmp.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLTU c: cbs.sem_expr_cmp.sem_cmpltu expr-cmp.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
 end
 
 val rreil-convert-sem-expr cbs expr = case expr of
