@@ -141,9 +141,9 @@ static obj_t sem_sexpr_lin(state_t state, obj_t inner) {
   return new sexpr_lin((linear*) inner);
 }
 
-static obj_t sem_sexpr_cmp(state_t state, obj_t inner) {
+static obj_t sem_sexpr_cmp(state_t state, int_t size, obj_t inner) {
   using namespace gdsl::rreil;
-  return new sexpr_cmp((expr_cmp*) inner);
+  return new sexpr_cmp(size, (expr_cmp*) inner);
 }
 
 static obj_t sem_sexpr_arb(state_t state) {

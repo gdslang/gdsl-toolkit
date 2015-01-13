@@ -201,7 +201,8 @@ struct rreil_sexpr *rreil_sexpr_copy(struct rreil_sexpr *sexpr) {
       break;
     }
     case RREIL_SEXPR_TYPE_CMP: {
-      sexpr_copy->cmp = rreil_comparator_copy(sexpr->cmp);
+      sexpr_copy->cmp.size = sexpr->cmp.size;
+      sexpr_copy->cmp.comp = rreil_comparator_copy(sexpr->cmp.comp);
       break;
     }
     case RREIL_SEXPR_TYPE_ARB: {

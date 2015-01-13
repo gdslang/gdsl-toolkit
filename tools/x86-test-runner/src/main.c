@@ -21,15 +21,15 @@
 #include <readhex.h>
 
 enum mode {
-	MODE_NONE, MODE_GENERATOR, MODE_CLI, MODE_CODE, MODE_CMDLINE
+  MODE_NONE, MODE_GENERATOR, MODE_CLI, MODE_CODE, MODE_CMDLINE
 };
 
 struct options {
-	enum mode mode;
-	char const *parameter;
-	unsigned long n;
-	char fork;
-	char test_unused;
+  enum mode mode;
+  char const *parameter;
+  unsigned long n;
+  char fork;
+  char test_unused;
 };
 
 //static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer,
@@ -126,151 +126,144 @@ struct options {
 //}
 
 static void result_print(struct tester_result result) {
-	printf("Result: ");
-	tester_result_type_print(result.type);
-	printf("\n");
+  printf("Result: ");
+  tester_result_type_print(result.type);
+  printf("\n");
 }
 
 static void test_stream(FILE *stream, struct options *options) {
-	uint8_t *buffer;
-	size_t buffer_length = readhex_hex_read(stream, &buffer);
-	struct tester_result result = tester_test_binary(NULL, options->fork, buffer,
-			buffer_length, options->test_unused);
-	free(buffer);
-	result_print(result);
+  uint8_t *buffer;
+  size_t buffer_length = readhex_hex_read(stream, &buffer);
+  struct tester_result result = tester_test_binary(NULL, options->fork, buffer, buffer_length, options->test_unused);
+  free(buffer);
+  result_print(result);
 }
 
 static void generator(struct options *options) {
-	struct generator_tree_node *root = generator_x86_tree_get();
-	printf("Generator:\n");
-	generator_tree_print(root);
-	printf("\n");
+  struct generator_tree_node *root = generator_x86_tree_get();
+  printf("Generator:\n");
+  generator_tree_print(root);
+  printf("\n");
 
-	for(size_t i = 0; !options->n || i < options->n; ++i) {
-		printf("\nTest #%lu +++++++++++++++++++++\n", i);
+  for(size_t i = 0; !options->n || i < options->n; ++i) {
+    printf("\nTest #%lu +++++++++++++++++++++\n", i);
 
-		uint8_t *buffer;
-		size_t length;
-		FILE *stream = open_memstream((char**)&buffer, &length);
-		generator_tree_execute(root, stream);
-		fclose(stream);
+    uint8_t *buffer;
+    size_t length;
+    FILE *stream = open_memstream((char**)&buffer, &length);
+    generator_tree_execute(root, stream);
+    fclose(stream);
 
-		struct tester_result result = tester_test_binary(NULL, options->fork,
-				buffer, length, options->test_unused);
+    struct tester_result result = tester_test_binary(NULL, options->fork, buffer, length, options->test_unused);
 
-		free(buffer);
+    free(buffer);
 
-		result_print(result);
-		if(result.type == TESTER_RTYPE_COMPARISON_ERROR)
-			break;
-	}
+    result_print(result);
+    if(result.type == TESTER_RTYPE_COMPARISON_ERROR) break;
+  }
 
-	generator_tree_free(root);
+  generator_tree_free(root);
 }
 
 static void cli(struct options *options) {
-	test_stream(stdin, options);
+  test_stream(stdin, options);
 }
 
 static void code(struct options *options) {
 
-	//	uint8_t data[] = { 0x66, 0x42, 0x0f, 0x38, 0x07, 0x61, 0x55 };
-	// 66 66 66 66 41 63 4a 47 78 50 69 22
+  //	uint8_t data[] = { 0x66, 0x42, 0x0f, 0x38, 0x07, 0x61, 0x55 };
+  // 66 66 66 66 41 63 4a 47 78 50 69 22
 
-	/*
-	 * SIGILL
-	 */
-	//	uint8_t data[] = { 0x66, 0x66, 0x66, 0x66, 0x45, 0x0f, 0xc3, 0x57, 0x10 };
-	/*
-	 * 4d d3 df!!!
-	 * 40 18 a9 10 b9 90 e7
-	 */
+  /*
+   * SIGILL
+   */
+  //	uint8_t data[] = { 0x66, 0x66, 0x66, 0x66, 0x45, 0x0f, 0xc3, 0x57, 0x10 };
+  /*
+   * 4d d3 df!!!
+   * 40 18 a9 10 b9 90 e7
+   */
 
-	//	uint8_t data[] = { 0x4c, 0x01, 0xc4 };
-	//	uint8_t data[] = { 0x66, 0x0f, 0x5e, 0xff };
-	//	uint8_t data[] = { 0x49, 0x0f, 0x42, 0x3b };
-	//	uint8_t data[] = { 0x40, 0xd3, 0xa4, 0xae, 0xe6, 0x47, 0xd0, 0x45, 0x21, 0xe9, 0x35, 0x0a };
-	//	uint8_t data[] = { 0x66, 0x48, 0xff, 0x28 };
-	/*
-	 * Todo: semantics
-	 */
-	//	uint8_t data[] = { 0x66, 0x4b, 0xd0, 0x13 };
-	//	uint8_t data[] = { 0x66, 0x41, 0xe0, 0xbd, 0x51, 0x24, 0xb0, 0x23 };
-	//
-	/*
-	 * Todo: Wrong decoding
-	 */
+  //	uint8_t data[] = { 0x4c, 0x01, 0xc4 };
+  //	uint8_t data[] = { 0x66, 0x0f, 0x5e, 0xff };
+  //	uint8_t data[] = { 0x49, 0x0f, 0x42, 0x3b };
+  //	uint8_t data[] = { 0x40, 0xd3, 0xa4, 0xae, 0xe6, 0x47, 0xd0, 0x45, 0x21, 0xe9, 0x35, 0x0a };
+  //	uint8_t data[] = { 0x66, 0x48, 0xff, 0x28 };
+  /*
+   * Todo: semantics
+   */
+  //	uint8_t data[] = { 0x66, 0x4b, 0xd0, 0x13 };
+  //	uint8_t data[] = { 0x66, 0x41, 0xe0, 0xbd, 0x51, 0x24, 0xb0, 0x23 };
+  //
+  /*
+   * Todo: Wrong decoding
+   */
 //	uint8_t data[] = { 0x41, 0x8a, 0xe5 };
 //	uint8_t data[] = { 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x47, 0x74, 0xf0 };
 //	uint8_t data[] = { 0x48, 0x83, 0xc4, 0x08 };
 //	uint8_t data[] = { 0x48, 0x01, 0xd0 };
-
 //	uint8_t data[] = { 0x48, 0x83, 0xc0, 0x2a };
-
-	uint8_t data[] = { 0x48, 0x29, 0xc3 };
+  uint8_t data[] = { 0x48, 0x29, 0xc3 };
 //	uint8_t data[] = { 0xdb, 0xe0, 0x5b, 0x43, 0x84, 0x7f};
 //	uint8_t data[] = { 0xff, 0xe0 };
 
 //	uint8_t data[] = { 0x0f, 0x86, 0x00, 0x77, 0xaa, 0x00 };
 
-	struct tester_result result = tester_test_binary(NULL, options->fork, data,
-			sizeof(data), options->test_unused);
-	result_print(result);
+  struct tester_result result = tester_test_binary(NULL, options->fork, data, sizeof(data), options->test_unused);
+  result_print(result);
 }
 
 static void cmdline(struct options *options) {
-	FILE *stream = fmemopen((void*)options->parameter,
-			strlen(options->parameter) + 1, "r");
-	test_stream(stream, options);
-	fclose(stream);
+  FILE *stream = fmemopen((void*)options->parameter, strlen(options->parameter) + 1, "r");
+  test_stream(stream, options);
+  fclose(stream);
 }
 
 static char args_parse(int argc, char **argv, struct options *options) {
-	options->mode = MODE_NONE;
-	options->n = 100;
-	options->fork = 0;
-	options->test_unused = 0;
+  options->mode = MODE_NONE;
+  options->n = 100;
+  options->fork = 0;
+  options->test_unused = 0;
 
-	while(1) {
-		char c = getopt(argc, argv, "gcpm:n:fu");
-		switch(c) {
-			case 'g': {
-				options->mode = MODE_GENERATOR;
-				break;
-			}
-			case 'c': {
-				options->mode = MODE_CLI;
-				break;
-			}
-			case 'p': {
-				options->mode = MODE_CODE;
-				break;
-			}
-			case 'm': {
-				options->mode = MODE_CMDLINE;
-				options->parameter = optarg;
-				break;
-			}
-			case 'n': {
-				sscanf(optarg, "%lu", &options->n);
-				break;
-			}
-			case 'f': {
-				options->fork = 1;
-				break;
-			}
-			case 'u': {
-				options->test_unused = 1;
-				break;
-			}
-			default: {
-				goto end;
-			}
-		}
-	}
-	end: ;
+  while(1) {
+    char c = getopt(argc, argv, "gcpm:n:fu");
+    switch(c) {
+      case 'g': {
+        options->mode = MODE_GENERATOR;
+        break;
+      }
+      case 'c': {
+        options->mode = MODE_CLI;
+        break;
+      }
+      case 'p': {
+        options->mode = MODE_CODE;
+        break;
+      }
+      case 'm': {
+        options->mode = MODE_CMDLINE;
+        options->parameter = optarg;
+        break;
+      }
+      case 'n': {
+        sscanf(optarg, "%lu", &options->n);
+        break;
+      }
+      case 'f': {
+        options->fork = 1;
+        break;
+      }
+      case 'u': {
+        options->test_unused = 1;
+        break;
+      }
+      default: {
+        goto end;
+      }
+    }
+  }
+  end: ;
 
-	return 0;
+  return 0;
 }
 
 int main(int argc, char **argv) {
@@ -287,42 +280,41 @@ int main(int argc, char **argv) {
 //	x = 0b10110;
 //	simulator_register_generic_write(&reg, &x, 5, 5);
 
-	stderr = stdout;
+  stderr = stdout;
 
-	struct timespec timespec;
+  struct timespec timespec;
 #ifndef CLOCK_MONOTONIC_RAW
 #define CLOCK_MONOTONIC_RAW 0
 #endif
-	clock_gettime(CLOCK_MONOTONIC_RAW, &timespec);
-	srand(timespec.tv_nsec);
+  clock_gettime(CLOCK_MONOTONIC_RAW, &timespec);
+  srand(timespec.tv_nsec);
 
-	struct options options;
-	char retval = args_parse(argc, argv, &options);
-	if(retval)
-		return 1;
+  struct options options;
+  char retval = args_parse(argc, argv, &options);
+  if(retval) return 1;
 
-	switch(options.mode) {
-		case MODE_CLI: {
-			cli(&options);
-			break;
-		}
-		case MODE_GENERATOR: {
-			generator(&options);
-			break;
-		}
-		case MODE_CODE: {
-			code(&options);
-			break;
-		}
-		case MODE_CMDLINE: {
-			cmdline(&options);
-			break;
-		}
-		default: {
-			printf("*** No operation specified. Exiting...\n");
-			break;
-		}
-	}
+  switch(options.mode) {
+    case MODE_CLI: {
+      cli(&options);
+      break;
+    }
+    case MODE_GENERATOR: {
+      generator(&options);
+      break;
+    }
+    case MODE_CODE: {
+      code(&options);
+      break;
+    }
+    case MODE_CMDLINE: {
+      cmdline(&options);
+      break;
+    }
+    default: {
+      printf("*** No operation specified. Exiting...\n");
+      break;
+    }
+  }
 
 //	char fmt[1024];
 //	__word sz = 15;
@@ -483,7 +475,7 @@ int main(int argc, char **argv) {
 //			rreil_statements_free(statements);
 //		}
 //	}
-	return 0;
+  return 0;
 }
 
 //reset; /usr/bin/valgrind --vgdb=yes --vgdb-error=0  --leak-check=full ./x86-tester

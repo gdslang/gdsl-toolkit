@@ -6,12 +6,14 @@
  */
 
 #include <cppgdsl/rreil/sexpr/sexpr_cmp.h>
+#include <iostream>
 
 void gdsl::rreil::sexpr_cmp::put(std::ostream &out) {
-  out << *inner;
+  out << "[" << *inner << "]:" << size;
 }
 
-gdsl::rreil::sexpr_cmp::sexpr_cmp(expr_cmp *inner) {
+gdsl::rreil::sexpr_cmp::sexpr_cmp(int_t size, expr_cmp *inner) {
+  this->size = size;
   this->inner = inner;
 }
 

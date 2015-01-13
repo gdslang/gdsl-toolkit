@@ -12,12 +12,12 @@
 #include <search.h>
 
 struct hash_array {
-	struct hsearch_data htab;
+  struct hsearch_data htab;
 
-	ENTRY *entries;
-	size_t entries_length;
+  ENTRY *entries;
+  size_t entries_length;
 
-	size_t nel;
+  size_t nel;
 };
 
 extern struct hash_array *hash_array_init(size_t nel);

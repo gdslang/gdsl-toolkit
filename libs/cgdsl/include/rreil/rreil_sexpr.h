@@ -12,17 +12,18 @@
 #include <rreil/rreil_comparator.h>
 
 enum rreil_sexpr_type {
-	RREIL_SEXPR_TYPE_LIN,
-	RREIL_SEXPR_TYPE_CMP,
-	RREIL_SEXPR_TYPE_ARB
+  RREIL_SEXPR_TYPE_LIN, RREIL_SEXPR_TYPE_CMP, RREIL_SEXPR_TYPE_ARB
 };
 
 struct rreil_sexpr {
-	enum rreil_sexpr_type type;
-	union {
-		struct rreil_linear *lin;
-		struct rreil_comparator *cmp;
-	};
+  enum rreil_sexpr_type type;
+  union {
+    struct rreil_linear *lin;
+    struct {
+      long long unsigned int size;
+      struct rreil_comparator *comp;
+    } cmp;
+  };
 };
 
 extern struct rreil_sexpr *rreil_sexpr_linear_alloc(struct rreil_linear *linear);
