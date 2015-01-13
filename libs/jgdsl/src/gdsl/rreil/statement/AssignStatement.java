@@ -5,32 +5,31 @@ import gdsl.rreil.expression.Expression;
 import gdsl.rreil.statement.Statement;
 
 public class AssignStatement extends Statement {
-	protected long size;
-	
-	public long getSize() {
-		return size;
-	}
-	
-	protected Variable lhs;
+  protected long size;
 
-	public Variable getLhs() {
-		return lhs;
-	}
+  public long getSize () {
+    return size;
+  }
 
-	protected Expression rhs;
+  protected Variable lhs;
 
-	public Expression getRhs() {
-		return rhs;
-	}
+  public Variable getLhs () {
+    return lhs;
+  }
 
-	public AssignStatement(long size, Variable lhs, Expression rhs) {
-		this.size = size;
-		this.lhs = lhs;
-		this.rhs = rhs;
-	}
-	
-	@Override
-	public String toString() {
-		return lhs + " =:" + size + " " + rhs;
-	}
+  protected Expression rhs;
+
+  public Expression getRhs () {
+    return rhs;
+  }
+
+  public AssignStatement (long size, Variable lhs, Expression rhs) {
+    this.size = size;
+    this.lhs = lhs;
+    this.rhs = rhs;
+  }
+
+  @Override public String toString () {
+    return lhs + " =:" + size + " " + rhs;
+  }
 }

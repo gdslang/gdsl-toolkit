@@ -524,9 +524,9 @@ static obj_t sem_sexpr_lin(state_t state, obj_t this) {
   printf("> sem_sexpr_lin\n");
   return indent;
 }
-static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
+static obj_t sem_sexpr_cmp(state_t state, int_t size, obj_t this) {
   obj_t indent = indent_unary(this);
-  printf("> sem_sexpr_cmp\n");
+  printf("> sem_sexpr_cmp {size=%lld}\n", size);
   return indent;
 }
 static obj_t sem_sexpr_arb(state_t state) {
@@ -535,34 +535,34 @@ static obj_t sem_sexpr_arb(state_t state) {
 }
 
 // sem_expr_cmp
-static obj_t sem_cmpeq(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpeq(state_t state, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmpeq {size=%lld}\n", size);
+  printf("> cmpeq\n");
   return indent;
 }
-static obj_t sem_cmpneq(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpneq(state_t state, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmpneq {size=%lld}\n", size);
+  printf("> cmpneq\n");
   return indent;
 }
-static obj_t sem_cmples(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmples(state_t state, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmples {size=%lld}\n", size);
+  printf("> cmples\n");
   return indent;
 }
-static obj_t sem_cmpleu(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpleu(state_t state, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmpleu {size=%lld}\n", size);
+  printf("> cmpleu\n");
   return indent;
 }
-static obj_t sem_cmplts(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmplts(state_t state, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmplts {size=%lld}\n", size);
+  printf("> cmplts\n");
   return indent;
 }
-static obj_t sem_cmpltu(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpltu(state_t state, obj_t opnd1, obj_t opnd2) {
   obj_t indent = indent_binary(opnd1, opnd2);
-  printf("> cmpltu {size=%lld}\n", size);
+  printf("> cmpltu\n");
   return indent;
 }
 

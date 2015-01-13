@@ -67,7 +67,7 @@ public interface IRReilBuilder {
 
   ISimpleExpression sem_sexpr_lin (ILinearExpression _this);
 
-  ISimpleExpression sem_sexpr_cmp (ICompare _this);
+  ISimpleExpression sem_sexpr_cmp (long size, ICompare _this);
 
   ISimpleExpression sem_sexpr_arb ();
 

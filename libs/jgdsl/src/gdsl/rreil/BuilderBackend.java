@@ -99,8 +99,8 @@ public class BuilderBackend {
     return builder.sem_sexpr_lin((ILinearExpression) _this);
   }
 
-  private Object sem_sexpr_cmp (Object _this) {
-    return builder.sem_sexpr_cmp((ICompare) _this);
+  private Object sem_sexpr_cmp (Object size, Object _this) {
+    return builder.sem_sexpr_cmp((Long)size, (ICompare) _this);
   }
 
   private Object sem_sexpr_arb () {

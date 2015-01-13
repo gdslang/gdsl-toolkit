@@ -91,8 +91,8 @@ static obj_t sem_sexpr_lin(state_t state, obj_t this) {
   jobject ret = java_method_call(state, "sem_sexpr_lin", 1, (jobject) this);
   return (obj_t) ret;
 }
-static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
-  jobject ret = java_method_call(state, "sem_sexpr_cmp", 1, (jobject) this);
+static obj_t sem_sexpr_cmp(state_t state, int_t size, obj_t this) {
+  jobject ret = java_method_call(state, "sem_sexpr_cmp", 2, java_long_create(state, (long int) size), (jobject) this);
   return (obj_t) ret;
 }
 static obj_t sem_sexpr_arb(state_t state) {
