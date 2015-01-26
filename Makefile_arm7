@@ -25,7 +25,11 @@ GDSL_RREIL_HL = \
 	specifications/rreil/rreil-liveness.ml \
 	specifications/rreil/rreil-opt.ml \
 	specifications/rreil/rreil-pretty.ml \
-	specifications/rreil/rreil-translator.ml
+	specifications/rreil/rreil-translator.ml \
+	specifications/rreil/forward-subst/inline.ml \
+	specifications/rreil/forward-subst/substitute.ml \
+	specifications/rreil/forward-subst/substmap.ml \
+	specifications/rreil/forward-subst/simplify-expressions.ml
 
 GDSL_ASM_HL=specifications/asm/asm.ml specifications/asm/asm-pretty.ml specifications/asm/asm-cif.ml
 
