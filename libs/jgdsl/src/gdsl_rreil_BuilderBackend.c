@@ -437,12 +437,12 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
 }
 
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock(JNIEnv *env, jobject this,
-    jlong frontendPtr, jlong gdslStatePtr, jlong limit, jint preservation) {
+    jlong frontendPtr, jlong gdslStatePtr, jlong limit, jint optimization_config) {
   struct frontend *frontend = (struct frontend*) frontendPtr;
   state_t state = (state_t) gdslStatePtr;
 
   return translate_block_optimized_with_config(env, this, frontendPtr, gdslStatePtr,
-      frontend->decoder.config_default(state), limit, preservation);
+      frontend->decoder.config_default(state), limit, optimization_config);
 }
 
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlockWithConfig(JNIEnv *env, jobject this,

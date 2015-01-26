@@ -82,11 +82,11 @@ static char args_parse(int argc, char **argv, struct options *options) {
         return 2;
       }
       case OPTION_LIVENESS: {
-        options->opt_config |= LIVENESS;
+        options->opt_config |= OC_LIVENESS;
         break;
       }
       case OPTION_FSUBST: {
-        options->opt_config |= FSUBST;
+        options->opt_config |= OC_FSUBST;
         break;
       }
       case '?':

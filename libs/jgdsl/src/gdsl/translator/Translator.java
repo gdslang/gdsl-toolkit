@@ -46,7 +46,7 @@ public class Translator {
    * 
    * @return a collection of RReil statements built by the associated RReil builder
    */
-  public TranslatedBlock translateOptimizeBlock (long limit, SemPres preservation) {
+  public TranslatedBlock translateOptimizeBlock (long limit, OptimizationConfig preservation) {
     gdsl.heapManager.ref();
     Frontend frontend = gdsl.getFrontend();
     TranslatedBlockRaw blockRaw;

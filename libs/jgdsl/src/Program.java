@@ -6,7 +6,7 @@ import gdsl.decoder.NativeInstruction;
 import gdsl.rreil.DefaultRReilBuilder;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
-import gdsl.translator.SemPres;
+import gdsl.translator.OptimizationConfig;
 import gdsl.translator.TranslatedBlock;
 import gdsl.translator.TranslatedBlockRaw;
 import gdsl.translator.Translator;
@@ -35,7 +35,7 @@ public class Program {
 
     Translator t = new Translator(gdsl, new DefaultRReilBuilder());
 
-    TranslatedBlock b = t.translateOptimizeBlock(buffer.limit(), SemPres.EVERYWHERE);
+    TranslatedBlock b = t.translateOptimizeBlock(buffer.limit(), OptimizationConfig.PRESERVE_EVERYWHERE);
 
 //    gdsl.finalize();
 //    frontends[0].finalize();

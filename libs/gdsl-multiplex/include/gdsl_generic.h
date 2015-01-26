@@ -37,8 +37,8 @@ enum optimization_configuration {
   PRESERVATION_EVERYWHERE = 1,
   PRESERVATION_BLOCK = 2,
   PRESERVATION_CONTEXT = 4,
-  LIVENESS = 8,
-  FSUBST = 16
+  OC_LIVENESS = 8,
+  OC_FSUBST = 16
 };
 
 #ifndef __GDSL_RUNTIME_H
