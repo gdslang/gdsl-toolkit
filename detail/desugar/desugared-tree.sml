@@ -136,7 +136,7 @@ structure DesugaredTree = struct
           | INTpat i => (sp, Pat.INT i, e)
           | BITpat bp => 
             let
-               val (pats,pos,e) = foldl (bitpat (sp,scrut)) ([""],0,e) bp
+               val (pats,pos,e) = foldr (bitpat (sp,scrut)) ([""],0,e) bp
                fun conc [s] = s
                  | conc (s :: ss) = s ^ "|" ^ conc ss
                  | conc [] = ""
@@ -151,7 +151,7 @@ structure DesugaredTree = struct
          let
             val fields = String.fields (fn c => c= #"|") lit
             val size = case fields of [] => 0 | (f::_) => String.size f
-            val pats' = List.concat (map (fn p => map (fn f => p ^ f) fields) pats)
+            val pats' = List.concat (map (fn p => map (fn f => f ^ p) fields) pats)
          in
             (pats', pos+size, e)
          end 
@@ -161,7 +161,7 @@ structure DesugaredTree = struct
          let
             val (pats',pos',e') = bitpat (sp,scrut) (BITSTRbitpat lit,(pats,pos,e))
          in
-            (pats',pos',Exp.LETVAL (var,sliceExp (scrut,pos,pos-pos'),e'))
+            (pats',pos',Exp.LETVAL (var,sliceExp (scrut,pos,pos'-pos),e'))
          end
 
       and seqexp s = 
