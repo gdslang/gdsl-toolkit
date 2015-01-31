@@ -98,23 +98,10 @@ type opt-result = {
 val decode-translate-block-optimized config limit opt-config = do
   update @{insns=INSNS_NIL};
   rreil <- case opt-config of
-#     'fs:1 lv:1 000': decode-translate-block config limit
-#   | 'fs:1 lv:1 001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE fs lv
-#   | 'fs:1 lv:1 01.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK fs lv
-#   | 'fs:1 lv:1 1..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT fs lv
-     '..000': decode-translate-block config limit
-   | '00001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE '0' '0'
-   | '0001.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK '0' '0'
-   | '001..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT '0' '0'
-   | '01001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE '0' '1'
-   | '0101.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK '0' '1'
-   | '011..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT '0' '1'
-   | '10001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE '1' '0'
-   | '1001.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK '1' '0'
-   | '101..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT '1' '0'
-   | '11001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE '1' '1'
-   | '1101.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK '1' '1'
-   | '111..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT '1' '1'
+     'fs:1 lv:1 000': decode-translate-block config limit
+   | 'fs:1 lv:1 001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE fs lv
+   | 'fs:1 lv:1 01.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK fs lv
+   | 'fs:1 lv:1 1..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT fs lv
   end;
   insns <- query $insns;
   return {rreil=rreil, insns=insns}
