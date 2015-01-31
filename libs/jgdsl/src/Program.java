@@ -59,7 +59,7 @@ public class Program {
     buffer.put((byte) 0);
     buffer.put((byte) 0xc3);
     
-    sub(buffer);
+//    sub(buffer);
 //    
 //    buffer.put((byte) 0);
 //    buffer.put((byte) 0);
@@ -67,16 +67,16 @@ public class Program {
 //    buffer.put((byte)0x07);
 //    buffer.put((byte)0x96);
     
-//    Frontend[] frontends = Gdsl.getFrontends();
-//    Gdsl gdsl = new Gdsl(frontends[0]);
-//    gdsl.setCode(buffer, 0, 0);
-//    
-//    Decoder d = new Decoder(gdsl);
-//    NativeInstruction nI = d.decodeOne();
-//    
-//    System.out.println(nI.generalize());
-//
-//    System.out.println("+++++++++++++++++++++++++++++");
+    Frontend[] frontends = Gdsl.getFrontends();
+    Gdsl gdsl = new Gdsl(frontends[0]);
+    gdsl.setCode(buffer, 0, 0);
+    
+    Decoder d = new Decoder(gdsl);
+    NativeInstruction nI = d.decodeOne();
+    
+    System.out.println(nI.generalize());
+
+    System.out.println("+++++++++++++++++++++++++++++");
     
 //    for (long i = 0; i < 10000000; i++) {
 //      sub(buffer);

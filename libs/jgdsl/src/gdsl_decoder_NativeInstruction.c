@@ -93,7 +93,7 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_NativeInstruction_mnemonic(JNIEnv *e
   obj_t insn = (obj_t)insnPtr;
 
   if(setjmp(*frontend->generic.err_tgt(state)))
-  THROW_GDSL_EXCEPTION_RET(NULL)
+    THROW_GDSL_EXCEPTION_RET(NULL)
 
   //string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty_mnemonic(state, insn));
   string_t str = "";
