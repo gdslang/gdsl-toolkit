@@ -73,7 +73,21 @@ end = struct
        | BITVECbitpat (n, str) => Pat.BND (sp, n, str)
        | _ => raise CM.CompilationError
 
-   fun dumpPre (os, ds) = Pretty.prettyTo (os, Layout.str "<..>")
+   fun dumpPre (os, (vs : SplitDeclarations.value list, spec)) = let
+      open Layout Pretty
+      fun layout n (pats, e) =
+         AT.PP.decl
+            (AT.DECODEdecl (n, pats, Sum.INL e))
+      fun layouts (n, ds, acc) = map (layout n) ds @ acc
+      val decs = align (SymMap.foldli layouts [] spec)
+      fun letrec (n, pats, e) =
+         AT.PP.decl
+            (AT.LETRECdecl (n, pats, e))
+      val defs = align (map letrec vs)
+   in
+      Pretty.prettyTo (os, Layout.seq [decs,defs])
+   end
+
    fun dumpPost (os, ds) =
       Pretty.prettyTo (os, DesugaredTree.PP.declarations ds)
 

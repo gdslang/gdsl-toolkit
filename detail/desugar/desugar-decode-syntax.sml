@@ -60,14 +60,14 @@ structure DesugarDecode = struct
       Exp.ACTION unconsume
    end
 
-   fun returnExp tok = let
+   fun returnExp e = let
       open Exp
       val return =
          ID
             (VarInfo.lookup
                (!SymbolTables.varTable, return))
    in
-      APP (return, [ID tok]) 
+      APP (return, [e]) 
    end
 
    fun buildEquivClass decls = let
@@ -181,14 +181,14 @@ structure DesugarDecode = struct
                               if offs = 0 andalso sz = granularity
                                  then
                                     grab (ps, offs + sz,
-                                       Exp.BIND (n, returnExp tok)::acc)
+                                       Exp.BIND (n, returnExp (Exp.ID tok))::acc)
                               else
                                  grab
                                     (ps,
                                      offs + sz,
                                      Exp.BIND
                                        (n,
-                                        DT.sliceExp (tok, offs, sz))::acc)
+                                        returnExp (DT.sliceExp (tok, offs, sz)))::acc)
                            end
          in
             if VS.length toks = 0
