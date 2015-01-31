@@ -50,8 +50,9 @@ val generalize-memory m =
 
 val generalize-segment-override so = case so of
    SEG_NONE: let val f o = o in f end
-# | SEG_OVERRIDE o: let
-#     val f o = (asm-annotation (asm-ann-opnd "segment" generalize-register so.register) o)
-#   in f end
+ | SEG_OVERRIDE over: let
+     val f o = asm-annotated (asm-ann-opnd (string-from-rope "segment") (generalize-register
+       over)) o
+   in f end
 end
 
