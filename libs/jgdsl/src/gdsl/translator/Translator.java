@@ -52,9 +52,9 @@ public class Translator {
     TranslatedBlockRaw blockRaw;
     if (frontend.isConfigured())
       blockRaw = backend.translateOptimizeBlockWithConfig(frontend.getPointer(), gdsl.getGdslStatePtr(), frontend
-          .getConfig().vector(), limit, config.getId());
+          .getConfig().vector(), limit, config.getConfig());
     else {
-      blockRaw = backend.translateOptimizeBlock(frontend.getPointer(), gdsl.getGdslStatePtr(), limit, config.getId());
+      blockRaw = backend.translateOptimizeBlock(frontend.getPointer(), gdsl.getGdslStatePtr(), limit, config.getConfig());
     }
     long[] instructionPointers = blockRaw.getInstructions();
     NativeInstruction[] instructions = new NativeInstruction[instructionPointers.length];

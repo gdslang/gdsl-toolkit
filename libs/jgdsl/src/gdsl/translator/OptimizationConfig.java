@@ -1,57 +1,28 @@
 package gdsl.translator;
 
-/**
- * This enum represents configuration flags for the optimization of
- * the RReil code during block translation.
- * 
- * @author Julian Kranz
- */
-public enum OptimizationConfig {
-  /**
-   * This flag requires the semantics of original machine program
-   * and the translated program to equal on the instruction level.
-   */
-  PRESERVE_EVERYWHERE(1),
+public class OptimizationConfig {
+  private final int config;
 
   /**
-   * This flag requires the semantics of original machine program
-   * and the translated program to equal on the basic block level.
-   */
-  PRESERVE_BLOCK(2),
-
-  /**
-   * This flag requires the semantics of original machine program
-   * and the translated program to equal in the context they occur
-   * in only. This means that the translation maps the semantics of
-   * the program as a whole correctly whereas parts of translated semantics
-   * cannot be mapped to parts of the original machine program.
-   */
-  PRESERVE_CONTEXT(4),
-  
-  /**
-   * This flag enables the liveness optimization.
-   */
-  LIVENESS(8),
-  
-  /**
-   * This flag enables the forward propagation of constants and
-   * simple expressions.
-   */
-  FSUBST(16);
-
-  private int id;
-
-  /**
-   * Get the Gdsl id; this id is used to identify the preservation requirement
-   * on the Gdsl side.
+   * Get the Gdsl config; this integer is used to describe
+   * the optimization configuration on the Gdsl side.
    * 
-   * @return the internal Gdsl id
+   * @return the internal Gdsl config
    */
-  public int getId () {
-    return id;
+  public int getConfig () {
+    return config;
   }
 
-  private OptimizationConfig (int id) {
-    this.id = id;
+  public OptimizationConfig (int config) {
+    this.config = config;
   }
+
+  public OptimizationConfig and (OptimizationOptions option) {
+    return new OptimizationConfig(config | option.getFlag());
+  }
+
+  public OptimizationConfig andNot (OptimizationOptions option) {
+    return new OptimizationConfig(config & ~option.getFlag());
+  }
+
 }
