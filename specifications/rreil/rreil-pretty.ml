@@ -47,12 +47,14 @@ val rreil-show-flop f =
   end
 
 val rreil-size-by-expr-type bsz ex = case ex of
-   SEM_SEXPR s: case s of
+   SEM_SEXPR s: rreil-size-by-sexpr-type bsz s 
+ | _: bsz
+end
+
+val rreil-size-by-sexpr-type bsz s = case s of
       SEM_SEXPR_CMP c: 1
     | _: bsz
    end
- | _: bsz
-end
 
 val rreil-show-stmt s =
   case s of

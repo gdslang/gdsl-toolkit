@@ -20,20 +20,42 @@
 # Returns:
 #    list of statements with inlined right hand sides
 #
-export propagate-values : (sem_stmt_list)-> sem_stmt_list
+export propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
 val propagate-values stmts = subst-stmt-list-initial stmts
 
 
-export subst-stmt-list-initial : (sem_stmt_list)-> sem_stmt_list
-val subst-stmt-list-initial stmts = subst-stmt-list substmap-initial stmts
+export subst-stmt-list-initial : (sem_stmt_list)-> S sem_stmt_list  <{} => {}>
+val subst-stmt-list-initial stmts = do
+	l <- subst-stmt-list-m substmap-initial stmts;
+	#println "--------------------------";
+	return l
+	end
 
 
+export subst-stmt-list-m : (subst-map, sem_stmt_list) -> S sem_stmt_list <{} => {}>
+val subst-stmt-list-m state stmts = case stmts of
+		SEM_CONS s : let
+			val new-stmt = subst-stmt state s.hd
+			val new-state = update-with-stmt state new-stmt
+			in do
+				#println "old stmt:";
+				#println (rreil-show-stmt s.hd);
+				#println "new stmt:";
+				#println (rreil-show-stmt new-stmt);			
+				#println "head of new state:";
+				#println (show-substmap new-state);			
+				#println ".";
+				continued <- subst-stmt-list-m new-state s.tl;
+				return (SEM_CONS {hd=new-stmt, tl=continued}) end end
+	|	SEM_NIL    : return SEM_NIL
+	end 
+	
 export subst-stmt-list : (subst-map, sem_stmt_list) -> sem_stmt_list
 val subst-stmt-list state stmts = case stmts of
 		SEM_CONS s : let val new-stmt = subst-stmt state s.hd
 						 val new-state = update-with-stmt state new-stmt
-					 in SEM_CONS {hd=new-stmt, tl=subst-stmt-list new-state s.tl}
-					 end
+			  in SEM_CONS {hd=new-stmt, tl=subst-stmt-list new-state s.tl}
+		    end
 	|	SEM_NIL    : SEM_NIL
 	end 
 
@@ -60,15 +82,29 @@ val update-bind-expr state size var expr = case expr of
   | x               : update-mark-var-overwritten state var.offset size var.id
     end
   
-export update-bind-sexpr : (subst-map, int, sem_var, sem_sexpr) -> subst-map
+export update-bind-sexpr : (subst-map, int, sem_var, sem_sexpr) -> subst-map	
 val update-bind-sexpr state size var sexpr 
-	=	case sexpr of
-    	    SEM_SEXPR_LIN linear :
-    	    	if linear-does-not-ref-to-var linear size var 
-				then update-bind-linear state var.offset size var.id linear
-				else update-mark-var-overwritten state var.offset size var.id
-    	  | x : update-mark-var-overwritten state var.offset size var.id
-    end
+	=	if sexpr-does-not-ref-to-var sexpr size var 
+			then update-bind-linear state var.offset size var.id sexpr
+			else update-mark-var-overwritten state var.offset size var.id
+
+
+export sexpr-does-not-ref-to-var : (sem_sexpr, int, sem_var) -> |1|
+val sexpr-does-not-ref-to-var linear size var = case linear of
+	SEM_SEXPR_LIN l  : linear-does-not-ref-to-var l size var
+  | SEM_SEXPR_CMP x  : expr-cmp-does-not-ref-to-var x.cmp x.size var
+  | SEM_SEXPR_ARB    : '1'
+  end
+
+export expr-cmp-does-not-ref-to-var : (sem_expr_cmp, int, sem_var) -> |1|
+val expr-cmp-does-not-ref-to-var expr size var = case expr of
+   SEM_CMPEQ s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
+ | SEM_CMPNEQ s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
+ | SEM_CMPLES s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
+ | SEM_CMPLEU s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
+ | SEM_CMPLTS s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
+ | SEM_CMPLTU s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
+  end
 
 
 export linear-does-not-ref-to-var : (sem_linear, int, sem_var) -> |1|
@@ -113,8 +149,8 @@ export update-mark-varl-overwritten : (subst-map, sem_varl) -> subst-map
 val update-mark-varl-overwritten state varl = update-mark-var-overwritten state varl.offset varl.size varl.id 
 
 
-export update-bind-linear : (subst-map, int, int, sem_id, sem_linear) -> subst-map
-val update-bind-linear state offset size var linear = substmap-bind-linear state offset size var linear 
+export update-bind-linear : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
+val update-bind-linear state offset size var linear = substmap-bind-sexpr state offset size var linear 
 
 
 export update-mark-var-overwritten : (subst-map, int, int, sem_id) -> subst-map
