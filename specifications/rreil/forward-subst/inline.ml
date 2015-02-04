@@ -21,19 +21,41 @@
 #    list of statements with inlined right hand sides
 #
 export propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
-val propagate-values stmts = return (subst-stmt-list-initial stmts)
+val propagate-values stmts = subst-stmt-list-initial stmts
 
 
-export subst-stmt-list-initial : (sem_stmt_list)-> sem_stmt_list
-val subst-stmt-list-initial stmts = subst-stmt-list substmap-initial stmts
+export subst-stmt-list-initial : (sem_stmt_list)-> S sem_stmt_list  <{} => {}>
+val subst-stmt-list-initial stmts = do
+	l <- subst-stmt-list-m substmap-initial stmts;
+	#println "--------------------------";
+	return l
+	end
 
 
+export subst-stmt-list-m : (subst-map, sem_stmt_list) -> S sem_stmt_list <{} => {}>
+val subst-stmt-list-m state stmts = case stmts of
+		SEM_CONS s : let
+			val new-stmt = subst-stmt state s.hd
+			val new-state = update-with-stmt state new-stmt
+			in do
+				#println "old stmt:";
+				#println (rreil-show-stmt s.hd);
+				#println "new stmt:";
+				#println (rreil-show-stmt new-stmt);			
+				#println "head of new state:";
+				#println (show-substmap new-state);			
+				#println ".";
+				continued <- subst-stmt-list-m new-state s.tl;
+				return (SEM_CONS {hd=new-stmt, tl=continued}) end end
+	|	SEM_NIL    : return SEM_NIL
+	end 
+	
 export subst-stmt-list : (subst-map, sem_stmt_list) -> sem_stmt_list
 val subst-stmt-list state stmts = case stmts of
 		SEM_CONS s : let val new-stmt = subst-stmt state s.hd
 						 val new-state = update-with-stmt state new-stmt
-					 in SEM_CONS {hd=new-stmt, tl=subst-stmt-list new-state s.tl}
-					 end
+			  in SEM_CONS {hd=new-stmt, tl=subst-stmt-list new-state s.tl}
+		    end
 	|	SEM_NIL    : SEM_NIL
 	end 
 

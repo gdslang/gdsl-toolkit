@@ -39,7 +39,7 @@ val substmap-initial = Substmap-empty
 #   subst map with right hand side bound to write location
 #
 export substmap-bind-sexpr : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
-val substmap-bind-sexpr state offset size var linear = Substmap-bind-linear {offset=offset, size=size, id=var, rhs=linear, cont=state}  
+val substmap-bind-sexpr state offset size var linear = Substmap-bind-linear {offset=offset, size=rreil-size-by-sexpr-type size linear , id=var, rhs=linear, cont=state}  
 
 
 
@@ -201,3 +201,10 @@ val lin-uses-location o s v rs lin = case lin of
   | SEM_LIN_SUB   lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2 
   | SEM_LIN_SCALE lr : lin-uses-location o s v rs lr.opnd 
     end
+    
+    
+val show-substmap sm = case sm of
+	Substmap-empty : ""
+  | Substmap-bind-linear x : rreil-show-id x.id +++ "." +++ show-int x.offset +++ ":" +++ show-int x.size +++ " = " +++ rreil-show-sexpr x.rhs +++ "\n" +++ show-substmap x.cont
+  | Substmap-mark-overwritten x : rreil-show-id x.id +++ "." +++ show-int x.offset +++ ":" +++ show-int x.size +++ " = <?>\n" +++ show-substmap x.cont
+	end

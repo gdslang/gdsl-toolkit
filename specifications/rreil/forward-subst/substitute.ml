@@ -10,7 +10,7 @@ val subst-stmt state stmt = case stmt of
   | SEM_LOAD   s  : SEM_LOAD {size=s.size, lhs=s.lhs, address= subst-address state s.address} 
   | SEM_STORE  s  : SEM_STORE {size=s.size, address= subst-address state s.address, rhs=subst-linear state s.size s.rhs} 
   | SEM_ITE    s  : SEM_ITE {cond= subst-sexpr state 1 s.cond, then_branch= subst-stmt-list state s.then_branch, else_branch= subst-stmt-list state s.else_branch}
-  | SEM_WHILE  s  : SEM_WHILE {cond= subst-sexpr state 1 s.cond, body= subst-stmt-list-initial s.body}
+  | SEM_WHILE  s  : SEM_WHILE {cond= subst-sexpr state 1 s.cond, body= subst-stmt-list substmap-initial s.body}
   | SEM_CBRANCH s : SEM_CBRANCH {cond= subst-sexpr state 1 s.cond, target-true= subst-address state s.target-true, target-false= subst-address state s.target-false}
   | SEM_BRANCH s  : SEM_BRANCH {hint=s.hint, target= subst-address state s.target}
   | SEM_FLOP   s  : SEM_FLOP {op=s.op, flags= s.flags, lhs=s.lhs, rhs= subst-varl-list state s.rhs}
