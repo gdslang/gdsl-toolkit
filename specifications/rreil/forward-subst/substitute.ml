@@ -40,7 +40,7 @@ val subst-expr state size expr = case expr of
 
 export subst-sexpr: (subst-map, int, sem_sexpr) -> sem_sexpr
 val subst-sexpr state size sexpr = case sexpr of
-    SEM_SEXPR_LIN linear : SEM_SEXPR_LIN (subst-linear state size linear)
+    SEM_SEXPR_LIN linear : subst-linear-to-sexpr state size linear
   | SEM_SEXPR_CMP s      : SEM_SEXPR_CMP {size=s.size, cmp=subst-expr-cmp state s.size s.cmp}
   | SEM_SEXPR_ARB        : sexpr
 	end
@@ -65,6 +65,15 @@ export subst-arity2: (subst-map, int, sem_arity2) -> sem_arity2
 val subst-arity2 state size s = {opnd1= subst-linear state size s.opnd1, opnd2= subst-linear state size s.opnd2 }
 
 
+export subst-linear-to-sexpr: (subst-map, int, sem_linear) -> sem_sexpr
+val subst-linear-to-sexpr state size linear = case linear of
+    SEM_LIN_VAR var : subst-var-to-sexpr state size var
+  | SEM_LIN_IMM s   : SEM_SEXPR_LIN linear
+  | SEM_LIN_ADD s   : SEM_SEXPR_LIN (simplify-lin-add (subst-linear state size s.opnd1) (subst-linear state size s.opnd2))
+  | SEM_LIN_SUB s   : SEM_SEXPR_LIN (SEM_LIN_SUB (subst-arity2 state size s))
+  | SEM_LIN_SCALE s : SEM_SEXPR_LIN (SEM_LIN_SCALE {const=s.const, opnd=subst-linear state size s.opnd})
+	end
+
 export subst-linear: (subst-map, int, sem_linear) -> sem_linear
 val subst-linear state size linear = case linear of
     SEM_LIN_VAR var : subst-var-to-lin state size var
@@ -88,7 +97,10 @@ val subst-varl-to-varl state varl = case substmap-var-to-lin state varl.offset v
   | _ : varl
 	end  
 
-# 
+
+export subst-var-to-sexpr: (subst-map, int, sem_var) -> sem_sexpr
+val subst-var-to-sexpr state size var = substmap-var-to-sexpr state var.offset size var.id 
+
 export subst-var-to-lin: (subst-map, int, sem_var) -> sem_linear
 val subst-var-to-lin state size var = substmap-var-to-lin state var.offset size var.id 
 

@@ -20,8 +20,8 @@
 # Returns:
 #    list of statements with inlined right hand sides
 #
-export propagate-values : (sem_stmt_list)-> sem_stmt_list
-val propagate-values stmts = subst-stmt-list-initial stmts
+export propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
+val propagate-values stmts = return (subst-stmt-list-initial stmts)
 
 
 export subst-stmt-list-initial : (sem_stmt_list)-> sem_stmt_list
@@ -60,15 +60,11 @@ val update-bind-expr state size var expr = case expr of
   | x               : update-mark-var-overwritten state var.offset size var.id
     end
   
-export update-bind-sexpr : (subst-map, int, sem_var, sem_sexpr) -> subst-map
+export update-bind-sexpr : (subst-map, int, sem_var, sem_sexpr) -> subst-map	
 val update-bind-sexpr state size var sexpr 
-	=	case sexpr of
-    	    SEM_SEXPR_LIN linear :
-    	    	if linear-does-not-ref-to-var linear size var 
-				then update-bind-linear state var.offset size var.id sexpr
-				else update-mark-var-overwritten state var.offset size var.id
-    	  | x : update-mark-var-overwritten state var.offset size var.id
-    end
+	=	if sexpr-does-not-ref-to-var sexpr size var 
+			then update-bind-linear state var.offset size var.id sexpr
+			else update-mark-var-overwritten state var.offset size var.id
 
 
 export sexpr-does-not-ref-to-var : (sem_sexpr, int, sem_var) -> |1|

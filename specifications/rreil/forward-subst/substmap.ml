@@ -80,6 +80,12 @@ val substmap-var-to-lin state offset size var = case substmap-lookup-var-to-line
     Nothing-linear     : SEM_LIN_VAR {id=var, offset=offset}
   | Just-linear linear : linear
 	end
+	
+export substmap-var-to-sexpr: (subst-map, int, int, sem_id) -> sem_sexpr
+val substmap-var-to-sexpr state offset size var = case substmap-lookup-var-to-sexpr state offset size var of
+    Nothing-sexpr     : SEM_SEXPR_LIN (SEM_LIN_VAR {id=var, offset=offset})
+  | Just-sexpr linear : linear
+	end
 
 
 # lookup binding for location, recursive worker function

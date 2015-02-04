@@ -63,7 +63,7 @@ val propagate do-propagate translated = case do-propagate of
      				#println (rreil-pretty translated);
      				#println "-------------------";
      	  			#println "propagating...";
-     	  			p <- return (propagate-values translated);
+     	  			p <- propagate-values translated;
 					#println "-------------------";
      				#println "after propagation";
      				#println (rreil-pretty p);
