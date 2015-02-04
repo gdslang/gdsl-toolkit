@@ -22,7 +22,7 @@
 #
 type subst-map = 
     Substmap-empty
-  | Substmap-bind-linear of {offset:int, size:int, id:sem_id, rhs:sem_linear, cont:subst-map}
+  | Substmap-bind-linear of {offset:int, size:int, id:sem_id, rhs:sem_sexpr, cont:subst-map}
   | Substmap-mark-overwritten of {offset:int, size:int, id:sem_id, cont:subst-map}
 
 val substmap-initial = Substmap-empty
@@ -38,8 +38,8 @@ val substmap-initial = Substmap-empty
 # Returns:
 #   subst map with right hand side bound to write location
 #
-export substmap-bind-linear : (subst-map, int, int, sem_id, sem_linear) -> subst-map
-val substmap-bind-linear state offset size var linear = Substmap-bind-linear {offset=offset, size=size, id=var, rhs=linear, cont=state}  
+export substmap-bind-sexpr : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
+val substmap-bind-sexpr state offset size var linear = Substmap-bind-linear {offset=offset, size=size, id=var, rhs=linear, cont=state}  
 
 
 
@@ -63,6 +63,9 @@ type maybe-linear = Nothing-linear | Just-linear of sem_linear
 
 
 
+type maybe-sexpr = Nothing-sexpr | Just-sexpr of sem_sexpr
+
+
 # lookup binding for location
 #
 # Parameters:
@@ -73,7 +76,7 @@ type maybe-linear = Nothing-linear | Just-linear of sem_linear
 #   linear expression that substitutes value at location
 #
 export substmap-var-to-lin: (subst-map, int, int, sem_id) -> sem_linear
-val substmap-var-to-lin state offset size var = case substmap-lookup-var state offset size var of
+val substmap-var-to-lin state offset size var = case substmap-lookup-var-to-linear state offset size var of
     Nothing-linear     : SEM_LIN_VAR {id=var, offset=offset}
   | Just-linear linear : linear
 	end
@@ -90,36 +93,99 @@ val substmap-var-to-lin state offset size var = case substmap-lookup-var state o
 #   or nothing (if binding is nonexisting or overwritten or if rhs
 #   of binding refers to variables that are invalidated since then)  
 #
-export substmap-lookup-var: (subst-map, int, int, sem_id) -> maybe-linear
-val substmap-lookup-var state offset size var = #Nothing-linear
+export substmap-lookup-var-to-sexpr: (subst-map, int, int, sem_id) -> maybe-sexpr
+val substmap-lookup-var-to-sexpr state offset size var = #Nothing-linear
  case state of
     Substmap-bind-linear      s :
     	if id-eq? var s.id
     	then (if size+offset <= s.offset or s.size+s.offset <= offset
-    		then  checkOverwritten s.offset s.size s.id size (substmap-lookup-var s.cont offset size var) # checkoverwrites
+    		then  checkOverwritten-sexpr s.offset s.size s.id size (substmap-lookup-var-to-sexpr s.cont offset size var) # checkoverwrites
     		else (if size+offset <= s.offset+s.size
     			then (if offset===s.offset
-    				then Just-linear s.rhs
-    				else Nothing-linear)
-    			else Nothing-linear))
-    	else checkOverwritten s.offset s.size s.id size (substmap-lookup-var s.cont offset size var)
+    				then Just-sexpr s.rhs
+    				else Nothing-sexpr)
+    			else Nothing-sexpr))
+    	else checkOverwritten-sexpr s.offset s.size s.id size (substmap-lookup-var-to-sexpr s.cont offset size var)
   | Substmap-mark-overwritten s :
       	if id-eq? var s.id
     	then (if size+offset <= s.offset or s.size+s.offset <= offset
-    		then checkOverwritten s.offset s.size s.id size (substmap-lookup-var s.cont offset size var)  # checkoverwrites
+    		then checkOverwritten-sexpr s.offset s.size s.id size (substmap-lookup-var-to-sexpr s.cont offset size var)  # checkoverwrites
+    		else Nothing-sexpr)
+    	else checkOverwritten-sexpr s.offset s.size s.id size (substmap-lookup-var-to-sexpr s.cont offset size var)
+  |	Substmap-empty              : Nothing-sexpr
+    end
+
+# lookup binding for location, recursive worker function
+#
+# Parameters:
+#   current subst map
+#   offset, size and var of location
+#
+# Returns:
+#   just the linear expression that substitutes value at location
+#   or nothing (if binding is nonexisting or overwritten or if rhs
+#   of binding refers to variables that are invalidated since then)  
+#
+export substmap-lookup-var-to-linear: (subst-map, int, int, sem_id) -> maybe-linear
+val substmap-lookup-var-to-linear state offset size var = #Nothing-linear
+ case state of
+    Substmap-bind-linear      s :
+    	if id-eq? var s.id
+    	then (if size+offset <= s.offset or s.size+s.offset <= offset
+    		then  checkOverwritten-linear s.offset s.size s.id size (substmap-lookup-var-to-linear s.cont offset size var) 
+    		else (if size+offset <= s.offset+s.size
+    			then (if offset===s.offset
+    				then case s.rhs of
+    					SEM_SEXPR_LIN l : Just-linear l
+    					| _ : Nothing-linear
+    				end
+    				else Nothing-linear)
+    			else Nothing-linear))
+    	else checkOverwritten-linear s.offset s.size s.id size (substmap-lookup-var-to-linear s.cont offset size var)
+  | Substmap-mark-overwritten s :
+      	if id-eq? var s.id
+    	then (if size+offset <= s.offset or s.size+s.offset <= offset
+    		then checkOverwritten-linear s.offset s.size s.id size (substmap-lookup-var-to-linear s.cont offset size var)  # checkoverwrites
     		else Nothing-linear)
-    	else checkOverwritten s.offset s.size s.id size (substmap-lookup-var s.cont offset size var)
+    	else checkOverwritten-linear s.offset s.size s.id size (substmap-lookup-var-to-linear s.cont offset size var)
   |	Substmap-empty              : Nothing-linear
     end
 
  
- export checkOverwritten : (int, int, sem_id, int, maybe-linear) -> maybe-linear
- val checkOverwritten offset size var rhssize maybeRhs = case maybeRhs of
+ export checkOverwritten-sexpr : (int, int, sem_id, int, maybe-sexpr) -> maybe-sexpr
+ val checkOverwritten-sexpr offset size var rhssize maybeRhs = case maybeRhs of
+     Nothing-sexpr : maybeRhs
+   | Just-sexpr l  : if sexpr-uses-location offset size var rhssize l
+   		then Nothing-sexpr
+   		else maybeRhs
+   	end
+ 
+ export checkOverwritten-linear : (int, int, sem_id, int, maybe-linear) -> maybe-linear
+ val checkOverwritten-linear offset size var rhssize maybeRhs = case maybeRhs of
      Nothing-linear : maybeRhs
    | Just-linear l  : if lin-uses-location offset size var rhssize l
    		then Nothing-linear
    		else maybeRhs
    	end
+
+
+export sexpr-uses-location : (int,int,sem_id, int,sem_sexpr) -> |1|
+val sexpr-uses-location o s v rs lin = case lin of
+    SEM_SEXPR_LIN l : lin-uses-location o s v rs l
+  | SEM_SEXPR_CMP e : cmp-uses-location o e.size v rs e.cmp
+  | SEM_SEXPR_ARB   : '0'
+  end
+       
+export cmp-uses-location : (int,int,sem_id, int,sem_expr_cmp) -> |1|
+val cmp-uses-location o s v rs lin = case lin of
+   SEM_CMPEQ    lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2
+ | SEM_CMPNEQ    lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2
+ | SEM_CMPLES    lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2
+ | SEM_CMPLEU    lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2
+ | SEM_CMPLTS    lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2
+ | SEM_CMPLTU    lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2
+ end
+   
 
 export lin-uses-location : (int,int,sem_id, int,sem_linear) -> |1|
 val lin-uses-location o s v rs lin = case lin of
