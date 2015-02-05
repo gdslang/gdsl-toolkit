@@ -15,36 +15,22 @@ val subst-stmt-m state stmt = case stmt of
   		newCond <- subst-cond state s.cond;
   		case newCond of
   		  Nothing-sexpr : do
-  			println "subst-cond-while-nothing";
+  			println "subst-cond-ite-nothing";
   			return (SEM_ITE {cond= s.cond, then_branch= tb, else_branch= eb})
   			end
   		| Just-sexpr se : do
-  			println "subst-cond-while-insert";
+  			println "subst-cond-ite-insert";
   			return (SEM_ITE {cond= se, then_branch= tb, else_branch= eb})
   			end
   		| Just-sexpr-inverted se : do
-  			println "subst-cond-while-insert-inverted";
+  			println "subst-cond-ite-insert-inverted";
   			return (SEM_ITE {cond= se, then_branch= eb, else_branch= tb})
   			end
   		end
   		end
   | SEM_WHILE  s  : do
   		newBody <- subst-stmt-list-m substmap-initial s.body;
-  		newCond <- subst-cond state s.cond;
-  		case newCond of
-  		  Nothing-sexpr : do
-  			println "subst-cond-while-nothing"; 			
-  			return (SEM_WHILE {cond= s.cond, body= newBody})
-  			end
-  		| Just-sexpr se : do
-  			println "subst-cond-while-insert"; 			
-  			return (SEM_WHILE {cond= se, body= newBody})
-  			end
-  		| Just-sexpr-inverted se : do
-  			println "subst-cond-while-do-not-insert-inverted"; 			
-  			return (SEM_WHILE {cond= s.cond, body= newBody})
-  			end
-  		end
+		return (SEM_WHILE {cond= s.cond, body= newBody})
   		end
   | SEM_CBRANCH s : do
   		newCond <- subst-cond state s.cond;

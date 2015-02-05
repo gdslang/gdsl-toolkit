@@ -22,7 +22,7 @@
 #
 type subst-map = 
     Substmap-empty
-  | Substmap-bind-linear of {offset:int, size:int, id:sem_id, rhs:sem_sexpr, cont:subst-map, negated:int}
+  | Substmap-bind-linear of {offset:int, size:int, id:sem_id, rhs:sem_sexpr, cont:subst-map, inverted:int}
   | Substmap-mark-overwritten of {offset:int, size:int, id:sem_id, cont:subst-map}
 
 val substmap-initial = Substmap-empty
@@ -41,8 +41,15 @@ val substmap-initial = Substmap-empty
 export substmap-bind-sexpr : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
 val substmap-bind-sexpr state offset size var linear
 	= let val newSize = rreil-size-by-sexpr-type size linear 
-		  val isNegated = 0
-	in Substmap-bind-linear {offset=offset, size=newSize, id=var, rhs=linear, cont=state, negated=isNegated}
+		  val isInverted = 0
+	in Substmap-bind-linear {offset=offset, size=newSize, id=var, rhs=linear, cont=state, inverted=isInverted}
+	end  
+
+export substmap-bind-sexpr-inverted : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
+val substmap-bind-sexpr-inverted state offset size var linear
+	= let val newSize = rreil-size-by-sexpr-type size linear 
+		  val isInverted = 1
+	in Substmap-bind-linear {offset=offset, size=newSize, id=var, rhs=linear, cont=state, inverted=isInverted}
 	end  
 
 
@@ -118,7 +125,9 @@ val substmap-lookup-var-to-sexpr state offset size var = #Nothing-linear
     		then  checkOverwritten-sexpr s.offset s.size s.id size (substmap-lookup-var-to-sexpr s.cont offset size var) # checkoverwrites
     		else (if size+offset <= s.offset+s.size
     			then (if offset===s.offset
-    				then Just-sexpr s.rhs
+    				then (if s.inverted === 0
+    						then Just-sexpr s.rhs
+    						else Just-sexpr-inverted s.rhs)
     				else Nothing-sexpr)
     			else Nothing-sexpr))
     	else checkOverwritten-sexpr s.offset s.size s.id size (substmap-lookup-var-to-sexpr s.cont offset size var)
@@ -150,7 +159,7 @@ val substmap-lookup-var-to-linear state offset size var = #Nothing-linear
     	then (if size+offset <= s.offset or s.size+s.offset <= offset
     		then  checkOverwritten-linear s.offset s.size s.id size (substmap-lookup-var-to-linear s.cont offset size var) 
     		else (if size+offset <= s.offset+s.size
-    			then (if offset===s.offset
+    			then (if offset===s.offset and s.inverted === 0
     				then case s.rhs of
     					SEM_SEXPR_LIN l : Just-linear l
     					| _ : Nothing-linear
@@ -215,6 +224,6 @@ val lin-uses-location o s v rs lin = case lin of
     
 val show-substmap sm = case sm of
 	Substmap-empty : ""
-  | Substmap-bind-linear x : rreil-show-id x.id +++ "." +++ show-int x.offset +++ ":" +++ show-int x.size +++ " = " +++ rreil-show-sexpr x.rhs +++ "\n" +++ show-substmap x.cont
+  | Substmap-bind-linear x : rreil-show-id x.id +++ "." +++ show-int x.offset +++ ":" +++ show-int x.size +++ " = " +++ rreil-show-sexpr x.rhs +++ " inv="+++show-int x.inverted+++ "\n" +++ show-substmap x.cont 
   | Substmap-mark-overwritten x : rreil-show-id x.id +++ "." +++ show-int x.offset +++ ":" +++ show-int x.size +++ " = <?>\n" +++ show-substmap x.cont
 	end
