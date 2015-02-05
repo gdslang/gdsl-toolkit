@@ -34,10 +34,9 @@ val subst-stmt-list-initial stmts = do
 
 export subst-stmt-list-m : (subst-map, sem_stmt_list) -> S sem_stmt_list <{} => {}>
 val subst-stmt-list-m state stmts = case stmts of
-		SEM_CONS s : let
-			val new-stmt = subst-stmt state s.hd
-			val new-state = update-with-stmt state new-stmt
-			in do
+		SEM_CONS s : do
+				new-stmt <- subst-stmt-m state s.hd;
+				new-state <- return (update-with-stmt state new-stmt);
 				#println "old stmt:";
 				#println (rreil-show-stmt s.hd);
 				#println "new stmt:";
@@ -46,19 +45,11 @@ val subst-stmt-list-m state stmts = case stmts of
 				#println (show-substmap new-state);			
 				#println ".";
 				continued <- subst-stmt-list-m new-state s.tl;
-				return (SEM_CONS {hd=new-stmt, tl=continued}) end end
+				return (SEM_CONS {hd=new-stmt, tl=continued})
+				end
 	|	SEM_NIL    : return SEM_NIL
 	end 
 	
-export subst-stmt-list : (subst-map, sem_stmt_list) -> sem_stmt_list
-val subst-stmt-list state stmts = case stmts of
-		SEM_CONS s : let val new-stmt = subst-stmt state s.hd
-						 val new-state = update-with-stmt state new-stmt
-			  in SEM_CONS {hd=new-stmt, tl=subst-stmt-list new-state s.tl}
-		    end
-	|	SEM_NIL    : SEM_NIL
-	end 
-
 
 export update-with-stmt: (subst-map, sem_stmt) -> subst-map
 val update-with-stmt state stmt = case stmt of
