@@ -22,7 +22,7 @@
 #
 type subst-map = 
     Substmap-empty
-  | Substmap-bind-linear of {offset:int, size:int, id:sem_id, rhs:sem_sexpr, cont:subst-map}
+  | Substmap-bind-linear of {offset:int, size:int, id:sem_id, rhs:sem_sexpr, cont:subst-map, negated:int}
   | Substmap-mark-overwritten of {offset:int, size:int, id:sem_id, cont:subst-map}
 
 val substmap-initial = Substmap-empty
@@ -39,7 +39,11 @@ val substmap-initial = Substmap-empty
 #   subst map with right hand side bound to write location
 #
 export substmap-bind-sexpr : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
-val substmap-bind-sexpr state offset size var linear = Substmap-bind-linear {offset=offset, size=rreil-size-by-sexpr-type size linear , id=var, rhs=linear, cont=state}  
+val substmap-bind-sexpr state offset size var linear
+	= let val newSize = rreil-size-by-sexpr-type size linear 
+		  val isNegated = 0
+	in Substmap-bind-linear {offset=offset, size=newSize, id=var, rhs=linear, cont=state, negated=isNegated}
+	end  
 
 
 
@@ -63,7 +67,7 @@ type maybe-linear = Nothing-linear | Just-linear of sem_linear
 
 
 
-type maybe-sexpr = Nothing-sexpr | Just-sexpr of sem_sexpr
+type maybe-sexpr = Nothing-sexpr | Just-sexpr of sem_sexpr | Just-sexpr-inverted of sem_sexpr
 
 
 # lookup binding for location
@@ -77,31 +81,23 @@ type maybe-sexpr = Nothing-sexpr | Just-sexpr of sem_sexpr
 #
 export substmap-var-to-lin: (subst-map, int, int, sem_id) -> sem_linear
 val substmap-var-to-lin state offset size var = case substmap-lookup-var-to-linear state offset size var of
-    Nothing-linear     : SEM_LIN_VAR {id=var, offset=offset}
-  | Just-linear linear : linear
+    Nothing-linear        : SEM_LIN_VAR {id=var, offset=offset}
+  | Just-linear linear    : linear
 	end
 	
 export substmap-var-to-sexpr: (subst-map, int, int, sem_id) -> sem_sexpr
 val substmap-var-to-sexpr state offset size var = case substmap-lookup-var-to-sexpr state offset size var of
-    Nothing-sexpr     : SEM_SEXPR_LIN (SEM_LIN_VAR {id=var, offset=offset})
-  | Just-sexpr linear : linear
-	end
-
-export substmap-var-to-cond: (subst-map, int, sem_id) -> S sem_sexpr <{} => {}>
-val substmap-var-to-cond state offset var = do
-	case substmap-lookup-var-to-sexpr state offset 1 var of
-    Nothing-sexpr     : do
-    	println "subst-cond-keep-var";
-    	return (SEM_SEXPR_LIN (SEM_LIN_VAR {id=var, offset=offset}))
-    	end
-  	| Just-sexpr linear : do
-  		println "subst-cond-inline-expression";
-  		return linear
-  		end
-	end
+    Nothing-sexpr              : SEM_SEXPR_LIN (SEM_LIN_VAR {id=var, offset=offset})
+  | Just-sexpr linear          : linear
+  | Just-sexpr-inverted linear : SEM_SEXPR_LIN (SEM_LIN_VAR {id=var, offset=offset})
 	end
 
 
+
+export substmap-lookup-var-to-cond: (subst-map, int, sem_id) -> maybe-sexpr
+val substmap-lookup-var-to-cond state offset var = substmap-lookup-var-to-sexpr state offset 1 var
+
+ 
 # lookup binding for location, recursive worker function
 #
 # Parameters:

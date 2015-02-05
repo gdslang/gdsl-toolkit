@@ -13,16 +13,55 @@ val subst-stmt-m state stmt = case stmt of
   		tb <- subst-stmt-list-m state s.then_branch;
   		eb <- subst-stmt-list-m state s.else_branch;
   		newCond <- subst-cond state s.cond;
-  		return (SEM_ITE {cond= newCond, then_branch= tb, else_branch= eb})
+  		case newCond of
+  		  Nothing-sexpr : do
+  			println "subst-cond-while-nothing";
+  			return (SEM_ITE {cond= s.cond, then_branch= tb, else_branch= eb})
+  			end
+  		| Just-sexpr se : do
+  			println "subst-cond-while-insert";
+  			return (SEM_ITE {cond= se, then_branch= tb, else_branch= eb})
+  			end
+  		| Just-sexpr-inverted se : do
+  			println "subst-cond-while-insert-inverted";
+  			return (SEM_ITE {cond= se, then_branch= eb, else_branch= tb})
+  			end
+  		end
   		end
   | SEM_WHILE  s  : do
   		newBody <- subst-stmt-list-m substmap-initial s.body;
   		newCond <- subst-cond state s.cond;
-  		return (SEM_WHILE {cond= newCond, body= newBody})
+  		case newCond of
+  		  Nothing-sexpr : do
+  			println "subst-cond-while-nothing"; 			
+  			return (SEM_WHILE {cond= s.cond, body= newBody})
+  			end
+  		| Just-sexpr se : do
+  			println "subst-cond-while-insert"; 			
+  			return (SEM_WHILE {cond= se, body= newBody})
+  			end
+  		| Just-sexpr-inverted se : do
+  			println "subst-cond-while-do-not-insert-inverted"; 			
+  			return (SEM_WHILE {cond= s.cond, body= newBody})
+  			end
+  		end
   		end
   | SEM_CBRANCH s : do
   		newCond <- subst-cond state s.cond;
-  		return (SEM_CBRANCH {cond= newCond, target-true= subst-address state s.target-true, target-false= subst-address state s.target-false})
+  		case newCond of
+   		  Nothing-sexpr : do
+  			println "subst-cond-cbranch-nothing"; 			
+  			return (SEM_CBRANCH {cond= s.cond, target-true= subst-address state s.target-true, target-false= subst-address state s.target-false})
+  			end
+  		| Just-sexpr se : do
+  			println "subst-cond-cbranch-insert";
+  			return (SEM_CBRANCH {cond= se, target-true= subst-address state s.target-true, target-false= subst-address state s.target-false})
+  			end
+  		| Just-sexpr-inverted se : do
+  			println "subst-cond-cbranch-insert-inverted";
+  			return (SEM_CBRANCH {cond= se, target-true= subst-address state s.target-false, target-false= subst-address state s.target-true})
+  			end
+  		end
   		end
   | SEM_BRANCH s  : return (SEM_BRANCH {hint=s.hint, target= subst-address state s.target})
   | SEM_FLOP   s  : return (SEM_FLOP {op=s.op, flags= s.flags, lhs=s.lhs, rhs= subst-varl-list state s.rhs})
@@ -30,26 +69,39 @@ val subst-stmt-m state stmt = case stmt of
   | SEM_THROW  e  : return (SEM_THROW e)
 	end
 
-export subst-cond : (subst-map, sem_sexpr) -> S sem_sexpr <{} => {}>
+export subst-cond : (subst-map, sem_sexpr) -> S maybe-sexpr <{} => {}>
 val subst-cond state c = case c of
-    SEM_SEXPR_LIN linear : subst-linear-to-cond state linear
-  | SEM_SEXPR_CMP s      : return (SEM_SEXPR_CMP {size=s.size, cmp=subst-expr-cmp state s.size s.cmp})
-  | SEM_SEXPR_ARB        : return c
+    SEM_SEXPR_LIN linear : return (subst-linear-to-cond state linear)
+  | SEM_SEXPR_CMP s      : return (Just-sexpr (SEM_SEXPR_CMP {size=s.size, cmp=subst-expr-cmp state s.size s.cmp}))
+  | SEM_SEXPR_ARB        : return (Just-sexpr c)
 	end
 
-export subst-linear-to-cond: (subst-map, sem_linear) -> S sem_sexpr <{} => {}>
-val subst-linear-to-cond state linear = do
-	#println "subst-cond-linear";
+export subst-linear-to-cond: (subst-map, sem_linear) -> maybe-sexpr
+val subst-linear-to-cond state linear =
 	case linear of
-    SEM_LIN_VAR var : substmap-var-to-cond state var.offset var.id
-  | SEM_LIN_IMM s   : return (SEM_SEXPR_LIN linear)
-  | SEM_LIN_ADD s   : return (SEM_SEXPR_LIN (simplify-lin-add (subst-linear state 1 s.opnd1) (subst-linear state 1 s.opnd2)))
-  | SEM_LIN_SUB s   : return (SEM_SEXPR_LIN (SEM_LIN_SUB (subst-arity2 state 1 s)))
-  | SEM_LIN_SCALE s : return (SEM_SEXPR_LIN (SEM_LIN_SCALE {const=s.const, opnd=subst-linear state 1 s.opnd}))
-	end
+    SEM_LIN_VAR var : substmap-lookup-var-to-cond state var.offset var.id
+  | SEM_LIN_IMM s   : Just-sexpr (SEM_SEXPR_LIN linear)
+  | SEM_LIN_ADD s   : Just-sexpr (SEM_SEXPR_LIN (simplify-lin-add (subst-linear state 1 s.opnd1) (subst-linear state 1 s.opnd2)))
+  | SEM_LIN_SUB s   : Just-sexpr (SEM_SEXPR_LIN (SEM_LIN_SUB (subst-arity2 state 1 s)))
+  | SEM_LIN_SCALE s : Just-sexpr (SEM_SEXPR_LIN (SEM_LIN_SCALE {const=s.const, opnd=subst-linear state 1 s.opnd}))
 	end
 
-	
+#do
+#	case of
+#    Nothing-sexpr     : do
+#    	println "subst-cond-keep-var";
+#    	return (SEM_SEXPR_LIN (SEM_LIN_VAR {id=var, offset=offset}))
+#    	end
+#  	| Just-sexpr linear : do
+#  		println "subst-cond-inline-expression";
+#  		return linear
+#  		end
+#  	| Just-sexpr-inverted linear : do
+#  		println "subst-cond-inline-inverted";
+#    	return (SEM_SEXPR_LIN (SEM_LIN_VAR {id=var, offset=offset}))
+#  		end
+#	end
+#	end
 
 export subst-expr : (subst-map, int, sem_expr) -> sem_expr
 val subst-expr state size expr = case expr of
