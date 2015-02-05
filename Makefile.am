@@ -228,7 +228,9 @@ GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/rreil-translator.ml \
 	$(srcdir)/specifications/rreil/forward-subst/inline.ml \
 	$(srcdir)/specifications/rreil/forward-subst/substitute.ml \
-	$(srcdir)/specifications/rreil/forward-subst/substmap.ml
+        $(srcdir)/specifications/rreil/forward-subst/substmap.ml  \
+	$(srcdir)/specifications/rreil/forward-subst/simplify-expressions.ml
+
 
 GDSL_ARM7 = \
 	$(srcdir)/specifications/arm7/arm7.ml \
