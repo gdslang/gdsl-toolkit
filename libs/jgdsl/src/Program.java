@@ -55,15 +55,21 @@ public class Program {
   }
 
   public static void main (String[] args) throws Throwable {
-    ByteBuffer buffer = ByteBuffer.allocateDirect(8);
-    buffer.put((byte) 0x48);
-    buffer.put((byte) 0x83);
-    buffer.put((byte) 0xc0);
-    buffer.put((byte) 0x08);
-    buffer.put((byte) 0x48);
-    buffer.put((byte) 0x03);
-    buffer.put((byte) 0xc8);
-    buffer.put((byte) 0xc3);
+//    ByteBuffer buffer = ByteBuffer.allocateDirect(8);
+//    buffer.put((byte) 0x48);
+//    buffer.put((byte) 0x83);
+//    buffer.put((byte) 0xc0);
+//    buffer.put((byte) 0x08);
+//    buffer.put((byte) 0x48);
+//    buffer.put((byte) 0x03);
+//    buffer.put((byte) 0xc8);
+//    buffer.put((byte) 0xc3);
+  ByteBuffer buffer = ByteBuffer.allocateDirect(5);
+  buffer.put((byte) 0x3b);
+  buffer.put((byte) 0xfe);
+  buffer.put((byte) 0x78);
+  buffer.put((byte) 0x05);
+  buffer.put((byte) 0xc3);
 
     sub(buffer);
 //    
