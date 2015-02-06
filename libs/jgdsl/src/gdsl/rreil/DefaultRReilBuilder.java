@@ -155,8 +155,8 @@ public class DefaultRReilBuilder implements IRReilBuilder {
     return new SimpleLinearExpression((LinearExpression) _this);
   }
 
-  @Override public SimpleCompareExpression sem_sexpr_cmp (ICompare _this) {
-    return new SimpleCompareExpression((Compare) _this);
+  @Override public SimpleCompareExpression sem_sexpr_cmp (long size, ICompare _this) {
+    return new SimpleCompareExpression(size, (Compare) _this);
   }
 
   @Override public SimpleExpression sem_sexpr_arb () {

@@ -588,7 +588,8 @@ int main (int argc, char** argv) {
     } else {
       fprintf(stdout,"exception at address 0x%lx: %s", gdsl_get_ip(s), gdsl_get_error_message(s));
       size_t step = (s->token_addr_inv>0 ? (size_t) s->token_addr_inv+1 : 1u);
-      gdsl_seek(s,gdsl_get_ip(s)+step);
+      if(gdsl_seek(s,gdsl_get_ip(s)+step))
+				break;
     }
     fputs("\n",stdout);
     size = gdsl_heap_residency(s);

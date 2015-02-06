@@ -169,8 +169,8 @@ void gdsl::rreil::copy_visitor::visit(arbitrary *a) {
 void gdsl::rreil::copy_visitor::visit(sexpr_cmp *a) {
   a->get_inner()->accept(*this);
   expr_cmp *inner = _expr_cmp;
-  if(sexpr_cmp_ctor != NULL) _sexpr = sexpr_cmp_ctor(inner);
-  else _sexpr = new sexpr_cmp(inner);
+  if(sexpr_cmp_ctor != NULL) _sexpr = sexpr_cmp_ctor(a->get_size(), inner);
+  else _sexpr = new sexpr_cmp(a->get_size(), inner);
 }
 
 void gdsl::rreil::copy_visitor::visit(sexpr_lin *a) {

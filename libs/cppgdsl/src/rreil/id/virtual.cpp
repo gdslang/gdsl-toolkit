@@ -22,6 +22,16 @@ int_t _virtual::get_t() {
   return this->t;
 }
 
+bool gdsl::rreil::_virtual::operator ==(id &other) {
+  bool equals = false;
+  id_visitor iv;
+  iv._([&](_virtual *aid) {
+    equals = this->t == aid->t;
+  });
+  other.accept(iv);
+  return equals;
+}
+
 void gdsl::rreil::_virtual::accept(id_visitor &v) {
   v.visit(this);
 }

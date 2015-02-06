@@ -144,10 +144,11 @@ static obj_t sem_sexpr_lin(state_t state, obj_t this) {
   sexpr->lin = (struct rreil_linear*)this;
   return (obj_t)sexpr;
 }
-static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
+static obj_t sem_sexpr_cmp(state_t state, int_t size, obj_t this) {
   struct rreil_sexpr *sexpr = (struct rreil_sexpr*)malloc(sizeof(struct rreil_sexpr));
   sexpr->type = RREIL_SEXPR_TYPE_CMP;
-  sexpr->cmp = (struct rreil_comparator*)this;
+  sexpr->cmp.size = size;
+  sexpr->cmp.comp = (struct rreil_comparator*)this;
   return (obj_t)sexpr;
 }
 static obj_t sem_sexpr_arb(state_t state) {

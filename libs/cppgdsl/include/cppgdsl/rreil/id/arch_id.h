@@ -24,6 +24,7 @@ public:
     return name;
   }
 
+  bool operator== (id &other);
   void accept(id_visitor &v);
 };
 

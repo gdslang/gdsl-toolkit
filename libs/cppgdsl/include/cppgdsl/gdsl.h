@@ -8,7 +8,7 @@
 #pragma once
 #include <cppgdsl/frontend/frontend.h>
 #include <cppgdsl/rreil/statement/statement.h>
-#include "preservation.h"
+#include <cppgdsl/optimization.h>
 #include <vector>
 
 namespace gdsl {
@@ -23,6 +23,9 @@ extern "C" {
 
 class gdsl {
 private:
+  uint64_t size;
+  uint64_t base;
+
   state_t gdsl_state = NULL;
   _frontend *frontend = NULL;
 
@@ -30,6 +33,7 @@ private:
 public:
   gdsl(_frontend *frontend);
   ~gdsl();
+  size_t bytes_left();
 
   /*
    * generic
@@ -49,7 +53,7 @@ public:
    * translator
    */
   std::vector<rreil::statement*> *translate(obj_t insn);
-  block decode_translate_block(preservation pres, int_t limit);
+  block decode_translate_block(optimization_configuration oc, int_t limit);
 
   state_t get_state() const {
     return gdsl_state;

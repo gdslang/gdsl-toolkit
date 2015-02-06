@@ -149,6 +149,9 @@ JNIEXPORT jobject JNICALL Java_gdsl_asm_GeneralizerBackend_generalize(JNIEnv *en
       .opnd = &asm_opnd_callbacks, .signedness = &asm_signedness_callbacks, .boundary = &asm_boundary_callbacks,
       .annotation_list = &asm_annotation_list_callbacks, .annotation = &asm_annotation_callbacks, };
 
+  if(setjmp(*frontend->generic.err_tgt(state)))
+    THROW_GDSL_EXCEPTION_RET(NULL);
+
   obj_t g_insn = frontend->decoder.generalize(state, insn);
 
   return (jobject)frontend->decoder.asm_convert_insn(state, &asm_callbacks, g_insn);

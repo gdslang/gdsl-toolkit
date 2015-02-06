@@ -39,4 +39,8 @@ public enum ArchId {
   @Override public String toString () {
     return super.toString().toLowerCase();
   }
+  
+  public String libName() {
+    return toString().toLowerCase() + "-rreil";
+  }
 }

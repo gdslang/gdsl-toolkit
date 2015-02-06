@@ -1,10 +1,11 @@
 MLTK=../..
+JDK=/usr/lib/jvm/java-7-openjdk
 CC=gcc
 #CC=clang
 LIBDS=-L$(MLTK)/lib
 LIBS=-lgdsl-multiplex
 LIBFLAGS=$(LIBDS) $(LIBS)
-INCDS=-Iinclude -I$(MLTK)/include
+INCDS=-Iinclude -I$(MLTK)/include -I$(JDK)/include -I$(JDK)/include/linux
 
 DEFINES=-DRELAXEDFATAL
 

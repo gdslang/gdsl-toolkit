@@ -9,7 +9,7 @@
 #include <cppgdsl/gdsl.h>
 #include <cppgdsl/gdsl_exception.h>
 #include <cppgdsl/instruction.h>
-#include <cppgdsl/preservation.h>
+#include <cppgdsl/optimization.h>
 #include <cppgdsl/rreil/statement/statement.h>
 #include <cppgdsl/rreil_builder.h>
 #include <vector>
@@ -32,6 +32,13 @@ std::vector<gdsl::rreil::statement*> *gdsl::gdsl::convert(obj_t rreil) {
 gdsl::gdsl::gdsl(_frontend *frontend) {
   this->frontend = frontend;
   this->gdsl_state = frontend->native().generic.init();
+
+  this->size = 0;
+  this->base = 0;
+}
+
+size_t gdsl::gdsl::bytes_left() {
+  return size - (get_ip() - base);
 }
 
 gdsl::gdsl::~gdsl() {
@@ -52,6 +59,8 @@ void gdsl::gdsl::set_code(unsigned char *buffer, uint64_t size, uint64_t base) {
   if(setjmp(*frontend->native().generic.err_tgt(gdsl_state))) throw gdsl_exception("set_code() failed",
       string(frontend->native().generic.get_error_message(gdsl_state)));
   frontend->native().generic.set_code(gdsl_state, buffer, size, base);
+  this->size = size;
+  this->base = base;
 }
 
 bool gdsl::gdsl::seek(int_t ip) {
@@ -100,14 +109,14 @@ static obj_t insn_cb(state_t s, obj_t cls, obj_t next) {
   return cls;
 }
 
-block gdsl::gdsl::decode_translate_block(preservation pres, int_t limit) {
+block gdsl::gdsl::decode_translate_block(optimization_configuration oc, int_t limit) {
   if(setjmp(*frontend->native().generic.err_tgt(gdsl_state))) throw gdsl_exception("decode_translate_block() failed",
       string(frontend->native().generic.get_error_message(gdsl_state)));
 
   gdsl_insns cls = { this, new std::vector<instruction>() };
 
   opt_result_t opt_result = frontend->native().translator.decode_translate_block_optimized(gdsl_state,
-      frontend->native().decoder.config_default(gdsl_state), limit, pres);
+      frontend->native().decoder.config_default(gdsl_state), limit, oc);
   frontend->native().translator.traverse_insn_list(gdsl_state, opt_result->insns, &cls, &insn_cb);
   std::vector<rreil::statement*> *statements = convert(opt_result->rreil);
   return block(cls.instructions, statements);

@@ -11,7 +11,7 @@
 
 using namespace std;
 
-gdsl::instruction::instruction(gdsl::gdsl *g, obj_t native) {
+gdsl::instruction::instruction(gdsl *g, obj_t native) {
   this->g = g;
   this->native = native;
 }
@@ -25,7 +25,7 @@ std::string gdsl::instruction::to_string() {
   return s.str();
 }
 
-std::vector<gdsl::rreil::statement*>* gdsl::instruction::translate() {
+gdsl::rreil::statements_t *gdsl::instruction::translate() {
   return g->translate(native);
 }
 

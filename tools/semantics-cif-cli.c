@@ -524,9 +524,9 @@ static obj_t sem_sexpr_lin(state_t state, obj_t this) {
   printf("> sem_sexpr_lin\n");
   return indent;
 }
-static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
+static obj_t sem_sexpr_cmp(state_t state, int_t size, obj_t this) {
   obj_t indent = indent_unary(this);
-  printf("> sem_sexpr_cmp\n");
+  printf("> sem_sexpr_cmp {size=%lld}\n", size);
   return indent;
 }
 static obj_t sem_sexpr_arb(state_t state) {

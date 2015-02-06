@@ -5,8 +5,9 @@
  *      Author: jucs
  */
 
-#include <stdlib.h>
 //#define __USE_XOPEN2K8
+#define _POSIX_C_SOURCE 200809L
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>

@@ -119,6 +119,7 @@ tools/x86-test-stats-runner/src/x86_test_stats_runner-main.o
 /gdslc
 /libgdsl.so
 /libs/gdsl-multiplex/libgdsl-multiplex.a
+/libs/gdsl-multiplex/libgdsl-multiplex.so
 /libs/gdwrap/libgdwrap.a
 /libs/readhex/libreadhex.a
 /libs/rreil-sim/librreil-sim.a

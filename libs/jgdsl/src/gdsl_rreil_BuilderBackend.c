@@ -91,8 +91,8 @@ static obj_t sem_sexpr_lin(state_t state, obj_t this) {
   jobject ret = java_method_call(state, "sem_sexpr_lin", 1, (jobject) this);
   return (obj_t) ret;
 }
-static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
-  jobject ret = java_method_call(state, "sem_sexpr_cmp", 1, (jobject) this);
+static obj_t sem_sexpr_cmp(state_t state, int_t size, obj_t this) {
+  jobject ret = java_method_call(state, "sem_sexpr_cmp", 2, java_long_create(state, (long int) size), (jobject) this);
   return (obj_t) ret;
 }
 static obj_t sem_sexpr_arb(state_t state) {
@@ -437,12 +437,12 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
 }
 
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock(JNIEnv *env, jobject this,
-    jlong frontendPtr, jlong gdslStatePtr, jlong limit, jint preservation) {
+    jlong frontendPtr, jlong gdslStatePtr, jlong limit, jint optimization_config) {
   struct frontend *frontend = (struct frontend*) frontendPtr;
   state_t state = (state_t) gdslStatePtr;
 
   return translate_block_optimized_with_config(env, this, frontendPtr, gdslStatePtr,
-      frontend->decoder.config_default(state), limit, preservation);
+      frontend->decoder.config_default(state), limit, optimization_config);
 }
 
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlockWithConfig(JNIEnv *env, jobject this,

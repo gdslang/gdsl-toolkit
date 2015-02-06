@@ -16,7 +16,7 @@
 #include <cppgdsl/rreil/statement/load.h>
 #include <cppgdsl/rreil/visitor.h>
 
-#include <cppgdsl/preservation.h>
+#include <cppgdsl/optimization.h>
 #include <cppgdsl/rreil/linear/lin_var.h>
 
 #include <cppgdsl/rreil/linear/lin_binop.h>
@@ -79,10 +79,10 @@ void demo_single(gdsl::gdsl &g) {
             if(a->get_op() == BIN_LIN_ADD) {
               linear_visitor lv;
               lv._([&](lin_var *v) {
-                    if(v->get_var()->get_id()->to_string() == "IP") {
-                      ip = true;
-                    }
-                  });
+                if(v->get_var()->get_id()->to_string() == "IP") {
+                  ip = true;
+                }
+              });
               a->get_opnd1()->accept(lv);
               lv._([&](lin_imm *i) {
                     ip_offset = i->get_imm();
@@ -114,6 +114,7 @@ void demo_single(gdsl::gdsl &g) {
     });
 
     v->_([&](variable *a) {
+      std::cout << (*a == *a ? "The variable equals itself" : ":-(") << std::endl;
       vars++;
       printf("Variable!\n");
     });
@@ -132,7 +133,8 @@ void demo_block(gdsl::gdsl &g) {
   uint8_t buffer[] = { 0x00, 0x00, 0x00, 0x00, 0xc3 };
   g.set_code(buffer, sizeof(buffer), 0);
 
-  block b = g.decode_translate_block(gdsl::preservation::BLOCK, LONG_MAX);
+  block b = g.decode_translate_block(
+      gdsl::optimization_configuration::BLOCK | gdsl::optimization_configuration::LIVENESS, LONG_MAX);
 
   auto insns = b.get_instructions();
 

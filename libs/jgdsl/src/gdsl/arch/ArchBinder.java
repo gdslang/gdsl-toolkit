@@ -33,7 +33,7 @@ public abstract class ArchBinder implements IFrontendConfig {
   }
   
   protected static boolean checkFrontend(ArchId id, Frontend frontend) {
-    return frontend.getName().equalsIgnoreCase(id.toString());
+    return frontend.getName().equalsIgnoreCase(id.libName());
   }
   
   protected static Frontend specific(Frontend[] frontends, ArchId id) {

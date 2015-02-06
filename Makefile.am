@@ -44,87 +44,87 @@ MLULEX = @MLULEX@
 MLANTLR = @MLANTLR@
 
 GDSLC_SML_FILES = \
-         $(srcdir)/detail/export.sml \
-         $(srcdir)/detail/common/basic-control.sml \
-         $(srcdir)/detail/common/stats.sml \
-         $(srcdir)/detail/common/expand-file.sml \
-         $(srcdir)/detail/common/error.sml \
-         $(srcdir)/detail/common/sum-sig.sml \
-         $(srcdir)/detail/common/sum.sml \
-         $(srcdir)/detail/common/float-lit.sml \
-         $(srcdir)/detail/common/integer-lit.sml \
-         $(srcdir)/detail/common/literal.sml \
-         $(srcdir)/detail/common/stamp.sml \
-         $(srcdir)/detail/common/basis.sml \
-         $(srcdir)/detail/common/layout-sig.sml \
-         $(srcdir)/detail/common/layout.sml \
-         $(srcdir)/detail/common/compilation-monad.sml \
-         $(srcdir)/detail/semantic/symbol-table-type.sml \
-         $(srcdir)/detail/common/pp.sml \
-         $(srcdir)/detail/parser/mk-ast.sml \
-	       $(srcdir)/detail/parser/spec.g.sml \
-	       $(srcdir)/detail/parser/spec.l.sml \
-         $(srcdir)/detail/parser/spec-parse-tree.sml \
-         $(srcdir)/detail/parser/parser.sml \
-         $(srcdir)/detail/semantic/spec-abstract-tree.sml \
-         $(srcdir)/detail/semantic/typing/boolean-domain.sml \
-         $(srcdir)/detail/semantic/typing/tvar.sml \
-         $(srcdir)/detail/semantic/typing/lang-types.sml \
-         $(srcdir)/detail/semantic/typing/size-constraint.sml \
-         $(srcdir)/detail/semantic/typing/substitutions.sml \
-         $(srcdir)/detail/semantic/typing/environment.sml \
-         \
-         $(srcdir)/detail/spec/spec.sml \
-         $(srcdir)/detail/spec/core.sml \
-         \
-         $(srcdir)/detail/imp/imp.sml \
-         \
-         $(srcdir)/detail/semantic/primitives.sml \
-         $(srcdir)/detail/semantic/resolve-symbols.sml \
-         $(srcdir)/detail/semantic/resolve-type-info.sml \
-         $(srcdir)/detail/semantic/inference.sml \
-				 $(srcdir)/detail/semantic/typing/type-table.sml \
-         \
-         $(srcdir)/detail/desugar/desugar-control.sml \
-         $(srcdir)/detail/desugar/desugared-tree.sml \
-         $(srcdir)/detail/desugar/split-declarations.sml \
-         $(srcdir)/detail/desugar/desugar-guards.sml \
-         $(srcdir)/detail/desugar/inline-decode-patterns.sml \
-         $(srcdir)/detail/desugar/detokenize.sml \
-         $(srcdir)/detail/desugar/retokenize.sml \
-         $(srcdir)/detail/desugar/desugar-decode-syntax.sml \
-         $(srcdir)/detail/desugar/desugar-monadic-sequences.sml \
-         $(srcdir)/detail/desugar/desugar.sml \
-         \
-         $(srcdir)/detail/cps/cps.sml \
-         $(srcdir)/detail/cps/cps-control.sml \
-         $(srcdir)/detail/cps/from-core.sml \
-         $(srcdir)/detail/cps/cps-opt.sml \
-         $(srcdir)/detail/cps/mk-cps-pass.sml \
-         $(srcdir)/detail/cps/cps-passes.sml \
-         \
-         $(srcdir)/detail/imp/imp-control.sml \
-         $(srcdir)/detail/imp/imp-from-core.sml \
-         $(srcdir)/detail/imp/mk-imp-pass.sml \
-         $(srcdir)/detail/imp/imp-opt.sml \
-         $(srcdir)/detail/imp/imp-passes.sml \
-         \
-         $(srcdir)/detail/closure/closure.sml \
-         $(srcdir)/detail/closure/closure-control.sml \
-         $(srcdir)/detail/closure/from-cps.sml \
-         $(srcdir)/detail/closure/closure-passes.sml \
-         \
-         $(srcdir)/detail/codegen/codegen-control.sml \
-         $(srcdir)/detail/codegen/codegen-mangle.sml \
-         $(srcdir)/detail/codegen/c0/c0.sml \
-         $(srcdir)/detail/codegen/c1/c1.sml \
-         $(srcdir)/detail/codegen/js0/javascript-sig.sml \
-         $(srcdir)/detail/codegen/js0/javascript.sml \
-         $(srcdir)/detail/codegen/js0/js0.sml \
-         $(srcdir)/detail/codegen/codegen-passes.sml \
-         \
-         $(srcdir)/detail/driver/main.sml \
-         $(srcdir)/detail/ml/mlton/main.sml
+	$(srcdir)/detail/export.sml \
+	$(srcdir)/detail/common/basic-control.sml \
+	$(srcdir)/detail/common/stats.sml \
+	$(srcdir)/detail/common/expand-file.sml \
+	$(srcdir)/detail/common/error.sml \
+	$(srcdir)/detail/common/sum-sig.sml \
+	$(srcdir)/detail/common/sum.sml \
+	$(srcdir)/detail/common/float-lit.sml \
+	$(srcdir)/detail/common/integer-lit.sml \
+	$(srcdir)/detail/common/literal.sml \
+	$(srcdir)/detail/common/stamp.sml \
+	$(srcdir)/detail/common/basis.sml \
+	$(srcdir)/detail/common/layout-sig.sml \
+	$(srcdir)/detail/common/layout.sml \
+	$(srcdir)/detail/common/compilation-monad.sml \
+	$(srcdir)/detail/semantic/symbol-table-type.sml \
+	$(srcdir)/detail/common/pp.sml \
+	$(srcdir)/detail/parser/mk-ast.sml \
+	$(srcdir)/detail/parser/spec.g.sml \
+	$(srcdir)/detail/parser/spec.l.sml \
+	$(srcdir)/detail/parser/spec-parse-tree.sml \
+	$(srcdir)/detail/parser/parser.sml \
+	$(srcdir)/detail/semantic/spec-abstract-tree.sml \
+	$(srcdir)/detail/semantic/typing/boolean-domain.sml \
+	$(srcdir)/detail/semantic/typing/tvar.sml \
+	$(srcdir)/detail/semantic/typing/lang-types.sml \
+	$(srcdir)/detail/semantic/typing/size-constraint.sml \
+	$(srcdir)/detail/semantic/typing/substitutions.sml \
+	$(srcdir)/detail/semantic/typing/environment.sml \
+	\
+	$(srcdir)/detail/spec/spec.sml \
+	$(srcdir)/detail/spec/core.sml \
+	\
+	$(srcdir)/detail/imp/imp.sml \
+	\
+	$(srcdir)/detail/semantic/primitives.sml \
+	$(srcdir)/detail/semantic/resolve-symbols.sml \
+	$(srcdir)/detail/semantic/resolve-type-info.sml \
+	$(srcdir)/detail/semantic/inference.sml \
+	$(srcdir)/detail/semantic/typing/type-table.sml \
+	\
+	$(srcdir)/detail/desugar/desugar-control.sml \
+	$(srcdir)/detail/desugar/desugared-tree.sml \
+	$(srcdir)/detail/desugar/split-declarations.sml \
+	$(srcdir)/detail/desugar/desugar-guards.sml \
+	$(srcdir)/detail/desugar/inline-decode-patterns.sml \
+	$(srcdir)/detail/desugar/detokenize.sml \
+	$(srcdir)/detail/desugar/retokenize.sml \
+	$(srcdir)/detail/desugar/desugar-decode-syntax.sml \
+	$(srcdir)/detail/desugar/desugar-monadic-sequences.sml \
+	$(srcdir)/detail/desugar/desugar.sml \
+	\
+	$(srcdir)/detail/cps/cps.sml \
+	$(srcdir)/detail/cps/cps-control.sml \
+	$(srcdir)/detail/cps/from-core.sml \
+	$(srcdir)/detail/cps/cps-opt.sml \
+	$(srcdir)/detail/cps/mk-cps-pass.sml \
+	$(srcdir)/detail/cps/cps-passes.sml \
+	\
+	$(srcdir)/detail/imp/imp-control.sml \
+	$(srcdir)/detail/imp/imp-from-core.sml \
+	$(srcdir)/detail/imp/mk-imp-pass.sml \
+	$(srcdir)/detail/imp/imp-opt.sml \
+	$(srcdir)/detail/imp/imp-passes.sml \
+	\
+	$(srcdir)/detail/closure/closure.sml \
+	$(srcdir)/detail/closure/closure-control.sml \
+	$(srcdir)/detail/closure/from-cps.sml \
+	$(srcdir)/detail/closure/closure-passes.sml \
+	\
+	$(srcdir)/detail/codegen/codegen-control.sml \
+	$(srcdir)/detail/codegen/codegen-mangle.sml \
+	$(srcdir)/detail/codegen/c0/c0.sml \
+	$(srcdir)/detail/codegen/c1/c1.sml \
+	$(srcdir)/detail/codegen/js0/javascript-sig.sml \
+	$(srcdir)/detail/codegen/js0/javascript.sml \
+	$(srcdir)/detail/codegen/js0/js0.sml \
+	$(srcdir)/detail/codegen/codegen-passes.sml \
+	\
+	$(srcdir)/detail/driver/main.sml \
+	$(srcdir)/detail/ml/mlton/main.sml
 
 JAR=jgdsl.jar
 
@@ -215,6 +215,17 @@ GDSL_MIPSSEM = \
 	$(srcdir)/specifications/mips/mips-rreil-pretty.ml \
 	$(srcdir)/specifications/mips/mips-liveness.ml
 
+GDSL_ARM7 = \
+	$(srcdir)/specifications/arm7/arm7.ml \
+	$(srcdir)/specifications/arm7/arm7-pretty.ml \
+	$(srcdir)/specifications/arm7/arm7-asm.ml
+
+GDSL_ARM7SEM = \
+	$(srcdir)/specifications/arm7/arm7-rreil-translator.ml \
+	$(srcdir)/specifications/arm7/arm7-rreil-registermapping.ml \
+	$(srcdir)/specifications/arm7/arm7-rreil-pretty.ml \
+	$(srcdir)/specifications/arm7/arm7-liveness.ml
+
 GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/fmap.ml \
 	$(srcdir)/specifications/rreil/rreil.ml \
@@ -230,12 +241,6 @@ GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/forward-subst/substitute.ml \
         $(srcdir)/specifications/rreil/forward-subst/substmap.ml  \
 	$(srcdir)/specifications/rreil/forward-subst/simplify-expressions.ml
-
-
-GDSL_ARM7 = \
-	$(srcdir)/specifications/arm7/arm7.ml \
-	$(srcdir)/specifications/arm7/arm7-pretty.ml
-#	$(srcdir)/specifications/arm7/arm7-asm.ml
 
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
@@ -372,7 +377,7 @@ GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS)
 gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
 
-if ARM7 
+if ARM7
 lib_LTLIBRARIES += libgdsl-arm7.la
 nodist_include_HEADERS += gdsl-arm7.h
 CLEANFILES += gdsl-arm7.c gdsl-arm7.h
@@ -389,15 +394,37 @@ libgdsl_arm7_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_arm7_demo_SOURCES = gdsl-arm7.c
 gdsl_arm7_demo_CFLAGS = -std=c99 -DWITHMAIN
 
-GS_ARM7 = $(GDSL_BASIS) $(GDSL_ARM7)
+GS_ARM7 = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_ARM7)
 gdsl-arm7.c: $(GDSLC_DEP) $(GS_ARM7)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_ARM7)
+
+if ARM7_RREIL
+lib_LTLIBRARIES += libgdsl-arm7-rreil.la
+nodist_include_HEADERS += gdsl-arm7-rreil.h
+CLEANFILES += gdsl-arm7-rreil.c gdsl-arm7-rreil.h
+if INSTALL_AUXBINS
+bin_PROGRAMS += gdsl-arm7-rreil-demo
+endif
+if BUILD_AUXBINS
+noinst_PROGRAMS += gdsl-arm7-rreil-demo
+endif
+endif
+libgdsl_arm7_rreil_la_SOURCES =
+nodist_libgdsl_arm7_rreil_la_SOURCES = gdsl-arm7-rreil.c
+libgdsl_arm7_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
+gdsl_arm7_rreil_demo_SOURCES = gdsl-arm7-rreil.c
+gdsl_arm7_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
+
+GS_ARM7_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_ARM7) $(GDSL_RREIL) $(GDSL_ARM7SEM)
+gdsl-arm7-rreil.c: $(GDSLC_DEP) $(GS_ARM7_RREIL)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_ARM7_RREIL)
 
 JSOURCES = src/gdsl/BareFrontend.java \
 src/gdsl/translator/Translator.java \
 src/gdsl/translator/TranslatedBlock.java \
 src/gdsl/translator/TranslatedBlockRaw.java \
-src/gdsl/translator/SemPres.java \
+src/gdsl/translator/OptimizationConfig.java \
+src/gdsl/translator/OptimizationOptions.java \
 src/gdsl/translator/RReilTranslateException.java \
 src/gdsl/ReferenceManager.java \
 src/gdsl/HeapExpiredException.java \

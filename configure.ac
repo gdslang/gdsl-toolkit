@@ -55,12 +55,12 @@ AM_CONDITIONAL(LINUX, test "$LINUX" = "yes")
 #AM_CONDITIONAL(HAVE_JNI_H, test "$HAVE_JNI_H" != "")
 dnl conditionals for the various decoders, either with or without semantics
 
-FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil arm7";
+FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil arm7 arm7-rreil";
 
 AC_ARG_WITH([frontend],
   [AS_HELP_STRING(
     [--with-frontend=frontend],
-    [one of: x86 x86-rreil avr avr-rreil mips mips-rreil arm7])],
+    [one of: x86 x86-rreil avr avr-rreil mips mips-rreil arm7 arm7-rreil])],
   [], [with_frontend=all])
 
 case $with_frontend in
@@ -87,6 +87,9 @@ case $with_frontend in
 	arm7)
 		AC_DEFINE([USE_ARM7],[1],[build ARM7 bare decoder])
 		with_frontend=arm7;;
+	arm7-rreil)
+		AC_DEFINE([USE_ARM7_RREIL],[1],[build ARM7 decoder and RReil semantics])
+		with_frontend=arm7-rreil;;
 	*) AC_MSG_FAILURE([invalid frontend, choose one of ]$FRONTENDS);;
 esac
 case $with_frontend in
@@ -143,6 +146,7 @@ AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil -o x$with_frontend
 AM_CONDITIONAL([AVR],[test x$with_frontend = xavr -o x$with_frontend = xall])
 AM_CONDITIONAL([MIPS_RREIL],[test x$with_frontend = xmips-rreil -o x$with_frontend = xall])
 AM_CONDITIONAL([MIPS],[test x$with_frontend = xmips -o x$with_frontend = xall])
+AM_CONDITIONAL([ARM7_RREIL],[test x$with_frontend = xarm7-rreil -o x$with_frontend = xall])
 AM_CONDITIONAL([ARM7],[test x$with_frontend = xarm7 -o x$with_frontend = xall])
 AM_CONDITIONAL([HAVE_RREIL],[test x$has_rreil = xyes -o x$with_frontend = xall])
 AM_CONDITIONAL([SINGLE],[test x$with_frontend != xall])

@@ -20,7 +20,7 @@ type sem_linear_callbacks = {
 }
 type sem_sexpr_callbacks = {
   sem_sexpr_lin: (sem_linear_obj) -> sem_sexpr_obj,
-  sem_sexpr_cmp: (sem_expr_cmp_obj) -> sem_sexpr_obj,
+  sem_sexpr_cmp: (int, sem_expr_cmp_obj) -> sem_sexpr_obj,
   sem_sexpr_arb: () -> sem_sexpr_obj
 }
 type sem_expr_cmp_callbacks = {
@@ -137,12 +137,11 @@ end
 
 val rreil-convert-sem-sexpr cbs sexpr = case sexpr of
    SEM_SEXPR_LIN l: cbs.sem_sexpr.sem_sexpr_lin (rreil-convert-sem-linear cbs l)
- | SEM_SEXPR_CMP c: cbs.sem_sexpr.sem_sexpr_cmp (rreil-convert-sem-expr-cmp cbs c)
+ | SEM_SEXPR_CMP c: cbs.sem_sexpr.sem_sexpr_cmp c.size (rreil-convert-sem-expr-cmp cbs c.cmp)
  | SEM_SEXPR_ARB: cbs.sem_sexpr.sem_sexpr_arb () #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
-# TODO use size here
-val rreil-convert-sem-expr-cmp cbs expr-cmp = case expr-cmp.cmp of
+val rreil-convert-sem-expr-cmp cbs expr-cmp = case expr-cmp of
    SEM_CMPEQ c: cbs.sem_expr_cmp.sem_cmpeq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
  | SEM_CMPNEQ c: cbs.sem_expr_cmp.sem_cmpneq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
  | SEM_CMPLES c: cbs.sem_expr_cmp.sem_cmples (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)

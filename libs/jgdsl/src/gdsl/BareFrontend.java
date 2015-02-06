@@ -27,7 +27,7 @@ public class BareFrontend extends Frontend {
    * use; the Gdsl library name is built from its string representation
    */
   public BareFrontend (ArchId id) {
-    super(id.toString().toLowerCase());
+    super(id.libName());
     
     initializeNative();
   }

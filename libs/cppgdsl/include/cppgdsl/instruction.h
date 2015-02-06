@@ -23,13 +23,13 @@ private:
   gdsl *g;
   obj_t native;
 public:
-  instruction(gdsl::gdsl *g, obj_t native);
+  instruction(gdsl *g, obj_t native);
   ~instruction();
 
   std::string to_string();
   friend ostream& operator<< (ostream &out, instruction &_this);
 
-  std::vector<rreil::statement*> *translate();
+  rreil::statements_t *translate();
 
   obj_t get_native() const {
     return native;

@@ -9,7 +9,8 @@ import gdsl.decoder.NativeInstruction;
 import gdsl.rreil.DefaultRReilBuilder;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
-import gdsl.translator.SemPres;
+import gdsl.translator.OptimizationConfig;
+import gdsl.translator.OptimizationOptions;
 import gdsl.translator.TranslatedBlock;
 import gdsl.translator.Translator;
 
@@ -65,7 +66,8 @@ public class GdslTest {
   private void block (Gdsl gdsl) {
     Translator t = new Translator(gdsl, new DefaultRReilBuilder());
     TranslatedBlock b =
-      t.translateOptimizeBlock(gdsl.getBuffer().limit() - gdsl.getBuffer().position(), SemPres.EVERYWHERE);
+      t.translateOptimizeBlock(gdsl.getBuffer().limit() - gdsl.getBuffer().position(),
+          OptimizationOptions.PRESERVE_EVERYWHERE.config());
     System.out.println(b);
   }
 
@@ -145,7 +147,8 @@ public class GdslTest {
 
     Translator t = new Translator(gdslBlock, new DefaultRReilBuilder());
     TranslatedBlock b =
-      t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(), SemPres.EVERYWHERE);
+      t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(),
+          OptimizationOptions.PRESERVE_EVERYWHERE.config());
 
     System.out.println(b);
   }
@@ -165,7 +168,8 @@ public class GdslTest {
 
     Translator t = new Translator(gdslBlock, new DefaultRReilBuilder());
     TranslatedBlock b =
-      t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(), SemPres.EVERYWHERE);
+      t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(),
+          OptimizationOptions.PRESERVE_EVERYWHERE.config());
 
     gdslBlock.free();
 

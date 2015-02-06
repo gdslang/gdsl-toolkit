@@ -9,9 +9,12 @@
 #include "statement_visitor.h"
 #include <iosfwd>
 #include <string>
+#include <vector>
 
 namespace gdsl {
 namespace rreil {
+
+typedef std::vector<rreil::statement*> statements_t;
 
 class statement {
 private:

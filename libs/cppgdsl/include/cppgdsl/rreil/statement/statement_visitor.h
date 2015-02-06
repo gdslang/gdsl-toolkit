@@ -11,6 +11,7 @@
 namespace gdsl {
 namespace rreil {
 
+class statement;
 class assign;
 class load;
 class store;
@@ -34,63 +35,23 @@ private:
   std::function<void(floating*)> floating_callback = NULL;
   std::function<void(prim*)> prim_callback = NULL;
   std::function<void(_throw*)> _throw_callback = NULL;
+  std::function<void(statement*)> default_callback = NULL;
 
 public:
   virtual ~statement_visitor() {
   }
 
-  virtual void visit(assign *a) {
-    if(assign_callback != NULL)
-      assign_callback(a);
-    _default();
-  }
-  virtual void visit(load *a) {
-    if(load_callback != NULL)
-      load_callback(a);
-    _default();
-  }
-  virtual void visit(store *a) {
-    if(store_callback != NULL)
-      store_callback(a);
-    _default();
-  }
-  virtual void visit(ite *a) {
-    if(ite_callback != NULL)
-      ite_callback(a);
-    _default();
-  }
-  virtual void visit(_while *a) {
-    if(_while_callback != NULL)
-      _while_callback(a);
-    _default();
-  }
-  virtual void visit(cbranch *a) {
-    if(cbranch_callback != NULL)
-      cbranch_callback(a);
-    _default();
-  }
-  virtual void visit(branch *a) {
-    if(branch_callback != NULL)
-      branch_callback(a);
-    _default();
-  }
-  virtual void visit(floating *a) {
-    if(floating_callback != NULL)
-      floating_callback(a);
-    _default();
-  }
-  virtual void visit(prim *a) {
-    if(prim_callback != NULL)
-      prim_callback(a);
-    _default();
-  }
-  virtual void visit(_throw *a) {
-    if(_throw_callback != NULL)
-      _throw_callback(a);
-    _default();
-  }
-  virtual void _default() {
-  }
+  virtual void visit(assign *a);
+  virtual void visit(load *a);
+  virtual void visit(store *a);
+  virtual void visit(ite *a);
+  virtual void visit(_while *a);
+  virtual void visit(cbranch *a);
+  virtual void visit(branch *a);
+  virtual void visit(floating *a);
+  virtual void visit(prim *a);
+  virtual void visit(_throw *a);
+  virtual void _default(statement *s);
 
   void _(std::function<void(assign*)> assign_callback) {
     this->assign_callback = assign_callback;
@@ -121,6 +82,9 @@ public:
   }
   void _(std::function<void(_throw*)> _throw_callback) {
     this->_throw_callback = _throw_callback;
+  }
+  void _default(std::function<void(statement*)> default_callback) {
+    this->default_callback = default_callback;
   }
 };
 

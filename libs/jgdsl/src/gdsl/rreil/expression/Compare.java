@@ -6,9 +6,8 @@ import gdsl.rreil.expression.ICompare;
 
 public abstract class Compare extends Binary implements ICompare {
 
-	public Compare(LinearExpression operand1,
-			LinearExpression operand2) {
-		super(operand1, operand2);
-	}
-
+  public Compare (LinearExpression operand1,
+      LinearExpression operand2) {
+    super(operand1, operand2);
+  }
 }

@@ -14,7 +14,7 @@ val show/asm-opnd opnd = case opnd of
  | ASM_POST_OP po: "(" +++ show/asm-opnd po.opnd +++ " [" +++ show/asm-opnd po.opnd +++ " := " +++ show/asm-opnd po.expr +++ "])"
  | ASM_PRE_OP pr: "([" +++ show/asm-opnd pr.opnd +++ " := " +++ show/asm-opnd pr.expr +++ "] " +++ show/asm-opnd pr.opnd +++ ")"
  | ASM_REL a: "(?+ " -++ show/asm-opnd a +++ ")"
- | ASM_ANNOTATED a: show/asm-annotation a.ann +++ ":" +++ show/asm-opnd a.opnd
+ | ASM_ANNOTATED a: show/asm-annotation a.ann +++ ", " +++ show/asm-opnd a.opnd
  | ASM_SUM s: "(" +++ show/asm-opnd s.lhs -++ "+" -++ show/asm-opnd s.rhs +++ ")"
  | ASM_SCALE s: show-int s.factor +++ "*" +++ show/asm-opnd s.rhs
  | ASM_BOUNDED b: show/asm-opnd b.opnd +++ show/asm-boundary b.boundary

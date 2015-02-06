@@ -36,7 +36,9 @@ enum flop {
 enum optimization_configuration {
   PRESERVATION_EVERYWHERE = 1,
   PRESERVATION_BLOCK = 2,
-  PRESERVATION_CONTEXT = 4
+  PRESERVATION_CONTEXT = 4,
+  OC_LIVENESS = 8,
+  OC_FSUBST = 16
 };
 
 #ifndef __GDSL_RUNTIME_H
@@ -123,7 +125,7 @@ typedef struct {
 typedef unboxed_sem_linear_callbacks_t* sem_linear_callbacks_t;
 typedef struct {
   obj_t (*sem_sexpr_arb)(state_t);
-  obj_t (*sem_sexpr_cmp)(state_t,obj_t);
+  obj_t (*sem_sexpr_cmp)(state_t,int_t,obj_t);
   obj_t (*sem_sexpr_lin)(state_t,obj_t);
 } unboxed_sem_sexpr_callbacks_t;
 typedef unboxed_sem_sexpr_callbacks_t* sem_sexpr_callbacks_t;

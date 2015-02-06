@@ -42,19 +42,19 @@ public class Translator {
    * Decode and translate one basic block
    * 
    * @param limit the maximal number of bytes to read from the input stream
-   * @param preservation the required semantics preservation
+   * @param config the configuration of the optimizer
    * 
    * @return a collection of RReil statements built by the associated RReil builder
    */
-  public TranslatedBlock translateOptimizeBlock (long limit, SemPres preservation) {
+  public TranslatedBlock translateOptimizeBlock (long limit, OptimizationConfig config) {
     gdsl.heapManager.ref();
     Frontend frontend = gdsl.getFrontend();
     TranslatedBlockRaw blockRaw;
     if (frontend.isConfigured())
       blockRaw = backend.translateOptimizeBlockWithConfig(frontend.getPointer(), gdsl.getGdslStatePtr(), frontend
-          .getConfig().vector(), limit, preservation.getId());
+          .getConfig().vector(), limit, config.getConfig());
     else {
-      blockRaw = backend.translateOptimizeBlock(frontend.getPointer(), gdsl.getGdslStatePtr(), limit, preservation.getId());
+      blockRaw = backend.translateOptimizeBlock(frontend.getPointer(), gdsl.getGdslStatePtr(), limit, config.getConfig());
     }
     long[] instructionPointers = blockRaw.getInstructions();
     NativeInstruction[] instructions = new NativeInstruction[instructionPointers.length];

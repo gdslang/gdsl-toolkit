@@ -59,7 +59,7 @@ private:
   std::function<linear*(variable*)> lin_var_ctor = NULL;
 
   std::function<sexpr*()> arbitrary_ctor = NULL;
-  std::function<sexpr*(expr_cmp*)> sexpr_cmp_ctor = NULL;
+  std::function<sexpr*(int_t,expr_cmp*)> sexpr_cmp_ctor = NULL;
   std::function<sexpr*(linear*)> sexpr_lin_ctor = NULL;
 
   std::function<statement*(int_t, variable*, expr*)> assign_ctor = NULL;
@@ -78,6 +78,7 @@ private:
   std::function<::gdsl::rreil::exception*(std::string)> arch_exception_ctor = NULL;
   std::function<::gdsl::rreil::exception*(shared_exception_type)> shared_exception_ctor = NULL;
 
+protected:
   union {
     std::vector<statement*> *_statements;
 
@@ -226,7 +227,7 @@ public:
   void _(std::function<sexpr*()> c) {
     this->arbitrary_ctor = c;
   }
-  void _(std::function<sexpr*(expr_cmp*)> c) {
+  void _(std::function<sexpr*(int_t, expr_cmp*)> c) {
     this->sexpr_cmp_ctor = c;
   }
   void _(std::function<sexpr*(linear*)> c) {

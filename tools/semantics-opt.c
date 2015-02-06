@@ -30,7 +30,7 @@ struct options {
 };
 
 enum p_option {
-  OPTION_ELF, OPTION_FILE, OPTION_OFFSET, OPTION_LENGTH, OPTION_PRESERVATION
+  OPTION_ELF, OPTION_FILE, OPTION_OFFSET, OPTION_LENGTH, OPTION_PRESERVATION, OPTION_LIVENESS, OPTION_FSUBST
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
@@ -42,7 +42,8 @@ static char args_parse(int argc, char **argv, struct options *options) {
 
   struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, { "file", required_argument, NULL,
       OPTION_FILE }, { "offset", required_argument, NULL, OPTION_FILE }, { "length",
-  required_argument, NULL, OPTION_LENGTH }, { "preserve", required_argument, NULL, OPTION_PRESERVATION }, { NULL, 0,
+  required_argument, NULL, OPTION_LENGTH }, { "preserve", required_argument, NULL, OPTION_PRESERVATION }, { "liveness",
+  no_argument, NULL, OPTION_LIVENESS }, { "fsubst", no_argument, NULL, OPTION_FSUBST }, { NULL, 0,
   NULL, 0 } };
 
   while(1) {
@@ -67,18 +68,26 @@ static char args_parse(int argc, char **argv, struct options *options) {
       }
       case OPTION_PRESERVATION: {
         if(!strcmp("everywhere", optarg)) {
-          options->opt_config = PRESERVATION_EVERYWHERE;
+          options->opt_config = (options->opt_config & 0xFFFFFFF8) | PRESERVATION_EVERYWHERE;
           break;
         }
         if(!strcmp("block", optarg)) {
-          options->opt_config = PRESERVATION_BLOCK;
+          options->opt_config = (options->opt_config & 0xFFFFFFF8) | PRESERVATION_BLOCK;
           break;
         }
         if(!strcmp("context", optarg)) {
-          options->opt_config = PRESERVATION_CONTEXT;
+          options->opt_config = (options->opt_config & 0xFFFFFFF8) | PRESERVATION_CONTEXT;
           break;
         }
         return 2;
+      }
+      case OPTION_LIVENESS: {
+        options->opt_config |= OC_LIVENESS;
+        break;
+      }
+      case OPTION_FSUBST: {
+        options->opt_config |= OC_FSUBST;
+        break;
       }
       case '?':
         return 1;
@@ -98,7 +107,7 @@ int main(int argc, char** argv) {
   struct options options;
   if(args_parse(argc, argv, &options)) {
     printf(
-        "Usage: semantics-opt [--elf] [--offset offset] [--length length] --file file [--preserve everywhere|block|context]\n");
+        "Usage: semantics-opt [--elf] [--offset offset] [--length length] --file file [--preserve everywhere|block|context] [--liveness] [--fsubst]\n");
     return 1;
   }
 

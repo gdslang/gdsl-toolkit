@@ -7,7 +7,7 @@ package gdsl.arch;
  * @author Julian Kranz
  */
 public enum X86ConfigFlag implements IConfigFlag {
-  MODE64(1),
+  MODE32(1),
   DefaultOpndSz32(2);
 
   private long flag;
