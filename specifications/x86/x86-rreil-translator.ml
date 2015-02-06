@@ -93,9 +93,9 @@ in
        if mode64 then
          case s of
             FS: SEM_LIN_ADD {opnd1=seg-sem s,opnd2=address}
-      | GS: SEM_LIN_ADD {opnd1=seg-sem s,opnd2=address}
-    | _: address
-   end
+  	  | GS: SEM_LIN_ADD {opnd1=seg-sem s,opnd2=address}
+	  | _: address
+	 end
        else
          SEM_LIN_ADD {opnd1=seg-sem s,opnd2=address}
   end
@@ -160,14 +160,14 @@ type offset-option =
 val conv-with is-mem ptro conv sz x =
    let
       val conv-imm conv x = case conv of
-          Signed: return (SEM_LIN_IMM{const=sx x})
-  | Unsigned: return (SEM_LIN_IMM{const=zx x})
+      	  Signed: return (SEM_LIN_IMM{const=sx x})
+	| Unsigned: return (SEM_LIN_IMM{const=zx x})
       end
 
       val conv-reg conv sz r = do
         reg <- return (semantic-register-of-mr is-mem r);
-  expanded <- expand mktemp conv (var reg) reg.size sz;
-  return expanded
+	expanded <- expand mktemp conv (var reg) reg.size sz;
+	return expanded
       end
 
       val conv-sum conv sz x =
@@ -351,26 +351,26 @@ val write-extend avx-encoded sz a b =
    case a of
       SEM_WRITE_MEM x:
          #store x (SEM_LIN{size=sz,opnd1=b})
-   segmented-store sz x b x.segment
+	 segmented-store sz x b x.segment
     | SEM_WRITE_VAR x: do
         #if mode64 then
-  #  mov 32 (semantic-register-of EAX) (imm 100)
-  #else
-  #  return void
-  #;
+	#  mov 32 (semantic-register-of EAX) (imm 100)
+	#else
+	#  return void
+	#;
         #if (is-avx-sse x.id.id) then
-  #  mov 32 (semantic-register-of EAX) (imm 101)
-  #else
-  #  return void
-  #;
+	#  mov 32 (semantic-register-of EAX) (imm 101)
+	#else
+	#  return void
+	#;
         #if (avx-encoded) then
-  #  mov 32 (semantic-register-of EAX) (imm 102)
-  #else
-  #  return void
-  #;
-  #mov 32 (semantic-register-of EAX) (imm (500 + sz));
+	#  mov 32 (semantic-register-of EAX) (imm 102)
+	#else
+	#  return void
+	#;
+	#mov 32 (semantic-register-of EAX) (imm (500 + sz));
 
-  mov sz x.id b;
+	mov sz x.id b;
 
    postproc-reg avx-encoded sz x.id
 
@@ -510,7 +510,7 @@ val undef-opnd opnd = do
   sz <- sizeof1 opnd;
   a <- lval sz opnd;
   t <- mktemp;
-  undef sz t;
+	undef sz t;
   write sz a (var t)
 end
 
@@ -2302,7 +2302,7 @@ end
 
 val translate-block-single insn = do
    ic <- query $ins_count;
-   update@{ins_count=ic+1};
+   update@{tmp=0,ins_count=ic+1};
    
    translate-x86 {features=insn.features,opnd-sz=insn.opnd-sz,addr-sz=insn.addr-sz,rep=insn.rep,repne=insn.repne,lock=insn.lock,insn=insn.insn,config=insn.config,length=insn.length}  
 end

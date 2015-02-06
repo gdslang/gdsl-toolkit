@@ -19,7 +19,7 @@ val decode-translate-block-headless config limit = do
 end
 
 val decode-translate-block config limit = do
-  update @{tmp=0,ins_count=0,stack=SEM_NIL,foundJump='0'};
+  update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
   stmts <- decode-translate-block-headless config limit;
   return (rreil-stmts-rev stmts)
 end
@@ -106,7 +106,7 @@ val decode-translate-super-block config limit = let
     end
   end
 in do
-  update @{tmp=0,ins_count=0,stack=SEM_NIL,foundJump='0'};
+  update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
   stmts <- decode-translate-block-headless config limit;
 
   ic <- query $ins_count;
