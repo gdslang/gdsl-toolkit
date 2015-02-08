@@ -425,6 +425,7 @@ src/gdsl/translator/Translator.java \
 src/gdsl/translator/TranslatedBlock.java \
 src/gdsl/translator/TranslatedBlockRaw.java \
 src/gdsl/translator/OptimizationConfig.java \
+src/gdsl/translator/OptimizationOptions.java \
 src/gdsl/translator/RReilTranslateException.java \
 src/gdsl/ReferenceManager.java \
 src/gdsl/HeapExpiredException.java \
