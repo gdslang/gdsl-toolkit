@@ -179,6 +179,7 @@ GDSL_ASM = \
 
 GDSL_X86 = \
 	$(srcdir)/specifications/x86/x86.ml \
+	$(srcdir)/specifications/x86/x86-equals.ml \
 	$(srcdir)/specifications/x86/x86-traverse.ml \
 	$(srcdir)/specifications/x86/x86-pretty.ml \
 	$(srcdir)/specifications/x86/x86-asm.ml \

@@ -38,7 +38,7 @@ val sem-maskmov-opnd element-size dst src mask = do
           write-dst (var (at-offset src-temp offset))
         _else
           if is-store then
-  	        write-dst (imm 0)
+            write-dst (imm 0)
           else
             return void
       end end
@@ -369,7 +369,7 @@ val sem-pabs avx-encoded element-size x = do
       current-dst <- return (at-offset temp-dst offset);
       _if (/lts element-size (var current-src) (imm 0)) _then
         #xorb element-size current-dst (var current-src) (imm (0-1));
-	#add element-size current-dst (var current-dst) (imm 1)
+  #add element-size current-dst (var current-dst) (imm 1)
         sub element-size current-dst (imm 0) (var current-src)
       _else do
         mov element-size current-dst (var current-src)
@@ -462,7 +462,7 @@ val sem-packuswb-packusdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = 
        mov dst-element-size (at-offset temp-dst dst-offset) (imm upper)
      ) _else (_if (/lts element-size (var (at-offset temp-src src-offset)) (imm 0)) _then (
        mov dst-element-size (at-offset temp-dst dst-offset) (imm 0)
-		 ) _else (
+     ) _else (
        mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src src-offset))
      ))
     end
@@ -642,8 +642,8 @@ val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 op
       _else
 #        if avx-encoded then
 #          mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
-#      	else
-	        return void
+#       else
+          return void
     end
   in
     vector-apply size element-size m
@@ -1443,7 +1443,7 @@ val sem-psadbw-vpsadbw-opnd avx-encoded opnd1 opnd2 opnd3 = do
         val n i = do
           movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + ((i + 1)*diff-element-size))));
           add ex-size temp-sum (var temp-sum) (var temp-sum-ex)
-	end
+  end
       in
         vector-apply 7 1 n
       end;
@@ -1482,9 +1482,9 @@ val sem-pshufb-vpshufb-opnd avx-encoded opnd1 opnd2 opnd3 = do
         mov element-size (at-offset temp-dst offset) (imm 0)
       _else do
         movzx size index (logb (/z size element-size)) (var (at-offset temp-scm offset));
-	mul size index (var index) (imm element-size);
+  mul size index (var index) (imm element-size);
         shr size temp src (var index);
-	mov element-size (at-offset temp-dst offset) (var temp)
+  mov element-size (at-offset temp-dst offset) (var temp)
       end
     end
   in
@@ -1525,43 +1525,43 @@ val sem-pshuf-vdhwlw avx-encoded element-size low-size high-size x = do
 
       mask <- return (
         case i of
-	   0: '00000011'
-	 | 1: '00001100'
-	 | 2: '00110000'
-	 | 3: '11000000'
-	end
+     0: '00000011'
+   | 1: '00001100'
+   | 2: '00110000'
+   | 3: '11000000'
+  end
       );
 
       index <- return (element-size*(
         case i of
-	   0:
-	     case (indices and mask) of
-	        '00000000': 0
-	      | '00000001': 1
-	      | '00000010': 2
-	      | '00000011': 3
-	     end
-	 | 1:
-	     case (indices and mask) of
-	        '00000000': 0
-	      | '00000100': 1
-	      | '00001000': 2
-	      | '00001100': 3
-	     end
-	 | 2:
-	     case (indices and mask) of
-	        '00000000': 0
-	      | '00010000': 1
-	      | '00100000': 2
-	      | '00110000': 3
-	     end
-	 | 3:
-	     case (indices and mask) of
-	        '00000000': 0
-	      | '01000000': 1
-	      | '10000000': 2
-	      | '11000000': 3
-	     end
+     0:
+       case (indices and mask) of
+          '00000000': 0
+        | '00000001': 1
+        | '00000010': 2
+        | '00000011': 3
+       end
+   | 1:
+       case (indices and mask) of
+          '00000000': 0
+        | '00000100': 1
+        | '00001000': 2
+        | '00001100': 3
+       end
+   | 2:
+       case (indices and mask) of
+          '00000000': 0
+        | '00010000': 1
+        | '00100000': 2
+        | '00110000': 3
+       end
+   | 3:
+       case (indices and mask) of
+          '00000000': 0
+        | '01000000': 1
+        | '10000000': 2
+        | '11000000': 3
+       end
         end
       ));
 
@@ -2187,7 +2187,7 @@ val sem-ret va x = do
    | VA1 v:
        do
          comb <- return (@{opnd1=v.opnd1} x);
-	       address <- sem-ret-without-operand comb;
+         address <- sem-ret-without-operand comb;
          release-from-stack comb;
          ret address
        end
@@ -2586,21 +2586,14 @@ end
 
 ## T>>
 
-val sem-test x = do
-  sz <- sizeof2 x.opnd1 x.opnd2;
-  a <- rval sz x.opnd1;
-  b <- rvals Signed sz x.opnd2;
-
-  temp <- mktemp;
-  andb sz temp a b;
-
+val sem-test-inner sz r = do
   sf <- fSF;
-  cmplts sz sf (var temp) (imm 0);
+  cmplts sz sf r (imm 0);
 
   zf <- fZF;
-  cmpeq sz zf (var temp) (imm 0);
+  cmpeq sz zf r (imm 0);
 
-  emit-parity-flag (var temp);
+  emit-parity-flag r;
 
   cf <- fCF;
   mov 1 cf (imm 0);
@@ -2612,6 +2605,21 @@ val sem-test x = do
   undef 1 af;
 
   emit-virt-flags
+end
+
+val sem-test x = do
+  sz <- sizeof2 x.opnd1 x.opnd2;
+  a <- rval sz x.opnd1;
+  b <- rvals Signed sz x.opnd2;
+
+  if (equals-opnd x.opnd1 x.opnd2) then do
+    sem-test-inner sz a
+    end
+  else do
+    temp <- mktemp;
+    andb sz temp a b;
+    sem-test-inner sz (var temp)
+  end
 end
 
 ## U>>
