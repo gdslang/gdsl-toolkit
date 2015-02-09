@@ -116,7 +116,7 @@ in do
   succ_a <- seek-translate-block-at succs.a;
   succ_b <- seek-translate-block-at succs.b;
 
-  update@{natives=natives};
+  update@{insns=natives};
   update@{ins_count=ic};
 
   return {insns=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
