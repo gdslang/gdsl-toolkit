@@ -24,3 +24,14 @@ val equals-seg-over sa sb = case sa of
  | SEG_OVERRIDE ra: case sb of SEG_OVERRIDE rb: equals-register ra rb | _: '0'
    end
 end
+
+val zero-opnd opnd = case opnd of
+   IMM8 i: (zx i.imm) === 0
+ | IMM16 i: (zx i.imm) === 0
+ | IMM32 i: (zx i.imm) === 0
+ | IMM64 i: (zx i.imm) === 0
+ | REG r: '0'
+ | MEM m: '0'
+ | X86_SUM s: (zero-opnd s.a) and (zero-opnd s.b)
+ | X86_SCALE s: ((zx s.imm) === 0) and (zero-opnd s.opnd)
+end

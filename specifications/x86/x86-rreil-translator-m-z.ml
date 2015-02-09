@@ -2612,7 +2612,8 @@ val sem-test x = do
   a <- rval sz x.opnd1;
   b <- rvals Signed sz x.opnd2;
 
-  if (equals-opnd x.opnd1 x.opnd2) then do
+  if (equals-opnd x.opnd1 x.opnd2) or
+    (zero-opnd x.opnd1) or (zero-opnd x.opnd2) then do
     sem-test-inner sz a
     end
   else do
