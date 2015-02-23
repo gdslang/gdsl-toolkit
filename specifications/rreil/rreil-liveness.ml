@@ -253,11 +253,12 @@ val lv-analyze initial-live stack =
 							 		body-state <- sweep body-rev (lvstate-empty fmap-empty body-rev);
 							 		state-new <- return (lvstate-union-conservative state body-state);
 
-							 		maybelive <- query $maybelive;
+							 		#maybelive <- query $maybelive;
 
 							 		live-stack-restore backup;
-							     lv-push-live (/WHILE y.cond maybelive);
-                   sweep x.tl (lvstate-eval state-new x.hd)
+							    #lv-push-live (/WHILE y.cond maybelive);
+							    lv-push-live (/WHILE y.cond y.body);
+                  sweep x.tl (lvstate-eval state-new x.hd)
                  end
                | SEM_ITE y: do
 							 		org-backup <- live-stack-backup-and-reset;
