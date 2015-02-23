@@ -20,8 +20,6 @@ public class X86Binder extends ArchBinder {
    */
   public X86Binder (Frontend[] frontends) {
     super(specific(frontends, ArchId.X86));
-
-    setConfigFlag(X86ConfigFlag.DefaultOpndSz32);
   }
 
   /**
@@ -35,7 +33,5 @@ public class X86Binder extends ArchBinder {
     
     if (!checkFrontend(ArchId.X86, getFrontend()))
       throw new IllegalArgumentException();
-
-    setConfigFlag(X86ConfigFlag.DefaultOpndSz32);
   }
 }

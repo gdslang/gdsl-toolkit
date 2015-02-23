@@ -65,11 +65,11 @@ public class Program {
 //    buffer.put((byte) 0xc8);
 //    buffer.put((byte) 0xc3);
   ByteBuffer buffer = ByteBuffer.allocateDirect(5);
-  buffer.put((byte) 0x3b);
-  buffer.put((byte) 0xfe);
-  buffer.put((byte) 0x78);
-  buffer.put((byte) 0x05);
-  buffer.put((byte) 0xc3);
+  buffer.put((byte) 0xe8);
+  buffer.put((byte) 0xae);
+  buffer.put((byte) 0xff);
+  buffer.put((byte) 0xff);
+  buffer.put((byte) 0xff);
 
     sub(buffer);
 //    

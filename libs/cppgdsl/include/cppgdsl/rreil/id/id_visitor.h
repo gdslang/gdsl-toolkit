@@ -29,7 +29,7 @@ public:
   virtual void visit(arch_id *a);
   virtual void visit(shared_id *a);
   virtual void visit(_virtual *a);
-  virtual void _default(id *s);;
+  virtual void _default(id *s);
 
   void _(std::function<void(arch_id*)> c) {
     this->arch_id_callback = c;
