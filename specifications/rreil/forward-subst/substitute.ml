@@ -15,15 +15,15 @@ val subst-stmt-m state stmt = case stmt of
   		newCond <- subst-cond state s.cond;
   		case newCond of
   		  Nothing-sexpr : do
-  			println "subst-cond-ite-nothing";
+  			#println "subst-cond-ite-nothing";
   			return (SEM_ITE {cond= s.cond, then_branch= tb, else_branch= eb})
   			end
   		| Just-sexpr se : do
-  			println "subst-cond-ite-insert";
+  			#println "subst-cond-ite-insert";
   			return (SEM_ITE {cond= se, then_branch= tb, else_branch= eb})
   			end
   		| Just-sexpr-inverted se : do
-  			println "subst-cond-ite-insert-inverted";
+  			#println "subst-cond-ite-insert-inverted";
   			return (SEM_ITE {cond= se, then_branch= eb, else_branch= tb})
   			end
   		end

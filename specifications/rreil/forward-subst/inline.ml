@@ -69,7 +69,7 @@ val update-with-stmt state stmt = case stmt of
 export update-bind-expr : (subst-map, int, sem_var, sem_expr) -> S subst-map  <{} => {}>
 val update-bind-expr state size var expr = case expr of
     SEM_SEXPR sexpr : return (update-bind-sexpr state size var sexpr)
-  | SEM_XOR a2      : do println ("checking "+++rreil-show-expr expr);
+  | SEM_XOR a2      : do #println ("checking "+++rreil-show-expr expr);
   						if size === 1 and is-inverting-xor a2.opnd1 a2.opnd2
   						then do println ("checking inv "+++rreil-show-expr expr);
   						case subst-linear-to-cond state a2.opnd1 of
