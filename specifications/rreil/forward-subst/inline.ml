@@ -34,10 +34,9 @@ val subst-stmt-list-initial stmts = do
 
 export subst-stmt-list-m : (subst-map, sem_stmt_list) -> S sem_stmt_list <{} => {}>
 val subst-stmt-list-m state stmts = case stmts of
-		SEM_CONS s : let
-			val new-stmt = subst-stmt state s.hd
-			val new-state = update-with-stmt state new-stmt
-			in do
+		SEM_CONS s : do
+				new-stmt <- subst-stmt-m state s.hd;
+				new-state <- update-with-stmt state new-stmt;
 				#println "old stmt:";
 				#println (rreil-show-stmt s.hd);
 				#println "new stmt:";
@@ -46,46 +45,63 @@ val subst-stmt-list-m state stmts = case stmts of
 				#println (show-substmap new-state);			
 				#println ".";
 				continued <- subst-stmt-list-m new-state s.tl;
-				return (SEM_CONS {hd=new-stmt, tl=continued}) end end
+				return (SEM_CONS {hd=new-stmt, tl=continued})
+				end
 	|	SEM_NIL    : return SEM_NIL
 	end 
 	
-export subst-stmt-list : (subst-map, sem_stmt_list) -> sem_stmt_list
-val subst-stmt-list state stmts = case stmts of
-		SEM_CONS s : let val new-stmt = subst-stmt state s.hd
-						 val new-state = update-with-stmt state new-stmt
-			  in SEM_CONS {hd=new-stmt, tl=subst-stmt-list new-state s.tl}
-		    end
-	|	SEM_NIL    : SEM_NIL
-	end 
 
-
-export update-with-stmt: (subst-map, sem_stmt) -> subst-map
+export update-with-stmt: (subst-map, sem_stmt) -> S subst-map  <{} => {}>
 val update-with-stmt state stmt = case stmt of
     SEM_ASSIGN  s  : update-bind-expr state s.size s.lhs s.rhs
-  | SEM_LOAD    s  : update-mark-var-overwritten state s.lhs.offset s.size s.lhs.id
-  | SEM_STORE   s  : state
-  | SEM_ITE     s  : substmap-initial # no join of branches, so we "approximate"
-  | SEM_WHILE   s  : substmap-initial # no fixpoint calculation, so we "approximate"
-  | SEM_CBRANCH s  : state
-  | SEM_BRANCH  s  : state
-  | SEM_FLOP    s  : update-mark-varl-overwritten state s.lhs
-  | SEM_PRIM    s  : update-mark-varl-list-overwritten state s.lhs
-  | SEM_THROW   s  : state
-	end 
+  | SEM_LOAD    s  : return (update-mark-var-overwritten state s.lhs.offset s.size s.lhs.id)
+  | SEM_STORE   s  : return state
+  | SEM_ITE     s  : return substmap-initial # no join of branches, so we "approximate"
+  | SEM_WHILE   s  : return substmap-initial # no fixpoint calculation, so we "approximate"
+  | SEM_CBRANCH s  : return state
+  | SEM_BRANCH  s  : return state
+  | SEM_FLOP    s  : return (update-mark-varl-overwritten state s.lhs)
+  | SEM_PRIM    s  : return (update-mark-varl-list-overwritten state s.lhs)
+  | SEM_THROW   s  : return state
+	end
 
 
-# only bind linear expressions
-export update-bind-expr : (subst-map, int, sem_var, sem_expr) -> subst-map
+export update-bind-expr : (subst-map, int, sem_var, sem_expr) -> S subst-map  <{} => {}>
 val update-bind-expr state size var expr = case expr of
-    SEM_SEXPR sexpr : update-bind-sexpr state size var sexpr
-  | x               : update-mark-var-overwritten state var.offset size var.id
+    SEM_SEXPR sexpr : return (update-bind-sexpr state size var sexpr)
+  | SEM_XOR a2      : do println ("checking "+++rreil-show-expr expr);
+  						if size === 1 and is-inverting-xor a2.opnd1 a2.opnd2
+  						then do println ("checking inv "+++rreil-show-expr expr);
+  						case subst-linear-to-cond state a2.opnd1 of
+  							  Nothing-sexpr :
+  									return (update-bind-sexpr-inverted state size var (SEM_SEXPR_LIN a2.opnd1))
+  							| Just-sexpr o1 :
+  									return (update-bind-sexpr-inverted state size var o1) 
+  							| Just-sexpr-inverted o1 :
+  									return (update-bind-sexpr state size var o1) 
+  							#TODO
+  							end
+  							end
+  						else return (update-mark-var-overwritten state var.offset size var.id)
+  						end
+  | x               : return (update-mark-var-overwritten state var.offset size var.id)
     end
   
+val is-inverting-xor opnd1 opnd2 = case opnd2 of
+	SEM_LIN_IMM l : l.const === 1
+	| x : '0'
+	end
+	  
 export update-bind-sexpr : (subst-map, int, sem_var, sem_sexpr) -> subst-map	
 val update-bind-sexpr state size var sexpr 
 	=	if sexpr-does-not-ref-to-var sexpr size var 
 			then update-bind-linear state var.offset size var.id sexpr
+			else update-mark-var-overwritten state var.offset size var.id
+
+export update-bind-sexpr-inverted : (subst-map, int, sem_var, sem_sexpr) -> subst-map	
+val update-bind-sexpr-inverted state size var sexpr 
+	=	if sexpr-does-not-ref-to-var sexpr size var 
+			then update-bind-linear-inverted state var.offset size var.id sexpr
 			else update-mark-var-overwritten state var.offset size var.id
 
 
@@ -93,7 +109,7 @@ export sexpr-does-not-ref-to-var : (sem_sexpr, int, sem_var) -> |1|
 val sexpr-does-not-ref-to-var linear size var = case linear of
 	SEM_SEXPR_LIN l  : linear-does-not-ref-to-var l size var
   | SEM_SEXPR_CMP x  : expr-cmp-does-not-ref-to-var x.cmp x.size var
-  | SEM_SEXPR_ARB    : '1'
+  | SEM_SEXPR_ARB    : '0' # quick hack to avoid the insertion of 'arbitrary'
   end
 
 export expr-cmp-does-not-ref-to-var : (sem_expr_cmp, int, sem_var) -> |1|
@@ -151,6 +167,9 @@ val update-mark-varl-overwritten state varl = update-mark-var-overwritten state 
 
 export update-bind-linear : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
 val update-bind-linear state offset size var linear = substmap-bind-sexpr state offset size var linear 
+
+export update-bind-linear-inverted : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
+val update-bind-linear-inverted state offset size var linear = substmap-bind-sexpr-inverted state offset size var linear 
 
 
 export update-mark-var-overwritten : (subst-map, int, int, sem_id) -> subst-map

@@ -149,8 +149,8 @@ int main(int argc, char** argv) {
   size_t last_offset = 0;
   while(last_offset < options.length) {
     opt_result_t opt_result = gdsl_decode_translate_block_optimized(state,
-//        gdsl_config_default(state),
-        gdsl_config_mode32(state),
+        gdsl_config_default(state),
+//        gdsl_config_mode32(state),
     gdsl_int_max(state), options.opt_config);
 
     string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, opt_result->rreil));
