@@ -21,7 +21,7 @@
 #define NANOS 1000000000LL
 
 enum p_option {
-  OPTION_ELF, OPTION_OFFSET, OPTION_SINGLE, OPTION_CHILDREN, OPTION_FILE, OPTION_CLEANUP, OPTION_LATEX
+  OPTION_ELF, OPTION_OFFSET, OPTION_SINGLE, OPTION_CHILDREN, OPTION_FILE, OPTION_CLEANUP, OPTION_LATEX, OPTION_LIVENESS, OPTION_FSUBST, OPTION_CHAIN
 };
 
 enum mode {
@@ -37,6 +37,10 @@ struct options {
   size_t files_length;
   char cleanup;
   char latex;
+
+  char liveness;
+  char fsubst;
+  char chain;
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
@@ -48,12 +52,16 @@ static char args_parse(int argc, char **argv, struct options *options) {
   options->files_length = 0;
   options->cleanup = 0;
   options->latex = 0;
+  options->liveness = 0;
+  options->fsubst = 0;
+  options->chain = 0;
 
-  struct option long_options[] = {{"elf", no_argument, NULL, OPTION_ELF}, {"offset", required_argument, NULL,
-      OPTION_OFFSET}, {"children",
-  no_argument, NULL, OPTION_CHILDREN}, {"single", no_argument, NULL, OPTION_SINGLE}, {"file", required_argument,
-  NULL, OPTION_FILE}, {"cleanup", no_argument, NULL, OPTION_CLEANUP}, {"latex", no_argument,
-  NULL, OPTION_LATEX}, {NULL, 0, NULL, 0}};
+  struct option long_options[] =
+      { { "elf", no_argument, NULL, OPTION_ELF }, { "offset", required_argument, NULL, OPTION_OFFSET }, { "children",
+      no_argument, NULL, OPTION_CHILDREN }, { "single", no_argument, NULL, OPTION_SINGLE }, { "file", required_argument,
+      NULL, OPTION_FILE }, { "cleanup", no_argument, NULL, OPTION_CLEANUP }, { "latex", no_argument,
+      NULL, OPTION_LATEX }, { "liveness", no_argument, NULL, OPTION_LIVENESS }, { "fsubst", no_argument, NULL,
+          OPTION_FSUBST}, { "chain", no_argument, NULL, OPTION_CHAIN}, {NULL, 0, NULL, 0}};
 
   while(1) {
     int result = getopt_long(argc, argv, "", long_options, NULL);
@@ -89,6 +97,18 @@ static char args_parse(int argc, char **argv, struct options *options) {
       }
       case OPTION_CLEANUP: {
         options->cleanup = 1;
+        break;
+      }
+      case OPTION_LIVENESS: {
+        options->liveness = 1;
+        break;
+      }
+      case OPTION_FSUBST: {
+        options->fsubst = 1;
+        break;
+      }
+      case OPTION_CHAIN: {
+        options->chain = 1;
         break;
       }
       case '?':
@@ -168,8 +188,8 @@ void print_results(struct context *context) {
   fprintf(stderr, "Statistics:\n");
   fprintf(stderr, "Number of native instructions: %zu\n", context->native_instructions);
   fprintf(stderr, "Number of blocks: %zu\n", context->blocks);
-  fprintf(stderr, "Number of RReil statements without LV analysis: %zu\n", context->stmts);
-  fprintf(stderr, "Number of RReil statements with LV analysis: %zu\n", context->stmts_opt);
+  fprintf(stderr, "Number of RReil statements without optimization: %zu\n", context->stmts);
+  fprintf(stderr, "Number of RReil statements with optimization: %zu\n", context->stmts_opt);
 
   double reduction = 1 - (context->stmts_opt / (double)context->stmts);
 
@@ -242,8 +262,8 @@ void print_results_latex(char *file, struct context *single, struct context *int
       symbol_t(inter->time_opt / (double)(NANOS)), 100 * reduction_inter, fac_inter);
 }
 
-char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_offset, size_t size_max,
-    size_t user_offset, struct context *context) {
+char analyze(char *file, char print, enum mode mode, char fsubst, char chain, char cleanup, size_t file_offset,
+    size_t size_max, size_t user_offset, struct context *context) {
   size_t size = 16 * 1024 * 1024;
   char *fmt = (char*)malloc(size);
 
@@ -291,10 +311,10 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
   obj_t state = gdsl_init();
 
-  if(setjmp(*gdsl_err_tgt(state))) {
-    fprintf(stderr, "failed: %s\n", gdsl_get_error_message(state));
-    exit(1);
-  }
+//  if(setjmp(*gdsl_err_tgt(state))) {
+//    fprintf(stderr, "failed: %s\n", gdsl_get_error_message(state));
+//    exit(1);
+//  }
 
   gdsl_set_code(state, buffer, buffer_length, 0);
 
@@ -304,9 +324,17 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
   context->stmts = 0;
   context->stmts_opt = 0;
 
+  uint64_t last = 1;
   while(consumed < buffer_length) {
     if(print) printf("### Next block (@offset %lu): ###\n\n", consumed);
     context->blocks++;
+
+    if(100*1024*last < consumed) {
+      printf("%lf MB\n", ((double)consumed)/(1024*1024));
+      fflush(stdout);
+      fflush(stderr);
+      last++;
+    }
 
 //		obj_t state = __createState(buffer + consumed, buffer_length - consumed,
 //				consumed, 0);
@@ -332,12 +360,14 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
     }
     clock_gettime(CLOCK_REALTIME, &end);
     long diff = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
-    context->time_non_opt += diff;
 
     if(translated == NULL || rreil_insns == NULL) {
-      printf("Translation or decoding error, aborting...");
-      break;
+      printf("Translation or decoding error, ignoring block...\n");
+      consumed++;
+      continue;
+      //break;
     }
+    context->time_non_opt += diff;
 
     /*
      * Todo: Fix
@@ -373,6 +403,11 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
     switch(mode) {
       case MODE_CHILDREN: {
+        if(fsubst) {
+          if(chain)
+            translated = gdsl_liveness_super_chainable(state, translated);
+          translated = gdsl_propagate_contextful(state, 1, translated);
+        }
         lv_result = gdsl_liveness_super(state, translated);
         break;
       }
@@ -504,9 +539,11 @@ static void run(struct options options, size_t *offset, size_t *size_max, double
 
     //fprintf(stderr, "Size: %zu\n", *size_max);
 
-    analyze(options.files[index], print, MODE_SINGLE, options.cleanup, *offset, *size_max, options.offset, &single);
-    analyze(options.files[index], print, MODE_DEFAULT, options.cleanup, *offset, *size_max, options.offset, &intra);
-    analyze(options.files[index], print, MODE_CHILDREN, options.cleanup, *offset, *size_max, options.offset, &inter);
+    analyze(options.files[index], print, MODE_SINGLE, options.fsubst, options.chain, options.cleanup, *offset,
+        *size_max, options.offset, &single);
+    analyze(options.files[index], print, MODE_DEFAULT, options.fsubst, options.chain, options.cleanup, *offset,
+        *size_max, options.offset, &intra);
+    analyze(options.files[index], print, MODE_CHILDREN, options.fsubst, options.chain, options.cleanup, *offset, *size_max, options.offset, &inter);
 
     print_results_latex(options.files[index], &single, &intra, &inter);
 
@@ -518,7 +555,7 @@ static void run(struct options options, size_t *offset, size_t *size_max, double
     struct context context;
     memset(&context, 0, sizeof(context));
     file_bounds_set(options, offset, size_max, options.files[index]);
-    analyze(options.files[index], print, options.mode, options.cleanup, *offset, *size_max, options.offset, &context);
+    analyze(options.files[index], print, options.mode, options.fsubst, options.chain, options.cleanup, *offset, *size_max, options.offset, &context);
 
     print_results(&context);
   }
@@ -577,7 +614,7 @@ int main(int argc, char** argv) {
   double inter_red_cum = 0.0;
 
   if(options.files_length == 1) {
-    run(options, &offset, &size_max, &single_red_cum, &intra_red_cum, &inter_red_cum, 0, 1);
+    run(options, &offset, &size_max, &single_red_cum, &intra_red_cum, &inter_red_cum, 0, 0);
     count = 1;
   } else {
     for(size_t i = 0; i < options.files_length; ++i) {

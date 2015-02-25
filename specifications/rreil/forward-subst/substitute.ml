@@ -36,15 +36,15 @@ val subst-stmt-m state stmt = case stmt of
   		newCond <- subst-cond state s.cond;
   		case newCond of
    		  Nothing-sexpr : do
-  			println "subst-cond-cbranch-nothing"; 			
+  			#println "subst-cond-cbranch-nothing"; 			
   			return (SEM_CBRANCH {cond= s.cond, target-true= subst-address state s.target-true, target-false= subst-address state s.target-false})
   			end
   		| Just-sexpr se : do
-  			println "subst-cond-cbranch-insert";
+  			#println "subst-cond-cbranch-insert";
   			return (SEM_CBRANCH {cond= se, target-true= subst-address state s.target-true, target-false= subst-address state s.target-false})
   			end
   		| Just-sexpr-inverted se : do
-  			println "subst-cond-cbranch-insert-inverted";
+  			#println "subst-cond-cbranch-insert-inverted";
   			return (SEM_CBRANCH {cond= se, target-true= subst-address state s.target-false, target-false= subst-address state s.target-true})
   			end
   		end
