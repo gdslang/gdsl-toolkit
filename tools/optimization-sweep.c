@@ -341,7 +341,7 @@ char analyze(char *file, char print, enum mode mode, char fsubst, char chain, ch
 //		gdsl_set_code(state, buffer + consumed, buffer_length - consumed, 0);
     gdsl_seek(state, consumed);
 
-    obj_t translated = NULL;
+    translate_result_t translated = NULL;
     obj_t rreil_insns = NULL;
     clock_gettime(CLOCK_REALTIME, &start);
     switch(mode) {
@@ -398,41 +398,49 @@ char analyze(char *file, char print, enum mode mode, char fsubst, char chain, ch
 //			if(fmt[i] == '\n')
 //				context->lines++;
 
-    lv_super_result_t lv_result;
     clock_gettime(CLOCK_REALTIME, &start);
 
+    obj_t lv_initial = NULL;
+    obj_t lv_after = NULL;
+    obj_t rreil_result;
     switch(mode) {
       case MODE_CHILDREN: {
-        if(fsubst) {
-          if(chain)
-            translated = gdsl_liveness_super_chainable(state, translated);
+        if(fsubst && chain) {
+          translated = gdsl_liveness_super_chainable(state, translated);
           translated = gdsl_propagate_contextful(state, 1, translated);
+          lv_super_result_t lv_r = gdsl_liveness_super(state, translated);
+          lv_initial = lv_r->initial;
+          lv_after = lv_r->after;
+          rreil_result = gdsl_select_live(state);
+        } else if(fsubst) {
+          translated = gdsl_propagate_contextful(state, 1, translated);
+          lv_super_result_t lv_r = gdsl_liveness_super(state, translated);
+          lv_initial = lv_r->initial;
+          lv_after = lv_r->after;
+          rreil_result = gdsl_select_live(state);;
+        } else {
+          lv_super_result_t lv_r = gdsl_liveness_super(state, translated);
+          lv_initial = lv_r->initial;
+          lv_after = lv_r->after;
+          rreil_result = gdsl_select_live(state);
         }
-        lv_result = gdsl_liveness_super(state, translated);
         break;
       }
       default: {
-        lv_result = gdsl_liveness(state, translated);
+        rreil_result = gdsl_liveness(state, translated);
         break;
       }
     }
-    obj_t rreil_instructions_greedy = gdsl_select_live(state);
-    /*
-     * Todo: Fix
-     */
-//		if(!__isNil(rreil_instructions_greedy)) {
-//			__fatal("Liveness failed (no greedy instructions)");
-//			goto end;
-//		}
+
     if(cleanup) {
-      /*
-       * Move the output somewhere else (so that it does not disturb the time measurement)
-       */
-//			printf("RREIL instructions after LV (greedy), before cleanup:\n");
-//			__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
-//			puts(fmt);
-//			printf("\n");
-      rreil_instructions_greedy = gdsl_cleanup(state, rreil_instructions_greedy);
+      if(print) {
+        printf("RREIL instructions before cleanup:\n");
+        string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_result));
+        puts(fmt);
+        printf("\n");
+      }
+
+      rreil_result = gdsl_cleanup(state, rreil_result);
     }
 
     clock_gettime(CLOCK_REALTIME, &end);
@@ -443,51 +451,28 @@ char analyze(char *file, char print, enum mode mode, char fsubst, char chain, ch
 //			goto end;
 //		}
 
-    if(print && mode == MODE_CHILDREN) {
+    if(print && lv_initial != NULL) {
       printf("Liveness initial state:\n");
-      string_t fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, lv_result->initial));
+      string_t fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, lv_initial));
       puts(fmt);
       printf("\n");
     }
 
-    obj_t greedy_state;
-
-    switch(mode) {
-      case MODE_CHILDREN: {
-        greedy_state = lv_result->after;
-        break;
-      }
-      default: {
-        greedy_state = lv_result;
-        break;
-      }
-    }
-    if(print) {
+    if(print && lv_after != NULL) {
       printf("Liveness greedy state:\n");
-      string_t fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, greedy_state));
+      string_t fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, lv_after));
       puts(fmt);
       printf("\n");
-    }
-
-    if(cleanup) {
-      if(print) {
-        printf("RREIL instructions after LV (greedy), before cleanup:\n");
-        string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_instructions_greedy));
-        puts(fmt);
-        printf("\n");
-      }
-
-      rreil_instructions_greedy = gdsl_cleanup(state, rreil_instructions_greedy);
     }
 
     if(print) {
       printf("RREIL instructions after LV (greedy):\n");
-      string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_instructions_greedy));
+      string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_result));
       puts(fmt);
       printf("\n");
     }
 
-    context->stmts_opt += gdsl_rreil_stmts_count(state, rreil_instructions_greedy);
+    context->stmts_opt += gdsl_rreil_stmts_count(state, rreil_result);
 
 //		for(size_t i = 0; fmt[i]; i++)
 //			if(fmt[i] == '\n')
