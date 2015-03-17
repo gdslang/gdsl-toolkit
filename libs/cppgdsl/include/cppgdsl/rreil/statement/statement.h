@@ -33,3 +33,14 @@ std::ostream& operator<<(std::ostream &out, statement &_this);
 
 }
 }
+
+#include "assign.h"
+#include "branch.h"
+#include "cbranch.h"
+#include "floating.h"
+#include "ite.h"
+#include "load.h"
+#include "prim.h"
+#include "store.h"
+#include "throw.h"
+#include "while.h"

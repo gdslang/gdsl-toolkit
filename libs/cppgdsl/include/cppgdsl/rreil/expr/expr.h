@@ -30,3 +30,9 @@ std::ostream& operator<<(std::ostream &out, expr &_this);
 
 }
 }
+
+#include "binop_op.h"
+#include "expr_binop.h"
+#include "expr_ext.h"
+#include "expr_sexpr.h"
+#include "expr_visitor.h"

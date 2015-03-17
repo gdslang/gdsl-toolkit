@@ -30,3 +30,8 @@ std::ostream &operator<<(std::ostream &out, sexpr &_this);
 
 }
 }
+
+#include "arbitrary.h"
+#include "sexpr_cmp.h"
+#include "sexpr_lin.h"
+#include "sexpr_visitor.h"
