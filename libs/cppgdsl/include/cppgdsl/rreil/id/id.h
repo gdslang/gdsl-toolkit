@@ -9,6 +9,9 @@
 #include "id_visitor.h"
 #include <iosfwd>
 #include <string>
+extern "C" {
+#include <gdsl_generic.h>
+}
 
 namespace gdsl {
 namespace rreil {
