@@ -1,9 +1,8 @@
 export translate: (insndata) -> S sem_stmt_list <{} => {}>
 
-val exceptions_on = '1'
-val bigendian_mem = '1'
-val isMIPS16Implemented = '1'
-val architectureRevision = 2
+######################################################################
+### architecture specific configurations can be set in the mips.ml ###
+######################################################################
 
 type signedness =
    Signed
@@ -78,6 +77,7 @@ val rval sn x = let
        | INSTRINDEX28 i: from-vec sn i
        | COFUN i: from-vec sn i
        | OP i: from-vec sn i
+       | _ : revision/rval-imm sn imm
       end
 
 in
@@ -138,6 +138,7 @@ val sizeof-rval x =
           | INSTRINDEX28 i: 28
           | COFUN i: 25
           | OP i: 5
+          | _ : revision/sizeof-imm imm
          end
     | OFFSET/BASE ob: 32
     | INDEX/BASE ib: 32
@@ -148,11 +149,11 @@ val mnemonic-with-format insn x = (mnemonic-of insn) +++ "." +++ show/format x.f
 val mnemonic-with-format-and-cond insn x = (mnemonic-of insn) +++ "." +++ show/condop x.cond +++ "." +++ show/format x.fmt
 
 
-val sem-default-nullop-ro-generic insn = do
+val sem-default-nullop-generic insn = do
 	prim-generic (mnemonic-of insn) varls-none varls-none
 end
 
-val sem-default-unop-r-tuple-ro-generic insn x = do
+val sem-default-unop-r-tuple-generic insn x = do
 	src1-sz <- return (sizeof-rval x.op);
 	src2-sz <- return (sizeof-rval x.op);
 
@@ -166,7 +167,7 @@ val sem-default-unop-r-tuple-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
-val sem-default-unop-r-ro-generic insn x = do
+val sem-default-unop-r-generic insn x = do
 	src-sz <- return (sizeof-rval x.op);
 
 	src <- rval Signed x.op;
@@ -176,7 +177,7 @@ val sem-default-unop-r-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) varls-none (varls-one (varl src-sz src-up))
 end
 
-val sem-default-binop-rr-tuple-ro-generic insn x = do
+val sem-default-binop-rr-tuple-generic insn x = do
 	src1-sz <- return (sizeof-rval x.op1);
 	src2-sz <- return (sizeof-rval x.op2);
 	src3-sz <- return (sizeof-rval x.op2);
@@ -193,7 +194,7 @@ val sem-default-binop-rr-tuple-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src1-sz src1-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src3-sz src3-up))))
 end
 
-val sem-default-binop-lr-tuple-ro-generic insn x = do
+val sem-default-binop-lr-tuple-generic insn x = do
 	dst-sz <- return (sizeof-lval x.op1);
 	src1-sz <- return (sizeof-rval x.op2);
 	src2-sz <- return (sizeof-rval x.op2);
@@ -210,7 +211,7 @@ val sem-default-binop-lr-tuple-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
-val sem-default-binop-rr-ro-generic insn x = do
+val sem-default-binop-rr-generic insn x = do
 	src1-sz <- return (sizeof-rval x.op1);
 	src2-sz <- return (sizeof-rval x.op2);
 
@@ -223,7 +224,7 @@ val sem-default-binop-rr-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
-val sem-default-binop-rl-ro-generic insn x = do
+val sem-default-binop-rl-generic insn x = do
 	src-sz <- return (sizeof-rval x.op1);
 	dst-sz <- return (sizeof-lval x.op2);
 
@@ -236,7 +237,7 @@ val sem-default-binop-rl-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) (varls-one (varl src-sz src-up)) (varls-one (varl dst-sz dst-up))
 end
 
-val sem-default-binop-lr-ro-generic insn x = do
+val sem-default-binop-lr-generic insn x = do
 	dst-sz <- return (sizeof-lval x.op1);
 	src-sz <- return (sizeof-rval x.op2);
 
@@ -249,7 +250,7 @@ val sem-default-binop-lr-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-one (varl src-sz src-up))
 end
 
-val sem-default-binop-flr-ro-generic insn x = do
+val sem-default-binop-flr-generic insn x = do
 	dst-sz <- return (sizeof-lval x.op1);
 	src-sz <- return (sizeof-rval x.op2);
 
@@ -262,7 +263,7 @@ val sem-default-binop-flr-ro-generic insn x = do
 	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-one (varl src-sz src-up))
 end
 
-val sem-default-ternop-rrr-ro-generic insn x = do
+val sem-default-ternop-rrr-generic insn x = do
 	src1-sz <- return (sizeof-rval x.op1);
 	src2-sz <- return (sizeof-rval x.op2);
 	src3-sz <- return (sizeof-rval x.op3);
@@ -278,7 +279,7 @@ val sem-default-ternop-rrr-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) varls-none (varls-more (varl src1-sz src1-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src3-sz src3-up))))
 end
 
-val sem-default-ternop-lrr-ro-generic insn x = do
+val sem-default-ternop-lrr-generic insn x = do
 	dst-sz <- return (sizeof-lval x.op1);
 	src1-sz <- return (sizeof-rval x.op2);
 	src2-sz <- return (sizeof-rval x.op3);
@@ -294,7 +295,7 @@ val sem-default-ternop-lrr-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
-val sem-default-ternop-flrr-ro-generic insn x = do
+val sem-default-ternop-flrr-generic insn x = do
 	dst-sz <- return (sizeof-lval x.op1);
 	src1-sz <- return (sizeof-rval x.op2);
 	src2-sz <- return (sizeof-rval x.op3);
@@ -310,7 +311,7 @@ val sem-default-ternop-flrr-ro-generic insn x = do
 	prim-generic (mnemonic-with-format insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
-val sem-default-ternop-cflrr-ro-generic insn x = do
+val sem-default-ternop-cflrr-generic insn x = do
 	dst-sz <- return (sizeof-lval x.op1);
 	src1-sz <- return (sizeof-rval x.op2);
 	src2-sz <- return (sizeof-rval x.op3);
@@ -326,7 +327,7 @@ val sem-default-ternop-cflrr-ro-generic insn x = do
 	prim-generic (mnemonic-with-format-and-cond insn x) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
 end
 
-val sem-default-quadop-lrrr-ro-generic insn x = do
+val sem-default-quadop-lrrr-generic insn x = do
 	dst-sz <- return (sizeof-lval x.op1);
 	src1-sz <- return (sizeof-rval x.op2);
 	src2-sz <- return (sizeof-rval x.op3);
@@ -345,7 +346,7 @@ val sem-default-quadop-lrrr-ro-generic insn x = do
 	prim-generic (mnemonic-of insn) (varls-one (varl dst-sz dst-up)) (varls-more (varl src1-sz src1-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src3-sz src3-up))))
 end
 
-val sem-default-quadop-flrrr-ro-generic insn x = do
+val sem-default-quadop-flrrr-generic insn x = do
 	dst-sz <- return (sizeof-lval x.op1);
 	src1-sz <- return (sizeof-rval x.op2);
 	src2-sz <- return (sizeof-rval x.op3);
@@ -430,19 +431,6 @@ val sem-addu x = do
 	add size res rs rt;
 
 	write x.op1 (var res)
-end
-
-val sem-addi x = do
-	rs <- rval Signed x.op2;
-	imm <- rval Signed x.op3;
-	size <- return (sizeof-lval x.op1);
-
-	res <- mktemp;
-	add size res rs imm;
-
-	overflow-add-addi size res rs imm;
-
-	write x.op1 (var res)	
 end
 
 val sem-addiu x = do
@@ -963,81 +951,6 @@ val sem-ll x = do
 	mov 1 llbit (imm 1);
 
 	sem-lw x
-end
-
-val sem-lwl x = do
-	off/base <- rval Signed x.op2;
-	base <- return (extract-tuple off/base).opnd1;
-	off <- return (extract-tuple off/base).opnd2;
-	rt <- lval Signed x.op1;
-	size <- return (sizeof-lval x.op1);
-
-	vaddr <- mktemp;
-	add size vaddr base off;
-
-	bcpu <- is-big-endian-cpu;
-	bcpu2 <- mktemp;
-	movsx 2 bcpu2 1 bcpu;
- 
-	byte <- mktemp;
-	xorb 2 byte (var vaddr) (var bcpu2);
-	shl 32 byte (var byte) (imm 3);
-	
-	memword <- mktemp;
-	load 32 memword size (var vaddr);
-
-	lshift <- mktemp;
-	sub size lshift (imm 24) (var byte);
-	high <- mktemp;
-	shl size high (var memword) (var lshift);
-
-	rshift <- mktemp;
-	add size rshift (imm 8) (var byte); 
-	low <- mktemp;
-	shl size low rt (var rshift);
-	shr size low (var low) (var rshift);
-
-	res <- mktemp;
-	orb size res (var high) (var low);
-	write x.op1 (var res)
-end
-
-val sem-lwr x = do
-	off/base <- rval Signed x.op2;
-	base <- return (extract-tuple off/base).opnd1;
-	off <- return (extract-tuple off/base).opnd2;
-	rt <- lval Signed x.op1;
-	size <- return (sizeof-lval x.op1);
-
-	vaddr <- mktemp;
-	add size vaddr base off;
-
-	bcpu <- is-big-endian-cpu;
-	bcpu2 <- mktemp;
-	movsx 2 bcpu2 1 bcpu;
- 
-	byte <- mktemp;
-	xorb 2 byte (var vaddr) (var bcpu2);
-	shl 32 byte (var byte) (imm 3);
-	
-	memword <- mktemp;
-	load 32 memword size (var vaddr);
-
-	lshift <- mktemp;
-	sub size lshift (imm 32) (var byte);
-	high <- mktemp;
-	shr size high (var memword) (var lshift);
-	shl size high (var high) (var lshift);
-
-	rshift <- mktemp;
-	sub size rshift (imm 31) (var byte); 
-	low <- mktemp;
-	shl size low rt (var rshift);
-	shr size low (var low) (var rshift);
-
-	res <- mktemp;
-	orb size res (var high) (var low);
-	write x.op1 (var res)
 end
 
 val sem-lui x = do
@@ -1586,96 +1499,27 @@ val sem-wsbh x = do
 	write x.op1 (var res)	
 end
 
-val sem-unpredictable = do
-	zero <- return (semantic-gpr-of ZERO);
-	undef zero.size zero;
-	at <- return (semantic-gpr-of AT);
-	undef at.size at;
-	v0 <- return (semantic-gpr-of V0);
-	undef v0.size v0;
-	v1 <- return (semantic-gpr-of V1);
-	undef v1.size v1;
-	a0 <- return (semantic-gpr-of T0);
-	undef a0.size a0;
-	a1 <- return (semantic-gpr-of T1);
-	undef a1.size a1;
-	a2 <- return (semantic-gpr-of T2);
-	undef a2.size a2;
-	a3 <- return (semantic-gpr-of T3);
-	undef a3.size a3;
-	t0 <- return (semantic-gpr-of T0);
-	undef t0.size t0;
-	t1 <- return (semantic-gpr-of T1);
-	undef t1.size t1;
-	t2 <- return (semantic-gpr-of T2);
-	undef t2.size t2;
-	t3 <- return (semantic-gpr-of T3);
-	undef t3.size t3;
-	t4 <- return (semantic-gpr-of T4);
-	undef t4.size t4;
-	t5 <- return (semantic-gpr-of T5);
-	undef t5.size t5;
-	t6 <- return (semantic-gpr-of T6);
-	undef t6.size t6;
-	t7 <- return (semantic-gpr-of T7);
-	undef t7.size t7;
-	s0 <- return (semantic-gpr-of S0);
-	undef s0.size s0;
-	s1 <- return (semantic-gpr-of S1);
-	undef s1.size s1;
-	s2 <- return (semantic-gpr-of S2);
-	undef s2.size s2;
-	s3 <- return (semantic-gpr-of S3);
-	undef s3.size s3;
-	s4 <- return (semantic-gpr-of S4);
-	undef s4.size s4;
-	s5 <- return (semantic-gpr-of S5);
-	undef s5.size s5;
-	s6 <- return (semantic-gpr-of S6);
-	undef s6.size s6;
-	s7 <- return (semantic-gpr-of S7);
-	undef s7.size s7;
-	t8 <- return (semantic-gpr-of T8);
-	undef t8.size t8;
-	t9 <- return (semantic-gpr-of T9);
-	undef t9.size t9;
-	k0 <- return (semantic-gpr-of K0);
-	undef k0.size k0;
-	k1 <- return (semantic-gpr-of K1);
-	undef k1.size k1;
-	gp <- return (semantic-gpr-of GP);
-	undef gp.size gp;
-	sp <- return (semantic-gpr-of SP);
-	undef sp.size sp;
-	s8 <- return (semantic-gpr-of S8);
-	undef s8.size s8;
-	ra <- return (semantic-gpr-of RA);
-	undef ra.size ra
-end
-
 val sem-undefined = return void
 
 val semantics i =
    case i of
-      UNPREDICTABLE: sem-unpredictable
+      UNPREDICTABLE: sem-default-nullop-generic i
     | UNDEFINED: sem-undefined
-    | ABS-fmt x: sem-default-binop-flr-ro-generic i x
+    | ABS-fmt x: sem-default-binop-flr-generic i x
     | ADD x: sem-add x
-    | ADD-fmt x: sem-default-ternop-flrr-ro-generic i x
-    | ADDI x: sem-addi x
+    | ADD-fmt x: sem-default-ternop-flrr-generic i x
     | ADDIU x: sem-addiu x
     | ADDU x: sem-addu x
-    | ALNV-PS x: sem-default-quadop-lrrr-ro-generic i x
     | AND x: sem-and x
     | ANDI x: sem-andi x
-    | BC1F x: sem-default-binop-rr-ro-generic i x
-    | BC1FL x: sem-default-binop-rr-ro-generic i x
-    | BC1T x: sem-default-binop-rr-ro-generic i x
-    | BC1TL x: sem-default-binop-rr-ro-generic i x
-    | BC2F x: sem-default-binop-rr-ro-generic i x
-    | BC2FL x: sem-default-binop-rr-ro-generic i x
-    | BC2T x: sem-default-binop-rr-ro-generic i x
-    | BC2TL x: sem-default-binop-rr-ro-generic i x
+    | BC1F x: sem-default-binop-rr-generic i x
+    | BC1FL x: sem-default-binop-rr-generic i x
+    | BC1T x: sem-default-binop-rr-generic i x
+    | BC1TL x: sem-default-binop-rr-generic i x
+    | BC2F x: sem-default-binop-rr-generic i x
+    | BC2FL x: sem-default-binop-rr-generic i x
+    | BC2T x: sem-default-binop-rr-generic i x
+    | BC2TL x: sem-default-binop-rr-generic i x
     | BEQ x: sem-beq x
     | BEQL x: sem-beql x
     | BGEZ x: sem-bgez x
@@ -1693,35 +1537,35 @@ val semantics i =
     | BNE x: sem-bne x
     | BNEL x: sem-bnel x
     | BREAK x: sem-break x
-    | C-cond-fmt x: sem-default-ternop-cflrr-ro-generic i x
-    | CACHE x: sem-default-binop-rr-tuple-ro-generic i x
-    | CACHEE x: sem-default-binop-rr-tuple-ro-generic i x
-    | CEIL-L-fmt x: sem-default-binop-flr-ro-generic i x
-    | CEIL-W-fmt x: sem-default-binop-flr-ro-generic i x
-    | CFC1 x: sem-default-binop-lr-ro-generic i x
-    | CFC2 x: sem-default-binop-lr-ro-generic i x
+    | C-cond-fmt x: sem-default-ternop-cflrr-generic i x
+    | CACHE x: sem-default-binop-rr-tuple-generic i x
+    | CACHEE x: sem-default-binop-rr-tuple-generic i x
+    | CEIL-L-fmt x: sem-default-binop-flr-generic i x
+    | CEIL-W-fmt x: sem-default-binop-flr-generic i x
+    | CFC1 x: sem-default-binop-lr-generic i x
+    | CFC2 x: sem-default-binop-lr-generic i x
     | CLO x: sem-cl 1 x
     | CLZ x: sem-cl 0 x
-    | COP2 x: sem-default-unop-r-ro-generic i x
-    | CTC1 x: sem-default-binop-rr-ro-generic i x
-    | CTC2 x: sem-default-binop-rr-ro-generic i x
-    | CVT-D-fmt x: sem-default-binop-flr-ro-generic i x
-    | CVT-L-fmt x: sem-default-binop-flr-ro-generic i x
-    | CVT-PS-S x: sem-default-ternop-lrr-ro-generic i x
-    | CVT-S-fmt x: sem-default-binop-flr-ro-generic i x
-    | CVT-S-PL x: sem-default-binop-lr-ro-generic i x
-    | CVT-S-PU x: sem-default-binop-lr-ro-generic i x
-    | CVT-W-fmt x: sem-default-binop-flr-ro-generic i x
+    | COP2 x: sem-default-unop-r-generic i x
+    | CTC1 x: sem-default-binop-rr-generic i x
+    | CTC2 x: sem-default-binop-rr-generic i x
+    | CVT-D-fmt x: sem-default-binop-flr-generic i x
+    | CVT-L-fmt x: sem-default-binop-flr-generic i x
+    | CVT-PS-S x: sem-default-ternop-lrr-generic i x
+    | CVT-S-fmt x: sem-default-binop-flr-generic i x
+    | CVT-S-PL x: sem-default-binop-lr-generic i x
+    | CVT-S-PU x: sem-default-binop-lr-generic i x
+    | CVT-W-fmt x: sem-default-binop-flr-generic i x
     | DERET: sem-deret
     | DI x: sem-di x
     | DIV x: sem-div x
-    | DIV-fmt x: sem-default-ternop-flrr-ro-generic i x
+    | DIV-fmt x: sem-default-ternop-flrr-generic i x
     | DIVU x: sem-divu x 
     | EI x: sem-ei x
     | ERET: sem-eret
     | EXT x: sem-ext x
-    | FLOOR-L-fmt x: sem-default-binop-flr-ro-generic i x
-    | FLOOR-W-fmt x: sem-default-binop-flr-ro-generic i x
+    | FLOOR-L-fmt x: sem-default-binop-flr-generic i x
+    | FLOOR-W-fmt x: sem-default-binop-flr-generic i x
     | INS x: sem-ins x
     | J x: sem-j x
     | JAL x: sem-jal x
@@ -1734,9 +1578,9 @@ val semantics i =
     | LBE x: sem-lb x
     | LBU x: sem-lbu x
     | LBUE x: sem-lbu x
-    | LDC1 x: sem-default-binop-lr-tuple-ro-generic i x
-    | LDC2 x: sem-default-binop-rr-tuple-ro-generic i x
-    | LDXC1 x: sem-default-binop-lr-tuple-ro-generic i x
+    | LDC1 x: sem-default-binop-lr-tuple-generic i x
+    | LDC2 x: sem-default-binop-rr-tuple-generic i x
+    | LDXC1 x: sem-default-binop-lr-tuple-generic i x
     | LH x: sem-lh x
     | LHE x: sem-lh x
     | LHU x: sem-lhu x
@@ -1744,79 +1588,74 @@ val semantics i =
     | LL x: sem-ll x
     | LLE x: sem-ll x
     | LUI x: sem-lui x
-    | LUXC1 x: sem-default-binop-lr-tuple-ro-generic i x
+    | LUXC1 x: sem-default-binop-lr-tuple-generic i x
     | LW x: sem-lw x
-    | LWC1 x: sem-default-binop-lr-tuple-ro-generic i x
-    | LWC2 x: sem-default-binop-rr-tuple-ro-generic i x
+    | LWC1 x: sem-default-binop-lr-tuple-generic i x
+    | LWC2 x: sem-default-binop-rr-tuple-generic i x
     | LWE x: sem-lw x
-    | LWL x: sem-lwl x
-    | LWLE x: sem-lwl x
-    | LWR x: sem-lwr x
-    | LWRE x: sem-lwr x
-    | LWXC1 x: sem-default-binop-lr-tuple-ro-generic i x
     | MADD x: sem-madd x
-    | MADD-fmt x: sem-default-ternop-flrr-ro-generic i x
+    | MADD-fmt x: sem-default-ternop-flrr-generic i x
     | MADDU x: sem-maddu x
-    | MFC0 x: sem-default-ternop-lrr-ro-generic i x
-    | MFC1 x: sem-default-binop-lr-ro-generic i x
-    | MFC2 x: sem-default-binop-lr-ro-generic i x
-    | MFHC1 x: sem-default-binop-lr-ro-generic i x
-    | MFHC2 x: sem-default-binop-lr-ro-generic i x
+    | MFC0 x: sem-default-ternop-lrr-generic i x
+    | MFC1 x: sem-default-binop-lr-generic i x
+    | MFC2 x: sem-default-binop-lr-generic i x
+    | MFHC1 x: sem-default-binop-lr-generic i x
+    | MFHC2 x: sem-default-binop-lr-generic i x
     | MFHI x: sem-mfhi x
     | MFLO x: sem-mflo x
-    | MOV-fmt x: sem-default-binop-flr-ro-generic i x
+    | MOV-fmt x: sem-default-binop-flr-generic i x
     | MOVF x: sem-movf x
-    | MOVF-fmt x: sem-default-ternop-flrr-ro-generic i x
+    | MOVF-fmt x: sem-default-ternop-flrr-generic i x
     | MOVN x: sem-movn x
-    | MOVN-fmt x: sem-default-ternop-flrr-ro-generic i x
+    | MOVN-fmt x: sem-default-ternop-flrr-generic i x
     | MOVT x: sem-movt x
-    | MOVT-fmt x: sem-default-ternop-flrr-ro-generic i x
+    | MOVT-fmt x: sem-default-ternop-flrr-generic i x
     | MOVZ x: sem-movz x
-    | MOVZ-fmt x: sem-default-ternop-flrr-ro-generic i x
+    | MOVZ-fmt x: sem-default-ternop-flrr-generic i x
     | MSUB x: sem-msub x
-    | MSUB-fmt x: sem-default-quadop-flrrr-ro-generic i x
+    | MSUB-fmt x: sem-default-quadop-flrrr-generic i x
     | MSUBU x: sem-msubu x
-    | MTC0 x: sem-default-ternop-rrr-ro-generic i x
-    | MTC1 x: sem-default-binop-rl-ro-generic i x
-    | MTC2 x: sem-default-binop-rr-ro-generic i x
-    | MTHC1 x: sem-default-binop-rl-ro-generic i x
-    | MTHC2 x: sem-default-binop-rr-ro-generic i x
+    | MTC0 x: sem-default-ternop-rrr-generic i x
+    | MTC1 x: sem-default-binop-rl-generic i x
+    | MTC2 x: sem-default-binop-rr-generic i x
+    | MTHC1 x: sem-default-binop-rl-generic i x
+    | MTHC2 x: sem-default-binop-rr-generic i x
     | MTHI x: sem-mthi x
     | MTLO x: sem-mtlo x
     | MUL x: sem-mul x
-    | MUL-fmt x: sem-default-ternop-flrr-ro-generic i x
+    | MUL-fmt x: sem-default-ternop-flrr-generic i x
     | MULT x: sem-mult x
     | MULTU x: sem-multu x
-    | NEG-fmt x: sem-default-binop-flr-ro-generic i x
-    | NMADD-fmt x: sem-default-quadop-flrrr-ro-generic i x
-    | NMSUB-fmt x: sem-default-quadop-flrrr-ro-generic i x
+    | NEG-fmt x: sem-default-binop-flr-generic i x
+    | NMADD-fmt x: sem-default-quadop-flrrr-generic i x
+    | NMSUB-fmt x: sem-default-quadop-flrrr-generic i x
     | NOR x: sem-nor x
     | OR x: sem-or x
     | ORI x: sem-ori x
     | PAUSE: sem-pause
-    | PLL-PS x: sem-default-ternop-lrr-ro-generic i x
-    | PLU-PS x: sem-default-ternop-lrr-ro-generic i x
-    | PREF x: sem-default-binop-rr-tuple-ro-generic i x
-    | PREFE x: sem-default-binop-rr-tuple-ro-generic i x
-    | PREFX x: sem-default-binop-rr-tuple-ro-generic i x
-    | PUL-PS x: sem-default-ternop-lrr-ro-generic i x
-    | PUU-PS x: sem-default-ternop-lrr-ro-generic i x
+    | PLL-PS x: sem-default-ternop-lrr-generic i x
+    | PLU-PS x: sem-default-ternop-lrr-generic i x
+    | PREF x: sem-default-binop-rr-tuple-generic i x
+    | PREFE x: sem-default-binop-rr-tuple-generic i x
+    | PREFX x: sem-default-binop-rr-tuple-generic i x
+    | PUL-PS x: sem-default-ternop-lrr-generic i x
+    | PUU-PS x: sem-default-ternop-lrr-generic i x
     | RDHWR x: sem-rdhwr x
-    | RDPGPR x: sem-default-binop-lr-ro-generic i x
-    | RECIP-fmt x: sem-default-binop-flr-ro-generic i x
+    | RDPGPR x: sem-default-binop-lr-generic i x
+    | RECIP-fmt x: sem-default-binop-flr-generic i x
     | ROTR x: sem-rotr x
     | ROTRV x: sem-rotrv x
-    | ROUND-L-fmt x: sem-default-binop-flr-ro-generic i x
-    | ROUND-W-fmt x: sem-default-binop-flr-ro-generic i x
-    | RSQRT-fmt x: sem-default-binop-flr-ro-generic i x
+    | ROUND-L-fmt x: sem-default-binop-flr-generic i x
+    | ROUND-W-fmt x: sem-default-binop-flr-generic i x
+    | RSQRT-fmt x: sem-default-binop-flr-generic i x
     | SB x: sem-sb x
     | SBE x: sem-sb x
     | SC x: sem-sc x
     | SCE x: sem-sc x
     | SDBBP x: sem-sdbbp x
-    | SDC1 x: sem-default-binop-rr-tuple-ro-generic i x
-    | SDC2 x: sem-default-binop-rr-tuple-ro-generic i x
-    | SDXC1 x: sem-default-binop-rr-tuple-ro-generic i x
+    | SDC1 x: sem-default-binop-rr-tuple-generic i x
+    | SDC2 x: sem-default-binop-rr-tuple-generic i x
+    | SDXC1 x: sem-default-binop-rr-tuple-generic i x
     | SEB x: sem-seb x
     | SEH x: sem-seh x
     | SH x: sem-sh x
@@ -1827,26 +1666,26 @@ val semantics i =
     | SLTI x: sem-slti x
     | SLTIU x: sem-sltiu x
     | SLTU x: sem-sltu x
-    | SQRT-fmt x: sem-default-binop-flr-ro-generic i x
+    | SQRT-fmt x: sem-default-binop-flr-generic i x
     | SRA x: sem-sra x
     | SRAV x: sem-srav x
     | SRL x: sem-srl x
     | SRLV x: sem-srlv x
     | SUB x: sem-sub x
-    | SUB-fmt x: sem-default-ternop-flrr-ro-generic i x
+    | SUB-fmt x: sem-default-ternop-flrr-generic i x
     | SUBU x: sem-subu x
-    | SUXC1 x: sem-default-binop-rr-tuple-ro-generic i x
+    | SUXC1 x: sem-default-binop-rr-tuple-generic i x
     | SW x: sem-sw x
-    | SWC1 x: sem-default-binop-rr-tuple-ro-generic i x
-    | SWC2 x: sem-default-binop-rr-tuple-ro-generic i x
+    | SWC1 x: sem-default-binop-rr-tuple-generic i x
+    | SWC2 x: sem-default-binop-rr-tuple-generic i x
     | SWE x: sem-sw x
     | SWL x: sem-swl x
     | SWLE x: sem-swl x
     | SWR x: sem-swr x
     | SWRE x: sem-swr x
-    | SWXC1 x: sem-default-binop-rr-tuple-ro-generic i x
-    | SYNC x: sem-default-unop-r-ro-generic i x
-    | SYNCI x: sem-default-unop-r-tuple-ro-generic i x
+    | SWXC1 x: sem-default-binop-rr-tuple-generic i x
+    | SYNC x: sem-default-unop-r-generic i x
+    | SYNCI x: sem-default-unop-r-tuple-generic i x
     | SYSCALL x: sem-syscall
     | TEQ x: sem-teq x
     | TEQI x: sem-teqi x
@@ -1854,25 +1693,26 @@ val semantics i =
     | TGEI x: sem-tgei x
     | TGEIU x: sem-tgeiu x
     | TGEU x: sem-tgeu x
-    | TLBINV: sem-default-nullop-ro-generic i
-    | TLBINVF: sem-default-nullop-ro-generic i
-    | TLBP: sem-default-nullop-ro-generic i
-    | TLBR: sem-default-nullop-ro-generic i
-    | TLBWI: sem-default-nullop-ro-generic i
-    | TLBWR: sem-default-nullop-ro-generic i
+    | TLBINV: sem-default-nullop-generic i
+    | TLBINVF: sem-default-nullop-generic i
+    | TLBP: sem-default-nullop-generic i
+    | TLBR: sem-default-nullop-generic i
+    | TLBWI: sem-default-nullop-generic i
+    | TLBWR: sem-default-nullop-generic i
     | TLT x: sem-tlt x
     | TLTI x: sem-tlti x
     | TLTIU x: sem-tltiu x
     | TLTU x: sem-tltu x
     | TNE x: sem-tne x
     | TNEI x: sem-tnei x
-    | TRUNC-L-fmt x: sem-default-binop-flr-ro-generic i x
-    | TRUNC-W-fmt x: sem-default-binop-flr-ro-generic i x
-    | WAIT x: sem-default-unop-r-ro-generic i x
-    | WRPGPR x: sem-default-binop-rr-ro-generic i x
+    | TRUNC-L-fmt x: sem-default-binop-flr-generic i x
+    | TRUNC-W-fmt x: sem-default-binop-flr-generic i x
+    | WAIT x: sem-default-unop-r-generic i x
+    | WRPGPR x: sem-default-binop-rr-generic i x
     | WSBH x: sem-wsbh x
     | XOR x: sem-xor x
     | XORI x: sem-xori x
+    | _: revision/semantics i
    end
 
 # -> sftl

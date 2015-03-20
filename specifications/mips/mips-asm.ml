@@ -55,6 +55,7 @@ in case i of
  | INSTRINDEX28 i: inner i 28
  | COFUN i: inner i 25
  | OP i: inner i 5
+ | _ : revision/generalize-immediate i
 end end
 
 val generalize-ua ua =

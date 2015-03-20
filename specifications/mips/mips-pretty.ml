@@ -88,6 +88,7 @@ val show/immediate imm =
     | INSTRINDEX28 x: show-int (zx x)
     | COFUN x: show-int (zx x)
     | OP x: show-int (zx x)
+    | _ : revision/show/immediate imm
   end
 
 val show/format format = 
@@ -96,7 +97,7 @@ val show/format format =
     | D : "D"
     | W : "W"
     | L : "L"
-    | PS : "PS"
+    | _ : revision/show/format format
    end
 
 val show/condop cond = 

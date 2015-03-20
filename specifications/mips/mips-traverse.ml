@@ -33,10 +33,8 @@ val traverse f insn =
     | ABS-fmt x: f "ABS" (BINOP_FLR x)
     | ADD x: f "ADD" (TERNOP_LRR x)
     | ADD-fmt x: f "ADD" (TERNOP_FLRR x)
-    | ADDI x: f "ADDI" (TERNOP_LRR x)
     | ADDIU x: f "ADDIU" (TERNOP_LRR x)
     | ADDU x: f "ADDU" (TERNOP_LRR x)
-    | ALNV-PS x: f "ALNV.PS" (QUADOP_LRRR x)
     | AND x: f "AND" (TERNOP_LRR x)
     | ANDI x: f "ANDI" (TERNOP_LRR x)
     | BC1F x: f "BC1F" (BINOP_RR x)
@@ -120,11 +118,6 @@ val traverse f insn =
     | LWC1 x: f "LWC1" (BINOP_LR x)
     | LWC2 x: f "LWC2" (BINOP_RR x)
     | LWE x: f "LWE" (BINOP_LR x)
-    | LWL x: f "LWL" (BINOP_LR x)
-    | LWLE x: f "LWLE" (BINOP_LR x)
-    | LWR x: f "LWR" (BINOP_LR x)
-    | LWRE x: f "LWRE" (BINOP_LR x)
-    | LWXC1 x: f "LWXC1" (BINOP_LR x)
     | MADD x: f "MADD" (BINOP_RR x)
     | MADD-fmt x: f "MADD" (QUADOP_FLRRR x)
     | MADDU x: f "MADDU" (BINOP_RR x)
@@ -244,4 +237,5 @@ val traverse f insn =
     | WSBH x: f "WSBH" (BINOP_LR x)
     | XOR x: f "XOR" (TERNOP_LRR x)
     | XORI x: f "XORI" (TERNOP_LRR x)
+    | _: revision/traverse f insn
    end

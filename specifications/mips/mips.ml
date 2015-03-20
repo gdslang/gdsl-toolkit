@@ -10,16 +10,26 @@ val config-default = ''
 type insndata = {length:int, insn:instruction}
 
 
-
 ####################################################################
-### architecture specific values can be set in the translator.ml ###
+###             architecture specific configuration              ###
 ####################################################################
 
+## when set true, the instruction set and string conversion is adapted
+## to the mips gnu binutils assembler syntax
+val assembler-mode = '0'
 
+## when set false, exceptions are omitted from the translated RReil
+## code 
+val exceptions_on = '1'
 
-## being set true, the instruction set and printed output is adapted
-## to the mips evaluation assembler
-val assembler-mode = '1'
+## indicates the used memory layout
+val bigendian_mem = '1'
+
+## indicates that MIPS16 is supported
+val isMIPS16Implemented = '1'
+
+## architecture revision number (1 to 6 are available)
+val architectureRevision = 2
 
 
 #################################
@@ -32,7 +42,6 @@ val decode config = do
 
 #  endianness endian-little/instr32-little/access32; #mipsel
   endianness endian-big/instr32-big/access32; #mips
-  update@{rs='00000',rt='00000',rd='00000',fr='00000',fs='00000',ft='00000',fd='00000',immediate='0000000000000000',offset16='0000000000000000',offset9='000000000',base='00000',index='00000',sel='000',impl='0000000000000000',code10='0000000000',code10to20='0000000000',code19='0000000000000000000',code20='00000000000000000000',stype='00000',msb='00000',msbd='00000',lsb='00000',sa='00000',instr_index='00000000000000000000000000',cofun='0000000000000000000000000',cc='000',cond='0000',op='00000',hint='00000',fmt='00000'};
   idx-before <- get-ip;
   insn <- /;
   idx-after <- get-ip;
@@ -71,7 +80,6 @@ type format =
  | D
  | W
  | L
- | PS
 
 
 #########################################
@@ -158,33 +166,17 @@ val asmode? s = assembler-mode
 # decoder rules
 ####
 
-### ABS-fmt
-###  - Floating Point Absolute Value
-val / ['010001 /fmt5sdps 00000 /fs /fd 000101'] = binop-fmt ABS-fmt fmt fd (right fs) 
-
 ### ADD
 ###  - Add Word
 val / ['000000 /rs /rt /rd 00000 100000'] = ternop ADD rd (right rs) (right rt) 
 
-### ADD-fmt
-###  - Floating Point Add
-val / ['010001 /fmt5sdps /ft /fs /fd 000000'] = ternop-fmt ADD-fmt fmt fd (right fs) (right ft) 
-
-### ADDI
-###  - Add Immediate Word
-val / ['001000 /rs /rt /immediate'] = ternop ADDI rt (right rs) immediate 
-
 ### ADDIU
 ###  - Add Immediate Unsigned Word
-val / ['001001 /rs /rt /immediate'] = ternop ADDIU rt (right rs) immediate 
+val / ['001001 /rs /rt /immediate16'] = ternop ADDIU rt (right rs) immediate16 
 
 ### ADDU
 ###  - Add Unsigned Word
 val / ['000000 /rs /rt /rd 00000 100001'] = ternop ADDU rd (right rs) (right rt) 
-
-### ALNV-PS
-###  - Floating Point Align Variable
-val / ['010011 /rs /ft /fs /fd 011110'] = quadop ALNV-PS fd (right fs) (right ft) (right rs) 
 
 ### AND
 ###  - And
@@ -192,7 +184,7 @@ val / ['000000 /rs /rt /rd 00000 100100'] = ternop AND rd (right rs) (right rt)
 
 ### ANDI
 ###  - And Immediate
-val / ['001100 /rs /rt /immediate'] = ternop ANDI rt (right rs) immediate 
+val / ['001100 /rs /rt /immediate16'] = ternop ANDI rt (right rs) immediate16 
 
 ### B
 ###  - Unconditional Branch
@@ -539,7 +531,7 @@ val / ['011111 /base /rt /offset9 0 101110']
 
 ### LUI
 ###  - Load Upper Immediate
-val / ['001111 00000 /rt /immediate'] = binop LUI rt immediate 
+val / ['001111 00000 /rt /immediate16'] = binop LUI rt immediate16 
 
 ### LUXC1
 ###  - Load Doubleword Indexed Unaligned to Floating Point
@@ -562,30 +554,6 @@ val / ['110010 /base /rt /offset16'] = binop LWC2 rt/imm offset16/base
 val / ['011111 /base /rt /offset9 0 101111']
  | asmode? = nullop UNDEFINED
  | otherwise = binop LWE rt offset9/base
-
-### LWL
-###  - Load Word Left
-val / ['100010 /base /rt /offset16'] = binop LWL rt offset16/base
-
-### LWLE
-###  - Load Word Left EVA
-val / ['011111 /base /rt /offset9 0 011001']
- | asmode? = nullop UNDEFINED
- | otherwise = binop LWLE rt offset9/base
-
-### LWR
-###  - Load Word Right
-val / ['100110 /base /rt /offset16'] = binop LWR rt offset16/base
-
-### LWRE
-###  - Load Word Right EVA
-val / ['011111 /base /rt /offset9 0 011010']
- | asmode? = nullop UNDEFINED
- | otherwise = binop LWRE rt offset9/base
-
-### LWXC1
-###  - Load Word Indexed to Floating Point
-val / ['010011 /base /index 00000 /fd 000000'] = binop LWXC1 fd index/base
 
 ### MADD
 ###  - Multiply and Add Word to Hi,Lo
@@ -753,7 +721,7 @@ val / ['000000 /rs /rt /rd 00000 100101'] = ternop OR rd (right rs) (right rt)
 
 ### ORI
 ###  - Or Immediate
-val / ['001101 /rs /rt /immediate'] = ternop ORI rt (right rs) immediate 
+val / ['001101 /rs /rt /immediate16'] = ternop ORI rt (right rs) immediate16 
 
 ### PAUSE
 ###  - Wait for the LLBit to clear
@@ -891,11 +859,11 @@ val / ['000000 /rs /rt /rd 00000 101010'] = ternop SLT rd (right rs) (right rt)
 
 ### SLTI
 ###  - Set on Less Than Immediate
-val / ['001010 /rs /rt /immediate'] = ternop SLTI rt (right rs) immediate 
+val / ['001010 /rs /rt /immediate16'] = ternop SLTI rt (right rs) immediate16 
 
 ### SLTIU
 ###  - Set on Less Than Immediate Unsigned
-val / ['001011 /rs /rt /immediate'] = ternop SLTIU rt (right rs) immediate 
+val / ['001011 /rs /rt /immediate16'] = ternop SLTIU rt (right rs) immediate16 
 
 ### SLTU
 ###  - Set on Less Than Unsigned
@@ -1001,7 +969,7 @@ val / ['000000 /rs /rt /code10 110100'] = ternop TEQ (right rs) (right rt) code1
 
 ### TEQI
 ###  - Trap if Equal Immediate
-val / ['000001 /rs 01100 /immediate'] = binop TEQI (right rs) immediate 
+val / ['000001 /rs 01100 /immediate16'] = binop TEQI (right rs) immediate16 
 
 ### TGE
 ###  - Trap if Greater or Equal
@@ -1009,11 +977,11 @@ val / ['000000 /rs /rt /code10 110000'] = ternop TGE (right rs) (right rt) code1
 
 ### TGEI
 ###  - Trap if Greater or Equal Immediate
-val / ['000001 /rs 01000 /immediate'] = binop TGEI (right rs) immediate 
+val / ['000001 /rs 01000 /immediate16'] = binop TGEI (right rs) immediate16 
 
 ### TGEIU
 ###  - Trap if Greater or Equal Immediate Unsigned
-val / ['000001 /rs 01001 /immediate'] = binop TGEIU (right rs) immediate 
+val / ['000001 /rs 01001 /immediate16'] = binop TGEIU (right rs) immediate16 
 
 ### TGEU
 ###  - Trap if Greater or Equal Unsigned
@@ -1053,11 +1021,11 @@ val / ['000000 /rs /rt /code10 110010'] = ternop TLT (right rs) (right rt) code1
 
 ### TLTI
 ###  - Trap if Less Than Immediate
-val / ['000001 /rs 01010 /immediate'] = binop TLTI (right rs) immediate 
+val / ['000001 /rs 01010 /immediate16'] = binop TLTI (right rs) immediate16 
 
 ### TLTIU
 ###  - Trap if Less Than Immediate Unsigned
-val / ['000001 /rs 01011 /immediate'] = binop TLTIU (right rs) immediate 
+val / ['000001 /rs 01011 /immediate16'] = binop TLTIU (right rs) immediate16 
 
 ### TLTU
 ###  - Trap if Less Than Unsigned
@@ -1069,7 +1037,7 @@ val / ['000000 /rs /rt /code10 110110'] = ternop TNE (right rs) (right rt) code1
 
 ### TNEI
 ###  - Trap if Not Equal Immediate
-val / ['000001 /rs 01110 /immediate'] = binop TNEI (right rs) immediate 
+val / ['000001 /rs 01110 /immediate16'] = binop TNEI (right rs) immediate16 
 
 ### TRUNC-L-fmt
 ###  - Floating Point Truncate to Long Fixed Point
@@ -1097,247 +1065,16 @@ val / ['000000 /rs /rt /rd 00000 100110'] = ternop XOR rd (right rs) (right rt)
 
 ### XORI
 ###  - Exclusive OR Immediate
-val / ['001110 /rs /rt /immediate'] = ternop XORI rt (right rs) immediate 
+val / ['001110 /rs /rt /immediate16'] = ternop XORI rt (right rs) immediate16 
 
 ### UNDEFINED
 ### - Undefined Instruction
-val / [] = nullop UNDEFINED
+### val / [] = nullop UNDEFINED
 
 
 ###########################
-# operand constructors
+# operand decoders
 ####
-
-val rs = do
-  rs <- query $rs;
-  update @{rs='00000'};
-  return (GPR (gpr-from-bits rs))
-end
-
-val rt = do
-  rt <- query $rt;
-  update @{rt='00000'};
-  return (GPR (gpr-from-bits rt))
-end
-
-val rd = do
-  rd <- query $rd;
-  update @{rd='00000'};
-  return (GPR (gpr-from-bits rd))
-end
-
-val rd/imm = do
-  rd <- query $rd;
-  update @{rd='00000'};
-  return (IMM (RTRD5 rd))
-end
-
-val rt/imm = do
-  rt <- query $rt;
-  update @{rt='00000'};
-  return (IMM (RTRD5 rt))
-end
-
-val fr = do
-  fr <- query $fr;
-  update @{fr='00000'};
-  return (FPR (fpr-from-bits fr))
-end
-
-val fs = do
-  fs <- query $fs;
-  update @{fs='00000'};
-  return (FPR (fpr-from-bits fs))
-end
-
-val ft = do
-  ft <- query $ft;
-  update @{ft='00000'};
-  return (FPR (fpr-from-bits ft))
-end
-
-val fd = do
-  fd <- query $fd;
-  update @{fd='00000'};
-  return (FPR (fpr-from-bits fd))
-end
-
-val fs/ctrl = do
-  fs <- query $fs;
-  update @{fs='00000'};
-  return (IMM (FSCTRL5 fs))
-end
-
-val immediate = do
-  immediate <- query $immediate;
-  update @{immediate='0000000000000000'};
-  return (IMM (IMM16 immediate))
-end
-
-val offset9 = do
-  offset9 <- query $offset9;
-  update @{offset9='000000000'};
-  return (IMM (OFFSET9 offset9))
-end
-
-val offset16 = do
-  offset16 <- query $offset16;
-  update @{offset16='0000000000000000'};
-  return (IMM (OFFSET16 offset16))
-end
-
-val offset18 = do
-  offset16 <- query $offset16;
-  update @{offset16='0000000000000000'};
-  return (IMM (OFFSET18 (offset16 ^ '00')))
-end
-
-val sel = do
-  sel <- query $sel;
-  update @{sel='000'};
-  return (IMM (SEL sel))
-end
-
-val impl = do
-  impl <- query $impl;
-  update @{impl='0000000000000000'};
-  return (IMM (IMPL impl))
-end
-
-val code10 = do
-  code10 <- query $code10;
-  update @{code10='0000000000'};
-  return (IMM (CODE10 code10))
-end
-
-val code10to20 = do
-  code10 <- query $code10;
-  code10to20 <- query $code10to20;
-  update @{code10='0000000000'};
-  update @{code10to20='0000000000'};
-  return (IMM (CODE20 (code10 ^ code10to20)))
-end
-
-val code19 = do
-  code19 <- query $code19;
-  update @{code19='0000000000000000000'};
-  return (IMM (CODE19 code19))
-end
-
-val code20 = do
-  code20 <- query $code20;
-  update @{code20='00000000000000000000'};
-  return (IMM (CODE20 code20))
-end
-
-val stype = do
-  stype <- query $stype;
-  update @{stype='00000'};
-  return (IMM (STYPE stype))
-end
-
-val msbd = do
-  msbd <- query $msbd;
-  update @{msbd='00000'};
-  return (IMM (MSBD msbd))
-end
-
-val lsb = do
-  lsb <- query $lsb;
-  update @{lsb='00000'};
-  return (IMM (LSB lsb))
-end
-
-val sa = do
-  sa <- query $sa;
-  update @{sa='00000'};
-  return (IMM (IMM5 sa))
-end
-
-val instr_index = do
-  instr_index <- query $instr_index;
-  update @{instr_index='00000000000000000000000000'};
-  return (IMM (INSTRINDEX28 (instr_index ^ '00')))
-end
-
-val cofun = do
-  cofun <- query $cofun;
-  update @{cofun='0000000000000000000000000'};
-  return (IMM (COFUN cofun))
-end
-
-val fcc = do
-  cc <- query $cc;
-  update @{cc='000'};
-  return (FCC (fcc-from-bits cc))
-end
-
-val c2cc = do
-  cc <- query $cc;
-  update @{cc='000'};
-  return (C2CC (c2cc-from-bits cc))
-end
-
-val cond = do
-  cond <- query $cond;
-  update @{cond='0000'};
-  return (cond-from-bits (cond))
-end
-
-val op = do
-  op <- query $op;
-  update @{op='00000'};
-  return (IMM (OP op))
-end
-
-val hint5 = do
-  hint <- query $hint;
-  update @{hint='00000'};
-  return (IMM (HINT hint))
-end
-
-val fmt = do
-  fmt <- query $fmt;
-  update @{fmt='00000'};
-  return (format-from-bits (fmt))
-end
-
-############################
-# tuple constructors
-####
-
-val offset9/base = do
-  offset9 <- query $offset9;
-  base <- query $base;
-  update @{offset9='000000000'};
-  update @{base='00000'};
-  return (OFFSET/BASE {offset=(OFFSET9 offset9), base=(gpr-from-bits base)})
-end
-
-val offset16/base = do
-  offset16 <- query $offset16;
-  base <- query $base;
-  update @{offset16='0000000000000000'};
-  update @{base='00000'};
-  return (OFFSET/BASE {offset=(OFFSET16 offset16), base=(gpr-from-bits base)})
-end
-
-val index/base = do
-  index <- query $index;
-  base <- query $base;
-  update @{index='00000'};
-  update @{base='00000'};
-  return (INDEX/BASE {index=(gpr-from-bits index), base=(gpr-from-bits base)})
-end
-
-val msb/lsb = do
-  msb <- query $msb;
-  lsb <- query $lsb;
-  update @{msb='00000'};
-  update @{lsb='00000'};
-  return (MSB/LSB {msb=(MSB msb), lsb=(LSB lsb)})
-end
-
 
 val /rs ['rs:5'] = update@{rs=rs}
 val /rt ['rt:5'] = update@{rt=rt}
@@ -1346,7 +1083,7 @@ val /fr ['fr:5'] = update@{fr=fr}
 val /fs ['fs:5'] = update@{fs=fs}
 val /ft ['ft:5'] = update@{ft=ft}
 val /fd ['fd:5'] = update@{fd=fd}
-val /immediate ['immediate:16'] = update@{immediate=immediate}
+val /immediate16 ['immediate16:16'] = update@{immediate16=immediate16}
 val /offset9 ['offset9:9'] = update@{offset9=offset9}
 val /offset16 ['offset16:16'] = update@{offset16=offset16}
 val /base ['base:5'] = update@{base=base}
@@ -1370,20 +1107,210 @@ val /op ['op:5'] = update@{op=op}
 val /hint5 ['hint:5'] = update@{hint=hint}
 val /hint5zero ['00000'] = update@{hint='00000'}
 val /hint4zero ['0000'] = update@{hint='00000'}
-val /fmt5sd ['10000'] = update@{fmt='10000'}
-val /fmt5sd ['10001'] = update@{fmt='10001'}
-val /fmt5sdps ['10000'] = update@{fmt='10000'}
-val /fmt5sdps ['10001'] = update@{fmt='10001'}
-val /fmt5sdps ['10110'] = update@{fmt='10110'}
-val /fmt5dwl ['10001'] = update@{fmt='10001'}
-val /fmt5dwl ['10100'] = update@{fmt='10100'}
-val /fmt5dwl ['10101'] = update@{fmt='10101'}
-val /fmt5swl ['10000'] = update@{fmt='10000'}
-val /fmt5swl ['10100'] = update@{fmt='10100'}
-val /fmt5swl ['10101'] = update@{fmt='10101'}
-val /fmt3sdps ['000'] = update@{fmt='10000'}
-val /fmt3sdps ['001'] = update@{fmt='10001'}
-val /fmt3sdps ['110'] = update@{fmt='10110'}
+val /fmt5sd ['10 /fmt3sd'] = return void
+val /fmt5dwl ['10001'] = update@{fmt=D}
+val /fmt5dwl ['10100'] = update@{fmt=W}
+val /fmt5dwl ['10101'] = update@{fmt=L}
+val /fmt5swl ['10000'] = update@{fmt=S}
+val /fmt5swl ['10100'] = update@{fmt=W}
+val /fmt5swl ['10101'] = update@{fmt=L}
+val /fmt3sd ['000'] = update@{fmt=S}
+val /fmt3sd ['001'] = update@{fmt=D}
+
+
+###########################
+# operand constructors
+####
+
+val rs = do
+  rs <- query $rs;
+  return (GPR (gpr-from-bits rs))
+end
+
+val rt = do
+  rt <- query $rt;
+  return (GPR (gpr-from-bits rt))
+end
+
+val rd = do
+  rd <- query $rd;
+  return (GPR (gpr-from-bits rd))
+end
+
+val rd/imm = do
+  rd <- query $rd;
+  return (IMM (RTRD5 rd))
+end
+
+val rt/imm = do
+  rt <- query $rt;
+  return (IMM (RTRD5 rt))
+end
+
+val fr = do
+  fr <- query $fr;
+  return (FPR (fpr-from-bits fr))
+end
+
+val fs = do
+  fs <- query $fs;
+  return (FPR (fpr-from-bits fs))
+end
+
+val ft = do
+  ft <- query $ft;
+  return (FPR (fpr-from-bits ft))
+end
+
+val fd = do
+  fd <- query $fd;
+  return (FPR (fpr-from-bits fd))
+end
+
+val fs/ctrl = do
+  fs <- query $fs;
+  return (IMM (FSCTRL5 fs))
+end
+
+val immediate16 = do
+  immediate16 <- query $immediate16;
+  return (IMM (IMM16 immediate16))
+end
+
+val offset9 = do
+  offset9 <- query $offset9;
+  return (IMM (OFFSET9 offset9))
+end
+
+val offset16 = do
+  offset16 <- query $offset16;
+  return (IMM (OFFSET16 offset16))
+end
+
+val offset18 = do
+  offset16 <- query $offset16;
+  return (IMM (OFFSET18 (offset16 ^ '00')))
+end
+
+val sel = do
+  sel <- query $sel;
+  return (IMM (SEL sel))
+end
+
+val impl = do
+  impl <- query $impl;
+  return (IMM (IMPL impl))
+end
+
+val code10 = do
+  code10 <- query $code10;
+  return (IMM (CODE10 code10))
+end
+
+val code10to20 = do
+  code10 <- query $code10;
+  code10to20 <- query $code10to20;
+  return (IMM (CODE20 (code10 ^ code10to20)))
+end
+
+val code19 = do
+  code19 <- query $code19;
+  return (IMM (CODE19 code19))
+end
+
+val code20 = do
+  code20 <- query $code20;
+  return (IMM (CODE20 code20))
+end
+
+val stype = do
+  stype <- query $stype;
+  return (IMM (STYPE stype))
+end
+
+val msbd = do
+  msbd <- query $msbd;
+  return (IMM (MSBD msbd))
+end
+
+val lsb = do
+  lsb <- query $lsb;
+  return (IMM (LSB lsb))
+end
+
+val sa = do
+  sa <- query $sa;
+  return (IMM (IMM5 sa))
+end
+
+val instr_index = do
+  instr_index <- query $instr_index;
+  return (IMM (INSTRINDEX28 (instr_index ^ '00')))
+end
+
+val cofun = do
+  cofun <- query $cofun;
+  return (IMM (COFUN cofun))
+end
+
+val fcc = do
+  cc <- query $cc;
+  return (FCC (fcc-from-bits cc))
+end
+
+val c2cc = do
+  cc <- query $cc;
+  return (C2CC (c2cc-from-bits cc))
+end
+
+val cond = do
+  cond <- query $cond;
+  return (cond-from-bits (cond))
+end
+
+val op = do
+  op <- query $op;
+  return (IMM (OP op))
+end
+
+val hint5 = do
+  hint <- query $hint;
+  return (IMM (HINT hint))
+end
+
+val fmt = do
+  fmt <- query $fmt;
+  return fmt
+end
+
+############################
+# tuple constructors
+####
+
+val offset9/base = do
+  offset9 <- query $offset9;
+  base <- query $base;
+  return (OFFSET/BASE {offset=(OFFSET9 offset9), base=(gpr-from-bits base)})
+end
+
+val offset16/base = do
+  offset16 <- query $offset16;
+  base <- query $base;
+  return (OFFSET/BASE {offset=(OFFSET16 offset16), base=(gpr-from-bits base)})
+end
+
+val index/base = do
+  index <- query $index;
+  base <- query $base;
+  return (INDEX/BASE {index=(gpr-from-bits index), base=(gpr-from-bits base)})
+end
+
+val msb/lsb = do
+  msb <- query $msb;
+  lsb <- query $lsb;
+  return (MSB/LSB {msb=(MSB msb), lsb=(LSB lsb)})
+end
+
 
 ####################################################################
 ### operation type followed by letters expr. the operand types
@@ -1477,10 +1404,8 @@ type instruction =
  | ABS-fmt of binop-flr
  | ADD of ternop-lrr
  | ADD-fmt of ternop-flrr
- | ADDI of ternop-lrr
  | ADDIU of ternop-lrr
  | ADDU of ternop-lrr
- | ALNV-PS of quadop-lrrr
  | AND of ternop-lrr
  | ANDI of ternop-lrr
  | BC1F of binop-rr
@@ -1564,11 +1489,6 @@ type instruction =
  | LWC1 of binop-lr
  | LWC2 of binop-rr
  | LWE of binop-lr
- | LWL of binop-lr
- | LWLE of binop-lr
- | LWR of binop-lr
- | LWRE of binop-lr
- | LWXC1 of binop-lr
  | MADD of binop-rr
  | MADD-fmt of quadop-flrrr
  | MADDU of binop-rr
@@ -1936,13 +1856,4 @@ val cond-from-bits bits =
   | '1101': C_NGE
   | '1110': C_LE
   | '1111': C_NGT
- end
-
-val format-from-bits bits = 
- case bits of
-    '10000': S
-  | '10001': D
-  | '10100': W
-  | '10101': L
-  | '10110': PS
  end
