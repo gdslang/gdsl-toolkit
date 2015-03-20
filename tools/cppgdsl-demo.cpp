@@ -113,11 +113,11 @@ void demo_single(gdsl::gdsl &g) {
       printf("Assignment\n");
     });
 
-    v->_([&](variable *a) {
+    v->_((std::function<void(variable*)>)([&](variable *a) {
       std::cout << (*a == *a ? "The variable equals itself" : ":-(") << std::endl;
       vars++;
       printf("Variable!\n");
-    });
+    }));
     s->accept(*v);
     delete v;
   }
