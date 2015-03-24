@@ -1,7 +1,10 @@
 val revision/sizeof-imm imm =
    case imm of
       IMM21 i: 21
+    | IMM32 i: 32
     | BP i: 2
+    | OFFSET28 i: 28
+    | C2CONDITION i: 5
    end
 
 val revision/rval-imm sn x = let
@@ -13,17 +16,21 @@ val revision/rval-imm sn x = let
 in
    case x of
       IMM21 i: from-vec sn i
+    | IMM32 i: from-vec sn i
     | BP i: from-vec sn i
+    | OFFSET28 i: from-vec sn i
+    | C2CONDITION i: from-vec sn i
    end
 end
 
 val sem-addiupc x = do
-	imm <- rval Signed x.op2;
+	im <- rval Signed x.op2;
 	size <- return (sizeof-lval x.op1);
 	pc <- return (semantic-reg-of Sem_PC);
-
+	
+	# im already shifted at decoding
 	res <- mktemp;
-	add size res (var pc) imm;
+	add size res (var pc) im;
 
 	write x.op1 (var res)	
 end
@@ -48,8 +55,111 @@ val sem-align x = do
 	write x.op1 (var res)	
 end
 
+val sem-aluipc x = do
+	im <- rval Signed x.op2;
+	size <- return (sizeof-lval x.op1);
+	pc <- return (semantic-reg-of Sem_PC);
+
+	# im already shifted at decoding
+	temp <- mktemp;
+	add size temp (var pc) im;
+
+	res <- mktemp;
+	mov size res (imm 0);
+	mov (size - 16) res (var (at-offset temp 16));
+
+	write x.op1 (var res)	
+end
+
+val sem-aui x = do
+	rs <- rval Signed x.op2;
+	im <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
+
+	# im already bitshifted at decoding
+	res <- mktemp;
+	add size res rs im;
+
+	write x.op1 (var res)	
+end
+
+val sem-auipc x = do
+	im <- rval Signed x.op2;
+	size <- return (sizeof-lval x.op1);
+	pc <- return (semantic-reg-of Sem_PC);
+
+	# im already bitshifted at decoding
+	res <- mktemp;
+	add size res (var pc) im;
+
+	write x.op1 (var res)	
+end
+
+val sem-balc x = do
+	pc <- return (semantic-reg-of Sem_PC);
+	ra <- return (semantic-gpr-of RA);
+	
+	# pc got incremented already => add 0 instead of 4
+	add ra.size ra (var pc) (imm 0);
+
+	sem-bc x
+end
+
+val sem-bc x = do
+	# offset already shifted at decoding
+	off <- rval Signed x.op;
+	size <- return (sizeof-rval x.op);
+	
+	cbranch-rel (imm 1) off
+end
+
+val sem-bc1 cmp_op x = do
+	ft <- rval Signed x.op1;
+	size <- return (sizeof-rval x.op1);
+	
+	off <- rval Signed x.op2;
+	cond <- cmp_op 1 ft (imm 0);
+
+	cbranch-rel cond off
+end
+
+val sem-bc1eqz x = sem-bc1 /eq x
+val sem-bc1nez x = sem-bc1 /neq x
+
+val sem-bzalc cmp_op x = do
+	pc <- return (semantic-reg-of Sem_PC);
+	ra <- return (semantic-gpr-of RA);
+	
+	# pc got incremented already => add 0 instead of 4
+	add ra.size ra (var pc) (imm 0);
+
+	sem-bz cmp_op x
+end
+
+val sem-blezalc x = sem-bzalc /les x
+val sem-bgezalc x = sem-bzalc /ges x
+val sem-bgtzalc x = sem-bzalc /gts x
+val sem-bltzalc x = sem-bzalc /lts x
+val sem-beqzalc x = sem-bzalc /eq x
+val sem-bnezalc x = sem-bzalc /neq x
+
 val revision/semantics i =
    case i of
       ADDIUPC x: sem-addiupc x
     | ALIGN x: sem-align x
+    | ALUIPC x: sem-aluipc x
+    | AUI x: sem-aui x
+    | AUIPC x: sem-auipc x
+    | BALC x: sem-balc x
+    | BC x: sem-bc x
+    | BC1EQZ x: sem-bc1eqz x
+    | BC1NEZ x: sem-bc1nez x
+    | BC2EQZ x: sem-default-binop-rr-generic i x
+    | BC2NEZ x: sem-default-binop-rr-generic i x
+    | BLEZALC x: sem-blezalc x
+    | BGEZALC x: sem-bgezalc x
+    | BGTZALC x: sem-bgtzalc x
+    | BLTZALC x: sem-bltzalc x
+    | BEQZALC x: sem-beqzalc x
+    | BNEZALC x: sem-bnezalc x
    end

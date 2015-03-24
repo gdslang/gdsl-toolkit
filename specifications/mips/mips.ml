@@ -148,7 +148,7 @@ end
 
 
 ########################
-# guards conditions
+# guard conditions
 ####
 
 val pause? s = (s.rt == '00000') and (s.rd == '00000') and (s.sa == '00101') and (not (assembler-mode))
@@ -194,101 +194,21 @@ val / ['001100 /rs /rt /immediate16'] = ternop ANDI rt (right rs) immediate16
 ###  - Branch and Link
 ###  => see BGEZAL r0, offset
 
-### BC1F
-###  - Branch on FP False
-val / ['010001 01000 /cc 0 0 /offset16'] = binop BC1F (right fcc) offset18 
-
-### BC1FL
-###  - Branch on FP False Likely
-val / ['010001 01000 /cc 1 0 /offset16'] = binop BC1FL (right fcc) offset18 
-
-### BC1T
-###  - Branch on FP True
-val / ['010001 01000 /cc 0 1 /offset16'] = binop BC1T (right fcc) offset18 
-
-### BC1TL
-###  - Branch on FP True Likely
-val / ['010001 01000 /cc 1 1 /offset16'] = binop BC1TL (right fcc) offset18 
-
-### BC2F
-###  - Branch on COP2 False
-val / ['010010 01000 /cc 0 0 /offset16'] = binop BC2F (right c2cc) offset18 
-
-### BC2FL
-###  - Branch on COP2 False Likely
-val / ['010010 01000 /cc 1 0 /offset16'] = binop BC2FL (right c2cc) offset18 
-
-### BC2T
-###  - Branch on COP2 True
-val / ['010010 01000 /cc 0 1 /offset16'] = binop BC2T (right c2cc) offset18 
-
-### BC2TL
-###  - Branch on COP2 True Likely
-val / ['010010 01000 /cc 1 1 /offset16'] = binop BC2TL (right c2cc) offset18 
-
 ### BEQ
 ###  - Branch on Equal
 val / ['000100 /rs /rt /offset16'] = ternop BEQ (right rs) (right rt) offset18 
-
-### BEQL
-###  - Branch on Equal Likely
-val / ['010100 /rs /rt /offset16'] = ternop BEQL (right rs) (right rt) offset18
 
 ### BGEZ
 ###  - Branch on Greater Than or Equal to Zero
 val / ['000001 /rs 00001 /offset16'] = binop BGEZ (right rs) offset18
 
-### BGEZAL
-###  - Branch on Greater Than or Equal to Zero and Link
-val / ['000001 /rs 10001 /offset16'] = binop BGEZAL (right rs) offset18
-
-### BGEZALL
-###  - Branch on Greater Than or Equal to Zero and Link Likely
-val / ['000001 /rs 10011 /offset16'] = binop BGEZALL (right rs) offset18
-
-### BGEZL
-###  - Branch on Greater Than or Equal to Zero Likely
-val / ['000001 /rs 00011 /offset16'] = binop BGEZL (right rs) offset18
-
-### BGTZ
-###  - Branch on Greater Than Zero
-val / ['000111 /rs 00000 /offset16'] = binop BGTZ (right rs) offset18
-
-### BGTZL
-###  - Branch on Greater Than Zero Likely
-val / ['010111 /rs 00000 /offset16'] = binop BGTZL (right rs) offset18
-
-### BLEZ
-###  - Branch on Less Than or Equal to Zero
-val / ['000110 /rs 00000 /offset16'] = binop BLEZ (right rs) offset18
-
-### BLEZL
-###  - Branch on Less Than or Equal to Zero Likely
-val / ['010110 /rs 00000 /offset16'] = binop BLEZL (right rs) offset18
-
 ### BLTZ
 ###  - Branch on Less Than Zero
 val / ['000001 /rs 00000 /offset16'] = binop BLTZ (right rs) offset18
 
-### BLTZAL
-###  - Branch on Less Than Zero And Link
-val / ['000001 /rs 10000 /offset16'] = binop BLTZAL (right rs) offset18
-
-### BLTZALL
-###  - Branch on Less Than Zero And Link Likely
-val / ['000001 /rs 10010 /offset16'] = binop BLTZALL (right rs) offset18
-
-### BLTZL
-###  - Branch on Less Than Zero Likely
-val / ['000001 /rs 00010 /offset16'] = binop BLTZL (right rs) offset18
-
 ### BNE
 ###  - Branch on Not Equal
 val / ['000101 /rs /rt /offset16'] = ternop BNE (right rs) (right rt) offset18
-
-### BNEL
-###  - Branch on Not Equal Likely
-val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset18
 
 ### BREAK
 ###  - Breakpoint
@@ -529,10 +449,6 @@ val / ['011111 /base /rt /offset9 0 101110']
  | asmode? = nullop UNDEFINED
  | otherwise = binop LLE rt offset9/base
 
-### LUI
-###  - Load Upper Immediate
-val / ['001111 00000 /rt /immediate16'] = binop LUI rt immediate16 
-
 ### LUXC1
 ###  - Load Doubleword Indexed Unaligned to Floating Point
 val / ['010011 /base /index 00000 /fd 000101'] = binop LUXC1 fd index/base
@@ -544,10 +460,6 @@ val / ['100011 /base /rt /offset16'] = binop LW rt offset16/base
 ### LWC1
 ###  - Load Word To Floating Point
 val / ['110001 /base /ft /offset16'] = binop LWC1 ft offset16/base
-
-### LWC2
-###  - Load Word to Coprocessor 2
-val / ['110010 /base /rt /offset16'] = binop LWC2 rt/imm offset16/base 
 
 ### LWE
 ###  - Load Word EVA
@@ -916,10 +828,6 @@ val / ['101011 /base /rt /offset16'] = binop SW (right rt) offset16/base
 ### SWC1
 ###  - Store Word from Floating Point
 val / ['111001 /base /ft /offset16'] = binop SWC1 (right ft) offset16/base
-
-### SWC2
-###  - Store Word from Coprocessor 2
-val / ['111010 /base /rt /offset16'] = binop SWC2 rt/imm offset16/base
 
 ### SWE
 ###  - Store Word EVA
@@ -1408,30 +1316,12 @@ type instruction =
  | ADDU of ternop-lrr
  | AND of ternop-lrr
  | ANDI of ternop-lrr
- | BC1F of binop-rr
- | BC1FL of binop-rr
- | BC1T of binop-rr
- | BC1TL of binop-rr
- | BC2F of binop-rr
- | BC2FL of binop-rr
- | BC2T of binop-rr
- | BC2TL of binop-rr
  | BEQ of ternop-rrr
- | BEQL of ternop-rrr
  | BGEZ of binop-rr
- | BGEZAL of binop-rr
- | BGEZALL of binop-rr
- | BGEZL of binop-rr
  | BGTZ of binop-rr
- | BGTZL of binop-rr
  | BLEZ of binop-rr
- | BLEZL of binop-rr
  | BLTZ of binop-rr
- | BLTZAL of binop-rr
- | BLTZALL of binop-rr
- | BLTZL of binop-rr
  | BNE of ternop-rrr
- | BNEL of ternop-rrr
  | BREAK of unop-r
  | C-cond-fmt of ternop-cflrr
  | CACHE of binop-rr
@@ -1487,7 +1377,6 @@ type instruction =
  | LUXC1 of binop-lr
  | LW of binop-lr
  | LWC1 of binop-lr
- | LWC2 of binop-rr
  | LWE of binop-lr
  | MADD of binop-rr
  | MADD-fmt of quadop-flrrr

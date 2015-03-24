@@ -518,21 +518,11 @@ val sem-bz-link cmp_op x = do
 end
 
 val sem-beq x = sem-b /eq x
-val sem-beql x = sem-b /eq x
 val sem-bgez x = sem-bz /ges x
-val sem-bgezal x = sem-bz-link /ges x
-val sem-bgezall x = sem-bz-link /ges x
-val sem-bgezl x = sem-bz /ges x
 val sem-bgtz x = sem-bz /gts x
-val sem-bgtzl x = sem-bz /gts x
 val sem-blez x = sem-bz /les x
-val sem-blezl x = sem-bz /les x
 val sem-bltz x = sem-bz /lts x
-val sem-bltzal x = sem-bz-link /lts x
-val sem-bltzall x = sem-bz-link /lts x
-val sem-bltzl x = sem-bz /lts x
 val sem-bne x = sem-b /neq x
-val sem-bnel x = sem-b /neq x
 
 val sem-break x = throw-exception SEM_EXC_BREAKPOINT
 
@@ -1512,30 +1502,12 @@ val semantics i =
     | ADDU x: sem-addu x
     | AND x: sem-and x
     | ANDI x: sem-andi x
-    | BC1F x: sem-default-binop-rr-generic i x
-    | BC1FL x: sem-default-binop-rr-generic i x
-    | BC1T x: sem-default-binop-rr-generic i x
-    | BC1TL x: sem-default-binop-rr-generic i x
-    | BC2F x: sem-default-binop-rr-generic i x
-    | BC2FL x: sem-default-binop-rr-generic i x
-    | BC2T x: sem-default-binop-rr-generic i x
-    | BC2TL x: sem-default-binop-rr-generic i x
     | BEQ x: sem-beq x
-    | BEQL x: sem-beql x
     | BGEZ x: sem-bgez x
-    | BGEZAL x: sem-bgezal x
-    | BGEZALL x: sem-bgezall x
-    | BGEZL x: sem-bgezl x
     | BGTZ x: sem-bgtz x
-    | BGTZL x: sem-bgtzl x
     | BLEZ x: sem-blez x
-    | BLEZL x: sem-blezl x
     | BLTZ x: sem-bltz x
-    | BLTZAL x: sem-bltzal x
-    | BLTZALL x: sem-bltzall x
-    | BLTZL x: sem-bltzl x
     | BNE x: sem-bne x
-    | BNEL x: sem-bnel x
     | BREAK x: sem-break x
     | C-cond-fmt x: sem-default-ternop-cflrr-generic i x
     | CACHE x: sem-default-binop-rr-tuple-generic i x
@@ -1591,7 +1563,6 @@ val semantics i =
     | LUXC1 x: sem-default-binop-lr-tuple-generic i x
     | LW x: sem-lw x
     | LWC1 x: sem-default-binop-lr-tuple-generic i x
-    | LWC2 x: sem-default-binop-rr-tuple-generic i x
     | LWE x: sem-lw x
     | MADD x: sem-madd x
     | MADD-fmt x: sem-default-ternop-flrr-generic i x
@@ -1677,7 +1648,6 @@ val semantics i =
     | SUXC1 x: sem-default-binop-rr-tuple-generic i x
     | SW x: sem-sw x
     | SWC1 x: sem-default-binop-rr-tuple-generic i x
-    | SWC2 x: sem-default-binop-rr-tuple-generic i x
     | SWE x: sem-sw x
     | SWL x: sem-swl x
     | SWLE x: sem-swl x

@@ -15,6 +15,17 @@ val sem-addi x = do
 	write x.op1 (var res)	
 end
 
+val sem-beql x = sem-b /eq x
+val sem-bgezal x = sem-bz-link /ges x
+val sem-bgezall x = sem-bz-link /ges x
+val sem-bgezl x = sem-bz /ges x
+val sem-bgtzl x = sem-bz /gts x
+val sem-blezl x = sem-bz /les x
+val sem-bltzal x = sem-bz-link /lts x
+val sem-bltzall x = sem-bz-link /lts x
+val sem-bltzl x = sem-bz /lts x
+val sem-bnel x = sem-b /neq x
+
 val sem-lwl x = do
 	off/base <- rval Signed x.op2;
 	base <- return (extract-tuple off/base).opnd1;
@@ -96,9 +107,29 @@ val revision/semantics i =
    case i of
       ADDI x: sem-addi x
     | ALNV-PS x: sem-default-quadop-lrrr-generic i x
+    | BC1F x: sem-default-binop-rr-generic i x
+    | BC1FL x: sem-default-binop-rr-generic i x
+    | BC1T x: sem-default-binop-rr-generic i x
+    | BC1TL x: sem-default-binop-rr-generic i x
+    | BC2F x: sem-default-binop-rr-generic i x
+    | BC2FL x: sem-default-binop-rr-generic i x
+    | BC2T x: sem-default-binop-rr-generic i x
+    | BC2TL x: sem-default-binop-rr-generic i x
+    | BEQL x: sem-beql x
+    | BGEZAL x: sem-bgezal x
+    | BGEZALL x: sem-bgezall x
+    | BGEZL x: sem-bgezl x
+    | BGTZL x: sem-bgtzl x
+    | BLEZL x: sem-blezl x
+    | BLTZAL x: sem-bltzal x
+    | BLTZALL x: sem-bltzall x
+    | BLTZL x: sem-bltzl x
+    | BNEL x: sem-bnel x
+    | LWC2 x: sem-default-binop-rr-tuple-generic i x
     | LWL x: sem-lwl x
     | LWLE x: sem-lwl x
     | LWR x: sem-lwr x
     | LWRE x: sem-lwr x
     | LWXC1 x: sem-default-binop-lr-tuple-generic i x
+    | SWC2 x: sem-default-binop-rr-tuple-generic i x
    end
