@@ -34,3 +34,7 @@ std::ostream &operator<<(std::ostream &out, id &_this);
 
 }
 }
+
+#include "arch_id.h"
+#include "shared_id.h"
+#include "virtual.h"
