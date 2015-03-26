@@ -44,7 +44,6 @@ val traverse f insn =
     | BLTZ x: f "BLTZ" (BINOP_RR x)
     | BNE x: f "BNE" (TERNOP_RRR x)
     | BREAK x: f "BREAK" (UNOP_R x)
-    | C-cond-fmt x: f "C" (TERNOP_CFLRR x)
     | CACHE x: f "CACHE" (BINOP_RR x)
     | CACHEE x: f "CACHEE" (BINOP_RR x)
     | CEIL-L-fmt x: f "CEIL.L" (BINOP_FLR x)

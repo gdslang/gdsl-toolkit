@@ -20,6 +20,7 @@ val revision/traverse f insn =
     | BLTZALL x: f "BLTZALL" (BINOP_RR x)
     | BLTZL x: f "BLTZL" (BINOP_RR x)
     | BNEL x: f "BNEL" (TERNOP_RRR x)
+    | C-cond-fmt x: f "C" (TERNOP_CFLRR x)
     | LDC2 x: f "LDC2" (BINOP_RR x)
     | LWC2 x: f "LWC2" (BINOP_RR x)
     | LWL x: f "LWL" (BINOP_LR x)

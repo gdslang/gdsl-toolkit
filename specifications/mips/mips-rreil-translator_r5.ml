@@ -125,6 +125,7 @@ val revision/semantics i =
     | BLTZALL x: sem-bltzall x
     | BLTZL x: sem-bltzl x
     | BNEL x: sem-bnel x
+    | C-cond-fmt x: sem-default-ternop-cflrr-generic i x
     | LDC2 x: sem-default-binop-rr-tuple-generic i x
     | LWC2 x: sem-default-binop-rr-tuple-generic i x
     | LWL x: sem-lwl x

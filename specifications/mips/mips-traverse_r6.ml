@@ -30,4 +30,7 @@ val revision/traverse f insn =
     | BEQZC x: f "BEQZC" (BINOP_RR x)
     | BNEZC x: f "BNEZC" (BINOP_RR x)
     | BITSWAP x: f "BITSWAP" (BINOP_LR x)
+    | BOVC x: f "BOVC" (TERNOP_RRR x)
+    | BNVC x: f "BNVC" (TERNOP_RRR x)
+    | CLASS-fmt x: f "CLASS" (BINOP_FLR x)
    end

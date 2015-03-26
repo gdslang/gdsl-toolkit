@@ -103,6 +103,10 @@ val / ['000001 /rs 00010 /offset16'] = binop BLTZL (right rs) offset18
 ###  - Branch on Not Equal Likely
 val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset18
 
+### C-cond-fmt
+###  - Floating Point Compare
+val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = ternop-cond-fmt C-cond-fmt cond fmt fcc (right fs) (right ft)
+
 ### LDC2
 ###  - Load Doubleword to Coprocessor 2
 val / ['110110 /base /rt /offset16'] = binop LDC2 rt/imm offset16/base 
@@ -169,6 +173,7 @@ type instruction =
  | BLTZALL of binop-rr
  | BLTZL of binop-rr
  | BNEL of ternop-rrr
+ | C-cond-fmt of ternop-cflrr
  | LDC2 of binop-rr
  | LWC2 of binop-rr
  | LWL of binop-lr

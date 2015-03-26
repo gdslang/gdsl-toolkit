@@ -191,6 +191,31 @@ val sem-bitswap x = do
 	write x.op1 (var rd_out)
 end
 
+val branch-on-overflow x cmp_op = do
+	rs <- rval Signed x.op1;
+	rt <- rval Signed x.op2;
+	off <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op1);
+
+	res <- mktemp;
+	add size res rs rt;
+	
+	t1 <- mktemp;
+	t2 <- mktemp;
+	t3 <- mktemp;
+
+	# overflow computation: mind**** alert
+	xorb size t1 (var res) rs;
+	xorb size t2 (var res) rt;
+	andb size t3 (var t1) (var t2);
+
+	cond <- cmp_op size (var t3) (imm 0);
+	cbranch-rel cond off
+end 
+
+val sem-bovc x = branch-on-overflow x /lts
+val sem-bnvc x = branch-on-overflow x /ges
+
 val revision/semantics i =
    case i of
       ADDIUPC x: sem-addiupc x
@@ -223,4 +248,7 @@ val revision/semantics i =
     | BEQZC x: sem-beqzc x
     | BNEZC x: sem-bnezc x
     | BITSWAP x: sem-bitswap x
+    | BOVC x: sem-bovc x
+    | BNVC x: sem-bnvc x
+    | CLASS-fmt x: sem-default-binop-flr-generic i x
    end

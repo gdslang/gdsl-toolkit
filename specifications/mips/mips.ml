@@ -217,10 +217,6 @@ val / ['000000 /code10 /code10to20 001101']
  | asmode? = nullop UNDEFINED
  | otherwise = unop BREAK code10to20 
 
-### C-cond-fmt
-###  - Floating Point Compare
-val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = ternop-cond-fmt C-cond-fmt cond fmt fcc (right fs) (right ft)
-
 ### CACHE
 ###  - Perform Cache Operation
 val / ['101111 /base /op /offset16'] = binop CACHE op offset16/base
@@ -1315,7 +1311,6 @@ type instruction =
  | BLTZ of binop-rr
  | BNE of ternop-rrr
  | BREAK of unop-r
- | C-cond-fmt of ternop-cflrr
  | CACHE of binop-rr
  | CACHEE of binop-rr
  | CEIL-L-fmt of binop-flr

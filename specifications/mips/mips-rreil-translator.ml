@@ -1509,7 +1509,6 @@ val semantics i =
     | BLTZ x: sem-bltz x
     | BNE x: sem-bne x
     | BREAK x: sem-break x
-    | C-cond-fmt x: sem-default-ternop-cflrr-generic i x
     | CACHE x: sem-default-binop-rr-tuple-generic i x
     | CACHEE x: sem-default-binop-rr-tuple-generic i x
     | CEIL-L-fmt x: sem-default-binop-flr-generic i x

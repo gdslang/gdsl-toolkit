@@ -27,6 +27,8 @@ val beqc? s = ((zx s.rs) < (zx s.rt)) and (not (s.rs == '00000')) and (not (s.rt
 val bnec? s = ((zx s.rs) < (zx s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
 val beqzc? s = not (s.rs == '00000')
 val bnezc? s = not (s.rs == '00000')
+val bovc? s = ((zx s.rs) >= (zx s.rt))
+val bnvc? s = ((zx s.rs) >= (zx s.rt))
 
 
 ######################
@@ -110,10 +112,10 @@ val / ['010010 01101 /ct /offset16'] = binop BC2NEZ ct offset18
 ###  => see BLTTUC
 
 ###    BEQZALC
-###  => see BEQC
+###  => see BOVC
 
 ###    BNEZALC
-###  => see BNEC
+###  => see BNVC
 
 ### B<cond>C
 ###  - Compact compare-and-branch instructions
@@ -144,14 +146,10 @@ val / ['000111 /rs /rt /offset16']
  | bltuc?   = ternop BLTUC (right rs) (right rt) offset18
 
 ###    BEQC
-val / ['001000 /rs /rt /offset16']
- | beqzalc? = binop BEQZALC (right rt) offset18
- | beqc? = ternop BEQC (right rs) (right rt) offset18
+###  => see BOVC
 
 ###    BNEC
-val / ['011000 /rs /rt /offset16']
- | bnezalc? = binop BNEZALC (right rt) offset18
- | bnec? = ternop BNEC (right rs) (right rt) offset18
+###  => see BNVC
 
 ###    BEQZC
 val / ['110110 /rs /offset21']
@@ -164,6 +162,28 @@ val / ['111110 /rs /offset21']
 ### BITSWAP
 ###  - Swaps (reverses) bits in each byte
 val / ['011111 00000 /rt /rd  00000 100000'] = binop BITSWAP rd (right rt)
+
+### BOVC
+###  - Swaps (reverses) bits in each byte
+val / ['001000 /rs /rt /offset16']
+ | beqzalc? = binop BEQZALC (right rt) offset18
+ | beqc? = ternop BEQC (right rs) (right rt) offset18
+ | bovc? = ternop BOVC (right rs) (right rt) offset18
+
+### BNVC
+###  - Swaps (reverses) bits in each byte
+val / ['011000 /rs /rt /offset16']
+ | bnezalc? = binop BNEZALC (right rt) offset18
+ | bnec? = ternop BNEC (right rs) (right rt) offset18
+ | bnvc? = ternop BNVC (right rs) (right rt) offset18
+
+### Class-fmt
+###  - Scalar Floating-Point Class Mask
+val / ['010001 /fmt5sd 00000 /fs /fd 011011'] = binop-fmt CLASS-fmt fmt fd (right fs)
+
+### CMP-condn-fmt
+###  - Floating Point Compare setting Mask
+val / ['010001 /fmt5sd/wl /ft /fs /fd 0 condn'] = binop-fmt CLASS-fmt fmt fd (right fs)
 
 ### LUI
 ###  - Load Upper Immediate
@@ -201,6 +221,9 @@ type instruction =
  | BEQZC of binop-rr
  | BNEZC of binop-rr
  | BITSWAP of binop-lr
+ | BOVC of ternop-rrr
+ | BNVC of ternop-rrr
+ | CLASS-fmt of binop-flr
 
 type imm =
    IMM21 of 21
@@ -220,6 +243,10 @@ val /offset21 ['offset21:21'] = update@{offset21=offset21}
 val /offset26 ['offset26:26'] = update@{offset26=offset26}
 val /bp ['bp:2'] = update@{bp=bp}
 val /ct ['ct:5'] = update@{ct=ct}
+val /fmt5sd/wl ['10100'] = update@{fmt=S}
+val /fmt5sd/wl ['10101'] = update@{fmt=D}
+val /condn [''] = 
+
 
 ###########################
 # operand constructors
