@@ -29,4 +29,5 @@ val revision/traverse f insn =
     | BNEC x: f "BNEC" (TERNOP_RRR x)
     | BEQZC x: f "BEQZC" (BINOP_RR x)
     | BNEZC x: f "BNEZC" (BINOP_RR x)
+    | BITSWAP x: f "BITSWAP" (BINOP_LR x)
    end

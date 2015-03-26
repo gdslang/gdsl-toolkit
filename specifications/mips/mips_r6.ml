@@ -161,6 +161,10 @@ val / ['110110 /rs /offset21']
 val / ['111110 /rs /offset21']
  | bnezc? = binop BNEZC (right rs) offset23
 
+### BITSWAP
+###  - Swaps (reverses) bits in each byte
+val / ['011111 00000 /rt /rd  00000 100000'] = binop BITSWAP rd (right rt)
+
 ### LUI
 ###  - Load Upper Immediate
 ###  => see AUI r0, rt, immediate16
@@ -196,6 +200,7 @@ type instruction =
  | BNEC of ternop-rrr
  | BEQZC of binop-rr
  | BNEZC of binop-rr
+ | BITSWAP of binop-lr
 
 type imm =
    IMM21 of 21

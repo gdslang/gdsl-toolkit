@@ -158,6 +158,39 @@ val sem-bnec x = sem-b /neq x
 val sem-beqzc x = sem-bz /eq x
 val sem-bnezc x = sem-bz /neq x
 
+val sem-bitswap-byte rt rd byte_num i = do
+	if (not (i === 7)) then do
+		mov 1 (at-offset rd ((byte_num * 8) + (7-i))) (var (at-offset rt ((byte_num * 8) + i)));
+		sem-bitswap-byte rt rd byte_num (i+1)
+	end
+	else
+		mov 1 (at-offset rd ((byte_num * 8) + (7-i))) (var (at-offset rt ((byte_num * 8) + i)))
+end
+
+val sem-bitswap-word rt rd byte_num = do
+	if (not (byte_num === 3)) then do
+		sem-bitswap-byte rt rd byte_num 0;
+		sem-bitswap-word rd rd (byte_num + 1)
+	end
+	else
+		sem-bitswap-byte rt rd byte_num 0	
+end
+
+val sem-bitswap x = do
+	rd <- lval Signed x.op1;
+	rt <- rval Signed x.op2;
+	size <- return (sizeof-lval x.op1);
+	
+	rt_in <- mktemp;
+	mov size rt_in rt;
+	rd_out <- mktemp;
+	mov size rd_out (imm 0);
+ 
+	sem-bitswap-word rt_in rd_out 0;
+
+	write x.op1 (var rd_out)
+end
+
 val revision/semantics i =
    case i of
       ADDIUPC x: sem-addiupc x
@@ -189,4 +222,5 @@ val revision/semantics i =
     | BNEC x: sem-bnec x
     | BEQZC x: sem-beqzc x
     | BNEZC x: sem-bnezc x
+    | BITSWAP x: sem-bitswap x
    end
