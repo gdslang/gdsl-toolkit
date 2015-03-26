@@ -411,10 +411,6 @@ val / ['011111 /base /rt /offset9 0 101000']
 ###  - Load Doubleword to Floating Point
 val / ['110101 /base /ft /offset16'] = binop LDC1 ft offset16/base 
 
-### LDC2
-###  - Load Doubleword to Coprocessor 2
-val / ['110110 /base /rt /offset16'] = binop LDC2 rt/imm offset16/base 
-
 ### LDXC1
 ###  - Load Doubleword Indexed to Floating Point
 val / ['010011 /base /index 00000 /fd 000001'] = binop LDXC1 fd index/base
@@ -728,10 +724,6 @@ val / ['011100 /code20 111111'] = unop SDBBP code20
 ### SDC1
 ###  - Store Doubleword from Floating Point
 val / ['111101 /base /ft /offset16'] = binop SDC1 (right ft) offset16/base
-
-### SDC2
-###  - Store Doubleword from Coprocessor 2
-val / ['111110 /base /rt /offset16'] = binop SDC2 rt/imm offset16/base 
 
 ### SDXC1
 ###  - Store Doubleword Indexed from Floating Point
@@ -1365,7 +1357,6 @@ type instruction =
  | LBU of binop-lr
  | LBUE of binop-lr
  | LDC1 of binop-lr
- | LDC2 of binop-rr
  | LDXC1 of binop-lr
  | LH of binop-lr
  | LHE of binop-lr
@@ -1439,7 +1430,6 @@ type instruction =
  | SCE of binop-lr
  | SDBBP of unop-r
  | SDC1 of binop-rr
- | SDC2 of binop-rr
  | SDXC1 of binop-rr
  | SEB of binop-lr
  | SEH of binop-lr

@@ -8,13 +8,26 @@
 
 val lui? s = (s.rs == '00000')
 val bgtz? s = (s.rt == '00000')
-val bgtzalc? s = (s.rs == '00000')
+val bgtzalc? s = (s.rs == '00000') and (not (s.rt == '00000'))
 val bgezalc? s = (s.rs == s.rt) and (not (s.rs == '00000')) 
 val blez? s = (s.rt == '00000')
-val blezalc? s = (s.rs == '00000')
+val blezalc? s = (s.rs == '00000') and (not (s.rt == '00000'))
 val bltzalc? s = (s.rs == s.rt) and (not (s.rs == '00000'))
-val beqzalc? s = not (s.rt == '00000')
-val bnezalc? s = not (s.rt == '00000')
+val beqzalc? s = ((zx s.rs) < (zx s.rt)) and (s.rs == '00000') and (not (s.rt == '00000'))
+val bnezalc? s = ((zx s.rs) < (zx s.rt)) and (s.rs == '00000') and (not (s.rt == '00000'))
+val blezc? s = (s.rs == '00000') and (not (s.rt == '00000')) 
+val bgezc? s = (s.rs == s.rt) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
+val bgec? s = (not (s.rs == s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
+val bgtzc? s = (s.rs == '00000') and (not (s.rt == '00000')) 
+val bltzc? s = (s.rs == s.rt) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
+val bltc? s = (not (s.rs == s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
+val bgeuc? s = (not (s.rs == s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
+val bltuc? s = (not (s.rs == s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
+val beqc? s = ((zx s.rs) < (zx s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
+val bnec? s = ((zx s.rs) < (zx s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
+val beqzc? s = not (s.rs == '00000')
+val bnezc? s = not (s.rs == '00000')
+
 
 ######################
 # decoder rules
@@ -76,33 +89,77 @@ val / ['010010 01101 /ct /offset16'] = binop BC2NEZ ct offset18
 
 ### BGTZ
 ###  - Branch on Greater Than Zero
-###  => see BGEZALC
+###  => see BLTUC
 
 ### BLEZ
 ###  - Branch on Less Than or Equal to Zero
-###  => see BLTZALC
+###  => see BGEUC
 
 ### B{LE,GE,GT,LT,EQ,NE}ZALC
 ###  - Compact zero-compare and branch-and-link instructions
+###    BLEZALC
+###  => see BGEUC
+
 ###    BGEZALC
+###  => see BGEUC
+
+###    BGTZALC
+###  => see BLTTUC
+
+###    BLTZALC
+###  => see BLTTUC
+
+###    BEQZALC
+###  => see BEQC
+
+###    BNEZALC
+###  => see BNEC
+
+### B<cond>C
+###  - Compact compare-and-branch instructions
+###    BGEC (BLEZ)
+val / ['010110 /rs /rt /offset16']
+ | blezc? = binop BLEZC (right rt) offset18
+ | bgezc? = binop BGEZC (right rt) offset18
+ | bgec? = ternop BGEC (right rs) (right rt) offset18
+
+###    BLTC (BGTC)
+val / ['010111 /rs /rt /offset16']
+ | bgtzc? = binop BGTZC (right rt) offset18
+ | bltzc? = binop BLTZC (right rt) offset18
+ | bltc? = ternop BLTC (right rs) (right rt) offset18
+
+###    BGEUC (BLEUC)
 val / ['000110 /rs /rt /offset16']
  | blez?    = binop BLEZ (right rs) offset18
  | blezalc? = binop BLEZALC (right rt) offset18
  | bgezalc? = binop BGEZALC (right rt) offset18
+ | bgeuc?   = ternop BGEUC (right rs) (right rt) offset18
 
-###    BLTZALC
+###    BLTUC (BGTUC)
 val / ['000111 /rs /rt /offset16']
  | bgtz?    = binop BGTZ (right rs) offset18
  | bgtzalc? = binop BGTZALC (right rt) offset18
  | bltzalc? = binop BLTZALC (right rt) offset18
+ | bltuc?   = ternop BLTUC (right rs) (right rt) offset18
 
-###    BEQZALC
-val / ['001000 00000 /rt /offset16']
+###    BEQC
+val / ['001000 /rs /rt /offset16']
  | beqzalc? = binop BEQZALC (right rt) offset18
+ | beqc? = ternop BEQC (right rs) (right rt) offset18
 
-###    BNEZALC
-val / ['011000 00000 /rt /offset16']
+###    BNEC
+val / ['011000 /rs /rt /offset16']
  | bnezalc? = binop BNEZALC (right rt) offset18
+ | bnec? = ternop BNEC (right rs) (right rt) offset18
+
+###    BEQZC
+val / ['110110 /rs /offset21']
+ | beqzc? = binop BEQZC (right rs) offset23
+
+###    BNEZC
+val / ['111110 /rs /offset21']
+ | bnezc? = binop BNEZC (right rs) offset23
 
 ### LUI
 ###  - Load Upper Immediate
@@ -127,11 +184,24 @@ type instruction =
  | BLTZALC of binop-rr
  | BEQZALC of binop-rr
  | BNEZALC of binop-rr
+ | BLEZC of binop-rr
+ | BGEZC of binop-rr
+ | BGEC of ternop-rrr
+ | BGTZC of binop-rr
+ | BLTZC of binop-rr
+ | BLTC of ternop-rrr
+ | BGEUC of ternop-rrr
+ | BLTUC of ternop-rrr
+ | BEQC of ternop-rrr
+ | BNEC of ternop-rrr
+ | BEQZC of binop-rr
+ | BNEZC of binop-rr
 
 type imm =
    IMM21 of 21
  | IMM32 of 32
  | BP of 2
+ | OFFSET23 of 23
  | OFFSET28 of 28
  | C2CONDITION of 5
 
@@ -141,6 +211,7 @@ type imm =
 ####
 
 val /immediate19 ['immediate19:19'] = update@{immediate19=immediate19}
+val /offset21 ['offset21:21'] = update@{offset21=offset21}
 val /offset26 ['offset26:26'] = update@{offset26=offset26}
 val /bp ['bp:2'] = update@{bp=bp}
 val /ct ['ct:5'] = update@{ct=ct}
@@ -157,6 +228,11 @@ end
 val immediate32 = do
   immediate16 <- query $immediate16;
   return (IMM (IMM32 (immediate16 ^ '0000000000000000')))
+end
+
+val offset23 = do
+  offset21 <- query $offset21;
+  return (IMM (OFFSET23 (offset21 ^ '00')))
 end
 
 val offset28 = do

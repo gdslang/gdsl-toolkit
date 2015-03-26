@@ -103,6 +103,10 @@ val / ['000001 /rs 00010 /offset16'] = binop BLTZL (right rs) offset18
 ###  - Branch on Not Equal Likely
 val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset18
 
+### LDC2
+###  - Load Doubleword to Coprocessor 2
+val / ['110110 /base /rt /offset16'] = binop LDC2 rt/imm offset16/base 
+
 ### LUI
 ###  - Load Upper Immediate
 val / ['001111 00000 /rt /immediate16'] = binop LUI rt immediate16 
@@ -135,6 +139,10 @@ val / ['011111 /base /rt /offset9 0 011010']
 ###  - Load Word Indexed to Floating Point
 val / ['010011 /base /index 00000 /fd 000000'] = binop LWXC1 fd index/base
 
+### SDC2
+###  - Store Doubleword from Coprocessor 2
+val / ['111110 /base /rt /offset16'] = binop SDC2 rt/imm offset16/base 
+
 ### SWC2
 ###  - Store Word from Coprocessor 2
 val / ['111010 /base /rt /offset16'] = binop SWC2 rt/imm offset16/base
@@ -161,13 +169,14 @@ type instruction =
  | BLTZALL of binop-rr
  | BLTZL of binop-rr
  | BNEL of ternop-rrr
-
+ | LDC2 of binop-rr
  | LWC2 of binop-rr
  | LWL of binop-lr
  | LWLE of binop-lr
  | LWR of binop-lr
  | LWRE of binop-lr
  | LWXC1 of binop-lr
+ | SDC2 of binop-rr
 
 type format = 
    PS

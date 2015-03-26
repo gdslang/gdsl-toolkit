@@ -1551,7 +1551,6 @@ val semantics i =
     | LBU x: sem-lbu x
     | LBUE x: sem-lbu x
     | LDC1 x: sem-default-binop-lr-tuple-generic i x
-    | LDC2 x: sem-default-binop-rr-tuple-generic i x
     | LDXC1 x: sem-default-binop-lr-tuple-generic i x
     | LH x: sem-lh x
     | LHE x: sem-lh x
@@ -1625,7 +1624,6 @@ val semantics i =
     | SCE x: sem-sc x
     | SDBBP x: sem-sdbbp x
     | SDC1 x: sem-default-binop-rr-tuple-generic i x
-    | SDC2 x: sem-default-binop-rr-tuple-generic i x
     | SDXC1 x: sem-default-binop-rr-tuple-generic i x
     | SEB x: sem-seb x
     | SEH x: sem-seh x
@@ -1648,6 +1646,7 @@ val semantics i =
     | SUXC1 x: sem-default-binop-rr-tuple-generic i x
     | SW x: sem-sw x
     | SWC1 x: sem-default-binop-rr-tuple-generic i x
+    | SWC2 x: sem-default-binop-rr-tuple-generic i x
     | SWE x: sem-sw x
     | SWL x: sem-swl x
     | SWLE x: sem-swl x

@@ -125,11 +125,12 @@ val revision/semantics i =
     | BLTZALL x: sem-bltzall x
     | BLTZL x: sem-bltzl x
     | BNEL x: sem-bnel x
+    | LDC2 x: sem-default-binop-rr-tuple-generic i x
     | LWC2 x: sem-default-binop-rr-tuple-generic i x
     | LWL x: sem-lwl x
     | LWLE x: sem-lwl x
     | LWR x: sem-lwr x
     | LWRE x: sem-lwr x
     | LWXC1 x: sem-default-binop-lr-tuple-generic i x
-    | SWC2 x: sem-default-binop-rr-tuple-generic i x
+    | SDC2 x: sem-default-binop-rr-tuple-generic i x
    end

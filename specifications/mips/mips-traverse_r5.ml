@@ -20,11 +20,12 @@ val revision/traverse f insn =
     | BLTZALL x: f "BLTZALL" (BINOP_RR x)
     | BLTZL x: f "BLTZL" (BINOP_RR x)
     | BNEL x: f "BNEL" (TERNOP_RRR x)
+    | LDC2 x: f "LDC2" (BINOP_RR x)
     | LWC2 x: f "LWC2" (BINOP_RR x)
     | LWL x: f "LWL" (BINOP_LR x)
     | LWLE x: f "LWLE" (BINOP_LR x)
     | LWR x: f "LWR" (BINOP_LR x)
     | LWRE x: f "LWRE" (BINOP_LR x)
     | LWXC1 x: f "LWXC1" (BINOP_LR x)
-    | SWC2 x: f "SWC2" (BINOP_RR x)
+    | SDC2 x: f "SDC2" (BINOP_RR x)
    end

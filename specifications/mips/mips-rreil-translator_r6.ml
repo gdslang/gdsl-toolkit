@@ -3,6 +3,7 @@ val revision/sizeof-imm imm =
       IMM21 i: 21
     | IMM32 i: 32
     | BP i: 2
+    | OFFSET23 i: 23
     | OFFSET28 i: 28
     | C2CONDITION i: 5
    end
@@ -18,6 +19,7 @@ in
       IMM21 i: from-vec sn i
     | IMM32 i: from-vec sn i
     | BP i: from-vec sn i
+    | OFFSET23 i: from-vec sn i
     | OFFSET28 i: from-vec sn i
     | C2CONDITION i: from-vec sn i
    end
@@ -143,6 +145,19 @@ val sem-bltzalc x = sem-bzalc /lts x
 val sem-beqzalc x = sem-bzalc /eq x
 val sem-bnezalc x = sem-bzalc /neq x
 
+val sem-blezc x = sem-bz /les x
+val sem-bgezc x = sem-bz /ges x
+val sem-bgec x = sem-b /ges x
+val sem-bgtzc x = sem-bz /gts x
+val sem-bltzc x = sem-bz /lts x
+val sem-bltc x = sem-b /lts x
+val sem-bgeuc x = sem-b /geu x
+val sem-bltuc x = sem-b /ltu x
+val sem-beqc x = sem-b /eq x
+val sem-bnec x = sem-b /neq x
+val sem-beqzc x = sem-bz /eq x
+val sem-bnezc x = sem-bz /neq x
+
 val revision/semantics i =
    case i of
       ADDIUPC x: sem-addiupc x
@@ -162,4 +177,16 @@ val revision/semantics i =
     | BLTZALC x: sem-bltzalc x
     | BEQZALC x: sem-beqzalc x
     | BNEZALC x: sem-bnezalc x
+    | BLEZC x: sem-blezc x
+    | BGEZC x: sem-bgezc x
+    | BGEC x: sem-bgec x
+    | BGTZC x: sem-bgtzc x
+    | BLTZC x: sem-bltzc x
+    | BLTC x: sem-bltc x
+    | BGEUC x: sem-bgeuc x
+    | BLTUC x: sem-bltuc x
+    | BEQC x: sem-beqc x
+    | BNEC x: sem-bnec x
+    | BEQZC x: sem-beqzc x
+    | BNEZC x: sem-bnezc x
    end
