@@ -91,7 +91,7 @@ val decode-translate-super-block config limit = let
     error <- seek (current + idx);
     result <- if error === 0 then do
       stmts <- decode-translate-block config int-max;
-      seek current;
+      seekf current;
       return (SO_SOME stmts)
     end else
       return SO_NONE

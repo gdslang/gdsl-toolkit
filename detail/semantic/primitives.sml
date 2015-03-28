@@ -136,6 +136,8 @@ structure Primitives = struct
         flow = BD.meetVarImpliesVar (bvar stateN', bvar stateN)},   
        {name="seek", ty=func (ZENO, MONAD (ZENO, stateO, stateO')),
         flow = BD.meetVarImpliesVar (bvar stateO', bvar stateO)},
+       {name="seekf", ty=func (ZENO, MONAD (UNIT, stateO, stateO')),
+        flow = BD.meetVarImpliesVar (bvar stateO', bvar stateO)},
        {name="/z", ty=FUN([ZENO, ZENO],ZENO),flow=noFlow},
        {name="index", ty=func (h, ZENO), flow = noFlow},
        {name="puts", ty=func (i, MONAD (UNIT, stateP, stateP')),
@@ -236,6 +238,7 @@ structure Primitives = struct
        {name="%slice", ty=UNIT, flow = noFlow},
        {name="%get-ip", ty=UNIT, flow = noFlow},
        {name="%seek", ty=UNIT, flow = noFlow},
+       {name="%seekf", ty=UNIT, flow = noFlow},
        {name="%invoke", ty=UNIT, flow = noFlow},
        {name="%invoke_int", ty=UNIT, flow = noFlow},
        {name="%index", ty=UNIT, flow = noFlow},
@@ -310,6 +313,7 @@ structure Primitives = struct
          val iiib = ftype [INTvtype, INTvtype, INTvtype] VECvtype
          val ov = ftype [OBJvtype] VOIDvtype
          val ii = ftype [INTvtype] INTvtype
+         val iv = ftype [INTvtype] VOIDvtype
          val oi = ftype [OBJvtype] INTvtype
          val oio = ftype [OBJvtype, INTvtype] OBJvtype
          val oo = ftype [OBJvtype] OBJvtype
@@ -364,6 +368,7 @@ structure Primitives = struct
           | _ => raise ImpPrimTranslationBug))),
          ("get-ip", (t 0, fn args => action (boxI (PRIexp (IPGETprim,i,args))))),
          ("seek", (t 0, fn args => action (boxI (PRIexp (SEEKprim,ii,unboxI args))))),
+         ("seekf", (t 0, fn args => action (PRIexp (SEEKFprim,iv,unboxI args)))),
          (*("rseek", (t 0, fn args => action (boxI (PRIexp (RSEEKprim,ii,unboxI args))))),*)
          ("/z", (t 2, fn args => boxI (pr (DIVprim,iii,unboxI args)))),
          ("consume8", (t 0, fn args => action (boxV8 (PRIexp (CONSUME8prim,i,args))))),

@@ -346,6 +346,13 @@ int_t
   return 0;
 }
 
+void
+@seekf@
+(state_t s, size_t i) {
+  size_t start_offset = i - s->ip_base;
+  s->ip = s->ip_start + start_offset;
+}
+
 string_t
 @merge_rope@
 (state_t s, obj_t rope) {
