@@ -27,10 +27,11 @@ struct options {
   char *file;
   size_t offset;
   size_t length;
+  char _continue;
 };
 
 enum p_option {
-  OPTION_ELF, OPTION_FILE, OPTION_OFFSET, OPTION_LENGTH, OPTION_PRESERVATION, OPTION_LIVENESS, OPTION_FSUBST
+  OPTION_ELF, OPTION_FILE, OPTION_OFFSET, OPTION_LENGTH, OPTION_PRESERVATION, OPTION_LIVENESS, OPTION_FSUBST, OPTION_CONTINUE
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
@@ -39,11 +40,12 @@ static char args_parse(int argc, char **argv, struct options *options) {
   options->opt_config = PRESERVATION_EVERYWHERE;
   options->offset = 0;
   options->length = 0;
+  options->_continue = 0;
 
   struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, { "file", required_argument, NULL,
       OPTION_FILE }, { "offset", required_argument, NULL, OPTION_FILE }, { "length",
   required_argument, NULL, OPTION_LENGTH }, { "preserve", required_argument, NULL, OPTION_PRESERVATION }, { "liveness",
-  no_argument, NULL, OPTION_LIVENESS }, { "fsubst", no_argument, NULL, OPTION_FSUBST }, { NULL, 0,
+  no_argument, NULL, OPTION_LIVENESS }, { "fsubst", no_argument, NULL, OPTION_FSUBST }, { "continue", no_argument, NULL, OPTION_CONTINUE }, { NULL, 0,
   NULL, 0 } };
 
   while(1) {
@@ -89,6 +91,10 @@ static char args_parse(int argc, char **argv, struct options *options) {
         options->opt_config |= OC_FSUBST;
         break;
       }
+      case OPTION_CONTINUE: {
+        options->_continue = 1;
+        break;
+      }
       case '?':
         return 1;
       case ':':
@@ -107,7 +113,7 @@ int main(int argc, char** argv) {
   struct options options;
   if(args_parse(argc, argv, &options)) {
     printf(
-        "Usage: semantics-opt [--elf] [--offset offset] [--length length] --file file [--preserve everywhere|block|context] [--liveness] [--fsubst]\n");
+        "Usage: semantics-opt [--elf] [--offset offset] [--length length] --file file [--preserve everywhere|block|context] [--liveness] [--fsubst] [--continue]\n");
     return 1;
   }
 
@@ -141,22 +147,28 @@ int main(int argc, char** argv) {
   state_t state = gdsl_init();
   gdsl_set_code(state, buffer, buffer_length, 0);
 
-  if(setjmp(*gdsl_err_tgt(state))) {
-    fprintf(stderr, "Gdsl error: %s\n", gdsl_get_error_message(state));
-    exit(4);
-  }
 
-  size_t last_offset = 0;
-  while(last_offset < options.length) {
-    opt_result_t opt_result = gdsl_decode_translate_block_optimized(state, gdsl_config_default(state),
-        gdsl_int_max(state), options.opt_config);
+  size_t last_offset_ptr = 0;
+  while(last_offset_ptr < options.length) {
+    if(setjmp(*gdsl_err_tgt(state))) {
+      fprintf(stderr, "Gdsl error: %s\n", gdsl_get_error_message(state));
+      if(options._continue) {
+        gdsl_seek(state, last_offset_ptr + 1);
+      } else
+        exit(4);
+    }
 
+    opt_result_t opt_result = gdsl_decode_translate_block_optimized(state,
+        gdsl_config_default(state),
+//        gdsl_config_mode32(state),
+    gdsl_int_max(state), options.opt_config);
+
+    gdsl_rreil_pretty(state, opt_result->rreil);
     string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, opt_result->rreil));
     puts(fmt);
 
+    last_offset_ptr = gdsl_get_ip(state);
     gdsl_reset_heap(state);
-
-    last_offset = gdsl_get_ip(state);
   }
 
   gdsl_destroy(state);

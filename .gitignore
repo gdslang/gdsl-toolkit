@@ -99,7 +99,7 @@ libs/x86/src/libx86_la-x86_features.lo
 libs/x86/src/libx86_la-x86_features.o
 tools/.dirstamp
 tools/decoder_cli-decoder-cli.o
-tools/liveness_sweep-liveness-sweep.o
+tools/optimization_sweep-optimization-sweep.o
 tools/semantics_cif_cli-semantics-cif-cli.o
 tools/semantics_cli-semantics-cli.o
 tools/semantics_cli_dynamic-semantics-cli-dynamic.o
@@ -132,8 +132,8 @@ tools/x86-test-stats-runner/src/x86_test_stats_runner-main.o
 /libs/x86/x86_features.o
 /tools/decoder-cli
 /tools/decoder-cli.o
-/tools/liveness-sweep
-/tools/liveness-sweep.o
+/tools/optimization-sweep
+/tools/optimization-sweep.o
 /tools/semantics-cif-cli
 /tools/semantics-cif-cli.o
 /tools/semantics-cli

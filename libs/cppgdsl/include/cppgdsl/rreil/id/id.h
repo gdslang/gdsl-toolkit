@@ -9,6 +9,9 @@
 #include "id_visitor.h"
 #include <iosfwd>
 #include <string>
+extern "C" {
+#include <gdsl_generic.h>
+}
 
 namespace gdsl {
 namespace rreil {
@@ -31,3 +34,7 @@ std::ostream &operator<<(std::ostream &out, id &_this);
 
 }
 }
+
+#include "arch_id.h"
+#include "shared_id.h"
+#include "virtual.h"

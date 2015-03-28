@@ -179,6 +179,7 @@ GDSL_ASM = \
 
 GDSL_X86 = \
 	$(srcdir)/specifications/x86/x86.ml \
+	$(srcdir)/specifications/x86/x86-equals.ml \
 	$(srcdir)/specifications/x86/x86-traverse.ml \
 	$(srcdir)/specifications/x86/x86-pretty.ml \
 	$(srcdir)/specifications/x86/x86-asm.ml \
@@ -239,7 +240,7 @@ GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/rreil-translator.ml \
 	$(srcdir)/specifications/rreil/forward-subst/inline.ml \
 	$(srcdir)/specifications/rreil/forward-subst/substitute.ml \
-	$(srcdir)/specifications/rreil/forward-subst/substmap.ml \
+        $(srcdir)/specifications/rreil/forward-subst/substmap.ml  \
 	$(srcdir)/specifications/rreil/forward-subst/simplify-expressions.ml
 
 if X86_RREIL

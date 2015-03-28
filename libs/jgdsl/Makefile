@@ -1,5 +1,5 @@
 MLTK=../..
-JDK=/usr/lib/jvm/java-7-openjdk
+JDK=/usr/lib/jvm/default-java
 CC=gcc
 #CC=clang
 LIBDS=-L$(MLTK)/lib

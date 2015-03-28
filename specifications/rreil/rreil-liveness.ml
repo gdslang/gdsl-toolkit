@@ -4,6 +4,9 @@ export liveness: (sem_stmt_list) -> S lv-state-t <{} => {}>
 export liveness_super: (translate-result) -> S lv-super-result <{} => {}>
 export lv-pretty: (lv-state-t) -> rope
 
+#for optimization-sweep
+export liveness_super_chainable: ({insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option}) ->  S {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option} <{} => {}>
+
 # LIVENESS based on fields
 
 type interval = {lo: int, hi: int}
@@ -29,7 +32,7 @@ val lv-kill kills stmt =
          case stmt of
             SEM_ASSIGN x: visit-semvar kills (size-lhs x.size x.rhs) x.lhs
           | SEM_LOAD x: visit-semvar kills x.size x.lhs
-		  | SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
+      | SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
           | SEM_FLOP x: visit-semvar kills x.lhs.size x.lhs
           | SEM_PRIM x: visit-semvarls visit-semvar kills x.lhs
           | _ : kills
@@ -57,12 +60,12 @@ val lv-gen gens stmt =
           | SEM_LIN_SCALE x: visit-lin gens sz x.opnd
          end
 
-			val visit-sexpr size gens sexpr =
-			  case sexpr of
-				   SEM_SEXPR_LIN l: visit-lin gens size l
-				 | SEM_SEXPR_CMP c: visit-op-cmp size gens c
+      val visit-sexpr size gens sexpr =
+        case sexpr of
+           SEM_SEXPR_LIN l: visit-lin gens size l
+         | SEM_SEXPR_CMP c: visit-op-cmp size gens c
          | SEM_SEXPR_ARB: gens
-				end
+        end
 
       val visit-arity1 gens x = visit-lin gens x.size x.opnd1
 
@@ -71,16 +74,16 @@ val lv-gen gens stmt =
             (visit-lin gens size x.opnd1)
             (visit-lin gens size x.opnd2)
 
- 		    # TODO use size here
-			val visit-op-cmp size gens cmp =
-			  case cmp.cmp of
+        # TODO use size here
+      val visit-op-cmp size gens cmp =
+        case cmp.cmp of
            SEM_CMPEQ x: visit-arity2 size gens x
          | SEM_CMPNEQ x: visit-arity2 size gens x
          | SEM_CMPLES x: visit-arity2 size gens x
          | SEM_CMPLEU x: visit-arity2 size gens x
          | SEM_CMPLTS x: visit-arity2 size gens x
          | SEM_CMPLTU x: visit-arity2 size gens x
-			  end
+        end
 
       val visit-expr size gens op =
          case op of
@@ -106,7 +109,7 @@ val lv-gen gens stmt =
       val visit-flow size gens x =
          lv-union
            (visit-sexpr size gens x.cond)
-					 (lv-union
+           (lv-union
              (visit-address gens x.target-true)
              (visit-address gens x.target-false))
 
@@ -115,10 +118,10 @@ val lv-gen gens stmt =
             SEM_ASSIGN x: visit-expr x.size gens x.rhs
           | SEM_LOAD x: visit-address gens x.address
           | SEM_STORE x: lv-union (visit-address gens x.address) (visit-lin gens x.size x.rhs)
-			 | SEM_WHILE x: visit-sexpr 1 gens x.cond
-			 | SEM_ITE x: visit-sexpr 1 gens x.cond
-			 | SEM_BRANCH x: visit-address gens x.target
-			 | SEM_CBRANCH x: visit-flow 1 gens x
+       | SEM_WHILE x: visit-sexpr 1 gens x.cond
+       | SEM_ITE x: visit-sexpr 1 gens x.cond
+       | SEM_BRANCH x: visit-address gens x.target
+       | SEM_CBRANCH x: visit-flow 1 gens x
           | SEM_FLOP x: lv-union (visit-semvar gens (sizeof-id x.flags.id) x.flags) (visit-semvarls visit-semvar gens x.rhs)
           | SEM_PRIM x: visit-semvarls visit-semvar gens x.rhs
           | SEM_THROW x: gens
@@ -209,9 +212,9 @@ val lv-pretty t =
 
 val live-stack-backup-and-reset = do
   live <- query $live;
-	maybelive <- query $live;
+  maybelive <- query $live;
   update @{live=SEM_NIL,maybelive=SEM_NIL};
-	return {live=live,maybelive=maybelive}
+  return {live=live,maybelive=maybelive}
 end
 
 val select_live = query $live
@@ -247,74 +250,75 @@ val lv-analyze initial-live stack =
                        sweep x.tl (lvstate-eval state x.hd)
                     end
                | SEM_WHILE y: do
-							 		backup <- live-stack-backup-and-reset;
+                  backup <- live-stack-backup-and-reset;
 
-							 		body-rev <- return (rreil-stmts-rev y.body);
-							 		body-state <- sweep body-rev (lvstate-empty fmap-empty body-rev);
-							 		state-new <- return (lvstate-union-conservative state body-state);
+                  body-rev <- return (rreil-stmts-rev y.body);
+                  body-state <- sweep body-rev (lvstate-empty fmap-empty body-rev);
+                  state-new <- return (lvstate-union-conservative state body-state);
 
-							 		maybelive <- query $maybelive;
+                  #maybelive <- query $maybelive;
 
-							 		live-stack-restore backup;
-							     lv-push-live (/WHILE y.cond maybelive);
-                   sweep x.tl (lvstate-eval state-new x.hd)
+                  live-stack-restore backup;
+                  #lv-push-live (/WHILE y.cond maybelive);
+                  lv-push-live (/WHILE y.cond y.body);
+                  sweep x.tl (lvstate-eval state-new x.hd)
                  end
                | SEM_ITE y: do
-							 		org-backup <- live-stack-backup-and-reset;
+                  org-backup <- live-stack-backup-and-reset;
 
-							 		then_branch-rev <- return (rreil-stmts-rev y.then_branch);
-							 		then-state <- sweep then_branch-rev state;
-							 		then-backup <- live-stack-backup-and-reset;
+                  then_branch-rev <- return (rreil-stmts-rev y.then_branch);
+                  then-state <- sweep then_branch-rev state;
+                  then-backup <- live-stack-backup-and-reset;
 
-							 		else_branch-rev <- return (rreil-stmts-rev y.else_branch);
-							 		else-state <- sweep else_branch-rev state;
-							 		else-backup <- live-stack-backup-and-reset;
+                  else_branch-rev <- return (rreil-stmts-rev y.else_branch);
+                  else-state <- sweep else_branch-rev state;
+                  else-backup <- live-stack-backup-and-reset;
 
-							 		live-stack-restore org-backup;
+                  live-stack-restore org-backup;
 
-							 		#state-new <- let
-							 		#  val stacks-empty a b = 
-							 		#    case a of
-							 		#       SEM_NIL:
-							 		#			   case b of
-							 		#			      SEM_NIL: '1'
-							 		#				  | SEM_CONS x: '0'
-							 		#				 end
-							 	  #     | SEM_CONS x: '0'
-							 		#		end
-							 		#in
-							 		#  if (stacks-empty then-backup.maybelive else-backup.maybelive) == '0' then do
-							 		#	  lv-push-maybelive (/ITE y.cond then-backup.maybelive else-backup.maybelive);
-							 		#    greedy <-
-							 		#		  if (stacks-empty then-backup.live else-backup.live) == '0' then do
-							 		#        lv-push-live-only (/ITE y.cond then-backup.live else-backup.live);
+                  #state-new <- let
+                  #  val stacks-empty a b = 
+                  #    case a of
+                  #       SEM_NIL:
+                  #        case b of
+                  #           SEM_NIL: '1'
+                  #         | SEM_CONS x: '0'
+                  #        end
+                  #     | SEM_CONS x: '0'
+                  #   end
+                  #in
+                  #  if (stacks-empty then-backup.maybelive else-backup.maybelive) == '0' then do
+                  #   lv-push-maybelive (/ITE y.cond then-backup.maybelive else-backup.maybelive);
+                  #    greedy <-
+                  #     if (stacks-empty then-backup.live else-backup.live) == '0' then do
+                  #        lv-push-live-only (/ITE y.cond then-backup.live else-backup.live);
                    #        return (lvstate-eval-simple-no-kill state.greedy x.hd)
-							 		#		  end else
-							 		#		    return state.greedy
-							 		#		  ;
-							 		#	  return {greedy=greedy,conservative=lvstate-eval-simple-no-kill state.conservative x.hd}
-							 		#	end else
-							 		#	  return {greedy=state.greedy,conservative=state.conservative}
-							 		#end;
-							 		
-							 		ite-conservative <- return (/ITE y.cond then-backup.maybelive else-backup.maybelive);
-							 		ite-greedy <- return (/ITE y.cond then-backup.live else-backup.live);
-							 		lv-push-maybelive ite-conservative;
-							 		lv-push-live-only ite-greedy;
+                  #     end else
+                  #       return state.greedy
+                  #     ;
+                  #   return {greedy=greedy,conservative=lvstate-eval-simple-no-kill state.conservative x.hd}
+                  # end else
+                  #   return {greedy=state.greedy,conservative=state.conservative}
+                  #end;
+                  
+                  ite-conservative <- return (/ITE y.cond then-backup.maybelive else-backup.maybelive);
+                  ite-greedy <- return (/ITE y.cond then-backup.live else-backup.live);
+                  lv-push-maybelive ite-conservative;
+                  lv-push-live-only ite-greedy;
 
-							 		state-new <- return (lvstate-union then-state else-state);
+                  state-new <- return (lvstate-union then-state else-state);
 
-							 		#sweep x.tl state-new
+                  #sweep x.tl state-new
                    sweep x.tl (lv-eval-simple state-new x.hd)
                  end
-							 | SEM_CBRANCH y: do
+               | SEM_CBRANCH y: do
                    lv-push-live x.hd;
                    sweep x.tl (lvstate-eval state x.hd)
-							   end
-							 | SEM_BRANCH y: do
+                 end
+               | SEM_BRANCH y: do
                    lv-push-live x.hd;
                    sweep x.tl (lvstate-eval state x.hd)
-							   end
+                 end
                | SEM_ASSIGN y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
                | SEM_FLOP y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
                | SEM_PRIM y: do
@@ -326,7 +330,7 @@ val lv-analyze initial-live stack =
             end
          end
    in do
-#	   lv-sweep-and-collect-upto-native-flow;
+#    lv-sweep-and-collect-upto-native-flow;
 #     stack <- query $stack;
      update @{live=SEM_NIL,maybelive=SEM_NIL};
      sweep stack (lvstate-empty initial-live stack)
@@ -349,7 +353,7 @@ end
 
 val lv-push-live stmt = do
   lv-push-live-only stmt;
-	lv-push-maybelive stmt
+  lv-push-maybelive stmt
 end
 
 ## Liveness lattice operations and transfer functions 
@@ -396,7 +400,7 @@ val lvstate-eval state stmt =
 #   let
 #      val lvstate-eval-conservative state kill gen =
 #         if bbtree-empty? kill then
-#				   state
+#          state
 #         else
 #           lv-union gen (lv-difference state kill)
 #
@@ -404,7 +408,7 @@ val lvstate-eval state stmt =
 #         # HACK: if a statement doesn't kill anything make the {gen} set live
 #         # alternative: explicitly inspect the visited statement
 #         if bbtree-empty? kill then
-#				   state
+#          state
 #         else
 #            lv-union
 #               (lv-difference state kill)
@@ -455,31 +459,37 @@ type lv-super-result = {initial:lv-state-t, after:lv-state-t}
 
 val liveness_super data = let
   val lv-option-analyze live-registers option =
-	  case option of
-		   SO_SOME stmts: do
-			   state <- lv-analyze live-registers (rreil-stmts-rev stmts);
-				 return state.greedy
-			 end
+    case option of
+       SO_SOME stmts: do
+         state <- lv-analyze live-registers (rreil-stmts-rev stmts);
+         return state.greedy
+       end
      | SO_NONE: return fmap-empty
-		end
+    end
 
-	val lv-some-succ live-registers = do
+  val lv-some-succ live-registers = do
     lv-succ-a <- lv-option-analyze live-registers data.succ_a;
     lv-succ-b <- lv-option-analyze live-registers data.succ_b;
-		return (lv-union lv-succ-a lv-succ-b)
-	end
+    return (lv-union lv-succ-a lv-succ-b)
+  end
 in do
-	live-registers <- case data.succ_a of
-		   SO_NONE:
-		  	  case data.succ_b of
-	  	 		   SO_NONE: return registers-live-map
-	  	 		 | SO_SOME a: lv-some-succ registers-live-map
-	  	 	  end
-		 | SO_SOME a: lv-some-succ registers-live-map
-		end
-	;
+  live-registers <- case data.succ_a of
+       SO_NONE:
+          case data.succ_b of
+             SO_NONE: return registers-live-map
+           | SO_SOME a: lv-some-succ registers-live-map
+          end
+     | SO_SOME a: lv-some-succ registers-live-map
+    end
+  ;
   lv-state <- lv-analyze live-registers (rreil-stmts-rev data.insns);
   return {initial=live-registers, after=lv-state.greedy}
 end end
+
+val liveness_super_chainable data = do
+  liveness_super data;
+  live <- query $live;
+  return {insns=live, succ_a=data.succ_a, succ_b=data.succ_b}
+end
 
 type lv-state-t = bbtree[a=id_intervals]

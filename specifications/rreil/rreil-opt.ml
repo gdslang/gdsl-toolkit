@@ -2,6 +2,9 @@ export decode-translate-block-optimized: (decoder-configuration, int, optimizati
 export traverse-insn-list: (insn_list, insn_list_obj, (insn_list_obj, insndata) -> insn_list_obj) -> insn_list_obj
 export optimization-config : configuration[vec=optimization-configuration]
 
+#for optimization-sweep
+export propagate-contextful: (|1|, {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option}) ->  S {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option} <{} => {}>
+
 type optimization-configuration = |5|
 
 val optimization-config =

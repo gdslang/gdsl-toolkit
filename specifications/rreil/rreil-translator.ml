@@ -7,7 +7,7 @@ export succ-pretty: (stmts_option, string) -> rope
 val decode-translate-block-headless config limit = do
   insn <- decode config;
   insns <- query $insns;
-	#Todo: Don't use state
+  #Todo: Don't use state
   update @{insns=INSNS_CONS {insn=insn, tl=insns}};
   translate-block-single insn;
   jmp <- query $foundJump;
@@ -91,7 +91,7 @@ val decode-translate-super-block config limit = let
     error <- seek (current + idx);
     result <- if error === 0 then do
       stmts <- decode-translate-block config int-max;
-      seek current;
+      seekf current;
       return (SO_SOME stmts)
     end else
       return SO_NONE
@@ -110,11 +110,13 @@ in do
   stmts <- decode-translate-block-headless config limit;
 
   ic <- query $ins_count;
+  natives <- query $insns;
 
   succs <- return (relative-next stmts);
   succ_a <- seek-translate-block-at succs.a;
   succ_b <- seek-translate-block-at succs.b;
 
+  update@{insns=natives};
   update@{ins_count=ic};
 
   return {insns=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}

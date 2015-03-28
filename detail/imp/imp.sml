@@ -61,6 +61,7 @@ structure Imp = struct
        | SETSTATEprim
        | IPGETprim
        | SEEKprim
+       | SEEKFprim
        (*| RSEEKprim*)
        | DIVprim
        | CONSUME8prim
@@ -100,6 +101,7 @@ structure Imp = struct
      | prim_info SETSTATEprim = { name = "__set_state", prio = 0 }
      | prim_info IPGETprim = { name = "get-ip", prio = 0 }
      | prim_info SEEKprim = { name = "seek", prio = 0 }
+     | prim_info SEEKFprim = { name = "seekf", prio = 0 }
      (*| prim_info RSEEKprim = { name = "rseek", prio = 0 }*)
      | prim_info DIVprim = { name = "/z", prio = 5 }
      | prim_info CONSUME8prim = { name = "__consume8", prio = 0 }

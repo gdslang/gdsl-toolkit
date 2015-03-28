@@ -8,9 +8,6 @@
 #pragma once
 #include "id.h"
 #include <string>
-extern "C" {
-#include <gdsl_generic.h>
-}
 
 namespace gdsl {
 namespace rreil {

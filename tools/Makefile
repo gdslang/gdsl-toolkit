@@ -30,7 +30,7 @@ CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(DEFINES
 CPPFLAGS=-c -std=c++11 -ggdb3 $(DEFINES) $(INCDS)
 
 PROJECTS=
-EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep semantics-opt liveness-sweep cppgdsl-demo
+EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep semantics-opt optimization-sweep cppgdsl-demo
 
 .PHONY: $(PROJECTS) clean-projects
 
@@ -86,12 +86,12 @@ semantics-opt: semantics-opt.o
 semantics-opt.o: semantics-opt.c
 	$(CC) $(CFLAGS) semantics-opt.c -o $@
 
-### liveness-sweep
-liveness-sweep: liveness-sweep.o
-	$(CC) $(LDFLAGS) liveness-sweep.o $(LIBFLAGS) -o $@
+### optimization-sweep
+optimization-sweep: optimization-sweep.o
+	$(CC) $(LDFLAGS) optimization-sweep.o $(LIBFLAGS) -o $@
 
-liveness-sweep.o: liveness-sweep.c
-	$(CC) $(CFLAGS) liveness-sweep.c -o $@
+optimization-sweep.o: optimization-sweep.c
+	$(CC) $(CFLAGS) optimization-sweep.c -o $@
 
 ifeq ($(GDSL_ARCH),x86)
 ### x86-test-runner

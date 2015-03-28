@@ -19,7 +19,6 @@ namespace rreil {
 class sexpr_cmp : public sexpr {
 private:
   int_t size;
-
   expr_cmp *inner;
 
   void put(std::ostream &out);

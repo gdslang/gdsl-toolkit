@@ -31,3 +31,10 @@ std::ostream& operator<<(std::ostream &out, linear &_this);
 
 }
 }
+
+#include "linear_visitor.h"
+#include "lin_var.h"
+#include "lin_scale.h"
+#include "lin_imm.h"
+#include "lin_binop.h"
+#include "binop_lin_op.h"
