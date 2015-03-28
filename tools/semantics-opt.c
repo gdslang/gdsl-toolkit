@@ -167,9 +167,8 @@ int main(int argc, char** argv) {
     string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, opt_result->rreil));
     puts(fmt);
 
-    gdsl_reset_heap(state);
-
     last_offset_ptr = gdsl_get_ip(state);
+    gdsl_reset_heap(state);
   }
 
   gdsl_destroy(state);
