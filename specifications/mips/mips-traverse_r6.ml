@@ -38,4 +38,7 @@ val revision/traverse f insn =
     | MOD x: f "MOD" (TERNOP_LRR x)
     | DIVU x: f "DIVU" (TERNOP_LRR x)
     | MODU x: f "MODU" (TERNOP_LRR x)
+    | DVP x: f "DVP" (UNOP_L x)
+    | EVP x: f "EVP" (UNOP_L x)
+    | JIALC x: f "JIALC" (BINOP_RR x)
    end

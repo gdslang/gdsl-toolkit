@@ -26,7 +26,6 @@ val bltuc? s = (not (s.rs == s.rt)) and (not (s.rs == '00000')) and (not (s.rt =
 val beqc? s = ((zx s.rs) < (zx s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
 val bnec? s = ((zx s.rs) < (zx s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
 val beqzc? s = not (s.rs == '00000')
-val bnezc? s = not (s.rs == '00000')
 val bovc? s = ((zx s.rs) >= (zx s.rt))
 val bnvc? s = ((zx s.rs) >= (zx s.rt))
 
@@ -156,12 +155,11 @@ val / ['110110 /rs /offset21']
  | beqzc? = binop BEQZC (right rs) offset23
 
 ###    BNEZC
-val / ['111110 /rs /offset21']
- | bnezc? = binop BNEZC (right rs) offset23
+val / ['111110 /rs-notnull /offset21'] = binop BNEZC (right rs) offset23
 
 ### BITSWAP
 ###  - Swaps (reverses) bits in each byte
-val / ['011111 00000 /rt /rd  00000 100000'] = binop BITSWAP rd (right rt)
+val / ['011111 00000 /rt /rd 00000 100000'] = binop BITSWAP rd (right rt)
 
 ### BOVC
 ###  - Swaps (reverses) bits in each byte
@@ -202,6 +200,18 @@ val / ['000000 /rs /rt /rd 00010 011011'] = ternop DIVU rd (right rs) (right rt)
 
 ###    MODU
 val / ['000000 /rs /rt /rd 00011 011011'] = ternop MODU rd (right rs) (right rt) 
+
+### DVP
+###  - Disable Virtual Processor
+val / ['010000 01011 /rt 00000 00000 1 00 100'] = unop DVP rt
+
+### EVP
+###  - Enable Virtual Processor
+val / ['010000 01011 /rt 00000 00000 0 00 100'] = unop EVP rt
+
+### JIALC
+###  - Jump Indexed and Link, Compact
+val / ['111110 00000 /rt /offset16'] = binop JIALC (right rt) offset16
 
 ### LUI
 ###  - Load Upper Immediate
@@ -247,6 +257,9 @@ type instruction =
  | MOD of ternop-lrr
  | DIVU of ternop-lrr
  | MODU of ternop-lrr
+ | DVP of unop-l
+ | EVP of unop-l
+ | JIALC of binop-rr
 
 type imm =
    IMM21 of 21
@@ -269,6 +282,7 @@ val /ct ['ct:5'] = update@{ct=ct}
 val /fmt5sd/wl ['10100'] = update@{fmt=S}
 val /fmt5sd/wl ['10101'] = update@{fmt=D}
 val /condn ['condn:5'] = update@{condn=condn}
+val /rs-notnull ['rs@00001|00010|00011|00100|00101|00110|00111|01000|01001|01010|01011|01100|01101|01110|01111|10000|10001|10010|10011|10100|10101|10110|10111|11000|11001|11010|11011|11100|11101|11110|11111'] = update@{rs=rs}
 
 
 ###########################

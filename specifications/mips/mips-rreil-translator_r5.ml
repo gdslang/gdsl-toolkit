@@ -116,6 +116,14 @@ val sem-lwr x = do
 	write x.op1 (var res)
 end
 
+val sem-jalx x = do
+	isamode <- return (semantic-reg-of Sem_ISA_MODE);
+
+	xorb 1 isamode (var isamode) (imm 1);
+
+	sem-jal x		
+end
+
 
 
 val revision/semantics i =
@@ -146,6 +154,7 @@ val revision/semantics i =
     | CVT-S-PU x: sem-default-binop-lr-generic i x
     | DIV x: sem-div x
     | DIVU x: sem-divu x 
+    | JALX x: sem-jalx x
     | LDC2 x: sem-default-binop-rr-tuple-generic i x
     | LWC2 x: sem-default-binop-rr-tuple-generic i x
     | LWL x: sem-lwl x

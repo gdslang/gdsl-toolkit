@@ -232,6 +232,22 @@ val sem-divu x = sem-div-divu-mod-modu div x
 val sem-mod x = sem-div-divu-mod-modu mods x
 val sem-modu x = sem-div-divu-mod-modu mod x
 
+val sem-jialc x = do
+	rt <- rval Signed x.op1;
+	off <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op1);
+	pc <- return (semantic-reg-of Sem_SREG);
+	ra <- return (semantic-gpr-of RA);
+
+	pc_new <- mktemp;
+	mov size pc_new rt; 
+
+	add size pc_new (var pc_new) off;
+	mov size ra (var pc_new);
+
+	jump (address size (var pc_new))
+end
+
 val revision/semantics i =
    case i of
       ADDIUPC x: sem-addiupc x
@@ -272,4 +288,7 @@ val revision/semantics i =
     | MOD x: sem-mod x
     | DIVU x: sem-divu x
     | MODU x: sem-modu x
+    | DVP x: sem-default-unop-l-generic i x
+    | EVP x: sem-default-unop-l-generic i x
+    | JIALC x: sem-jialc x
    end

@@ -153,6 +153,16 @@ val sem-default-nullop-generic insn = do
 	prim-generic (mnemonic-of insn) varls-none varls-none
 end
 
+val sem-default-unop-l-generic insn x = do
+	dst-sz <- return (sizeof-lval x.op);
+
+	dst <- lval Signed x.op;
+
+	dst-up <- unpack-lin dst-sz dst;
+
+	prim-generic (mnemonic-of insn) varls-none (varls-one (varl dst-sz dst-up))
+end
+
 val sem-default-unop-r-tuple-generic insn x = do
 	src1-sz <- return (sizeof-rval x.op);
 	src2-sz <- return (sizeof-rval x.op);
@@ -755,14 +765,6 @@ val sem-jalr x =  do
 end
 
 val sem-jalr-hb x = sem-jalr x
-
-val sem-jalx x = do
-	isamode <- return (semantic-reg-of Sem_ISA_MODE);
-
-	xorb 1 isamode (var isamode) (imm 1);
-
-	sem-jal x		
-end
 
 val sem-jr x = do
 	rs <- rval Signed x.op;
@@ -1522,7 +1524,6 @@ val semantics i =
     | JAL x: sem-jal x
     | JALR x: sem-jalr x
     | JALR-HB x: sem-jalr-hb x
-    | JALX x: sem-jalx x
     | JR x: sem-jr x
     | JR-HB x: sem-jr-hb x
     | LB x: sem-lb x

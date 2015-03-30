@@ -72,7 +72,6 @@ val traverse f insn =
     | JAL x: f "JAL" (UNOP_R x)
     | JALR x: f "JALR" (BINOP_LR x)
     | JALR-HB x: f "JALR.HB" (BINOP_LR x)
-    | JALX x: f "JALX" (UNOP_R x)
     | JR x: f "JR" (UNOP_R x)
     | JR-HB x: f "JR.HB" (UNOP_R x)
     | LB x: f "LB" (BINOP_LR x)

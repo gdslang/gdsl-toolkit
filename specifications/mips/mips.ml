@@ -328,10 +328,6 @@ val / ['000000 /rs 00000 /rd 1 0000 001001']
  | jalr? = binop JALR-HB rd (right rs) 
  | otherwise = nullop UNPREDICTABLE
 
-### JALX
-###  - Jump and Link Exchange
-val / ['011101 /instr_index'] = unop JALX instr_index 
-
 ### JR
 ###  - Jump Register
 val / ['000000 /rs 0000000000 00000 001000'] = unop JR (right rs) 
@@ -1290,7 +1286,6 @@ type instruction =
  | JAL of unop-r
  | JALR of binop-lr
  | JALR-HB of binop-lr
- | JALX of unop-r
  | JR of unop-r
  | JR-HB of unop-r
  | LB of binop-lr

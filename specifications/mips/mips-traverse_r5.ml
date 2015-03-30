@@ -26,6 +26,7 @@ val revision/traverse f insn =
     | CVT-S-PU x: f "CVT.S.PU" (BINOP_LR x)
     | DIV x: f "DIV" (BINOP_RR x)
     | DIVU x: f "DIVU" (BINOP_RR x)
+    | JALX x: f "JALX" (UNOP_R x)
     | LDC2 x: f "LDC2" (BINOP_RR x)
     | LWC2 x: f "LWC2" (BINOP_RR x)
     | LWL x: f "LWL" (BINOP_LR x)
