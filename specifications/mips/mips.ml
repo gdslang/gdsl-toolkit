@@ -118,25 +118,6 @@ type cop2ccode =
 # - only in C-cond-fmt instr.
 ####
 
-type condop =
-   C_F
- | C_UN
- | C_EQ
- | C_UEQ
- | C_OLT
- | C_ULT
- | C_OLE
- | C_ULE
- | C_SF
- | C_NGLE
- | C_SEQ
- | C_NGL
- | C_LT
- | C_NGE
- | C_LE
- | C_NGT
-
-
 ################
 # transform a lvalue to rvalue
 ####
@@ -998,7 +979,6 @@ val /sa ['sa:5'] = update@{sa=sa}
 val /instr_index ['instr_index:26'] = update@{instr_index=instr_index}
 val /cofun ['cofun:25'] = update@{cofun=cofun}
 val /cc ['cc:3'] = update@{cc=cc}
-val /cond ['cond:4'] = update@{cond=cond}
 val /op ['op:5'] = update@{op=op}
 val /hint5 ['hint:5'] = update@{hint=hint}
 val /hint5zero ['00000'] = update@{hint='00000'}
@@ -1157,11 +1137,6 @@ end
 val c2cc = do
   cc <- query $cc;
   return (C2CC (c2cc-from-bits cc))
-end
-
-val cond = do
-  cond <- query $cond;
-  return (cond-from-bits (cond))
 end
 
 val op = do
@@ -1710,24 +1685,4 @@ val c2cc-from-bits bits =
   | '101': C2CC5
   | '110': C2CC6
   | '111': C2CC7
- end
-
-val cond-from-bits bits =
- case bits of
-    '0000': C_F
-  | '0001': C_UN
-  | '0010': C_EQ
-  | '0011': C_UEQ
-  | '0100': C_OLT
-  | '0101': C_ULT
-  | '0110': C_OLE
-  | '0111': C_ULE
-  | '1000': C_SF
-  | '1001': C_NGLE
-  | '1010': C_SEQ
-  | '1011': C_NGL
-  | '1100': C_LT
-  | '1101': C_NGE
-  | '1110': C_LE
-  | '1111': C_NGT
  end

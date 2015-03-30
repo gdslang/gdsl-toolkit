@@ -186,7 +186,51 @@ type instruction =
 type format = 
    PS
 
+type condop =
+   C_F
+ | C_UN
+ | C_EQ
+ | C_UEQ
+ | C_OLT
+ | C_ULT
+ | C_OLE
+ | C_ULE
+ | C_SF
+ | C_NGLE
+ | C_SEQ
+ | C_NGL
+ | C_LT
+ | C_NGE
+ | C_LE
+ | C_NGT
 
+val /cond ['cond:4'] = update@{cond=cond}
 val /fmt5sdps ['10 /fmt3sdps'] = return void
 val /fmt3sdps [/fmt3sd] = return void
 val /fmt3sdps ['110'] = update@{fmt=PS}
+
+val cond = do
+  cond <- query $cond;
+  return (cond-from-bits (cond))
+end
+
+
+val cond-from-bits bits =
+ case bits of
+    '0000': C_F
+  | '0001': C_UN
+  | '0010': C_EQ
+  | '0011': C_UEQ
+  | '0100': C_OLT
+  | '0101': C_ULT
+  | '0110': C_OLE
+  | '0111': C_ULE
+  | '1000': C_SF
+  | '1001': C_NGLE
+  | '1010': C_SEQ
+  | '1011': C_NGL
+  | '1100': C_LT
+  | '1101': C_NGE
+  | '1110': C_LE
+  | '1111': C_NGT
+ end

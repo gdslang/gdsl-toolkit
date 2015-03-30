@@ -183,7 +183,7 @@ val / ['010001 /fmt5sd 00000 /fs /fd 011011'] = binop-fmt CLASS-fmt fmt fd (righ
 
 ### CMP-condn-fmt
 ###  - Floating Point Compare setting Mask
-val / ['010001 /fmt5sd/wl /ft /fs /fd 0 condn'] = binop-fmt CLASS-fmt fmt fd (right fs)
+val / ['010001 /fmt5sd/wl /ft /fs /fd 0 /condn'] = ternop-cond-fmt CMP-condn-fmt condn fmt fd (right fs) (right ft)
 
 ### LUI
 ###  - Load Upper Immediate
@@ -224,6 +224,7 @@ type instruction =
  | BOVC of ternop-rrr
  | BNVC of ternop-rrr
  | CLASS-fmt of binop-flr
+ | CMP-condn-fmt of ternop-cflrr
 
 type imm =
    IMM21 of 21
@@ -245,7 +246,7 @@ val /bp ['bp:2'] = update@{bp=bp}
 val /ct ['ct:5'] = update@{ct=ct}
 val /fmt5sd/wl ['10100'] = update@{fmt=S}
 val /fmt5sd/wl ['10101'] = update@{fmt=D}
-val /condn [''] = 
+val /condn ['condn:5'] = update@{condn=condn}
 
 
 ###########################
@@ -277,10 +278,85 @@ val bp = do
   return (IMM (BP bp))
 end
 
+val condn = do
+  condn <- query $condn;
+  return (condn-from-bits (condn))
+end
+
 val ct = do
   ct <- query $ct;
   return (IMM (C2CONDITION ct))
 end
+
+val condn-from-bits bits =
+ case bits of
+    '00000': C_AF
+  | '00001': C_UN
+  | '00010': C_EQ
+  | '00011': C_UEQ
+  | '00100': C_LT
+  | '00101': C_ULT
+  | '00110': C_LE
+  | '00111': C_ULE
+  | '01000': C_SAF
+  | '01001': C_SUN
+  | '01010': C_SEQ
+  | '01011': C_SUEQ
+  | '01100': C_SLT
+  | '01101': C_SULT
+  | '01110': C_SLE
+  | '01111': C_SULE
+  | '10000': C_AT
+  | '10001': C_OR
+  | '10010': C_UNE
+  | '10011': C_NE
+  | '10100': C_UGE
+  | '10101': C_OGE
+  | '10110': C_UGT
+  | '10111': C_OGT
+  | '11000': C_SAT
+  | '11001': C_SOR
+  | '11010': C_SUNE
+  | '11011': C_SNE
+  | '11100': C_SUGE
+  | '11101': C_SOGE
+  | '11110': C_SUGT
+  | '11111': C_SOGT
+ end
+
+type condop = 
+   C_AF
+ | C_UN
+ | C_EQ
+ | C_UEQ
+ | C_LT
+ | C_ULT
+ | C_LE
+ | C_ULE
+ | C_SAF
+ | C_SUN
+ | C_SEQ
+ | C_SUEQ
+ | C_SLT
+ | C_SULT
+ | C_SLE
+ | C_SULE
+ | C_AT
+ | C_OR
+ | C_UNE
+ | C_NE
+ | C_UGE
+ | C_OGE
+ | C_UGT
+ | C_OGT
+ | C_SAT
+ | C_SOR
+ | C_SUNE
+ | C_SNE
+ | C_SUGE
+ | C_SOGE
+ | C_SUGT
+ | C_SOGT
 
 
 #################################

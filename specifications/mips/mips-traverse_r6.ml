@@ -33,4 +33,5 @@ val revision/traverse f insn =
     | BOVC x: f "BOVC" (TERNOP_RRR x)
     | BNVC x: f "BNVC" (TERNOP_RRR x)
     | CLASS-fmt x: f "CLASS" (BINOP_FLR x)
+    | CMP-condn-fmt x: f "CMP" (TERNOP_CFLRR x)
    end

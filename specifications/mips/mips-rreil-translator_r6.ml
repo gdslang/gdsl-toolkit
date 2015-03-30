@@ -251,4 +251,5 @@ val revision/semantics i =
     | BOVC x: sem-bovc x
     | BNVC x: sem-bnvc x
     | CLASS-fmt x: sem-default-binop-flr-generic i x
+    | CMP-condn-fmt x: sem-default-ternop-cflrr-generic i x
    end
