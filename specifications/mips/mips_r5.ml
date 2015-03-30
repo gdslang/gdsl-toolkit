@@ -123,6 +123,14 @@ val / ['010001 10110 00000 /fs /fd 101000'] = binop CVT-S-PL fd (right fs)
 ###  - Floating Point Convert Pair Upper to Single Floating Point
 val / ['010001 10110 00000 /fs /fd 100000'] = binop CVT-S-PU fd (right fs) 
 
+### DIV
+###  - Divide Word
+val / ['000000 /rs /rt 0000000000 011010'] = binop DIV (right rs) (right rt) 
+
+### DIVU
+###  - Divide Unsigned Word
+val / ['000000 /rs /rt 0000000000 011011'] = binop DIVU (right rs) (right rt) 
+
 ### LDC2
 ###  - Load Doubleword to Coprocessor 2
 val / ['110110 /base /rt /offset16'] = binop LDC2 rt/imm offset16/base 
@@ -193,6 +201,8 @@ type instruction =
  | CVT-PS-S of ternop-lrr
  | CVT-S-PL of binop-lr
  | CVT-S-PU of binop-lr
+ | DIV of binop-rr
+ | DIVU of binop-rr
  | LDC2 of binop-rr
  | LWC2 of binop-rr
  | LWL of binop-lr

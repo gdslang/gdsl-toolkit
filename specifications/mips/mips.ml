@@ -272,17 +272,9 @@ val / ['010000 1 0000000000000000000 011111'] = nullop DERET
 ###  - Disable Interrupts
 val / ['010000 01011 /rt 01100 00000 0 00 000'] = unop DI rt 
 
-### DIV
-###  - Divide Word
-val / ['000000 /rs /rt 0000000000 011010'] = binop DIV (right rs) (right rt) 
-
 ### DIV-fmt
 ###  - Floating Point Divide
 val / ['010001 /fmt5sd /ft /fs /fd 000011'] = ternop-fmt DIV-fmt fmt fd (right fs) (right ft) 
-
-### DIVU
-###  - Divide Unsigned Word
-val / ['000000 /rs /rt 0000000000 011011'] = binop DIVU (right rs) (right rt) 
 
 ### EHB
 ###  - Execution Hazard Barrier
@@ -1287,9 +1279,7 @@ type instruction =
  | CVT-W-fmt of binop-flr
  | DERET
  | DI of unop-l
- | DIV of binop-rr
  | DIV-fmt of ternop-flrr
- | DIVU of binop-rr
  | EI of unop-l
  | ERET
  | EXT of quadop-lrrr

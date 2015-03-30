@@ -216,6 +216,22 @@ end
 val sem-bovc x = branch-on-overflow x /lts
 val sem-bnvc x = branch-on-overflow x /ges
 
+val sem-div-divu-mod-modu op x = do
+	num <- rval Signed x.op2;
+	denom <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
+
+	res <- mktemp;
+	op size res num denom;
+
+	write x.op1 (var res)
+end
+
+val sem-div x = sem-div-divu-mod-modu divs x
+val sem-divu x = sem-div-divu-mod-modu div x
+val sem-mod x = sem-div-divu-mod-modu mods x
+val sem-modu x = sem-div-divu-mod-modu mod x
+
 val revision/semantics i =
    case i of
       ADDIUPC x: sem-addiupc x
@@ -252,4 +268,8 @@ val revision/semantics i =
     | BNVC x: sem-bnvc x
     | CLASS-fmt x: sem-default-binop-flr-generic i x
     | CMP-condn-fmt x: sem-default-ternop-cflrr-generic i x
+    | DIV x: sem-div x
+    | MOD x: sem-mod x
+    | DIVU x: sem-divu x
+    | MODU x: sem-modu x
    end

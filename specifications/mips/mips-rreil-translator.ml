@@ -591,21 +591,6 @@ val sem-di x = do
 	write x.op (var temp)
 end
 
-val sem-div-divu div_op mod_op x = do
-	num <- rval Signed x.op1;
-	denom <- rval Signed x.op2;
-	size <- return (sizeof-rval x.op1);
-
-	hi <- return (semantic-reg-of Sem_HI);
-	lo <- return (semantic-reg-of Sem_LO);
-
-	div_op size lo num denom;
-	mod_op size hi num denom
-end
-
-val sem-div x = sem-div-divu div mod x
-val sem-divu x = sem-div-divu divs mods x
-
 val sem-ei x = do
 	sreg <- return (semantic-reg-of Sem_SREG);
 	
@@ -1526,9 +1511,7 @@ val semantics i =
     | CVT-W-fmt x: sem-default-binop-flr-generic i x
     | DERET: sem-deret
     | DI x: sem-di x
-    | DIV x: sem-div x
     | DIV-fmt x: sem-default-ternop-flrr-generic i x
-    | DIVU x: sem-divu x 
     | EI x: sem-ei x
     | ERET: sem-eret
     | EXT x: sem-ext x

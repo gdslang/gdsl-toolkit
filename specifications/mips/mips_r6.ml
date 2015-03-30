@@ -189,6 +189,20 @@ val / ['010001 /fmt5sd 00000 /fs /fd 011011'] = binop-fmt CLASS-fmt fmt fd (righ
 ###  - Floating Point Compare setting Mask
 val / ['010001 /fmt5sd/wl /ft /fs /fd 0 /condn'] = ternop-cond-fmt CMP-condn-fmt condn fmt fd (right fs) (right ft)
 
+### DIV, MOD, DIVU, MODU
+###  - Divide Integers (with result to GPR)
+###    DIV
+val / ['000000 /rs /rt /rd 00010 011010'] = ternop DIV rd (right rs) (right rt) 
+
+###    MOD
+val / ['000000 /rs /rt /rd 00011 011010'] = ternop MOD rd (right rs) (right rt) 
+
+###    DIVU
+val / ['000000 /rs /rt /rd 00010 011011'] = ternop DIVU rd (right rs) (right rt) 
+
+###    MODU
+val / ['000000 /rs /rt /rd 00011 011011'] = ternop MODU rd (right rs) (right rt) 
+
 ### LUI
 ###  - Load Upper Immediate
 ###  => see AUI r0, rt, immediate16
@@ -229,6 +243,10 @@ type instruction =
  | BNVC of ternop-rrr
  | CLASS-fmt of binop-flr
  | CMP-condn-fmt of ternop-cflrr
+ | DIV of ternop-lrr
+ | MOD of ternop-lrr
+ | DIVU of ternop-lrr
+ | MODU of ternop-lrr
 
 type imm =
    IMM21 of 21

@@ -26,6 +26,21 @@ val sem-bltzall x = sem-bz-link /lts x
 val sem-bltzl x = sem-bz /lts x
 val sem-bnel x = sem-b /neq x
 
+val sem-div-divu div_op mod_op x = do
+	num <- rval Signed x.op1;
+	denom <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op1);
+
+	hi <- return (semantic-reg-of Sem_HI);
+	lo <- return (semantic-reg-of Sem_LO);
+
+	div_op size lo num denom;
+	mod_op size hi num denom
+end
+
+val sem-div x = sem-div-divu divs mods x
+val sem-divu x = sem-div-divu div mod x
+
 val sem-lwl x = do
 	off/base <- rval Signed x.op2;
 	base <- return (extract-tuple off/base).opnd1;
@@ -129,6 +144,8 @@ val revision/semantics i =
     | CVT-PS-S x: sem-default-ternop-lrr-generic i x
     | CVT-S-PL x: sem-default-binop-lr-generic i x
     | CVT-S-PU x: sem-default-binop-lr-generic i x
+    | DIV x: sem-div x
+    | DIVU x: sem-divu x 
     | LDC2 x: sem-default-binop-rr-tuple-generic i x
     | LWC2 x: sem-default-binop-rr-tuple-generic i x
     | LWL x: sem-lwl x
