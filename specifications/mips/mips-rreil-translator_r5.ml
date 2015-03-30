@@ -126,6 +126,9 @@ val revision/semantics i =
     | BLTZL x: sem-bltzl x
     | BNEL x: sem-bnel x
     | C-cond-fmt x: sem-default-ternop-cflrr-generic i x
+    | CVT-PS-S x: sem-default-ternop-lrr-generic i x
+    | CVT-S-PL x: sem-default-binop-lr-generic i x
+    | CVT-S-PU x: sem-default-binop-lr-generic i x
     | LDC2 x: sem-default-binop-rr-tuple-generic i x
     | LWC2 x: sem-default-binop-rr-tuple-generic i x
     | LWL x: sem-lwl x

@@ -198,10 +198,6 @@ val / ['000000 /code10 /code10to20 001101']
  | asmode? = nullop UNDEFINED
  | otherwise = unop BREAK code10to20 
 
-### CACHE
-###  - Perform Cache Operation
-val / ['101111 /base /op /offset16'] = binop CACHE op offset16/base
-
 ### CACHEE
 ###  - Perform Cache Operation EVA
 val / ['011111 /base /op /offset9 0 011011']
@@ -260,21 +256,9 @@ val / ['010001 /fmt5swl 00000 /fs /fd 100001'] = binop-fmt CVT-D-fmt fmt fd (rig
 ###  - Floating Point Convert to Long Fixed Point
 val / ['010001 /fmt5sd 00000 /fs /fd 100101'] = binop-fmt CVT-L-fmt fmt fd (right fs) 
 
-### CVT-PS-S
-###  - Floating Point Convert Pair to Paired Single
-val / ['010001 10000 /ft /fs /fd 100110'] = ternop CVT-PS-S fd (right fs) (right ft) 
-
 ### CVT-S-fmt
 ###  - Floating Point Convert to Single Floating Point
 val / ['010001 /fmt5dwl 00000 /fs /fd 100000'] = binop-fmt CVT-S-fmt fmt fd (right fs) 
-
-### CVT-S-PL
-###  - Floating Point Convert Pair Lower to Single Floating Point
-val / ['010001 10110 00000 /fs /fd 101000'] = binop CVT-S-PL fd (right fs) 
-
-### CVT-S-PU
-###  - Floating Point Convert Pair Upper to Single Floating Point
-val / ['010001 10110 00000 /fs /fd 100000'] = binop CVT-S-PU fd (right fs) 
 
 ### CVT-W-fmt
 ###  - Floating Point Convert to Word Fixed Point
@@ -1299,10 +1283,7 @@ type instruction =
  | CTC2 of binop-rr
  | CVT-D-fmt of binop-flr
  | CVT-L-fmt of binop-flr
- | CVT-PS-S of ternop-lrr
  | CVT-S-fmt of binop-flr
- | CVT-S-PL of binop-lr
- | CVT-S-PU of binop-lr
  | CVT-W-fmt of binop-flr
  | DERET
  | DI of unop-l

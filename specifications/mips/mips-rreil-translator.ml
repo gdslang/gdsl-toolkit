@@ -1522,10 +1522,7 @@ val semantics i =
     | CTC2 x: sem-default-binop-rr-generic i x
     | CVT-D-fmt x: sem-default-binop-flr-generic i x
     | CVT-L-fmt x: sem-default-binop-flr-generic i x
-    | CVT-PS-S x: sem-default-ternop-lrr-generic i x
     | CVT-S-fmt x: sem-default-binop-flr-generic i x
-    | CVT-S-PL x: sem-default-binop-lr-generic i x
-    | CVT-S-PU x: sem-default-binop-lr-generic i x
     | CVT-W-fmt x: sem-default-binop-flr-generic i x
     | DERET: sem-deret
     | DI x: sem-di x

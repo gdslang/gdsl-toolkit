@@ -103,9 +103,25 @@ val / ['000001 /rs 00010 /offset16'] = binop BLTZL (right rs) offset18
 ###  - Branch on Not Equal Likely
 val / ['010101 /rs /rt /offset16'] = ternop BNEL (right rs) (right rt) offset18
 
+### CACHE
+###  - Perform Cache Operation
+val / ['101111 /base /op /offset16'] = binop CACHE op offset16/base
+
 ### C-cond-fmt
 ###  - Floating Point Compare
 val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = ternop-cond-fmt C-cond-fmt cond fmt fcc (right fs) (right ft)
+
+### CVT-PS-S
+###  - Floating Point Convert Pair to Paired Single
+val / ['010001 10000 /ft /fs /fd 100110'] = ternop CVT-PS-S fd (right fs) (right ft) 
+
+### CVT-S-PL
+###  - Floating Point Convert Pair Lower to Single Floating Point
+val / ['010001 10110 00000 /fs /fd 101000'] = binop CVT-S-PL fd (right fs) 
+
+### CVT-S-PU
+###  - Floating Point Convert Pair Upper to Single Floating Point
+val / ['010001 10110 00000 /fs /fd 100000'] = binop CVT-S-PU fd (right fs) 
 
 ### LDC2
 ###  - Load Doubleword to Coprocessor 2
@@ -174,6 +190,9 @@ type instruction =
  | BLTZL of binop-rr
  | BNEL of ternop-rrr
  | C-cond-fmt of ternop-cflrr
+ | CVT-PS-S of ternop-lrr
+ | CVT-S-PL of binop-lr
+ | CVT-S-PU of binop-lr
  | LDC2 of binop-rr
  | LWC2 of binop-rr
  | LWL of binop-lr

@@ -177,6 +177,10 @@ val / ['011000 /rs /rt /offset16']
  | bnec? = ternop BNEC (right rs) (right rt) offset18
  | bnvc? = ternop BNVC (right rs) (right rt) offset18
 
+### CACHE
+###  - Perform Cache Operation
+val / ['011111 /base /op /offset9 0 100101'] = binop CACHE op offset9/base
+
 ### Class-fmt
 ###  - Scalar Floating-Point Class Mask
 val / ['010001 /fmt5sd 00000 /fs /fd 011011'] = binop-fmt CLASS-fmt fmt fd (right fs)
