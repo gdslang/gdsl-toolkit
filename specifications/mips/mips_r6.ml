@@ -252,6 +252,79 @@ val / ['010001 /fmt5sd /ft /fs /fd 011100'] = ternop-fmt MIN-fmt fmt fd (right f
 ###  - Scalar Floating-Point minNumMag
 val / ['010001 /fmt5sd /ft /fs /fd 011101'] = ternop-fmt MINA-fmt fmt fd (right fs) (right ft)
 
+### MOV-fmt
+###  - Floating Point Move
+val / ['010001 /fmt5sd 00000 /fs /fd 000110'] = binop-fmt MOV-fmt fmt fd (right fs) 
+
+### MUL-fmt
+###  - Floating Point Multiply
+val / ['010001 /fmt5sd /ft /fs /fd 000010'] = ternop-fmt MUL-fmt fmt fd (right fs) (right ft) 
+
+### MUL
+###  - Multiply Words Signed, Low Word
+val / ['000000 /rs /rt /rd 00010 011000'] = ternop MUL rd (right rs) (right rt) 
+
+### MUH
+###  - Multiply Words Signed, High Word
+val / ['000000 /rs /rt /rd 00011 011000'] = ternop MUH rd (right rs) (right rt) 
+
+### MULU
+###  - Multiply Words Unsigned, Low Word
+val / ['000000 /rs /rt /rd 00010 011001'] = ternop MULU rd (right rs) (right rt) 
+
+### MUHU
+###  - Multiply Words Unsigned, High Word
+val / ['000000 /rs /rt /rd 00011 011001'] = ternop MUHU rd (right rs) (right rt) 
+
+### NAL
+###  - No-op and Link
+val / ['000001 00000 10000 /offset16'] = nullop NAL
+
+### NEG-fmt
+###  - Floating Point Negate
+val / ['010001 /fmt5sd 00000 /fs /fd 000111'] = binop-fmt NEG-fmt fmt fd (right fs) 
+
+### PREF
+###  - Prefetch
+val / ['011111 /base /hint5 /offset9 0 110101'] = binop PREF hint5 offset9/base
+
+### RINT-fmt
+###  - Floating-Point Round to Integral
+val / ['010001 /fmt5sd 00000 /fs /fd 011010'] = binop-fmt RINT-fmt fmt fd (right fs) 
+
+### SC
+###  - Store Conditional Word
+val / ['011111 /base /rt /offset9 0 100110'] = binop SC rt offset9/base
+
+### SDBBP
+###  - Software Debug Breakpoint
+val / ['000000 /code20 001110'] = unop SDBBP code20 
+
+### SDC2
+###  - Store Doubleword from Coprocessor 2
+val / ['010010 01111 /base /rt /offset11'] = binop SDC2 rt/imm offset11/base 
+
+### SEL-fmt
+###  - Select floating point values with FPR condition
+val / ['010001 /fmt5sd /ft /fs /fd 010000'] = ternop-fmt SEL-fmt fmt fd (right fs) (right ft) 
+
+### SELEQZ
+###  - Select integer GPR value or zero
+val / ['000000 /rs /rt /rd 00000 110101'] = ternop SELEQZ rd (right rs) (right rt) 
+
+### SELNEZ
+###  - Select integer GPR value or zero
+val / ['000000 /rs /rt /rd 00000 110111'] = ternop SELNEZ rd (right rs) (right rt) 
+
+### SELEQZ
+###  - Select floating point value or zero with FPR condition
+val / ['010001 /fmt5sd /ft /fs /fd 010100'] = ternop-fmt SELEQZ-fmt fmt fd (right fs) (right ft) 
+
+### SELNEQZ
+###  - Select floating point value or zero with FPR condition
+val / ['010001 /fmt5sd /ft /fs /fd 010111'] = ternop-fmt SELNEQZ-fmt fmt fd (right fs) (right ft) 
+
+
 
 type instruction = 
    ADDIUPC of binop-lr
@@ -303,13 +376,24 @@ type instruction =
  | MAXA-fmt of ternop-flrr
  | MIN-fmt of ternop-flrr
  | MINA-fmt of ternop-flrr
-
+ | MUL of ternop-lrr
+ | MUH of ternop-lrr
+ | MULU of ternop-lrr
+ | MUHU of ternop-lrr
+ | NAL
+ | RINT-fmt of binop-flr
+ | SEL-fmt of ternop-flrr
+ | SELEQZ of ternop-lrr
+ | SELNEZ of ternop-lrr
+ | SELEQZ-fmt of ternop-flrr
+ | SELNEQZ-fmt of ternop-flrr
 
 type imm =
    IMM21 of 21
  | IMM32 of 32
  | BP of 2
  | SA2 of 2
+ | OFFSET11 of 11
  | OFFSET23 of 23
  | OFFSET28 of 28
  | C2CONDITION of 5
@@ -320,6 +404,7 @@ type imm =
 ####
 
 val /immediate19 ['immediate19:19'] = update@{immediate19=immediate19}
+val /offset11 ['offset11:11'] = update@{offset11=offset11}
 val /offset21 ['offset21:21'] = update@{offset21=offset21}
 val /offset26 ['offset26:26'] = update@{offset26=offset26}
 val /bp ['bp:2'] = update@{bp=bp}
@@ -372,6 +457,12 @@ end
 val ct = do
   ct <- query $ct;
   return (IMM (C2CONDITION ct))
+end
+
+val offset11/base = do
+  offset11 <- query $offset11;
+  base <- query $base;
+  return (OFFSET/BASE {offset=(OFFSET11 offset11), base=(gpr-from-bits base)})
 end
 
 val condn-from-bits bits =

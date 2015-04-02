@@ -906,126 +906,6 @@ val sem-ll x = do
 	sem-lw x
 end
 
-val sem-madd-maddu-msub-msubu ext_op add_sub_op x = do
-	rs <- rval Signed x.op1;
-	rt <- rval Signed x.op2;
-	size <- return (sizeof-rval x.op1);
-
-	rs_ext <- mktemp;
-	ext_op (size*2) rs_ext size rs;
-
-	rt_ext <- mktemp;
-	ext_op (size*2) rt_ext size rt;
-
-	res <- mktemp;
-	mul (size*2) res (var rs_ext) (var rt_ext);
-
-	hi <- return (semantic-reg-of Sem_HI);
-	lo <- return (semantic-reg-of Sem_LO);
-
-	hilo <- mktemp;
-	movzx (size*2) hilo size (var lo);
-	mov size (at-offset hilo size) (var hi);
-
-	add_sub_op (size*2) res (var res) (var hilo);
-
-	mov size lo (var res);
-	mov size hi (var (at-offset res size))
-end
-
-val sem-msub x = sem-madd-maddu-msub-msubu movzx sub x
-val sem-msubu x = sem-madd-maddu-msub-msubu movzx sub x 
-
-val sem-mfhi x = do
-	hi <- return (semantic-reg-of Sem_HI);
-	
-	write x.op (var hi)
-end
-
-val sem-mflo x = do
-	lo <- return (semantic-reg-of Sem_LO);
-	
-	write x.op (var lo)
-end
-
-val sem-mthi x = do
-	rs <- rval Signed x.op;
-	hi <- return (semantic-reg-of Sem_HI);
-
-	mov hi.size hi rs
-end
-
-val sem-mtlo x = do
-	rs <- rval Signed x.op;
-	lo <- return (semantic-reg-of Sem_LO);
-
-	mov lo.size lo rs
-end
-
-val sem-movn-movz cmp_op x = do
-	rs <- rval Signed x.op2;
-	rt <- rval Signed x.op3;
-	size <- return (sizeof-rval x.op2);
-
-	_if (cmp_op size rt (imm 0)) _then
-		write x.op1 rs
-end
-
-val sem-movn x = sem-movn-movz /neq x
-val sem-movz x = sem-movn-movz /eq x
-
-val sem-movf-movt x i = do
-	rs <- rval Signed x.op2;
-	cc <- (rval Signed x.op3);
-	
-	_if (/eq 1 cc (imm i)) _then
-		write x.op1 rs
-end
-
-val sem-movf x = sem-movf-movt x 0
-val sem-movt x = sem-movf-movt x 1
-
-val sem-mult-multu ext_op x = do
-	rs <- rval Signed x.op1;
-	rt <- rval Signed x.op2;
-	size <- return (sizeof-rval x.op1);
-
-	rs_ext <- mktemp;
-	ext_op (size*2) rs_ext size rs;
-
-	rt_ext <- mktemp;
-	ext_op (size*2) rt_ext size rt;
-
-	res <- mktemp;
-	mul (size*2) res (var rs_ext) (var rt_ext);
-
-	hi <- return (semantic-reg-of Sem_HI);
-	lo <- return (semantic-reg-of Sem_LO);
-	
-	mov size lo (var res);
-	mov size hi (var (at-offset res size))
-end
-
-val sem-mult x = sem-mult-multu movsx x
-val sem-multu x = sem-mult-multu movzx x
-
-val sem-mul x = do
-	rs <- rval Signed x.op2;
-	rt <- rval Signed x.op3;
-	size <- return (sizeof-rval x.op2);
-
-	rs_ext <- mktemp;
-	movsx (size*2) rs_ext size rs;
-
-	rt_ext <- mktemp;
-	movsx (size*2) rt_ext size rt;
-
-	res <- mktemp;
-	mul (size*2) res (var rs_ext) (var rt_ext);
-
-	write x.op1 (var res)
-end
-
 val sem-nor x = do
 	s1 <- rval Unsigned x.op2;
 	s2 <- rval Unsigned x.op3;
@@ -1506,45 +1386,20 @@ val semantics i =
     | MFC2 x: sem-default-binop-lr-generic i x
     | MFHC1 x: sem-default-binop-lr-generic i x
     | MFHC2 x: sem-default-binop-lr-generic i x
-    | MFHI x: sem-mfhi x
-    | MFLO x: sem-mflo x
     | MOV-fmt x: sem-default-binop-flr-generic i x
-    | MOVF x: sem-movf x
-    | MOVF-fmt x: sem-default-ternop-flrr-generic i x
-    | MOVN x: sem-movn x
-    | MOVN-fmt x: sem-default-ternop-flrr-generic i x
-    | MOVT x: sem-movt x
-    | MOVT-fmt x: sem-default-ternop-flrr-generic i x
-    | MOVZ x: sem-movz x
-    | MOVZ-fmt x: sem-default-ternop-flrr-generic i x
-    | MSUB x: sem-msub x
-    | MSUB-fmt x: sem-default-quadop-flrrr-generic i x
-    | MSUBU x: sem-msubu x
     | MTC0 x: sem-default-ternop-rrr-generic i x
     | MTC1 x: sem-default-binop-rl-generic i x
     | MTC2 x: sem-default-binop-rr-generic i x
     | MTHC1 x: sem-default-binop-rl-generic i x
     | MTHC2 x: sem-default-binop-rr-generic i x
-    | MTHI x: sem-mthi x
-    | MTLO x: sem-mtlo x
-    | MUL x: sem-mul x
     | MUL-fmt x: sem-default-ternop-flrr-generic i x
-    | MULT x: sem-mult x
-    | MULTU x: sem-multu x
     | NEG-fmt x: sem-default-binop-flr-generic i x
-    | NMADD-fmt x: sem-default-quadop-flrrr-generic i x
-    | NMSUB-fmt x: sem-default-quadop-flrrr-generic i x
     | NOR x: sem-nor x
     | OR x: sem-or x
     | ORI x: sem-ori x
     | PAUSE: sem-pause
-    | PLL-PS x: sem-default-ternop-lrr-generic i x
-    | PLU-PS x: sem-default-ternop-lrr-generic i x
     | PREF x: sem-default-binop-rr-tuple-generic i x
     | PREFE x: sem-default-binop-rr-tuple-generic i x
-    | PREFX x: sem-default-binop-rr-tuple-generic i x
-    | PUL-PS x: sem-default-ternop-lrr-generic i x
-    | PUU-PS x: sem-default-ternop-lrr-generic i x
     | RDHWR x: sem-rdhwr x
     | RDPGPR x: sem-default-binop-lr-generic i x
     | RECIP-fmt x: sem-default-binop-flr-generic i x
@@ -1559,7 +1414,7 @@ val semantics i =
     | SCE x: sem-sc x
     | SDBBP x: sem-sdbbp x
     | SDC1 x: sem-default-binop-rr-tuple-generic i x
-    | SDXC1 x: sem-default-binop-rr-tuple-generic i x
+    | SDC2 x: sem-default-binop-rr-tuple-generic i x
     | SEB x: sem-seb x
     | SEH x: sem-seh x
     | SH x: sem-sh x

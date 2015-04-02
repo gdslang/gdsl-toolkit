@@ -420,62 +420,6 @@ val / ['010010 00011 /rt /impl']
  | asimpl? = nullop UNDEFINED
  | otherwise = binop MFHC2 rt impl
 
-### MFHI
-###  - Move From HI Register
-val / ['000000 0000000000 /rd 00000 010000'] = unop MFHI rd 
-
-### MFLO
-###  - Move From LO Register
-val / ['000000 0000000000 /rd 00000 010010'] = unop MFLO rd 
-
-### MOV-fmt
-###  - Floating Point Move
-val / ['010001 /fmt5sdps 00000 /fs /fd 000110'] = binop-fmt MOV-fmt fmt fd (right fs) 
-
-### MOVF
-###  - Move Conditional on Floating Point False
-val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) (right fcc) 
-
-### MOVF-fmt
-###  - Floating Point Move Conditional on Floating Point False
-val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd (right fs) (right fcc)
-
-### MOVN
-###  - Move Conditional on Not Zero
-val / ['000000 /rs /rt /rd 00000 001011'] = ternop MOVN rd (right rs) (right rt) 
-
-### MOVN-fmt
-###  - Floating Point Move Conditional on Not Zero
-val / ['010001 /fmt5sdps /rt /fs /fd 010011'] = ternop-fmt MOVN-fmt fmt fd (right fs) (right rt) 
-
-### MOVT
-###  - Move Conditional on Floating Point True
-val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) (right fcc) 
-
-### MOVT-fmt
-###  - Floating Point Move Conditional on Floating Point True
-val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd (right fs) (right fcc)
-
-### MOVZ
-###  - Move Conditional on Not Zero
-val / ['000000 /rs /rt /rd 00000 001010'] = ternop MOVZ rd (right rs) (right rt) 
-
-### MOVZ-fmt
-###  - Floating Point Move Conditional on Zero
-val / ['010001 /fmt5sdps /rt /fs /fd 010010'] = ternop-fmt MOVZ-fmt fmt fd (right fs) (right rt) 
-
-### MSUB
-###  - Multiply and Subtract Word to Hi,Lo
-val / ['011100 /rs /rt 00000 00000 000100'] = binop MSUB (right rs) (right rt) 
-
-### MSUB-fmt
-###  - Floating Point Multiply Subtract
-val / ['010011 /fr /ft /fs /fd 101 /fmt3sdps'] = quadop-fmt MSUB-fmt fmt fd (right fr) (right fs) (right ft) 
-
-### MSUBU
-###  - Multiply and Subtract Word to Hi,Lo
-val / ['011100 /rs /rt 00000 00000 000101'] = binop MSUBU (right rs) (right rt) 
-
 ### MTC0
 ###  - Move to Coprocessor 0
 val / ['010000 00100 /rt /rd 00000000 /sel'] = ternop MTC0 (right rt) rd/imm sel 
@@ -500,42 +444,6 @@ val / ['010010 00111 /rt /impl']
  | asimpl? = nullop UNDEFINED
  | otherwise = binop MTHC2 (right rt) impl 
 
-### MTHI
-###  - Move To HI Register
-val / ['000000 /rs 000000000000000 010001'] = unop MTHI (right rs) 
-
-### MTLO
-###  - Move To LO Register
-val / ['000000 /rs 000000000000000 010011'] = unop MTLO (right rs) 
-
-### MUL
-###  - Multiply Word to GPR
-val / ['011100 /rs /rt /rd 00000 000010'] = ternop MUL rd (right rs) (right rt) 
-
-### MUL-fmt
-###  - Floating Point Multiply
-val / ['010001 /fmt5sdps /ft /fs /fd 000010'] = ternop-fmt MUL-fmt fmt fd (right fs) (right ft) 
-
-### MULT
-###  - Multiply Word
-val / ['000000 /rs /rt 0000000000 011000'] = binop MULT (right rs) (right rt) 
-
-### MULTU
-###  - Multiply Unsigned Word
-val / ['000000 /rs /rt 0000000000 011001'] = binop MULTU (right rs) (right rt) 
-
-### NEG-fmt
-###  - Floating Point Negate
-val / ['010001 /fmt5sdps 00000 /fs /fd 000111'] = binop-fmt NEG-fmt fmt fd (right fs) 
-
-### NMADD-fmt
-###  - Floating Point Negative Multiply Add
-val / ['010011 /fr /ft /fs /fd 110 /fmt3sdps'] = quadop-fmt NMADD-fmt fmt fd (right fr) (right fs) (right ft) 
-
-### NMSUB-fmt
-###  - Floating Point Negative Multiply Subtract
-val / ['010011 /fr /ft /fs /fd 111 /fmt3sdps'] = quadop-fmt NMSUB-fmt fmt fd (right fr) (right fs) (right ft) 
-
 ### NOP
 ###  - No Operation
 ###  => see SLL r0, r0, 0
@@ -556,35 +464,11 @@ val / ['001101 /rs /rt /immediate16'] = ternop ORI rt (right rs) immediate16
 ###  - Wait for the LLBit to clear
 ###  => see SLL r0, r0, 5
 
-### PLL-PS
-###  - Pair Lower Lower
-val / ['010001 10110 /ft /fs /fd 101100'] = ternop PLL-PS fd (right fs) (right ft) 
-
-### PLU-PS
-###  - Pair Lower Upper
-val / ['010001 10110 /ft /fs /fd 101101'] = ternop PLU-PS fd (right fs) (right ft) 
-
-### PREF
-###  - Prefetch
-val / ['110011 /base /hint5 /offset16'] = binop PREF hint5 offset16/base
-
 ### PREFE
 ###  - Prefetch EVA
 val / ['011111 /base /hint5 /offset9 0 100011']
  | asmode? = nullop UNDEFINED
  | otherwise = binop PREFE hint5 offset9/base
-
-### PREFX
-###  - Prefetch Indexed
-val / ['010011 /base /index /hint5 00000 001111'] = binop PREFX hint5 index/base 
-
-### PUL-PS
-###  - Pair Upper Lower
-val / ['010001 10110 /ft /fs /fd 101110'] = ternop PUL-PS fd (right fs) (right ft) 
-
-### PUU-PS
-###  - Pair Upper Upper
-val / ['010001 10110 /ft /fs /fd 101111'] = ternop PUU-PS fd (right fs) (right ft) 
 
 ### RDHWR
 ###  - Read Hardware Register
@@ -628,27 +512,15 @@ val / ['011111 /base /rt /offset9 0 011100']
  | asmode? = nullop UNDEFINED
  | otherwise = binop SBE (right rt) offset9/base 
 
-### SC
-###  - Store Conditional Word
-val / ['111000 /base /rt /offset16'] = binop SC rt offset16/base
-
 ### SCE
 ###  - Store Conditional Word EVA
 val / ['011111 /base /rt /offset9 0 011110']
  | asmode? = nullop UNDEFINED
  | otherwise = binop SCE rt offset9/base
 
-### SDBBP
-###  - Software Debug Breakpoint
-val / ['011100 /code20 111111'] = unop SDBBP code20 
-
 ### SDC1
 ###  - Store Doubleword from Floating Point
 val / ['111101 /base /ft /offset16'] = binop SDC1 (right ft) offset16/base
-
-### SDXC1
-###  - Store Doubleword Indexed from Floating Point
-val / ['010011 /base /index /fs 00000 001001'] = binop SDXC1 (right fs) index/base
 
 ### SEB
 ###  - Sign-Extend Byte
@@ -1277,45 +1149,20 @@ type instruction =
  | MFC2 of binop-lr
  | MFHC1 of binop-lr
  | MFHC2 of binop-lr
- | MFHI of unop-l
- | MFLO of unop-l
  | MOV-fmt of binop-flr
- | MOVF of ternop-lrr
- | MOVF-fmt of ternop-flrr
- | MOVN of ternop-lrr
- | MOVN-fmt of ternop-flrr
- | MOVT of ternop-lrr
- | MOVT-fmt of ternop-flrr
- | MOVZ of ternop-lrr
- | MOVZ-fmt of ternop-flrr
- | MSUB of binop-rr
- | MSUB-fmt of quadop-flrrr
- | MSUBU of binop-rr
  | MTC0 of ternop-rrr
  | MTC1 of binop-rl
  | MTC2 of binop-rr
  | MTHC1 of binop-rl
  | MTHC2 of binop-rr
- | MTHI of unop-r
- | MTLO of unop-r
- | MUL of ternop-lrr
  | MUL-fmt of ternop-flrr
- | MULT of binop-rr
- | MULTU of binop-rr
  | NEG-fmt of binop-flr
- | NMADD-fmt of quadop-flrrr
- | NMSUB-fmt of quadop-flrrr
  | NOR of ternop-lrr
  | OR of ternop-lrr
  | ORI of ternop-lrr
  | PAUSE
- | PLL-PS of ternop-lrr
- | PLU-PS of ternop-lrr
  | PREF of binop-rr
  | PREFE of binop-rr
- | PREFX of binop-rr
- | PUL-PS of ternop-lrr
- | PUU-PS of ternop-lrr
  | RDHWR of binop-lr
  | RDPGPR of binop-lr
  | RECIP-fmt of binop-flr
@@ -1330,7 +1177,7 @@ type instruction =
  | SCE of binop-lr
  | SDBBP of unop-r
  | SDC1 of binop-rr
- | SDXC1 of binop-rr
+ | SDC2 of binop-rr
  | SEB of binop-lr
  | SEH of binop-lr
  | SH of binop-rr

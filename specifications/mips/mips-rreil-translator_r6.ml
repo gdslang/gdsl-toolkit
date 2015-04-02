@@ -4,6 +4,7 @@ val revision/sizeof-imm imm =
     | IMM32 i: 32
     | BP i: 2
     | SA2 i: 2
+    | OFFSET11 i: 11
     | OFFSET23 i: 23
     | OFFSET28 i: 28
     | C2CONDITION i: 5
@@ -21,6 +22,7 @@ in
     | IMM32 i: from-vec sn i
     | BP i: from-vec sn i
     | SA2 i: from-vec sn i
+    | OFFSET11 i: from-vec sn i
     | OFFSET23 i: from-vec sn i
     | OFFSET28 i: from-vec sn i
     | C2CONDITION i: from-vec sn i
@@ -279,6 +281,49 @@ val sem-lsa x = do
 	write x.op1 (var res)
 end
 
+val sem-mul-muh-mulu-muhu ext_op hi x = do
+	rs <- rval Signed x.op2;
+	rt <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
+
+	rs_ext <- mktemp;
+	ext_op (size*2) rs_ext size rs;
+
+	rt_ext <- mktemp;
+	ext_op (size*2) rt_ext size rt;
+
+	res <- mktemp;
+	mul (size*2) res (var rs_ext) (var rt_ext);
+
+	write x.op1 (var (at-offset res (size*hi)))
+end
+
+val sem-mul x = sem-mul-muh-mulu-muhu movsx 0 x
+val sem-muh x = sem-mul-muh-mulu-muhu movsx 1 x
+val sem-mulu x = sem-mul-muh-mulu-muhu movzx 0 x
+val sem-muhu x = sem-mul-muh-mulu-muhu movzx 1 x
+
+val sem-nal = do
+	pc <- return (semantic-reg-of Sem_PC);
+	ra <- return (semantic-gpr-of RA);
+
+	add ra.size ra (var pc) (imm 4)
+end
+
+val sem-sel cmp_op x = do
+	rs <- rval Signed x.op2;
+	rt <- rval Signed x.op3;
+	size <- return (sizeof-rval x.op2);
+
+	_if (cmp_op size rt (imm 0)) _then
+		write x.op1 rs
+	_else
+		write x.op1 (imm 0)
+end
+
+val sem-seleqz x = sem-sel /eq x
+val sem-selnez x = sem-sel /neq x
+
 val revision/semantics i =
    case i of
       ADDIUPC x: sem-addiupc x
@@ -330,4 +375,15 @@ val revision/semantics i =
     | MAXA-fmt x: sem-default-ternop-flrr-generic i x
     | MIN-fmt x: sem-default-ternop-flrr-generic i x
     | MINA-fmt x: sem-default-ternop-flrr-generic i x
+    | MUL x: sem-mul x
+    | MUH x: sem-muh x
+    | MULU x: sem-mulu x
+    | MUHU x: sem-muhu x
+    | NAL: sem-nal
+    | RINT-fmt x: sem-default-binop-flr-generic i x
+    | SEL-fmt x: sem-default-ternop-flrr-generic i x
+    | SELEQZ x: sem-seleqz x
+    | SELNEZ x: sem-selnez x
+    | SELEQZ-fmt x: sem-default-ternop-flrr-generic i x
+    | SELNEQZ-fmt x: sem-default-ternop-flrr-generic i x
    end

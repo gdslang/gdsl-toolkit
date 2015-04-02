@@ -40,6 +40,7 @@ val revision/show/immediate imm =
     | IMM32 x: show-int (zx x)
     | BP x: show-int (zx x)
     | SA2 x: show-int (zx x)
+    | OFFSET11 x: show-int (zx x)
     | OFFSET23 x: show-int (zx x)
     | OFFSET28 x: show-int (zx x)
     | C2CONDITION x: show-int (zx x)
