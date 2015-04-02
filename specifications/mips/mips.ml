@@ -328,14 +328,6 @@ val / ['000000 /rs 00000 /rd 1 0000 001001']
  | jalr? = binop JALR-HB rd (right rs) 
  | otherwise = nullop UNPREDICTABLE
 
-### JR
-###  - Jump Register
-val / ['000000 /rs 0000000000 00000 001000'] = unop JR (right rs) 
-
-### JR-HB
-###  - Jump Register with Hazard Barrier
-val / ['000000 /rs 0000000000 1 0000 001000'] = unop JR-HB (right rs) 
-
 ### LB
 ###  - Load Byte
 val / ['100000 /base /rt /offset16'] = binop LB rt offset16/base
@@ -359,10 +351,6 @@ val / ['011111 /base /rt /offset9 0 101000']
 ### LDC1
 ###  - Load Doubleword to Floating Point
 val / ['110101 /base /ft /offset16'] = binop LDC1 ft offset16/base 
-
-### LDXC1
-###  - Load Doubleword Indexed to Floating Point
-val / ['010011 /base /index 00000 /fd 000001'] = binop LDXC1 fd index/base
 
 ### LH
 ###  - Load Halfword
@@ -394,10 +382,6 @@ val / ['011111 /base /rt /offset9 0 101110']
  | asmode? = nullop UNDEFINED
  | otherwise = binop LLE rt offset9/base
 
-### LUXC1
-###  - Load Doubleword Indexed Unaligned to Floating Point
-val / ['010011 /base /index 00000 /fd 000101'] = binop LUXC1 fd index/base
-
 ### LW
 ###  - Load word
 val / ['100011 /base /rt /offset16'] = binop LW rt offset16/base
@@ -411,18 +395,6 @@ val / ['110001 /base /ft /offset16'] = binop LWC1 ft offset16/base
 val / ['011111 /base /rt /offset9 0 101111']
  | asmode? = nullop UNDEFINED
  | otherwise = binop LWE rt offset9/base
-
-### MADD
-###  - Multiply and Add Word to Hi,Lo
-val / ['011100 /rs /rt 00000 00000 000000'] = binop MADD (right rs) (right rt) 
-
-### MADD-fmt
-###  - Floating Point Multiply Add
-val / ['010011 /fr /ft /fs /fd 100 /fmt3sdps'] = quadop-fmt MADD-fmt fmt fd (right fr) (right fs) (right ft) 
-
-### MADDU
-###  - Multiply and Add Unsigned Word to Hi,Lo
-val / ['011100 /rs /rt 00000 00000 000001'] = binop MADDU (right rs) (right rt) 
 
 ### MFC0
 ###  - Move from Coprocessor 0
@@ -1286,28 +1258,20 @@ type instruction =
  | JAL of unop-r
  | JALR of binop-lr
  | JALR-HB of binop-lr
- | JR of unop-r
- | JR-HB of unop-r
  | LB of binop-lr
  | LBE of binop-lr
  | LBU of binop-lr
  | LBUE of binop-lr
  | LDC1 of binop-lr
- | LDXC1 of binop-lr
  | LH of binop-lr
  | LHE of binop-lr
  | LHU of binop-lr
  | LHUE of binop-lr
  | LL of binop-lr
  | LLE of binop-lr
- | LUI of binop-lr
- | LUXC1 of binop-lr
  | LW of binop-lr
  | LWC1 of binop-lr
  | LWE of binop-lr
- | MADD of binop-rr
- | MADD-fmt of quadop-flrrr
- | MADDU of binop-rr
  | MFC0 of ternop-lrr
  | MFC1 of binop-lr
  | MFC2 of binop-lr

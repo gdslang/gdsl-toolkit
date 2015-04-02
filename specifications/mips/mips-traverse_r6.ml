@@ -42,4 +42,11 @@ val revision/traverse f insn =
     | EVP x: f "EVP" (UNOP_L x)
     | JIALC x: f "JIALC" (BINOP_RR x)
     | JIC x: f "JIC" (BINOP_RR x)
+    | LSA x: f "LSA" (QUADOP_LRRR x)
+    | MADDF-fmt x: f "MADDF" (TERNOP_FLRR x)
+    | MSUBF-fmt x: f "MSUBF" (TERNOP_FLRR x)
+    | MAX-fmt x: f "MAX" (TERNOP_FLRR x)
+    | MAXA-fmt x: f "MAXA" (TERNOP_FLRR x)
+    | MIN-fmt x: f "MIN" (TERNOP_FLRR x)
+    | MINA-fmt x: f "MINA" (TERNOP_FLRR x)
    end

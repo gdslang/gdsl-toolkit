@@ -131,6 +131,14 @@ val / ['000000 /rs /rt 0000000000 011010'] = binop DIV (right rs) (right rt)
 ###  - Divide Unsigned Word
 val / ['000000 /rs /rt 0000000000 011011'] = binop DIVU (right rs) (right rt) 
 
+### JR
+###  - Jump Register
+val / ['000000 /rs 0000000000 00000 001000'] = unop JR (right rs) 
+
+### JR-HB
+###  - Jump Register with Hazard Barrier
+val / ['000000 /rs 0000000000 1 0000 001000'] = unop JR-HB (right rs) 
+
 ### JALX
 ###  - Jump and Link Exchange
 val / ['011101 /instr_index'] = unop JALX instr_index 
@@ -139,9 +147,17 @@ val / ['011101 /instr_index'] = unop JALX instr_index
 ###  - Load Doubleword to Coprocessor 2
 val / ['110110 /base /rt /offset16'] = binop LDC2 rt/imm offset16/base 
 
+### LDXC1
+###  - Load Doubleword Indexed to Floating Point
+val / ['010011 /base /index 00000 /fd 000001'] = binop LDXC1 fd index/base
+
 ### LUI
 ###  - Load Upper Immediate
 val / ['001111 00000 /rt /immediate16'] = binop LUI rt immediate16 
+
+### LUXC1
+###  - Load Doubleword Indexed Unaligned to Floating Point
+val / ['010011 /base /index 00000 /fd 000101'] = binop LUXC1 fd index/base
 
 ### LWC2
 ###  - Load Word to Coprocessor 2
@@ -170,6 +186,18 @@ val / ['011111 /base /rt /offset9 0 011010']
 ### LWXC1
 ###  - Load Word Indexed to Floating Point
 val / ['010011 /base /index 00000 /fd 000000'] = binop LWXC1 fd index/base
+
+### MADD
+###  - Multiply and Add Word to Hi,Lo
+val / ['011100 /rs /rt 00000 00000 000000'] = binop MADD (right rs) (right rt) 
+
+### MADD-fmt
+###  - Floating Point Multiply Add
+val / ['010011 /fr /ft /fs /fd 100 /fmt3sdps'] = quadop-fmt MADD-fmt fmt fd (right fr) (right fs) (right ft) 
+
+### MADDU
+###  - Multiply and Add Unsigned Word to Hi,Lo
+val / ['011100 /rs /rt 00000 00000 000001'] = binop MADDU (right rs) (right rt) 
 
 ### SDC2
 ###  - Store Doubleword from Coprocessor 2
@@ -207,14 +235,22 @@ type instruction =
  | CVT-S-PU of binop-lr
  | DIV of binop-rr
  | DIVU of binop-rr
+ | JR of unop-r
+ | JR-HB of unop-r
  | JALX of unop-r
  | LDC2 of binop-rr
+ | LDXC1 of binop-lr
+ | LUI of binop-lr
+ | LUXC1 of binop-lr
  | LWC2 of binop-rr
  | LWL of binop-lr
  | LWLE of binop-lr
  | LWR of binop-lr
  | LWRE of binop-lr
  | LWXC1 of binop-lr
+ | MADD of binop-rr
+ | MADD-fmt of quadop-flrrr
+ | MADDU of binop-rr
  | SDC2 of binop-rr
 
 type format = 

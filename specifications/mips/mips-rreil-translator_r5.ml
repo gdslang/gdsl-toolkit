@@ -41,6 +41,17 @@ end
 val sem-div x = sem-div-divu divs mods x
 val sem-divu x = sem-div-divu div mod x
 
+val sem-lui x = do
+	immediate <- rval Unsigned x.op2;
+	size <- return (sizeof-lval x.op1);
+	size_imm <- return (sizeof-rval x.op2);
+	
+	res <- mktemp;
+	shl size res immediate (imm (32-size_imm));
+
+	write x.op1 (var res)
+end
+
 val sem-lwl x = do
 	off/base <- rval Signed x.op2;
 	base <- return (extract-tuple off/base).opnd1;
@@ -116,6 +127,30 @@ val sem-lwr x = do
 	write x.op1 (var res)
 end
 
+val sem-jr x = do
+	rs <- rval Signed x.op;
+	size <- return (sizeof-rval x.op);
+	pc <- return (semantic-reg-of Sem_SREG);
+
+	pc_true <- mktemp;
+	mov size pc_true rs; 
+
+	pc_false <- mktemp;
+	mov size pc_false rs;
+	mov 1 pc_false (imm 0);
+
+	config1CA <- return (fCA);
+	cond <- /eq 1 (var config1CA) (imm 0);
+
+	isamode <- return (semantic-reg-of Sem_ISA_MODE);
+	_if (/neq 1 (var config1CA) (imm 0)) _then
+		mov isamode.size isamode rs;
+	
+	cbranch cond (address pc.size (var pc_true)) (address pc.size (var pc_false))	
+end
+
+val sem-jr-hb x = sem-jr x
+
 val sem-jalx x = do
 	isamode <- return (semantic-reg-of Sem_ISA_MODE);
 
@@ -123,6 +158,9 @@ val sem-jalx x = do
 
 	sem-jal x		
 end
+
+val sem-madd x = sem-madd-maddu-msub-msubu movsx add x
+val sem-maddu x = sem-madd-maddu-msub-msubu movzx add x
 
 
 
@@ -154,13 +192,21 @@ val revision/semantics i =
     | CVT-S-PU x: sem-default-binop-lr-generic i x
     | DIV x: sem-div x
     | DIVU x: sem-divu x 
+    | JR x: sem-jr x
+    | JR-HB x: sem-jr-hb x
     | JALX x: sem-jalx x
     | LDC2 x: sem-default-binop-rr-tuple-generic i x
+    | LDXC1 x: sem-default-binop-lr-tuple-generic i x
+    | LUI x: sem-lui x
+    | LUXC1 x: sem-default-binop-lr-tuple-generic i x
     | LWC2 x: sem-default-binop-rr-tuple-generic i x
     | LWL x: sem-lwl x
     | LWLE x: sem-lwl x
     | LWR x: sem-lwr x
     | LWRE x: sem-lwr x
     | LWXC1 x: sem-default-binop-lr-tuple-generic i x
+    | MADD x: sem-madd x
+    | MADD-fmt x: sem-default-ternop-flrr-generic i x
+    | MADDU x: sem-maddu x
     | SDC2 x: sem-default-binop-rr-tuple-generic i x
    end

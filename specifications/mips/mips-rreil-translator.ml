@@ -766,30 +766,6 @@ end
 
 val sem-jalr-hb x = sem-jalr x
 
-val sem-jr x = do
-	rs <- rval Signed x.op;
-	size <- return (sizeof-rval x.op);
-	pc <- return (semantic-reg-of Sem_SREG);
-
-	pc_true <- mktemp;
-	mov size pc_true rs; 
-
-	pc_false <- mktemp;
-	mov size pc_false rs;
-	mov 1 pc_false (imm 0);
-
-	config1CA <- return (fCA);
-	cond <- /eq 1 (var config1CA) (imm 0);
-
-	isamode <- return (semantic-reg-of Sem_ISA_MODE);
-	_if (/neq 1 (var config1CA) (imm 0)) _then
-		mov isamode.size isamode rs;
-	
-	cbranch cond (address pc.size (var pc_true)) (address pc.size (var pc_false))	
-end
-
-val sem-jr-hb x = sem-jr x
-
 val is-user-mode = do
 	dm <- return fDM;
 	ksu <- return fKSU;
@@ -930,17 +906,6 @@ val sem-ll x = do
 	sem-lw x
 end
 
-val sem-lui x = do
-	immediate <- rval Unsigned x.op2;
-	size <- return (sizeof-lval x.op1);
-	size_imm <- return (sizeof-rval x.op2);
-	
-	res <- mktemp;
-	shl size res immediate (imm (32-size_imm));
-
-	write x.op1 (var res)
-end
-
 val sem-madd-maddu-msub-msubu ext_op add_sub_op x = do
 	rs <- rval Signed x.op1;
 	rt <- rval Signed x.op2;
@@ -968,8 +933,6 @@ val sem-madd-maddu-msub-msubu ext_op add_sub_op x = do
 	mov size hi (var (at-offset res size))
 end
 
-val sem-madd x = sem-madd-maddu-msub-msubu movsx add x
-val sem-maddu x = sem-madd-maddu-msub-msubu movzx add x
 val sem-msub x = sem-madd-maddu-msub-msubu movzx sub x
 val sem-msubu x = sem-madd-maddu-msub-msubu movzx sub x 
 
@@ -1524,28 +1487,20 @@ val semantics i =
     | JAL x: sem-jal x
     | JALR x: sem-jalr x
     | JALR-HB x: sem-jalr-hb x
-    | JR x: sem-jr x
-    | JR-HB x: sem-jr-hb x
     | LB x: sem-lb x
     | LBE x: sem-lb x
     | LBU x: sem-lbu x
     | LBUE x: sem-lbu x
     | LDC1 x: sem-default-binop-lr-tuple-generic i x
-    | LDXC1 x: sem-default-binop-lr-tuple-generic i x
     | LH x: sem-lh x
     | LHE x: sem-lh x
     | LHU x: sem-lhu x
     | LHUE x: sem-lhu x
     | LL x: sem-ll x
     | LLE x: sem-ll x
-    | LUI x: sem-lui x
-    | LUXC1 x: sem-default-binop-lr-tuple-generic i x
     | LW x: sem-lw x
     | LWC1 x: sem-default-binop-lr-tuple-generic i x
     | LWE x: sem-lw x
-    | MADD x: sem-madd x
-    | MADD-fmt x: sem-default-ternop-flrr-generic i x
-    | MADDU x: sem-maddu x
     | MFC0 x: sem-default-ternop-lrr-generic i x
     | MFC1 x: sem-default-binop-lr-generic i x
     | MFC2 x: sem-default-binop-lr-generic i x

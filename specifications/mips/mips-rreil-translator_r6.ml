@@ -3,6 +3,7 @@ val revision/sizeof-imm imm =
       IMM21 i: 21
     | IMM32 i: 32
     | BP i: 2
+    | SA2 i: 2
     | OFFSET23 i: 23
     | OFFSET28 i: 28
     | C2CONDITION i: 5
@@ -19,6 +20,7 @@ in
       IMM21 i: from-vec sn i
     | IMM32 i: from-vec sn i
     | BP i: from-vec sn i
+    | SA2 i: from-vec sn i
     | OFFSET23 i: from-vec sn i
     | OFFSET28 i: from-vec sn i
     | C2CONDITION i: from-vec sn i
@@ -262,6 +264,21 @@ val sem-jic x = do
 	jump (address size (var pc_new))
 end
 
+val sem-lsa x = do
+	rs <- rval Signed x.op2;
+	rt <- rval Signed x.op3;
+	sa2 <- rval Signed x.op4;
+	size <- return (sizeof-lval x.op1);
+
+	sa <- return (1 + lin-to-int sa2);
+
+	res <- mktemp;
+	shl size res rs (imm sa);
+	add size res (var res) rt;
+
+	write x.op1 (var res)
+end
+
 val revision/semantics i =
    case i of
       ADDIUPC x: sem-addiupc x
@@ -306,4 +323,11 @@ val revision/semantics i =
     | EVP x: sem-default-unop-l-generic i x
     | JIALC x: sem-jialc x
     | JIC x: sem-jic x
+    | LSA x: sem-lsa x
+    | MADDF-fmt x: sem-default-ternop-flrr-generic i x
+    | MSUBF-fmt x: sem-default-ternop-flrr-generic i x
+    | MAX-fmt x: sem-default-ternop-flrr-generic i x
+    | MAXA-fmt x: sem-default-ternop-flrr-generic i x
+    | MIN-fmt x: sem-default-ternop-flrr-generic i x
+    | MINA-fmt x: sem-default-ternop-flrr-generic i x
    end

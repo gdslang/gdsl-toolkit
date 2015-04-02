@@ -6,7 +6,6 @@
 # guard conditions
 ####
 
-val lui? s = (s.rs == '00000')
 val bgtz? s = (s.rt == '00000')
 val bgtzalc? s = (s.rs == '00000') and (not (s.rt == '00000'))
 val bgezalc? s = (s.rs == s.rt) and (not (s.rs == '00000')) 
@@ -55,9 +54,7 @@ val / ['111011 /rs 11111 /immediate16'] = binop ALUIPC rs immediate32
 
 ### AUI
 ###  - Add Immediate to Upper Bits
-val / ['001111 /rs /rt /immediate16']
- | lui? = binop LUI rt immediate16
- | otherwise = ternop AUI rt (right rs) immediate32
+val / ['001111 /rs /rt /immediate16'] = ternop AUI rt (right rs) immediate32
 
 ### AUIPC
 ###  - Add Upper Immediate to PC
@@ -207,6 +204,14 @@ val / ['010000 01011 /rt 00000 00000 1 00 100'] = unop DVP rt
 ###  - Enable Virtual Processor
 val / ['010000 01011 /rt 00000 00000 0 00 100'] = unop EVP rt
 
+### JR
+### Jump Register
+###  => see JALR with rd = 0
+
+### JR-HB
+### Jump Register with Hazard Barrier
+###  => see JALR-HB with rd = 0
+
 ### JIALC
 ###  - Jump Indexed and Link, Compact
 val / ['111110 00000 /rt /offset16'] = binop JIALC (right rt) offset16
@@ -215,9 +220,37 @@ val / ['111110 00000 /rt /offset16'] = binop JIALC (right rt) offset16
 ###  - Jump Indexed and Link, Compact
 val / ['110110 00000 /rt /offset16'] = binop JIALC (right rt) offset16
 
+### LSA
+###  - Load Scaled Address
+val / ['000000 /rs /rt /rd 000 /sa2 000101'] = quadop LSA rd (right rs) (right rt) sa2
+
 ### LUI
 ###  - Load Upper Immediate
 ###  => see AUI r0, rt, immediate16
+
+### MADDF-fmt
+###  - Floating Point Fused Multiply Add
+val / ['010001 /fmt5sd /ft /fs /fd 011000'] = ternop-fmt MADDF-fmt fmt fd (right fs) (right ft)
+
+### MSUBF-fmt
+###  - Floating Point Fused Multiply Subtract
+val / ['010001 /fmt5sd /ft /fs /fd 011001'] = ternop-fmt MSUBF-fmt fmt fd (right fs) (right ft)
+
+### MAX-fmt
+###  - Scalar Floating-Point Max
+val / ['010001 /fmt5sd /ft /fs /fd 011110'] = ternop-fmt MAX-fmt fmt fd (right fs) (right ft)
+
+### MAXA-fmt
+###  - Scalar Floating-Point maxNumMag
+val / ['010001 /fmt5sd /ft /fs /fd 011111'] = ternop-fmt MAXA-fmt fmt fd (right fs) (right ft)
+
+### MIN-fmt
+###  - Scalar Floating-Point Min
+val / ['010001 /fmt5sd /ft /fs /fd 011100'] = ternop-fmt MIN-fmt fmt fd (right fs) (right ft)
+
+### MINA-fmt
+###  - Scalar Floating-Point minNumMag
+val / ['010001 /fmt5sd /ft /fs /fd 011101'] = ternop-fmt MINA-fmt fmt fd (right fs) (right ft)
 
 
 type instruction = 
@@ -263,11 +296,20 @@ type instruction =
  | EVP of unop-l
  | JIALC of binop-rr
  | JIC of binop-rr
+ | LSA of quadop-lrrr
+ | MADDF-fmt of ternop-flrr
+ | MSUBF-fmt of ternop-flrr
+ | MAX-fmt of ternop-flrr
+ | MAXA-fmt of ternop-flrr
+ | MIN-fmt of ternop-flrr
+ | MINA-fmt of ternop-flrr
+
 
 type imm =
    IMM21 of 21
  | IMM32 of 32
  | BP of 2
+ | SA2 of 2
  | OFFSET23 of 23
  | OFFSET28 of 28
  | C2CONDITION of 5
@@ -281,6 +323,7 @@ val /immediate19 ['immediate19:19'] = update@{immediate19=immediate19}
 val /offset21 ['offset21:21'] = update@{offset21=offset21}
 val /offset26 ['offset26:26'] = update@{offset26=offset26}
 val /bp ['bp:2'] = update@{bp=bp}
+val /sa2 ['sa2:2'] = update@{sa2=sa2}
 val /ct ['ct:5'] = update@{ct=ct}
 val /fmt5sd/wl ['10100'] = update@{fmt=S}
 val /fmt5sd/wl ['10101'] = update@{fmt=D}
@@ -314,6 +357,11 @@ end
 val bp = do
   bp <- query $bp;
   return (IMM (BP bp))
+end
+
+val sa2 = do
+  sa2 <- query $sa2;
+  return (IMM (SA2 sa2))
 end
 
 val condn = do
