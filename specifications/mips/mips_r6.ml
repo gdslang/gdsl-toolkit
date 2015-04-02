@@ -25,7 +25,6 @@ val bgeuc? s = (not (s.rs == s.rt)) and (not (s.rs == '00000')) and (not (s.rt =
 val bltuc? s = (not (s.rs == s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
 val beqc? s = ((zx s.rs) < (zx s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
 val bnec? s = ((zx s.rs) < (zx s.rt)) and (not (s.rs == '00000')) and (not (s.rt == '00000'))
-val beqzc? s = not (s.rs == '00000')
 val bovc? s = ((zx s.rs) >= (zx s.rt))
 val bnvc? s = ((zx s.rs) >= (zx s.rt))
 
@@ -151,8 +150,7 @@ val / ['000111 /rs /rt /offset16']
 ###  => see BNVC
 
 ###    BEQZC
-val / ['110110 /rs /offset21']
- | beqzc? = binop BEQZC (right rs) offset23
+val / ['110110 /rs-notnull /offset21'] = binop BEQZC (right rs) offset23
 
 ###    BNEZC
 val / ['111110 /rs-notnull /offset21'] = binop BNEZC (right rs) offset23
@@ -213,6 +211,10 @@ val / ['010000 01011 /rt 00000 00000 0 00 100'] = unop EVP rt
 ###  - Jump Indexed and Link, Compact
 val / ['111110 00000 /rt /offset16'] = binop JIALC (right rt) offset16
 
+### JIC
+###  - Jump Indexed and Link, Compact
+val / ['110110 00000 /rt /offset16'] = binop JIALC (right rt) offset16
+
 ### LUI
 ###  - Load Upper Immediate
 ###  => see AUI r0, rt, immediate16
@@ -260,6 +262,7 @@ type instruction =
  | DVP of unop-l
  | EVP of unop-l
  | JIALC of binop-rr
+ | JIC of binop-rr
 
 type imm =
    IMM21 of 21
@@ -283,7 +286,6 @@ val /fmt5sd/wl ['10100'] = update@{fmt=S}
 val /fmt5sd/wl ['10101'] = update@{fmt=D}
 val /condn ['condn:5'] = update@{condn=condn}
 val /rs-notnull ['rs@00001|00010|00011|00100|00101|00110|00111|01000|01001|01010|01011|01100|01101|01110|01111|10000|10001|10010|10011|10100|10101|10110|10111|11000|11001|11010|11011|11100|11101|11110|11111'] = update@{rs=rs}
-
 
 ###########################
 # operand constructors

@@ -41,4 +41,5 @@ val revision/traverse f insn =
     | DVP x: f "DVP" (UNOP_L x)
     | EVP x: f "EVP" (UNOP_L x)
     | JIALC x: f "JIALC" (BINOP_RR x)
+    | JIC x: f "JIC" (BINOP_RR x)
    end

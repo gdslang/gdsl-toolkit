@@ -236,7 +236,7 @@ val sem-jialc x = do
 	rt <- rval Signed x.op1;
 	off <- rval Signed x.op2;
 	size <- return (sizeof-rval x.op1);
-	pc <- return (semantic-reg-of Sem_SREG);
+	pc <- return (semantic-reg-of Sem_PC);
 	ra <- return (semantic-gpr-of RA);
 
 	pc_new <- mktemp;
@@ -244,6 +244,20 @@ val sem-jialc x = do
 
 	add size pc_new (var pc_new) off;
 	mov size ra (var pc_new);
+
+	jump (address size (var pc_new))
+end
+
+val sem-jic x = do
+	rt <- rval Signed x.op1;
+	off <- rval Signed x.op2;
+	size <- return (sizeof-rval x.op1);
+	pc <- return (semantic-reg-of Sem_PC);
+
+	pc_new <- mktemp;
+	mov size pc_new rt; 
+
+	add size pc_new (var pc_new) off;
 
 	jump (address size (var pc_new))
 end
@@ -291,4 +305,5 @@ val revision/semantics i =
     | DVP x: sem-default-unop-l-generic i x
     | EVP x: sem-default-unop-l-generic i x
     | JIALC x: sem-jialc x
+    | JIC x: sem-jic x
    end
