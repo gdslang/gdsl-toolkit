@@ -331,9 +331,67 @@ val / ['111110 /base /rt /offset16'] = binop SDC2 rt/imm offset16/base
 ###  - Store Doubleword Indexed from Floating Point
 val / ['010011 /base /index /fs 00000 001001'] = binop SDXC1 (right fs) index/base
 
+### SUB-fmt
+###  - Floating Point Subtract
+val / ['010001 /fmt5sdps /ft /fs /fd 000001'] = ternop-fmt SUB-fmt fmt fd (right fs) (right ft) 
+
+### SUXC1
+###  - Store Doubleword Indexed Unaligned from Floating Point
+val / ['010011 /base /index /fs 00000 001101'] = binop SUXC1 (right fs) index/base
+
 ### SWC2
 ###  - Store Word from Coprocessor 2
 val / ['111010 /base /rt /offset16'] = binop SWC2 rt/imm offset16/base
+
+### SWL
+###  - Store Word Left
+val / ['101010 /base /rt /offset16'] = binop SWL (right rt) offset16/base 
+
+### SWLE
+###  - Store Word Left EVA
+val / ['011111 /base /rt /offset9 0 100001']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SWLE (right rt) offset9/base 
+
+### SWR
+###  - Store Word Right
+val / ['101110 /base /rt /offset16'] = binop SWR (right rt) offset16/base 
+
+### SWRE
+###  - Store Word Right EVA
+val / ['011111 /base /rt /offset9 0 100010']
+ | asmode? = nullop UNDEFINED
+ | otherwise = binop SWRE (right rt) offset9/base 
+
+### SWXC1
+###  - Store Word Indexed from Floating Point
+val / ['010011 /base /index /fs 00000 001000'] = binop SWXC1 (right fs) index/base
+
+### TEQI
+###  - Trap if Equal Immediate
+val / ['000001 /rs 01100 /immediate16'] = binop TEQI (right rs) immediate16 
+
+### TGEI
+###  - Trap if Greater or Equal Immediate
+val / ['000001 /rs 01000 /immediate16'] = binop TGEI (right rs) immediate16 
+
+### TGEIU
+###  - Trap if Greater or Equal Immediate Unsigned
+val / ['000001 /rs 01001 /immediate16'] = binop TGEIU (right rs) immediate16 
+
+### TLTI
+###  - Trap if Less Than Immediate
+val / ['000001 /rs 01010 /immediate16'] = binop TLTI (right rs) immediate16 
+
+### TLTIU
+###  - Trap if Less Than Immediate Unsigned
+val / ['000001 /rs 01011 /immediate16'] = binop TLTIU (right rs) immediate16 
+
+### TNEI
+###  - Trap if Not Equal Immediate
+val / ['000001 /rs 01110 /immediate16'] = binop TNEI (right rs) immediate16 
+
+
 
 
 type instruction =
@@ -404,7 +462,19 @@ type instruction =
  | PREFX of binop-rr
  | PUL-PS of ternop-lrr
  | PUU-PS of ternop-lrr
+ | SUXC1 of binop-rr
  | SDXC1 of binop-rr
+ | SWL of binop-rr
+ | SWLE of binop-rr
+ | SWR of binop-rr
+ | SWRE of binop-rr
+ | SWXC1 of binop-rr
+ | TEQI of binop-rr
+ | TGEI of binop-rr
+ | TGEIU of binop-rr
+ | TLTI of binop-rr
+ | TLTIU of binop-rr
+ | TNEI of binop-rr
 
 type format = 
    PS
@@ -426,6 +496,10 @@ type condop =
  | C_NGE
  | C_LE
  | C_NGT
+
+type sp-register =
+   HI
+ | LO
 
 val /cond ['cond:4'] = update@{cond=cond}
 val /fmt5sdps ['10 /fmt3sdps'] = return void

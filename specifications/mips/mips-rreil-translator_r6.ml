@@ -8,6 +8,7 @@ val revision/sizeof-imm imm =
     | OFFSET23 i: 23
     | OFFSET28 i: 28
     | C2CONDITION i: 5
+    | CODE16 i: 16
    end
 
 val revision/rval-imm sn x = let
@@ -26,6 +27,7 @@ in
     | OFFSET23 i: from-vec sn i
     | OFFSET28 i: from-vec sn i
     | C2CONDITION i: from-vec sn i
+    | CODE16 i: from-vec sn i
    end
 end
 
@@ -324,6 +326,8 @@ end
 val sem-seleqz x = sem-sel /eq x
 val sem-selnez x = sem-sel /neq x
 
+val sem-sigrie x = throw-exception SEM_EXC_RESERVED_INSTRUCTION
+
 val revision/semantics i =
    case i of
       ADDIUPC x: sem-addiupc x
@@ -386,4 +390,5 @@ val revision/semantics i =
     | SELNEZ x: sem-selnez x
     | SELEQZ-fmt x: sem-default-ternop-flrr-generic i x
     | SELNEQZ-fmt x: sem-default-ternop-flrr-generic i x
+    | SIGRIE x: sem-sigrie x
    end

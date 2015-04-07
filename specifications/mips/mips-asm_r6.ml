@@ -9,5 +9,6 @@ in case i of
  | OFFSET23 i: inner i 23
  | OFFSET28 i: inner i 28
  | C2CONDITION i: inner i 5
+ | CODE16 i: inner i 16
 end end
 

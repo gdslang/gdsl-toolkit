@@ -44,6 +44,7 @@ val revision/show/immediate imm =
     | OFFSET23 x: show-int (zx x)
     | OFFSET28 x: show-int (zx x)
     | C2CONDITION x: show-int (zx x)
+    | CODE16 x: show-int (zx x)
    end
 
 val revision/show/format format = "ERROR"

@@ -1160,57 +1160,6 @@ val sem-sc x = do
 	write x.op1 (var temp)
 end
 
-val sem-swl x = do
-	rt <- rval Signed x.op1;
-	off/base <- rval Signed x.op2;
-	base <- return (extract-tuple off/base).opnd1;
-	off <- return (extract-tuple off/base).opnd2;
-	size <- return (sizeof-rval x.op1);
-
-	vaddr <- mktemp;
-	add size vaddr base off;
-
-	bcpu <- is-big-endian-cpu;
-	bcpu2 <- mktemp;
-	movsx 2 bcpu2 1 bcpu;
- 
-	byte <- mktemp;
-	xorb 2 byte (var vaddr) (var bcpu2);
-	shl 32 byte (var byte) (imm 3);
-
-	rshift <- mktemp;
-	sub size rshift (imm 24) (var byte);
-	memword <- mktemp;
-	shr size memword rt (var rshift);
-
-	store 32 (address size (var vaddr)) (var memword)
-end
-
-
-val sem-swr x = do
-	rt <- rval Signed x.op1;
-	off/base <- rval Signed x.op2;
-	base <- return (extract-tuple off/base).opnd1;
-	off <- return (extract-tuple off/base).opnd2;
-	size <- return (sizeof-rval x.op1);
-
-	vaddr <- mktemp;
-	add size vaddr base off;
-
-	bcpu <- is-big-endian-cpu;
-	bcpu2 <- mktemp;
-	movsx 2 bcpu2 1 bcpu;
- 
-	byte <- mktemp;
-	xorb 2 byte (var vaddr) (var bcpu2);
-	shl 32 byte (var byte) (imm 3);
-
-	lshift <- mktemp;
-	memword <- mktemp;
-	shr size memword rt (var byte);
-
-	store 32 (address size (var vaddr)) (var memword)
-end
 
 val sem-sdbbp x = do
 	debugDM <- return (fDM);
@@ -1270,22 +1219,6 @@ val sem-tgeu x = sem-t /geu x
 val sem-tlt x = sem-t /lts x
 val sem-tltu x = sem-t /ltu x
 val sem-tne x = sem-t /neq x
-
-val sem-ti cmp_op signedness x = do
-	rs <- rval signedness x.op1;
-	imm <- rval signedness x.op2;
-	size <- return (sizeof-rval x.op1);
-
-	_if (cmp_op size rs imm) _then
-		throw-exception SEM_EXC_TRAP
-end
-
-val sem-teqi x = sem-ti /eq Signed x
-val sem-tgei x = sem-ti /ges Signed x
-val sem-tgeiu x = sem-ti /geu Unsigned x
-val sem-tlti x = sem-ti /lts Signed x
-val sem-tltiu x = sem-ti /ltu Unsigned x
-val sem-tnei x = sem-ti /neq Signed x
 
 val sem-wsbh x = do
 	rt <- rval Unsigned x.op2;
@@ -1433,24 +1366,15 @@ val semantics i =
     | SUB x: sem-sub x
     | SUB-fmt x: sem-default-ternop-flrr-generic i x
     | SUBU x: sem-subu x
-    | SUXC1 x: sem-default-binop-rr-tuple-generic i x
     | SW x: sem-sw x
     | SWC1 x: sem-default-binop-rr-tuple-generic i x
     | SWC2 x: sem-default-binop-rr-tuple-generic i x
     | SWE x: sem-sw x
-    | SWL x: sem-swl x
-    | SWLE x: sem-swl x
-    | SWR x: sem-swr x
-    | SWRE x: sem-swr x
-    | SWXC1 x: sem-default-binop-rr-tuple-generic i x
     | SYNC x: sem-default-unop-r-generic i x
     | SYNCI x: sem-default-unop-r-tuple-generic i x
     | SYSCALL x: sem-syscall
     | TEQ x: sem-teq x
-    | TEQI x: sem-teqi x
     | TGE x: sem-tge x
-    | TGEI x: sem-tgei x
-    | TGEIU x: sem-tgeiu x
     | TGEU x: sem-tgeu x
     | TLBINV: sem-default-nullop-generic i
     | TLBINVF: sem-default-nullop-generic i
@@ -1459,11 +1383,8 @@ val semantics i =
     | TLBWI: sem-default-nullop-generic i
     | TLBWR: sem-default-nullop-generic i
     | TLT x: sem-tlt x
-    | TLTI x: sem-tlti x
-    | TLTIU x: sem-tltiu x
     | TLTU x: sem-tltu x
     | TNE x: sem-tne x
-    | TNEI x: sem-tnei x
     | TRUNC-L-fmt x: sem-default-binop-flr-generic i x
     | TRUNC-W-fmt x: sem-default-binop-flr-generic i x
     | WAIT x: sem-default-unop-r-generic i x

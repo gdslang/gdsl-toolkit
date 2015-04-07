@@ -282,6 +282,74 @@ val sem-mul x = do
 	write x.op1 (var res)
 end
 
+val sem-swl x = do
+	rt <- rval Signed x.op1;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
+	size <- return (sizeof-rval x.op1);
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	movsx 2 bcpu2 1 bcpu;
+ 
+	byte <- mktemp;
+	xorb 2 byte (var vaddr) (var bcpu2);
+	shl 32 byte (var byte) (imm 3);
+
+	rshift <- mktemp;
+	sub size rshift (imm 24) (var byte);
+	memword <- mktemp;
+	shr size memword rt (var rshift);
+
+	store 32 (address size (var vaddr)) (var memword)
+end
+
+
+val sem-swr x = do
+	rt <- rval Signed x.op1;
+	off/base <- rval Signed x.op2;
+	base <- return (extract-tuple off/base).opnd1;
+	off <- return (extract-tuple off/base).opnd2;
+	size <- return (sizeof-rval x.op1);
+
+	vaddr <- mktemp;
+	add size vaddr base off;
+
+	bcpu <- is-big-endian-cpu;
+	bcpu2 <- mktemp;
+	movsx 2 bcpu2 1 bcpu;
+ 
+	byte <- mktemp;
+	xorb 2 byte (var vaddr) (var bcpu2);
+	shl 32 byte (var byte) (imm 3);
+
+	lshift <- mktemp;
+	memword <- mktemp;
+	shr size memword rt (var byte);
+
+	store 32 (address size (var vaddr)) (var memword)
+end
+
+val sem-ti cmp_op signedness x = do
+	rs <- rval signedness x.op1;
+	imm <- rval signedness x.op2;
+	size <- return (sizeof-rval x.op1);
+
+	_if (cmp_op size rs imm) _then
+		throw-exception SEM_EXC_TRAP
+end
+
+val sem-teqi x = sem-ti /eq Signed x
+val sem-tgei x = sem-ti /ges Signed x
+val sem-tgeiu x = sem-ti /geu Unsigned x
+val sem-tlti x = sem-ti /lts Signed x
+val sem-tltiu x = sem-ti /ltu Unsigned x
+val sem-tnei x = sem-ti /neq Signed x
+
 
 val revision/semantics i =
    case i of
@@ -353,4 +421,16 @@ val revision/semantics i =
     | PUL-PS x: sem-default-ternop-lrr-generic i x
     | PUU-PS x: sem-default-ternop-lrr-generic i x
     | SDXC1 x: sem-default-binop-rr-tuple-generic i x
+    | SUXC1 x: sem-default-binop-rr-tuple-generic i x
+    | SWL x: sem-swl x
+    | SWLE x: sem-swl x
+    | SWR x: sem-swr x
+    | SWRE x: sem-swr x
+    | SWXC1 x: sem-default-binop-rr-tuple-generic i x
+    | TEQI x: sem-teqi x
+    | TGEI x: sem-tgei x
+    | TGEIU x: sem-tgeiu x
+    | TLTI x: sem-tlti x
+    | TLTIU x: sem-tltiu x
+    | TNEI x: sem-tnei x
    end
