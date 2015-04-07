@@ -50,6 +50,7 @@ end = struct
          val get_ip = get "get-ip"
 (*         val rseek = get "rseek"*)
          val seek = get "seek"
+         val seekf = get "seekf"
          val index = get "index"
          val puts = get "puts"
          val return = get "return"
@@ -304,6 +305,16 @@ end = struct
                (seek, [x], body)
             end
 
+         val seekf =
+            let
+               val x = fresh "x"
+               val s = fresh "s"
+               val primseekf = get "%seekf"
+               val body = FN (s, PRI (primseekf, [s,x]))
+            in
+               (seekf, [x], body)
+            end
+
          (* val index s = %index(s) *)
          val index =
             let
@@ -414,6 +425,7 @@ end = struct
           raisee,
           get_ip,
           seek,
+          seekf,
           index,
 					puts,
           add,
