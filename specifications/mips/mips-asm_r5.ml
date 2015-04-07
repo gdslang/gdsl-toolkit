@@ -1,4 +1,4 @@
 val revision/generalize-immediate i = 
-   case i of
-      IMM16 x: asm-bounded (asm-boundary-sz 16) (asm-imm (zx x))
+   case 0 of
+      1: asm-bounded (asm-boundary-sz 1) (asm-imm 1)
    end

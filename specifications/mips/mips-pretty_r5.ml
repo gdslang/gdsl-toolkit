@@ -18,7 +18,10 @@ val show/condop cond =
     | C_NGT: "NGT"
    end
 
-val revision/show/immediate imm = "ERROR"
+val revision/show/immediate imm = 
+   case 0 of
+      1 : "ERROR"
+   end
 
 val revision/show/format format = 
    case format of
