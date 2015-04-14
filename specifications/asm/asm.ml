@@ -52,6 +52,8 @@ val asm-annotated a opnd = ASM_ANNOTATED {ann=a, opnd=opnd}
 val asm-sum l r = ASM_SUM {lhs=l, rhs=r}
 val asm-scale f r = ASM_SCALE {factor=f, rhs=r}
 val asm-bounded b o = ASM_BOUNDED {boundary=b, opnd=o}
+val asm-signed o = ASM_SIGN {signedness=ASM_SIGNED, opnd=o}
+val asm-unsigned o = ASM_SIGN {signedness=ASM_UNSIGNED, opnd=o}
 val asm-composite c = ASM_COMPOSITE c
 
 val asm-boundary-sz sz = ASM_BOUNDARY_SZ sz

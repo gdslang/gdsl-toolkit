@@ -4,10 +4,10 @@ val generalize insn = asm-insn insn.length (string-from-rope (pretty-mnemonic in
   
 val generalize-ua ua = case ua of
    UA0: asm-opnds-none
- | UA1 u: asm-opnds-one (generalize-opnd u.opnd1)
- | UA2 u: asm-opnds-more (generalize-opnd u.opnd1) (asm-opnds-one (generalize-opnd u.opnd2))
- | UA3 u: asm-opnds-more (generalize-opnd u.opnd1) (asm-opnds-more (generalize-opnd u.opnd2) (asm-opnds-one (generalize-opnd u.opnd3)))
- | UA4 u: asm-opnds-more (generalize-opnd u.opnd1) (asm-opnds-more (generalize-opnd u.opnd2) (asm-opnds-more (generalize-opnd u.opnd3) (asm-opnds-one (generalize-opnd u.opnd4))))
+ | UA1 u: asm-opnds-one (generalize-opnd '0' u.opnd1)
+ | UA2 u: asm-opnds-more (generalize-opnd '0' u.opnd1) (asm-opnds-one (generalize-opnd '0' u.opnd2))
+ | UA3 u: asm-opnds-more (generalize-opnd '0' u.opnd1) (asm-opnds-more (generalize-opnd '0' u.opnd2) (asm-opnds-one (generalize-opnd '0' u.opnd3)))
+ | UA4 u: asm-opnds-more (generalize-opnd '0' u.opnd1) (asm-opnds-more (generalize-opnd '0' u.opnd2) (asm-opnds-more (generalize-opnd '0' u.opnd3) (asm-opnds-one (generalize-opnd '0' u.opnd4))))
  | UAF u: asm-opnds-one (asm-annotated (asm-ann-string (string-from-rope "flow")) (generalize-flow u.opnd1))
 end
 
@@ -18,22 +18,24 @@ val generalize-flow opnd = case opnd of
  | REL64 r: asm-rel (generalize-immediate 64 (sx r))
  | PTR16/16 p: generalize-immediate 8 (sx p)
  | PTR16/32 p: generalize-immediate 8 (sx p)
- | NEARABS o: asm-annotated (asm-ann-string (string-from-rope "nearabs")) (generalize-opnd o)
- | FARABS o: asm-annotated (asm-ann-string (string-from-rope "farabs")) (generalize-opnd o)
+ | NEARABS o: asm-annotated (asm-ann-string (string-from-rope "nearabs")) (generalize-opnd '0' o)
+ | FARABS o: asm-annotated (asm-ann-string (string-from-rope "farabs")) (generalize-opnd '0' o)
 end
 
-val generalize-opnd opnd = case opnd of
-   IMM8 i: generalize-immediate 8 (zx i.imm)
- | IMM16 i: generalize-immediate 16 (zx i.imm)
- | IMM32 i: generalize-immediate 32 (zx i.imm)
- | IMM64 i: generalize-immediate 64 (zx i.imm)
+val generalize-opnd signed opnd = case opnd of
+   IMM8 i: generalize-immediate 8 (if signed then sx i.imm else zx i.imm)
+ | IMM16 i: generalize-immediate 16 (if signed then sx i.imm else zx i.imm)
+ | IMM32 i: generalize-immediate 32 (if signed then sx i.imm else zx i.imm)
+ | IMM64 i: generalize-immediate 64 (if signed then sx i.imm else zx i.imm)
  | REG r: generalize-register r
  | MEM m: generalize-memory m
- | X86_SUM s: asm-sum (generalize-opnd s.a) (generalize-opnd s.b)
- | X86_SCALE s: asm-scale (zx s.imm) (generalize-opnd s.opnd)
+ | X86_SUM s: asm-sum (generalize-opnd signed s.a) (generalize-opnd signed s.b)
+ | X86_SCALE s: asm-scale (zx s.imm) (generalize-opnd signed s.opnd)
 end
 
 val generalize-immediate sz imm = asm-bounded (asm-boundary-sz sz) (asm-imm imm)
+#val generalize-imm-signed sz imm = asm-signed (asm-bounded (asm-boundary-sz sz) (asm-imm imm))
+#val generalize-imm-unsigned sz imm = asm-unsigned (asm-bounded (asm-boundary-sz sz) (asm-imm imm))
 
 val generalize-register r = let
   val rs = semantic-register-of r
@@ -45,7 +47,7 @@ val generalize-memory m =
   asm-bounded (asm-boundary-sz m.sz)
     (asm-mem ((generalize-segment-override m.segment)
       (asm-bounded (asm-boundary-sz m.psz)
-        (generalize-opnd m.opnd)
+        (generalize-opnd '1' m.opnd)
 )))
 
 val generalize-segment-override so = case so of
