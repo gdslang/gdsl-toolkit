@@ -594,17 +594,9 @@ val / ['000000 /rs /rt /rd 0000 0 000110'] = ternop SRLV rd (right rt) (right rs
 ###  - Subtract Word
 val / ['000000 /rs /rt /rd 00000 100010'] = ternop SUB rd (right rs) (right rt) 
 
-### SUB-fmt
-###  - Floating Point Subtract
-val / ['010001 /fmt5sdps /ft /fs /fd 000001'] = ternop-fmt SUB-fmt fmt fd (right fs) (right ft) 
-
 ### SUBU
 ###  - Subtract Unsigned Word
 val / ['000000 /rs /rt /rd 00000 100011'] = ternop SUBU rd (right rs) (right rt) 
-
-### SUXC1
-###  - Store Doubleword Indexed Unaligned from Floating Point
-val / ['010011 /base /index /fs 00000 001101'] = binop SUXC1 (right fs) index/base
 
 ### SW
 ###  - Store Word
@@ -619,30 +611,6 @@ val / ['111001 /base /ft /offset16'] = binop SWC1 (right ft) offset16/base
 val / ['011111 /base /rt /offset9 0 011111']
  | asmode? = nullop UNDEFINED
  | otherwise = binop SWE (right rt) offset9/base 
-
-### SWL
-###  - Store Word Left
-val / ['101010 /base /rt /offset16'] = binop SWL (right rt) offset16/base 
-
-### SWLE
-###  - Store Word Left EVA
-val / ['011111 /base /rt /offset9 0 100001']
- | asmode? = nullop UNDEFINED
- | otherwise = binop SWLE (right rt) offset9/base 
-
-### SWR
-###  - Store Word Right
-val / ['101110 /base /rt /offset16'] = binop SWR (right rt) offset16/base 
-
-### SWRE
-###  - Store Word Right EVA
-val / ['011111 /base /rt /offset9 0 100010']
- | asmode? = nullop UNDEFINED
- | otherwise = binop SWRE (right rt) offset9/base 
-
-### SWXC1
-###  - Store Word Indexed from Floating Point
-val / ['010011 /base /index /fs 00000 001000'] = binop SWXC1 (right fs) index/base
 
 ### SYNC
 ###  - Synchronize Shared Memory
@@ -660,21 +628,9 @@ val / ['000000 /code20 001100'] = unop SYSCALL code20
 ###  - Trap if Equal
 val / ['000000 /rs /rt /code10 110100'] = ternop TEQ (right rs) (right rt) code10 
 
-### TEQI
-###  - Trap if Equal Immediate
-val / ['000001 /rs 01100 /immediate16'] = binop TEQI (right rs) immediate16 
-
 ### TGE
 ###  - Trap if Greater or Equal
 val / ['000000 /rs /rt /code10 110000'] = ternop TGE (right rs) (right rt) code10 
-
-### TGEI
-###  - Trap if Greater or Equal Immediate
-val / ['000001 /rs 01000 /immediate16'] = binop TGEI (right rs) immediate16 
-
-### TGEIU
-###  - Trap if Greater or Equal Immediate Unsigned
-val / ['000001 /rs 01001 /immediate16'] = binop TGEIU (right rs) immediate16 
 
 ### TGEU
 ###  - Trap if Greater or Equal Unsigned
@@ -712,14 +668,6 @@ val / ['010000 1 0000000000000000000 000110'] = nullop TLBWR
 ###  - Trap if Less Than
 val / ['000000 /rs /rt /code10 110010'] = ternop TLT (right rs) (right rt) code10 
 
-### TLTI
-###  - Trap if Less Than Immediate
-val / ['000001 /rs 01010 /immediate16'] = binop TLTI (right rs) immediate16 
-
-### TLTIU
-###  - Trap if Less Than Immediate Unsigned
-val / ['000001 /rs 01011 /immediate16'] = binop TLTIU (right rs) immediate16 
-
 ### TLTU
 ###  - Trap if Less Than Unsigned
 val / ['000000 /rs /rt /code10 110011'] = ternop TLTU (right rs) (right rt) code10 
@@ -727,10 +675,6 @@ val / ['000000 /rs /rt /code10 110011'] = ternop TLTU (right rs) (right rt) code
 ### TNE
 ###  - Trap if Not Equal
 val / ['000000 /rs /rt /code10 110110'] = ternop TNE (right rs) (right rt) code10 
-
-### TNEI
-###  - Trap if Not Equal Immediate
-val / ['000001 /rs 01110 /immediate16'] = binop TNEI (right rs) immediate16 
 
 ### TRUNC-L-fmt
 ###  - Floating Point Truncate to Long Fixed Point
@@ -1196,24 +1140,15 @@ type instruction =
  | SUB of ternop-lrr
  | SUB-fmt of ternop-flrr
  | SUBU of ternop-lrr
- | SUXC1 of binop-rr
  | SW of binop-rr
  | SWC1 of binop-rr
  | SWC2 of binop-rr
  | SWE of binop-rr
- | SWL of binop-rr
- | SWLE of binop-rr
- | SWR of binop-rr
- | SWRE of binop-rr
- | SWXC1 of binop-rr
  | SYNC of unop-r
  | SYNCI of unop-r
  | SYSCALL of unop-r
  | TEQ of ternop-rrr
- | TEQI of binop-rr
  | TGE of ternop-rrr
- | TGEI of binop-rr
- | TGEIU of binop-rr
  | TGEU of ternop-rrr
  | TLBINV
  | TLBINVF
@@ -1222,11 +1157,8 @@ type instruction =
  | TLBWI
  | TLBWR
  | TLT of ternop-rrr
- | TLTI of binop-rr
- | TLTIU of binop-rr
  | TLTU of ternop-rrr
  | TNE of ternop-rrr
- | TNEI of binop-rr
  | TRUNC-L-fmt of binop-flr
  | TRUNC-W-fmt of binop-flr
  | WAIT of unop-r
@@ -1307,9 +1239,7 @@ type gpr-register =
 ####
 
 type sp-register =
-   HI
- | LO
- | PC
+   PC
  | SREG
 
 

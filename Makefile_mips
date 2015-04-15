@@ -23,7 +23,7 @@ GDSL_OPT_HL=specifications/rreil/rreil-liveness.ml specifications/rreil/rreil-fo
 
 GDSL_MIPS_HL_R5=specifications/mips/mips_r5.ml specifications/mips/mips-pretty_r5.ml specifications/mips/mips-rreil-translator_r5.ml specifications/mips/mips-asm_r5.ml specifications/mips/mips-traverse_r5.ml
 GDSL_MIPS_HL_R6=specifications/mips/mips_r6.ml specifications/mips/mips-pretty_r6.ml specifications/mips/mips-rreil-translator_r6.ml specifications/mips/mips-asm_r6.ml specifications/mips/mips-traverse_r6.ml
-GDSL_MIPS_HL=specifications/mips/mips.ml specifications/mips/mips-pretty.ml specifications/mips/mips-rreil-pretty.ml specifications/mips/mips-rreil-registermapping.ml specifications/mips/mips-rreil-translator.ml specifications/mips/mips-liveness.ml specifications/mips/mips-asm.ml specifications/mips/mips-traverse.ml $(GDSL_MIPS_HL_R6)
+GDSL_MIPS_HL=specifications/mips/mips.ml specifications/mips/mips-pretty.ml specifications/mips/mips-rreil-pretty.ml specifications/mips/mips-rreil-registermapping.ml specifications/mips/mips-rreil-translator.ml specifications/mips/mips-liveness.ml specifications/mips/mips-asm.ml specifications/mips/mips-traverse.ml $(GDSL_MIPS_HL_R5)
 GDSL_MIPS_TRANS_HL=
 
 GDSL_SOURCES=$(GDSL_BASIS_HL) $(GDSL_RREIL_HL) $(GDSL_MIPS_HL) $(GDSL_MIPS_TRANS_HL) $(GDSL_OPT_HL) $(GDSL_ASM_HL)

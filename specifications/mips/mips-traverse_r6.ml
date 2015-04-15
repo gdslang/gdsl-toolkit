@@ -60,4 +60,5 @@ val revision/traverse f insn =
     | SELNEZ x: f "SELNEZ" (TERNOP_LRR x)
     | SELEQZ-fmt x: f "SELEQZ" (TERNOP_FLRR x)
     | SELNEQZ-fmt x: f "SELNEQZ" (TERNOP_FLRR x)
+    | SIGRIE x: f "SIGRIE" (UNOP_R x)
    end

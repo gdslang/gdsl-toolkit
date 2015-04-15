@@ -324,6 +324,17 @@ val / ['010001 /fmt5sd /ft /fs /fd 010100'] = ternop-fmt SELEQZ-fmt fmt fd (righ
 ###  - Select floating point value or zero with FPR condition
 val / ['010001 /fmt5sd /ft /fs /fd 010111'] = ternop-fmt SELNEQZ-fmt fmt fd (right fs) (right ft) 
 
+### SIGRIE
+###  - Signal Reserved Instruction Exception
+val / ['000001 00000 10111 /code16'] = unop SIGRIE code16
+
+### SUB-fmt
+###  - Floating Point Subtract
+val / ['010001 /fmt5sd /ft /fs /fd 000001'] = ternop-fmt SUB-fmt fmt fd (right fs) (right ft) 
+
+### SWC2
+###  - Store Word from Coprocessor 2
+val / ['010010 01011 /rt /base /offset11'] = binop SWC2 rt/imm offset11/base
 
 
 type instruction = 
@@ -387,6 +398,7 @@ type instruction =
  | SELNEZ of ternop-lrr
  | SELEQZ-fmt of ternop-flrr
  | SELNEQZ-fmt of ternop-flrr
+ | SIGRIE of unop-r
 
 type imm =
    IMM21 of 21
@@ -397,6 +409,7 @@ type imm =
  | OFFSET23 of 23
  | OFFSET28 of 28
  | C2CONDITION of 5
+ | CODE16 of 16
 
 
 ###########################
@@ -414,6 +427,7 @@ val /fmt5sd/wl ['10100'] = update@{fmt=S}
 val /fmt5sd/wl ['10101'] = update@{fmt=D}
 val /condn ['condn:5'] = update@{condn=condn}
 val /rs-notnull ['rs@00001|00010|00011|00100|00101|00110|00111|01000|01001|01010|01011|01100|01101|01110|01111|10000|10001|10010|10011|10100|10101|10110|10111|11000|11001|11010|11011|11100|11101|11110|11111'] = update@{rs=rs}
+val /code16 ['code16:16'] = update@{code16=code16}
 
 ###########################
 # operand constructors
@@ -464,6 +478,12 @@ val offset11/base = do
   base <- query $base;
   return (OFFSET/BASE {offset=(OFFSET11 offset11), base=(gpr-from-bits base)})
 end
+
+val code16 = do
+  code16 <- query $code16;
+  return (IMM (CODE16 code16))
+end
+
 
 val condn-from-bits bits =
  case bits of
@@ -534,15 +554,3 @@ type condop =
  | C_SOGE
  | C_SUGT
  | C_SOGT
-
-
-#################################
-# to be removed ;)
-
-type format = 
-   PS
-
-
-val /fmt5sdps ['10 /fmt3sdps'] = return void
-val /fmt3sdps [/fmt3sd] = return void
-val /fmt3sdps ['110'] = update@{fmt=PS}
