@@ -204,17 +204,39 @@ GDSL_AVRSEM = \
 	$(srcdir)/specifications/avr/avr-rreil-pretty.ml \
 	$(srcdir)/specifications/avr/avr-liveness.ml
 
-GDSL_MIPS = \
+GDSL_MIPS5 = \
 	$(srcdir)/specifications/mips/mips.ml \
 	$(srcdir)/specifications/mips/mips-asm.ml \
 	$(srcdir)/specifications/mips/mips-traverse.ml \
-	$(srcdir)/specifications/mips/mips-pretty.ml
+	$(srcdir)/specifications/mips/mips-pretty.ml \
+	$(srcdir)/specifications/mips/mips_r5.ml \
+	$(srcdir)/specifications/mips/mips-asm_r5.ml \
+	$(srcdir)/specifications/mips/mips-traverse_r5.ml \
+	$(srcdir)/specifications/mips/mips-pretty_r5.ml
 
-GDSL_MIPSSEM = \
+GDSL_MIPS5SEM = \
 	$(srcdir)/specifications/mips/mips-rreil-translator.ml \
 	$(srcdir)/specifications/mips/mips-rreil-registermapping.ml \
 	$(srcdir)/specifications/mips/mips-rreil-pretty.ml \
-	$(srcdir)/specifications/mips/mips-liveness.ml
+	$(srcdir)/specifications/mips/mips-liveness.ml \
+	$(srcdir)/specifications/mips/mips-rreil-translator_r5.ml
+
+GDSL_MIPS6 = \
+	$(srcdir)/specifications/mips/mips.ml \
+	$(srcdir)/specifications/mips/mips-asm.ml \
+	$(srcdir)/specifications/mips/mips-traverse.ml \
+	$(srcdir)/specifications/mips/mips-pretty.ml \
+	$(srcdir)/specifications/mips/mips_r6.ml \
+	$(srcdir)/specifications/mips/mips-asm_r6.ml \
+	$(srcdir)/specifications/mips/mips-traverse_r6.ml \
+	$(srcdir)/specifications/mips/mips-pretty_r6.ml
+
+GDSL_MIPS6SEM = \
+	$(srcdir)/specifications/mips/mips-rreil-translator.ml \
+	$(srcdir)/specifications/mips/mips-rreil-registermapping.ml \
+	$(srcdir)/specifications/mips/mips-rreil-pretty.ml \
+	$(srcdir)/specifications/mips/mips-liveness.ml \
+	$(srcdir)/specifications/mips/mips-rreil-translator_r6.ml
 
 GDSL_ARM7 = \
 	$(srcdir)/specifications/arm7/arm7.ml \
@@ -333,7 +355,7 @@ GS_AVR = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_AVR)
 gdsl-avr.c: $(GDSLC_DEP) $(GS_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR)
 
-if MIPS_RREIL
+if MIPS5_RREIL
 lib_LTLIBRARIES += libgdsl-mips-rreil.la
 #libjgdsl_la_LIBADD += libgdsl-mips-rreil.la
 #semantics_opt_LDADD += libgdsl-mips-rreil.la
@@ -352,11 +374,11 @@ libgdsl_mips_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_mips_rreil_demo_SOURCES = gdsl-mips-rreil.c
 gdsl_mips_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
 
-GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS) $(GDSL_RREIL) $(GDSL_MIPSSEM)
+GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS5) $(GDSL_RREIL) $(GDSL_MIPS5SEM)
 gdsl-mips-rreil.c: $(GDSLC_DEP) $(GS_MIPS_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS_RREIL)
 
-if MIPS
+if MIPS5
 lib_LTLIBRARIES += libgdsl-mips.la
 #decoder_cli_LDADD += libgdsl-mips.la
 nodist_include_HEADERS += gdsl-mips.h
@@ -374,7 +396,52 @@ libgdsl_mips_la_DEPENDENCIES = $(GDSLC_DEP)
 gdsl_mips_demo_SOURCES = gdsl-mips.c
 gdsl_mips_demo_CFLAGS = -std=c99 -DWITHMAIN
 
-GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS)
+GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS5)
+gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
+
+if MIPS6_RREIL
+lib_LTLIBRARIES += libgdsl-mips-rreil.la
+#libjgdsl_la_LIBADD += libgdsl-mips-rreil.la
+#semantics_opt_LDADD += libgdsl-mips-rreil.la
+nodist_include_HEADERS += gdsl-mips-rreil.h
+CLEANFILES += gdsl-mips-rreil.c gdsl-mips-rreil.h
+if INSTALL_AUXBINS
+bin_PROGRAMS += gdsl-mips-rreil-demo
+endif
+if BUILD_AUXBINS
+noinst_PROGRAMS += gdsl-mips-rreil-demo
+endif
+endif
+libgdsl_mips_rreil_la_SOURCES =
+nodist_libgdsl_mips_rreil_la_SOURCES = gdsl-mips-rreil.c
+libgdsl_mips_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
+gdsl_mips_rreil_demo_SOURCES = gdsl-mips-rreil.c
+gdsl_mips_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
+
+GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS6) $(GDSL_RREIL) $(GDSL_MIPS6SEM)
+gdsl-mips-rreil.c: $(GDSLC_DEP) $(GS_MIPS_RREIL)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS_RREIL)
+
+if MIPS6
+lib_LTLIBRARIES += libgdsl-mips.la
+#decoder_cli_LDADD += libgdsl-mips.la
+nodist_include_HEADERS += gdsl-mips.h
+CLEANFILES += gdsl-mips.c gdsl-mips.h
+if INSTALL_AUXBINS
+bin_PROGRAMS += gdsl-mips-demo
+endif
+if BUILD_AUXBINS
+noinst_PROGRAMS += gdsl-mips-demo
+endif
+endif
+libgdsl_mips_la_SOURCES =
+nodist_libgdsl_mips_la_SOURCES = gdsl-mips.c
+libgdsl_mips_la_DEPENDENCIES = $(GDSLC_DEP)
+gdsl_mips_demo_SOURCES = gdsl-mips.c
+gdsl_mips_demo_CFLAGS = -std=c99 -DWITHMAIN
+
+GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS6)
 gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
 
@@ -656,9 +723,9 @@ private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 
 MLLPT_LIB = $(srcdir)/detail/external/mllpt-lib/repair.sml $(srcdir)/detail/external/mllpt-lib/NJ-LICENSE $(srcdir)/detail/external/mllpt-lib/stream-pos.sml $(srcdir)/detail/external/mllpt-lib/ml-lpt-lib.cm $(srcdir)/detail/external/mllpt-lib/mllpt-lib.mlb $(srcdir)/detail/external/mllpt-lib/err-handler.sml $(srcdir)/detail/external/mllpt-lib/MLton-LICENSE $(srcdir)/detail/external/mllpt-lib/ulex-buffer.sml $(srcdir)/detail/external/mllpt-lib/ml-lpt-lib.mlb $(srcdir)/detail/external/mllpt-lib/wrapped-strm.sml $(srcdir)/detail/external/mllpt-lib/antlr-tokens-sig.sml $(srcdir)/detail/external/mllpt-lib/antlr-lexer-sig.sml $(srcdir)/detail/external/mllpt-lib/ebnf.sml
 
-EXTRA_DIST = LICENSE $(JSOURCES_FULLPATH) $(MLLPT_LIB) $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(GDSL_ARM7) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm build.bat
+EXTRA_DIST = LICENSE $(JSOURCES_FULLPATH) $(MLLPT_LIB) $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS5) $(GDSL_MIPS5SEM) $(GDSL_MIPS6) $(GDSL_MIPS6SEM) $(GDSL_ARM7) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm build.bat
 
-WINDOWS_DISTFILES = $(GDSLC) LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS) $(GDSL_MIPSSEM) $(GDSL_ARM7) $(RUNTIME) build.bat
+WINDOWS_DISTFILES = $(GDSLC) LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS5) $(GDSL_MIPS5SEM) $(GDSL_MIPS6) $(GDSL_MIPS6SEM) $(GDSL_ARM7) $(RUNTIME) build.bat
 
 # distribution .tgz file for Windows
 .PHONY: win-distdir win-dist

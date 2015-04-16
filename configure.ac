@@ -55,12 +55,12 @@ AM_CONDITIONAL(LINUX, test "$LINUX" = "yes")
 #AM_CONDITIONAL(HAVE_JNI_H, test "$HAVE_JNI_H" != "")
 dnl conditionals for the various decoders, either with or without semantics
 
-FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil arm7 arm7-rreil";
+FRONTENDS="x86 x86-rreil avr avr-rreil mips5 mips5-rreil mips6 mips6-rreil arm7 arm7-rreil";
 
 AC_ARG_WITH([frontend],
   [AS_HELP_STRING(
     [--with-frontend=frontend],
-    [one of: x86 x86-rreil avr avr-rreil mips mips-rreil arm7 arm7-rreil])],
+    [one of: x86 x86-rreil avr avr-rreil mips5 mips5-rreil mips6 mips6-rreil arm7 arm7-rreil])],
   [], [with_frontend=all])
 
 case $with_frontend in
@@ -78,12 +78,18 @@ case $with_frontend in
 	avr-rreil)
 		AC_DEFINE([USE_AVR_RREIL],[1],[build AVR decoder and RReil semantics])
 		with_frontend=avr-rreil;;
-	mips)
-		AC_DEFINE([USE_MIPS],[1],[build MIPS bare decoder])
-		with_frontend=mips;;
-	mips-rreil)
-		AC_DEFINE([USE_MIPS_RREIL],[1],[build MIPS decoder and RReil semantics])
-		with_frontend=mips-rreil;;
+	mips5)
+		AC_DEFINE([USE_MIPS5],[1],[build MIPS5 bare decoder])
+		with_frontend=mips5;;
+	mips5-rreil)
+		AC_DEFINE([USE_MIPS5_RREIL],[1],[build MIPS5 decoder and RReil semantics])
+		with_frontend=mips5-rreil;;
+	mips6)
+		AC_DEFINE([USE_MIPS6],[1],[build MIPS6 bare decoder])
+		with_frontend=mips6;;
+	mips6-rreil)
+		AC_DEFINE([USE_MIPS6_RREIL],[1],[build MIPS6 decoder and RReil semantics])
+		with_frontend=mips6-rreil;;
 	arm7)
 		AC_DEFINE([USE_ARM7],[1],[build ARM7 bare decoder])
 		with_frontend=arm7;;
@@ -144,8 +150,10 @@ AM_CONDITIONAL([X86_RREIL],[test x$with_frontend = xx86-rreil -o x$with_frontend
 AM_CONDITIONAL([X86],[test x$with_frontend = xx86 -o x$with_frontend = xall])
 AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil -o x$with_frontend = xall])
 AM_CONDITIONAL([AVR],[test x$with_frontend = xavr -o x$with_frontend = xall])
-AM_CONDITIONAL([MIPS_RREIL],[test x$with_frontend = xmips-rreil -o x$with_frontend = xall])
-AM_CONDITIONAL([MIPS],[test x$with_frontend = xmips -o x$with_frontend = xall])
+AM_CONDITIONAL([MIPS5_RREIL],[test x$with_frontend = xmips5-rreil -o x$with_frontend = xall])
+AM_CONDITIONAL([MIPS5],[test x$with_frontend = xmips5 -o x$with_frontend = xall])
+AM_CONDITIONAL([MIPS6_RREIL],[test x$with_frontend = xmips6-rreil -o x$with_frontend = xall])
+AM_CONDITIONAL([MIPS6],[test x$with_frontend = xmips6 -o x$with_frontend = xall])
 AM_CONDITIONAL([ARM7_RREIL],[test x$with_frontend = xarm7-rreil -o x$with_frontend = xall])
 AM_CONDITIONAL([ARM7],[test x$with_frontend = xarm7 -o x$with_frontend = xall])
 AM_CONDITIONAL([HAVE_RREIL],[test x$has_rreil = xyes -o x$with_frontend = xall])
