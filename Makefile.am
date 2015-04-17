@@ -356,94 +356,94 @@ gdsl-avr.c: $(GDSLC_DEP) $(GS_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR)
 
 if MIPS5_RREIL
-lib_LTLIBRARIES += libgdsl-mips-rreil.la
-#libjgdsl_la_LIBADD += libgdsl-mips-rreil.la
-#semantics_opt_LDADD += libgdsl-mips-rreil.la
-nodist_include_HEADERS += gdsl-mips-rreil.h
-CLEANFILES += gdsl-mips-rreil.c gdsl-mips-rreil.h
+lib_LTLIBRARIES += libgdsl-mips5-rreil.la
+#libjgdsl_la_LIBADD += libgdsl-mips5-rreil.la
+#semantics_opt_LDADD += libgdsl-mips5-rreil.la
+nodist_include_HEADERS += gdsl-mips5-rreil.h
+CLEANFILES += gdsl-mips5-rreil.c gdsl-mips5-rreil.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl-mips-rreil-demo
+bin_PROGRAMS += gdsl-mips5-rreil-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl-mips-rreil-demo
+noinst_PROGRAMS += gdsl-mips5-rreil-demo
 endif
 endif
-libgdsl_mips_rreil_la_SOURCES =
-nodist_libgdsl_mips_rreil_la_SOURCES = gdsl-mips-rreil.c
-libgdsl_mips_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
-gdsl_mips_rreil_demo_SOURCES = gdsl-mips-rreil.c
-gdsl_mips_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
+libgdsl_mips5_rreil_la_SOURCES =
+nodist_libgdsl_mips5_rreil_la_SOURCES = gdsl-mips5-rreil.c
+libgdsl_mips5_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
+gdsl_mips5_rreil_demo_SOURCES = gdsl-mips5-rreil.c
+gdsl_mips5_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
 
-GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS5) $(GDSL_RREIL) $(GDSL_MIPS5SEM)
-gdsl-mips-rreil.c: $(GDSLC_DEP) $(GS_MIPS_RREIL)
-	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS_RREIL)
+GS_MIPS5_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS5) $(GDSL_RREIL) $(GDSL_MIPS5SEM)
+gdsl-mips5-rreil.c: $(GDSLC_DEP) $(GS_MIPS5_RREIL)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS5_RREIL)
 
 if MIPS5
-lib_LTLIBRARIES += libgdsl-mips.la
-#decoder_cli_LDADD += libgdsl-mips.la
-nodist_include_HEADERS += gdsl-mips.h
-CLEANFILES += gdsl-mips.c gdsl-mips.h
+lib_LTLIBRARIES += libgdsl-mips5.la
+#decoder_cli_LDADD += libgdsl-mips5.la
+nodist_include_HEADERS += gdsl-mips5.h
+CLEANFILES += gdsl-mips5.c gdsl-mips5.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl-mips-demo
+bin_PROGRAMS += gdsl-mips5-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl-mips-demo
+noinst_PROGRAMS += gdsl-mips5-demo
 endif
 endif
-libgdsl_mips_la_SOURCES =
-nodist_libgdsl_mips_la_SOURCES = gdsl-mips.c
-libgdsl_mips_la_DEPENDENCIES = $(GDSLC_DEP)
-gdsl_mips_demo_SOURCES = gdsl-mips.c
-gdsl_mips_demo_CFLAGS = -std=c99 -DWITHMAIN
+libgdsl_mips5_la_SOURCES =
+nodist_libgdsl_mips5_la_SOURCES = gdsl-mips5.c
+libgdsl_mips5_la_DEPENDENCIES = $(GDSLC_DEP)
+gdsl_mips5_demo_SOURCES = gdsl-mips5.c
+gdsl_mips5_demo_CFLAGS = -std=c99 -DWITHMAIN
 
-GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS5)
-gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
-	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
+GS_MIPS5 = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS5)
+gdsl-mips5.c: $(GDSLC_DEP) $(GS_MIPS5)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS5)
 
 if MIPS6_RREIL
-lib_LTLIBRARIES += libgdsl-mips-rreil.la
-#libjgdsl_la_LIBADD += libgdsl-mips-rreil.la
-#semantics_opt_LDADD += libgdsl-mips-rreil.la
-nodist_include_HEADERS += gdsl-mips-rreil.h
-CLEANFILES += gdsl-mips-rreil.c gdsl-mips-rreil.h
+lib_LTLIBRARIES += libgdsl-mips6-rreil.la
+#libjgdsl_la_LIBADD += libgdsl-mips6-rreil.la
+#semantics_opt_LDADD += libgdsl-mips6-rreil.la
+nodist_include_HEADERS += gdsl-mips6-rreil.h
+CLEANFILES += gdsl-mips6-rreil.c gdsl-mips6-rreil.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl-mips-rreil-demo
+bin_PROGRAMS += gdsl-mips6-rreil-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl-mips-rreil-demo
+noinst_PROGRAMS += gdsl-mips6-rreil-demo
 endif
 endif
-libgdsl_mips_rreil_la_SOURCES =
-nodist_libgdsl_mips_rreil_la_SOURCES = gdsl-mips-rreil.c
-libgdsl_mips_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
-gdsl_mips_rreil_demo_SOURCES = gdsl-mips-rreil.c
-gdsl_mips_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
+libgdsl_mips6_rreil_la_SOURCES =
+nodist_libgdsl_mips6_rreil_la_SOURCES = gdsl-mips6-rreil.c
+libgdsl_mips6_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
+gdsl_mips6_rreil_demo_SOURCES = gdsl-mips6-rreil.c
+gdsl_mips6_rreil_demo_CFLAGS = -std=c99 -DWITHMAIN
 
-GS_MIPS_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS6) $(GDSL_RREIL) $(GDSL_MIPS6SEM)
-gdsl-mips-rreil.c: $(GDSLC_DEP) $(GS_MIPS_RREIL)
-	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS_RREIL)
+GS_MIPS6_RREIL =  $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS6) $(GDSL_RREIL) $(GDSL_MIPS6SEM)
+gdsl-mips6-rreil.c: $(GDSLC_DEP) $(GS_MIPS6_RREIL)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS6_RREIL)
 
 if MIPS6
-lib_LTLIBRARIES += libgdsl-mips.la
-#decoder_cli_LDADD += libgdsl-mips.la
-nodist_include_HEADERS += gdsl-mips.h
-CLEANFILES += gdsl-mips.c gdsl-mips.h
+lib_LTLIBRARIES += libgdsl-mips6.la
+#decoder_cli_LDADD += libgdsl-mips6.la
+nodist_include_HEADERS += gdsl-mips6.h
+CLEANFILES += gdsl-mips6.c gdsl-mips6.h
 if INSTALL_AUXBINS
-bin_PROGRAMS += gdsl-mips-demo
+bin_PROGRAMS += gdsl-mips6-demo
 endif
 if BUILD_AUXBINS
-noinst_PROGRAMS += gdsl-mips-demo
+noinst_PROGRAMS += gdsl-mips6-demo
 endif
 endif
-libgdsl_mips_la_SOURCES =
-nodist_libgdsl_mips_la_SOURCES = gdsl-mips.c
-libgdsl_mips_la_DEPENDENCIES = $(GDSLC_DEP)
-gdsl_mips_demo_SOURCES = gdsl-mips.c
-gdsl_mips_demo_CFLAGS = -std=c99 -DWITHMAIN
+libgdsl_mips6_la_SOURCES =
+nodist_libgdsl_mips6_la_SOURCES = gdsl-mips6.c
+libgdsl_mips6_la_DEPENDENCIES = $(GDSLC_DEP)
+gdsl_mips6_demo_SOURCES = gdsl-mips6.c
+gdsl_mips6_demo_CFLAGS = -std=c99 -DWITHMAIN
 
-GS_MIPS = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS6)
-gdsl-mips.c: $(GDSLC_DEP) $(GS_MIPS)
-	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS)
+GS_MIPS6 = $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_MIPS6)
+gdsl-mips6.c: $(GDSLC_DEP) $(GS_MIPS6)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_MIPS6)
 
 if ARM7
 lib_LTLIBRARIES += libgdsl-arm7.la
