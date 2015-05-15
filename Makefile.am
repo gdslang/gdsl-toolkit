@@ -129,7 +129,7 @@ GDSLC_SML_FILES = \
 JAR=jgdsl.jar
 
 GDSLC_DEP = detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
-GDSLFLAGS = --runtime=$(srcdir)/detail/codegen @EXTRA_GDSL_FLAGS@
+GDSLFLAGS = --runtime=$(srcdir)/detail/codegen --maxIter=42 @EXTRA_GDSL_FLAGS@
 
 if HAVE_MLTON
 

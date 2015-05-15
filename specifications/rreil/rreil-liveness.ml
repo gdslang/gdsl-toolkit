@@ -253,10 +253,11 @@ val lv-analyze initial-live stack =
                   backup <- live-stack-backup-and-reset;
 
                   body-rev <- return (rreil-stmts-rev y.body);
-                  first-it-state <- sweep body-rev (lvstate-empty initial-live body-rev);
+                  empty-state <- return (lvstate-empty fmap-empty SEM_NIL);
+                  first-it-state <- sweep body-rev empty-state;
                   live-stack-backup-and-reset;
 
-                  second-it-state <- sweep body-rev (lvstate-union (lvstate-eval state x.hd) first-it-state);
+                  second-it-state <- sweep body-rev (lvstate-union-conservative (lvstate-eval state x.hd) first-it-state);
                   # state-new <- return (lvstate-union-conservative state body-state);
 
                   body-live <- query $live;
@@ -265,7 +266,7 @@ val lv-analyze initial-live stack =
                   live-stack-restore backup;
                   #lv-push-live (/WHILE y.cond maybelive);
                   lv-push-live (/WHILE y.cond body-live);
-                  sweep x.tl (lvstate-eval second-it-state x.hd)
+                  sweep x.tl second-it-state
                  end
                | SEM_ITE y: do
                   org-backup <- live-stack-backup-and-reset;
