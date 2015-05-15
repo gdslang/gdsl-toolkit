@@ -212,7 +212,7 @@ val lv-pretty t =
 
 val live-stack-backup-and-reset = do
   live <- query $live;
-  maybelive <- query $live;
+  maybelive <- query $live; # sure that it's not maybelive?
   update @{live=SEM_NIL,maybelive=SEM_NIL};
   return {live=live,maybelive=maybelive}
 end
@@ -253,15 +253,19 @@ val lv-analyze initial-live stack =
                   backup <- live-stack-backup-and-reset;
 
                   body-rev <- return (rreil-stmts-rev y.body);
-                  body-state <- sweep body-rev (lvstate-empty fmap-empty body-rev);
-                  state-new <- return (lvstate-union-conservative state body-state);
+                  first-it-state <- sweep body-rev (lvstate-empty initial-live body-rev);
+                  live-stack-backup-and-reset;
 
+                  second-it-state <- sweep body-rev (lvstate-union (lvstate-eval state x.hd) first-it-state);
+                  # state-new <- return (lvstate-union-conservative state body-state);
+
+                  body-live <- query $live;
                   #maybelive <- query $maybelive;
 
                   live-stack-restore backup;
                   #lv-push-live (/WHILE y.cond maybelive);
-                  lv-push-live (/WHILE y.cond y.body);
-                  sweep x.tl (lvstate-eval state-new x.hd)
+                  lv-push-live (/WHILE y.cond body-live);
+                  sweep x.tl (lvstate-eval second-it-state x.hd)
                  end
                | SEM_ITE y: do
                   org-backup <- live-stack-backup-and-reset;
