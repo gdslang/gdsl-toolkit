@@ -257,8 +257,13 @@ val lv-analyze initial-live stack =
                   first-it-state <- sweep body-rev empty-state;
                   live-stack-backup-and-reset;
 
-                  second-it-state <- sweep body-rev (lvstate-union-conservative (lvstate-eval state x.hd) first-it-state);
-                  # state-new <- return (lvstate-union-conservative state body-state);
+                  #add live variables of the condition of the loop
+                  first-it-state-with-cond <- return (lvstate-eval first-it-state x.hd);
+                  
+                  second-it-state <- sweep body-rev (lvstate-union-conservative state first-it-state-with-cond);
+
+                  #add live variables of the condition of the loop
+                  second-it-state-with-cond <- return (lvstate-eval second-it-state x.hd);
 
                   body-live <- query $live;
                   #maybelive <- query $maybelive;
@@ -266,7 +271,7 @@ val lv-analyze initial-live stack =
                   live-stack-restore backup;
                   #lv-push-live (/WHILE y.cond maybelive);
                   lv-push-live (/WHILE y.cond body-live);
-                  sweep x.tl second-it-state
+                  sweep x.tl second-it-state-with-cond
                  end
                | SEM_ITE y: do
                   org-backup <- live-stack-backup-and-reset;
