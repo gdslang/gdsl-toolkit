@@ -717,15 +717,11 @@ if BUILD_AUXBINS
 #endif
 endif
 
-#if X86_RREIL
-private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
-#endif
-
 MLLPT_LIB = $(srcdir)/detail/external/mllpt-lib/repair.sml $(srcdir)/detail/external/mllpt-lib/NJ-LICENSE $(srcdir)/detail/external/mllpt-lib/stream-pos.sml $(srcdir)/detail/external/mllpt-lib/ml-lpt-lib.cm $(srcdir)/detail/external/mllpt-lib/mllpt-lib.mlb $(srcdir)/detail/external/mllpt-lib/err-handler.sml $(srcdir)/detail/external/mllpt-lib/MLton-LICENSE $(srcdir)/detail/external/mllpt-lib/ulex-buffer.sml $(srcdir)/detail/external/mllpt-lib/ml-lpt-lib.mlb $(srcdir)/detail/external/mllpt-lib/wrapped-strm.sml $(srcdir)/detail/external/mllpt-lib/antlr-tokens-sig.sml $(srcdir)/detail/external/mllpt-lib/antlr-lexer-sig.sml $(srcdir)/detail/external/mllpt-lib/ebnf.sml
 
-EXTRA_DIST = LICENSE $(JSOURCES_FULLPATH) $(MLLPT_LIB) $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS5) $(GDSL_MIPS5SEM) $(GDSL_MIPS6) $(GDSL_MIPS6SEM) $(GDSL_ARM7) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm build.bat
+EXTRA_DIST = LICENSE $(JSOURCES_FULLPATH) $(MLLPT_LIB) $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS5) $(GDSL_MIPS5SEM) $(GDSL_MIPS6) $(GDSL_MIPS6SEM) $(GDSL_ARM7) $(GDSL_ARM7SEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm build.bat
 
-WINDOWS_DISTFILES = $(GDSLC) LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS5) $(GDSL_MIPS5SEM) $(GDSL_MIPS6) $(GDSL_MIPS6SEM) $(GDSL_ARM7) $(RUNTIME) build.bat
+WINDOWS_DISTFILES = $(GDSLC) LICENSE $(GDSL_BASIS) $(GDSL_ASM) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(GDSL_MIPS5) $(GDSL_MIPS5SEM) $(GDSL_MIPS6) $(GDSL_MIPS6SEM) $(GDSL_ARM7) $(GDSL_ARM7SEM) $(RUNTIME) build.bat
 
 # distribution .tgz file for Windows
 .PHONY: win-distdir win-dist
