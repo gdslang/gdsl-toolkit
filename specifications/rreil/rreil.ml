@@ -136,9 +136,9 @@ val mktemp = do
 end
 
 val with-subscope m = do
-  l <- query $tmp;
+#  l <- query $tmp;
   ret <- m;
-  update @{tmp=l};
+#  update @{tmp=l};
   return ret
 end
 
