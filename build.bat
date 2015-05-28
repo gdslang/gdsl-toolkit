@@ -179,7 +179,7 @@ gdslc.exe --target=C89 -o %OUT% %SPEC%
 rem @echo off
 
 if x%MSVC%x==xx (
-echo Unable to compiler the generated decoder since the compiler cannot be found.
+echo Unable to compile the generated decoder since the compiler cannot be found.
 goto End
 )
 
