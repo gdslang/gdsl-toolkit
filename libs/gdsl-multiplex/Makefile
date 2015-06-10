@@ -4,11 +4,10 @@ CC=gcc
 INCDS=-Iinclude -I$(MLTK)/include
 CFLAGS=-c -fPIC -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
-LIBRARY_STATIC=libgdsl-multiplex.a
-LIBRARY_SHARED=libgdsl-multiplex.so
+LIBRARY=libgdsl-multiplex.a
 SOURCES=gdsl_multiplex.c
 
-all: pre-build $(LIBRARY_STATIC) $(LIBRARY_SHARED)
+all: pre-build $(LIBRARY)
 
 SPRE=src
 BPRE=build
@@ -19,14 +18,11 @@ pre-build:
 
 OBJECTS=$(addprefix $(BPRE)/, $(SOURCES:.c=.o))
 
-$(LIBRARY_STATIC): $(OBJECTS)
+$(LIBRARY): $(OBJECTS)
 	ar -r  $@  $(OBJECTS)
 
 $(OBJECTS): $(BPRE)/%.o : $(SPRE)/%.c
 	$(CC) $(CFLAGS) $< -o $@
 
-$(LIBRARY_SHARED): $(OBJECTS)
-	$(CC) -shared -o $@ $(OBJECTS)
-
 clean:
-	rm -rf $(BDIRS) $(LIBRARY_STATIC) $(LIBRARY_SHARED)
+	rm -rf $(BDIRS) $(LIBRARY)
