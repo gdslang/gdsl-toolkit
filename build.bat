@@ -86,6 +86,7 @@ set GDSL_ASM=%GDSL_ASM%	specifications/asm/asm-pretty.ml
 
 set GDSL_X86= 
 set GDSL_X86=%GDSL_X86% specifications/x86/x86.ml
+set GDSL_X86=%GDSL_X86% specifications/x86/x86-equals.ml
 set GDSL_X86=%GDSL_X86% specifications/x86/x86-traverse.ml
 set GDSL_X86=%GDSL_X86% specifications/x86/x86-pretty.ml
 set GDSL_X86=%GDSL_X86% specifications/x86/x86-asm.ml
@@ -110,11 +111,39 @@ set GDSL_AVRSEM=%GDSL_AVRSEM% specifications/avr/avr-rreil-registermapping.ml
 set GDSL_AVRSEM=%GDSL_AVRSEM% specifications/avr/avr-rreil-pretty.ml
 set GDSL_AVRSEM=%GDSL_AVRSEM% specifications/avr/avr-liveness.ml
 
-set GDSL_MIPS=
-set GDSL_MIPS=%GDSL_MIPS% specifications/mips/mips.ml
-set GDSL_MIPS=%GDSL_MIPS% specifications/mips/mips-asm.ml
-set GDSL_MIPS=%GDSL_MIPS% specifications/mips/mips-traverse.ml
-set GDSL_MIPS=%GDSL_MIPS% specifications/mips/mips-pretty.ml
+set GDSL_MIPS5=
+set GDSL_MIPS5=%GDSL_MIPS5% specifications/mips/mips.ml
+set GDSL_MIPS5=%GDSL_MIPS5% specifications/mips/mips-asm.ml
+set GDSL_MIPS5=%GDSL_MIPS5% specifications/mips/mips-traverse.ml
+set GDSL_MIPS5=%GDSL_MIPS5% specifications/mips/mips-pretty.ml
+set GDSL_MIPS5=%GDSL_MIPS5% specifications/mips/mips_r5.ml
+set GDSL_MIPS5=%GDSL_MIPS5% specifications/mips/mips-asm_r5.ml
+set GDSL_MIPS5=%GDSL_MIPS5% specifications/mips/mips-traverse_r5.ml
+set GDSL_MIPS5=%GDSL_MIPS5% specifications/mips/mips-pretty_r5.ml
+
+set GDSL_MIPSSEM=
+set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-translator.ml
+set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-registermapping.ml
+set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-pretty.ml
+set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-liveness.ml
+set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-rreil-translator_r5.ml
+
+set GDSL_MIPS6=
+set GDSL_MIPS6=%GDSL_MIPS6% specifications/mips/mips.ml
+set GDSL_MIPS6=%GDSL_MIPS6% specifications/mips/mips-asm.ml
+set GDSL_MIPS6=%GDSL_MIPS6% specifications/mips/mips-traverse.ml
+set GDSL_MIPS6=%GDSL_MIPS6% specifications/mips/mips-pretty.ml
+set GDSL_MIPS6=%GDSL_MIPS6% specifications/mips/mips_r6.ml
+set GDSL_MIPS6=%GDSL_MIPS6% specifications/mips/mips-asm_r6.ml
+set GDSL_MIPS6=%GDSL_MIPS6% specifications/mips/mips-traverse_r6.ml
+set GDSL_MIPS6=%GDSL_MIPS6% specifications/mips/mips-pretty_r6.ml
+
+set GDSL_MIPS6SEM=
+set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-translator.ml
+set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-registermapping.ml
+set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-pretty.ml
+set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-liveness.ml
+set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-rreil-translator_r6.ml
 
 set GDSL_MIPSSEM=
 set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-translator.ml
@@ -133,6 +162,10 @@ set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/rreil-forward-subst.ml
 set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/rreil-cleanup.ml
 set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/rreil-opt.ml
 set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/rreil-translator.ml
+set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/forward-subst/inline.ml
+set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/forward-subst/substitute.ml
+set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/forward-subst/substmap.ml
+set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/forward-subst/simplify-expressions.ml
 
 set GDSL_ARM7=
 set GDSL_ARM7=%GDSL_ARM7% specifications/arm7/arm7.ml
@@ -158,16 +191,25 @@ set SPEC=%GDSL_BASIS% %GDSL_ASM% %GDSL_AVR% %GDSL_RREIL% %GDSL_AVRSEM%
 set OUT=gdsl-avr-rreil
 :NOT_avr_rreil
 
-if NOT "%DECODER%"=="mips" goto NOT_mips
-set SPEC=%GDSL_BASIS% %GDSL_ASM% %GDSL_MIPS%
+if NOT "%DECODER%"=="mips5" goto NOT_mips
+set SPEC=%GDSL_BASIS% %GDSL_ASM% %GDSL_MIPS5%
 set OUT=gdsl-mips
 :NOT_mips
 
-if NOT "%DECODER%"=="mips-rreil" goto NOT_mips_rreil
-set SPEC=%GDSL_BASIS% %GDSL_ASM% %GDSL_MIPS% %GDSL_RREIL% %GDSL_MIPSSEM%
+if NOT "%DECODER%"=="mips5-rreil" goto NOT_mips_rreil
+set SPEC=%GDSL_BASIS% %GDSL_ASM% %GDSL_MIPS5% %GDSL_RREIL% %GDSL_MIPSSEM%
 set OUT=gdsl-mips-rreil
 :NOT_mips_rreil
 
+if NOT "%DECODER%"=="mips6" goto NOT_mips
+set SPEC=%GDSL_BASIS% %GDSL_ASM% %GDSL_MIPS6%
+set OUT=gdsl-mips
+:NOT_mips
+
+if NOT "%DECODER%"=="mips6-rreil" goto NOT_mips_rreil
+set SPEC=%GDSL_BASIS% %GDSL_ASM% %GDSL_MIPS6% %GDSL_RREIL% %GDSL_MIPS6SEM%
+set OUT=gdsl-mips-rreil
+:NOT_mips_rreil
 
 if NOT "%DECODER%"=="arm7" goto NOT_arm7
 set SPEC=%GDSL_BASIS% %GDSL_ARM7%
