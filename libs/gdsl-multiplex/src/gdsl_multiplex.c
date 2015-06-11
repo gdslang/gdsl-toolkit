@@ -71,7 +71,7 @@ size_t gdsl_multiplex_frontends_list_with_base(struct frontend_desc **descs, cha
       if(frontend) {
         if(frontends_length == frontends_size) {
           frontends_size <<= 1;
-          *descs = (struct frontend_desc*) realloc(descs, sizeof(struct frontend_desc) * frontends_size);
+          *descs = (struct frontend_desc*) realloc(*descs, sizeof(struct frontend_desc) * frontends_size);
         }
         (*descs)[frontends_length++] = desc;
       }
