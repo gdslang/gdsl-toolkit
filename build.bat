@@ -126,7 +126,7 @@ set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-translator.ml
 set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-registermapping.ml
 set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-pretty.ml
 set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-liveness.ml
-set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-rreil-translator_r5.ml
+set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-translator_r5.ml
 
 set GDSL_MIPS6=
 set GDSL_MIPS6=%GDSL_MIPS6% specifications/mips/mips.ml
@@ -143,7 +143,7 @@ set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-translator.ml
 set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-registermapping.ml
 set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-pretty.ml
 set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-liveness.ml
-set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-rreil-translator_r6.ml
+set GDSL_MIPS6SEM=%GDSL_MIPS6SEM% specifications/mips/mips-rreil-translator_r6.ml
 
 set GDSL_MIPSSEM=
 set GDSL_MIPSSEM=%GDSL_MIPSSEM% specifications/mips/mips-rreil-translator.ml
