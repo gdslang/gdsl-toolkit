@@ -47,7 +47,7 @@ shift
 :NoSDKLIB
 
 
-SET DECODERS=x86 x86-rreil avr avr-rreil mips mips-rreil arm7
+SET DECODERS=x86 x86-rreil avr avr-rreil mips5 mips5-rreil mips6 mips6-rreil arm7
 
 if "%1"=="" for %%d in (%DECODERS%) do build.bat %ARGS% %%d
 
@@ -217,7 +217,7 @@ set OUT=gdsl-arm7
 :NOT_arm7
 
 echo Generating C code for %DECODER%.
-gdslc.exe --target=C89 -o %OUT% %SPEC%
+gdslc.exe --maxIter=42 --target=C89 -o %OUT% %SPEC%
 rem @echo off
 
 if x%MSVC%x==xx (
