@@ -5,6 +5,7 @@
  *      Author: jucs
  */
 
+#include <gdsl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,7 +23,6 @@
 #include <util.h>
 #include <tbgen.h>
 #include <gdwrap.h>
-#include <gdsl.h>
 #include <context.h>
 #include <executor.h>
 #include <tester.h>

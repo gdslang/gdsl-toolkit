@@ -8,7 +8,7 @@
 #ifndef GDSL_H_
 #define GDSL_H_
 
-#include <gdsl.h>
+#include <gdsl_generic.h>
 
 enum gdwrap_x86_print_mode {
 	GDSL_X86_PRINT_MODE_FULL, GDSL_X86_PRINT_MODE_SIMPLE

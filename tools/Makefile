@@ -20,7 +20,7 @@ DEFINES+=-DGDSL_$(UPPER_ARCH)
 endif
 
 LIBS +=-lgdsl -lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil -lelf
-LIBS_MULT +=-lrt -lcgdsl -lx86 -lreadhex -lgdsl-multiplex -ldl -lgdutil -lelf
+LIBS_MULT +=-lrt -lcgdsl -lreadhex -lgdsl-multiplex -ldl -lgdutil -lelf
 
 LIBFLAGS=$(LIBDS) $(LIBS)
 LIB_MULTFLAGS=$(LIBDS) $(LIBS_MULT)
@@ -71,13 +71,6 @@ cppgdsl-demo: cppgdsl-demo.o
 
 cppgdsl-demo.o: cppgdsl-demo.cpp
 	$(CPPC) $(CPPFLAGS) cppgdsl-demo.cpp -o $@
-	
-### cgdsl-demo
-cgdsl-demo: cgdsl-demo.o
-	$(CC) $(LDFLAGS) cgdsl-demo.o $(LIB_MULTFLAGS) -o $@
-
-cgdsl-demo.o: cgdsl-demo.c
-	$(CC) $(CFLAGS) cgdsl-demo.c -o $@
 
 ### sweep
 sweep: sweep.o
@@ -101,6 +94,13 @@ optimization-sweep.o: optimization-sweep.c
 	$(CC) $(CFLAGS) optimization-sweep.c -o $@
 
 ifeq ($(GDSL_ARCH),x86)
+### cgdsl-demo
+cgdsl-demo: cgdsl-demo.o
+	$(CC) $(LDFLAGS) cgdsl-demo.o $(LIB_MULTFLAGS) -lx86 -o $@
+
+cgdsl-demo.o: cgdsl-demo.c
+	$(CC) $(CFLAGS) cgdsl-demo.c -o $@
+
 ### x86-test-runner
 x86-test-runner:
 	$(MAKE) -C $@

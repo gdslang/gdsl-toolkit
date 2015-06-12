@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <x86.h>
-#include <gdsl.h>
+#include <gdsl_generic.h>
 
 void x86_id_print(FILE *stream, enum x86_id id) {
 	switch(id) {
