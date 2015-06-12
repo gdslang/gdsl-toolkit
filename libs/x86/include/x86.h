@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <gdsl.h>
+#include <gdsl_generic.h>
 
 enum x86_id {
 	X86_ID_IP,

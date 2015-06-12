@@ -8,7 +8,7 @@
 #ifndef RREIL_GDRR_BUILDER_H_
 #define RREIL_GDRR_BUILDER_H_
 
-#include <gdsl.h>
+#include <gdsl_generic.h>
 
 callbacks_t rreil_gdrr_builder_callbacks_get(state_t state);
 
