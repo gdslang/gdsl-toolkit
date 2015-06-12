@@ -222,7 +222,9 @@ goto End
 rem Find out where to get kernel32.lib and friends. It's somewhere under "Windows Kits"
 rem which resides in "Program Files (x86)". This will probably break occasionally, but
 rem it works for my machine. I couldn't find a reliably registry key. Feedback welcome.
-for /f "usebackq tokens=*" %%d in (`dir /ad /b /s "C:\Program Files (x86)\Windows Kits" ^| find "\x86" ^| find /i "lib"`) do set SDKLIBPATH=%%d
+if NOT defined SDKLIBPATH (
+  for /f "usebackq tokens=*" %%d in (`dir /ad /b /s "C:\Program Files (x86)\Windows Kits" ^| find "\x86" ^| find /i "lib"`) do set SDKLIBPATH=%%d
+)
 
 if NOT defined SDKLIBPATH (
 	echo Cannot find SDK library directory. Use /sdklib switch to specify.
