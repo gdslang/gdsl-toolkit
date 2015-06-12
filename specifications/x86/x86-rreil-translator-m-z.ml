@@ -2138,20 +2138,26 @@ in do
     sub size t (var count-reg) (imm 1);
     write-extend-reg '0' size count-reg (var t);
 
-    c <- /and cond-creg fc;
+    c <- fc cond-creg;
     mov 1 cond c
   end
 end end
 
-val sem-rep size sem = sem-rep-repe-repne size sem (return (imm 1))
+val sem-rep size sem = let
+  val id x = x
+in
+  sem-rep-repe-repne size sem id
+end
 
 val sem-repe size sem = let
   val fc = do
     zf <- fZF;
     /d (var zf)
   end
+
+  val fc-and cond-creg = /and cond-creg fc
 in
-  sem-rep-repe-repne size sem fc
+  sem-rep-repe-repne size sem fc-and
 end
 
 val sem-repne size sem = let
@@ -2159,8 +2165,10 @@ val sem-repne size sem = let
     zf <- fZF;
     /not (var zf)
   end
+
+  val fc-and cond-creg = /and cond-creg fc
 in
-  sem-rep-repe-repne size sem fc
+  sem-rep-repe-repne size sem fc-and
 end
 
 val sem-repe-repne-insn x sem =
