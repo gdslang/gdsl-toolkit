@@ -11,8 +11,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <dirent.h>
-#include <dlfcn.h>
 
 #include <gdsl.h>
 #include <gdsl_multiplex.h>
