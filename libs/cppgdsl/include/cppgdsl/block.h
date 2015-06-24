@@ -20,7 +20,10 @@ class block {
 private:
   std::vector<instruction> *instructions;
   std::vector<rreil::statement*> *statements;
+
 public:
+  block(block const &o) = delete;
+  block(block &&o);
   block(std::vector<instruction> *instructions, std::vector<rreil::statement*> *statements);
   ~block();
 
