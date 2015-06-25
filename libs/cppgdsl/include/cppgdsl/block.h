@@ -27,6 +27,8 @@ public:
   block(std::vector<instruction> *instructions, std::vector<rreil::statement*> *statements);
   ~block();
 
+  block operator=(block const &o) = delete;
+
   std::vector<instruction> const *get_instructions() const {
     return instructions;
   }
