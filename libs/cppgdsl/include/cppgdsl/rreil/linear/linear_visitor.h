@@ -18,10 +18,10 @@ class lin_var;
 
 class linear_visitor {
 private:
-  std::function<void(lin_binop*)> lin_binop_callback = NULL;
-  std::function<void(lin_imm*)> lin_imm_callback = NULL;
-  std::function<void(lin_scale*)> lin_scale_callback = NULL;
-  std::function<void(lin_var*)> lin_var_callback = NULL;
+  std::function<void(lin_binop*)> lin_binop_callback = nullptr;
+  std::function<void(lin_imm*)> lin_imm_callback = nullptr;
+  std::function<void(lin_scale*)> lin_scale_callback = nullptr;
+  std::function<void(lin_var*)> lin_var_callback = nullptr;
 public:
   virtual ~linear_visitor() {
   }

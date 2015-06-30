@@ -28,10 +28,10 @@ class visitor : public virtual statement_visitor,
     public virtual expr_visitor,
     public virtual exception_visitor {
 private:
-  std::function<void(variable*)> variable_callback = NULL;
-  std::function<void(variable_limited*)> variable_limited_callback = NULL;
-  std::function<void(address*)> address_callback = NULL;
-  std::function<void(expr_cmp*)> expr_cmp_callback = NULL;
+  std::function<void(variable*)> variable_callback = nullptr;
+  std::function<void(variable_limited*)> variable_limited_callback = nullptr;
+  std::function<void(address*)> address_callback = nullptr;
+  std::function<void(expr_cmp*)> expr_cmp_callback = nullptr;
 public:
   ~visitor() {
   }

@@ -28,7 +28,7 @@ gdsl::rreil::shared_id::shared_id(shared_id_type _id) {
 bool gdsl::rreil::shared_id::operator ==(id &other) {
   bool equals = false;
   id_visitor iv;
-  iv._([&](shared_id *aid) {
+  iv._((std::function<void(shared_id*)>)[&](shared_id *aid) {
     equals = this->inner == aid->inner;
   });
   other.accept(iv);

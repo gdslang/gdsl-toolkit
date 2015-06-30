@@ -16,8 +16,8 @@ class shared_exception;
 
 class exception_visitor {
 private:
-  std::function<void(arch_exception*)> arch_exception_callback = NULL;
-  std::function<void(shared_exception*)> shared_exception_callback = NULL;
+  std::function<void(arch_exception*)> arch_exception_callback = nullptr;
+  std::function<void(shared_exception*)> shared_exception_callback = nullptr;
 public:
   virtual ~exception_visitor() {
   }

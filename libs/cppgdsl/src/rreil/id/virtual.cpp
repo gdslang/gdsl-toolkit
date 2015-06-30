@@ -25,7 +25,7 @@ int_t _virtual::get_t() {
 bool gdsl::rreil::_virtual::operator ==(id &other) {
   bool equals = false;
   id_visitor iv;
-  iv._([&](_virtual *aid) {
+  iv._((std::function<void(_virtual*)>)[&](_virtual *aid) {
     equals = this->t == aid->t;
   });
   other.accept(iv);
