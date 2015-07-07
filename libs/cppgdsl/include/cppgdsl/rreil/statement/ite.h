@@ -22,24 +22,25 @@ private:
   std::vector<statement*> *then_branch;
   std::vector<statement*> *else_branch;
 
-  void put(std::ostream &out);
+  void put(std::ostream &out) const override;
 public:
   ite(sexpr *cond, std::vector<statement*> *then_branch, std::vector<statement*> *else_branch);
   ~ite();
 
-  sexpr *get_cond() {
+  sexpr *get_cond() const {
     return cond;
   }
 
-  std::vector<statement*> *get_then_branch() {
+  const std::vector<statement*> *get_then_branch() const {
     return then_branch;
   }
 
-  std::vector<statement*> *get_else_branch() {
+  const std::vector<statement*> *get_else_branch() const {
     return else_branch;
   }
 
-  void accept(statement_visitor &v);
+  void accept(statement_visitor &v) override;
 };
 
-}}
+}  // namespace rreil
+}  // namespace gdsl

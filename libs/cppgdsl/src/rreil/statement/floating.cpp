@@ -28,7 +28,7 @@ void gdsl::rreil::floating::accept(statement_visitor &v) {
   v.visit(this);
 }
 
-void gdsl::rreil::floating::put(std::ostream &out) {
+void gdsl::rreil::floating::put(std::ostream &out) const {
   out << *lhs << " = (" << flop_to_string(op) << ")(";
   for (size_t i = 0; i < rhs.size(); ++i) {
     if(i)

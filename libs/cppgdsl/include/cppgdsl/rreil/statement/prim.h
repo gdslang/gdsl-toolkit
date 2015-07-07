@@ -25,25 +25,25 @@ private:
   std::vector<variable_limited*> lhs;
   std::vector<variable_limited*> rhs;
 
-  void put(std::ostream &out);
+  void put(std::ostream &out) const override;
 public:
   prim(std::string op, std::vector<variable_limited*> lhs, std::vector<variable_limited*> rhs);
-  ~prim();
+  ~prim() override;
 
-  std::string get_op() {
+  std::string get_op() const {
     return op;
   }
 
-  std::vector<variable_limited*> const &get_lhs() {
+  const std::vector<variable_limited*> &get_lhs() const {
     return lhs;
   }
 
-  std::vector<variable_limited*> const &get_rhs() {
+  const std::vector<variable_limited*> &get_rhs() const {
     return rhs;
   }
 
-  void accept(statement_visitor &v);
+  void accept(statement_visitor &v) override;
 };
 
-}
-}
+}  //namespace rreil
+}  //namespace gdsl
