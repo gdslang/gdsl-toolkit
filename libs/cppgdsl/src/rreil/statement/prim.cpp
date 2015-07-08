@@ -8,8 +8,6 @@
 #include <cppgdsl/rreil/statement/prim.h>
 #include <iostream>
 
-using namespace std;
-
 gdsl::rreil::prim::prim(std::string op, std::vector<variable_limited*> lhs, std::vector<variable_limited*> rhs) {
   this->op = op;
   this->lhs = lhs;
@@ -27,7 +25,7 @@ void gdsl::rreil::prim::accept(statement_visitor &v) {
   v.visit(this);
 }
 
-void gdsl::rreil::prim::put(std::ostream &out) {
+void gdsl::rreil::prim::put(std::ostream &out) const {
   out << "(";
   for (size_t i = 0; i < lhs.size(); ++i) {
     if(i)

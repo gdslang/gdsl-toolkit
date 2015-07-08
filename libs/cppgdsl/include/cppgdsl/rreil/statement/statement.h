@@ -18,21 +18,21 @@ typedef std::vector<rreil::statement*> statements_t;
 
 class statement {
 private:
-  virtual void put(std::ostream &out) = 0;
+  virtual void put(std::ostream &out) const = 0;
 public:
   virtual ~statement() {
   }
 
-  virtual std::string to_string();
-  friend std::ostream& operator<< (std::ostream &out, statement &_this);
+  std::string to_string() const;
+  friend std::ostream& operator<<(std::ostream &out, const statement &_this);
 
   virtual void accept(statement_visitor &v) = 0;
 };
 
-std::ostream& operator<<(std::ostream &out, statement &_this);
+std::ostream& operator<<(std::ostream &out, const statement &_this);
 
-}
-}
+}  // namespace rreil
+}  // namespace gdsl
 
 #include "assign.h"
 #include "branch.h"

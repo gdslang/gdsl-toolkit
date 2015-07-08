@@ -23,24 +23,25 @@ private:
   variable *lhs;
   address *_address;
 
-  void put(std::ostream &out);
+  void put(std::ostream &out) const override;
 public:
   load(int_t size, variable *lhs, address *_address);
   ~load();
 
-  int_t get_size() {
+  int_t get_size() const {
     return size;
   }
 
-  variable *get_lhs() {
+  variable *get_lhs() const {
     return lhs;
   }
 
-  address *get_address() {
+  address *get_address() const {
     return _address;
   }
 
-  void accept(statement_visitor &v);
+  void accept(statement_visitor &v) override;
 };
 
-}}
+}  // namespace rreil
+}  // namespace gdsl

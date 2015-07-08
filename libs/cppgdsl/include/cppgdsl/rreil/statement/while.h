@@ -22,20 +22,21 @@ private:
   sexpr *cond;
   std::vector<statement*> *body;
 
-  void put(std::ostream &out);
+  void put(std::ostream &out) const override;
 public:
   _while(sexpr *cond, std::vector<statement*> *body);
-  ~_while();
+  ~_while() override;
 
-  sexpr *get_cond() {
+  sexpr *get_cond() const {
     return cond;
   }
 
-  std::vector<statement*> *get_body() {
+  const std::vector<statement*> *get_body() const{
     return body;
   }
 
   void accept(statement_visitor &v);
 };
 
-}}
+}  // namespace rreil
+}  // namespace gdsl
