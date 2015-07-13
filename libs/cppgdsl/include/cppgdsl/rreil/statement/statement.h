@@ -15,13 +15,14 @@
 namespace gdsl {
 namespace rreil {
 
-// Acts as the base class for all expression and statement types in the RREIL
+// Acts as the base class for all expression and statement types in the RReil
 // language.
 class statement {
  public:
   virtual ~statement() {}
   virtual void accept(statement_visitor &v) = 0;
- 
+  std::string to_string() const;
+
  private:
   virtual void put(std::ostream &out) const = 0;
   friend std::ostream &operator<<(std::ostream &out,
@@ -33,8 +34,6 @@ typedef std::vector<rreil::statement*> statements_t;
 // Appends the string representation of the given statement to the output
 // stream.
 std::ostream &operator<<(std::ostream &out, const statement &statement);
-
-std::string to_string(const statement &statement);
 
 }  // namespace rreil
 }  // namespace gdsl

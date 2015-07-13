@@ -13,8 +13,8 @@ std::ostream &gdsl::rreil::operator<<(std::ostream &out,
   return out;
 }
 
-std::string gdsl::rreil::to_string(const statement &statement) {
+std::string gdsl::rreil::statement::to_string() const {
   std::stringstream o;
-  o << statement;
+  o << *this;
   return o.str();
 }
