@@ -18,15 +18,15 @@ namespace rreil {
 // Acts as the base class for all expression and statement types in the RReil
 // language.
 class statement {
- public:
-  virtual ~statement() {}
-  virtual void accept(statement_visitor &v) = 0;
-  std::string to_string() const;
-
- private:
+private:
   virtual void put(std::ostream &out) const = 0;
   friend std::ostream &operator<<(std::ostream &out,
                                   const statement &statement);
+
+public:
+  virtual ~statement() {}
+  virtual void accept(statement_visitor &v) = 0;
+  std::string to_string() const;
 };
 
 typedef std::vector<rreil::statement*> statements_t;
