@@ -39,8 +39,7 @@ val substmap-initial = Substmap-empty
 #   subst map with right hand side bound to write location
 #
 export substmap-bind-linear : (subst-map, int, int, sem_id, sem_linear) -> subst-map
-val substmap-bind-linear state offset size var linear = Substmap-bind-linear {offset=offset, size=size, id=var, rhs=linear, cont=state}  
-
+val substmap-bind-linear state offset size var linear = Substmap-bind-linear {offset=offset, size=size, id=var, rhs=linear, cont=(substmap-remove-linear state offset size var)}  
 
 
 # mark a location as overwritten.
@@ -56,7 +55,30 @@ val substmap-bind-linear state offset size var linear = Substmap-bind-linear {of
 #   subst map with removed bindings
 #
 export substmap-mark-overwritten : (subst-map, int, int, sem_id) -> subst-map
-val substmap-mark-overwritten state offset size var = Substmap-mark-overwritten {offset=offset, size=size, id=var, cont=state}
+val substmap-mark-overwritten state offset size var = Substmap-mark-overwritten {offset=offset, size=size, id=var, cont=(substmap-remove-linear state offset size var)}
+
+
+# remove a location from the subst-map
+#
+# Parameters:
+#   current subst map
+#   offset, size and register-id of write location
+#
+# Returns:
+#   subst map without any occurrences of the linear
+#
+export substmap-remove-linear : (subst-map, int, int, sem_id, sem_linear) -> subst-map
+val substmap-remove-linear state offset size var = Substmap-empty
+   case state of
+      Substmap-empty : state
+    | Substmap-bind-linear l :
+         if l.offset === offset and l.size === size and I l.id === id
+           then substmap-remove-linear l.cont offset size var
+           else Substmap-bind-linear {offset=l.offset, size=l.size, id=l.id, rhs=l.rhs, cont=(substmap-remove-linear l.cont offset size var)}  
+    | Substmap-mark-overwritten l :
+         if l.offset === offset and l.size === size and l.id === id
+           then substmap-remove-linear l.cont offset size var
+           else Substmap-mark-overwritten {offset=l.offset, size=l.size, id=l.id, cont=(substmap-remove-linear l.cont offset size var)}  
 
 
 type maybe-linear = Nothing-linear | Just-linear of sem_linear

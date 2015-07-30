@@ -42,15 +42,39 @@ export substmap-bind-sexpr : (subst-map, int, int, sem_id, sem_sexpr) -> subst-m
 val substmap-bind-sexpr state offset size var linear
 	= let val newSize = rreil-size-by-sexpr-type size linear 
 		  val isInverted = 0
-	in Substmap-bind-linear {offset=offset, size=newSize, id=var, rhs=linear, cont=state, inverted=isInverted}
+	in Substmap-bind-linear {offset=offset, size=newSize, id=var, rhs=linear, cont=(substmap-remove-linear state offset size var), inverted=isInverted}
 	end  
 
 export substmap-bind-sexpr-inverted : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
 val substmap-bind-sexpr-inverted state offset size var linear
 	= let val newSize = rreil-size-by-sexpr-type size linear 
 		  val isInverted = 1
-	in Substmap-bind-linear {offset=offset, size=newSize, id=var, rhs=linear, cont=state, inverted=isInverted}
+	in Substmap-bind-linear {offset=offset, size=newSize, id=var, rhs=linear, cont=(substmap-remove-linear state offset size var), inverted=isInverted}
 	end  
+
+
+# remove a location from the subst-map
+#
+# Parameters:
+#   current subst map
+#   offset, size and register-id of write location
+#
+# Returns:
+#   subst map without any occurrences of the linear
+#
+export substmap-remove-linear : (subst-map, int, int, sem_id) -> subst-map
+val substmap-remove-linear state offset size var =
+   case state of
+      Substmap-empty : state
+    | Substmap-bind-linear l :
+         if l.offset === offset and l.size === size and (id-eq? l.id var)
+           then substmap-remove-linear l.cont offset size var
+           else Substmap-bind-linear {offset=l.offset, size=l.size, id=l.id, rhs=l.rhs, cont=(substmap-remove-linear l.cont offset size var), inverted=l.inverted}  
+    | Substmap-mark-overwritten l :
+         if l.offset === offset and l.size === size and (id-eq? l.id var)
+           then substmap-remove-linear l.cont offset size var
+           else Substmap-mark-overwritten {offset=l.offset, size=l.size, id=l.id, cont=(substmap-remove-linear l.cont offset size var)}
+   end
 
 
 
@@ -67,7 +91,7 @@ val substmap-bind-sexpr-inverted state offset size var linear
 #   subst map with removed bindings
 #
 export substmap-mark-overwritten : (subst-map, int, int, sem_id) -> subst-map
-val substmap-mark-overwritten state offset size var = Substmap-mark-overwritten {offset=offset, size=size, id=var, cont=state}
+val substmap-mark-overwritten state offset size var = Substmap-mark-overwritten {offset=offset, size=size, id=var, cont=(substmap-remove-linear state offset size var)}
 
 
 type maybe-linear = Nothing-linear | Just-linear of sem_linear
