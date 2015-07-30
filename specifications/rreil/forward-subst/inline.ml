@@ -34,22 +34,58 @@ val subst-stmt-list-initial stmts = do
 
 export subst-stmt-list-m : (subst-map, sem_stmt_list) -> S sem_stmt_list <{} => {}>
 val subst-stmt-list-m state stmts = case stmts of
-		SEM_CONS s : do
-				new-stmt <- subst-stmt-m state s.hd;
+		SEM_CONS s : if is-linear-assignment s.hd then do
+				# add this assignment to the state
+ 				new-stmt <- subst-stmt-m state s.hd;
+				new-state <- update-linear-assignment state new-stmt;
+				println "removed stmt:";
+				println (rreil-show-stmt s.hd);
+				println "head of new state:";
+				println (show-substmap new-state);			
+				println ".";
+				continued <- subst-stmt-list-m new-state s.tl;
+				return continued
+				end
+                              else do
+ 				new-stmt <- subst-stmt-m state s.hd;
 				new-state <- update-with-stmt state new-stmt;
-				#println "old stmt:";
-				#println (rreil-show-stmt s.hd);
-				#println "new stmt:";
-				#println (rreil-show-stmt new-stmt);			
-				#println "head of new state:";
-				#println (show-substmap new-state);			
-				#println ".";
+				println "old stmt:";
+				println (rreil-show-stmt s.hd);
+				println "new stmt:";
+				println (rreil-show-stmt new-stmt);			
+				println "head of new state:";
+				println (show-substmap new-state);			
+				println ".";
 				continued <- subst-stmt-list-m new-state s.tl;
 				return (SEM_CONS {hd=new-stmt, tl=continued})
 				end
 	|	SEM_NIL    : return SEM_NIL
 	end 
 	
+
+val is-linear-assignment stmt =
+   case stmt of
+      SEM_ASSIGN s :
+         case s.rhs of
+            SEM_SEXPR sexpr :
+               case sexpr of
+                  SEM_SEXPR_LIN l : '1'
+                | _ : '0'
+               end
+          | _ : '0'
+         end
+    | _ : '0'
+   end
+
+val update-linear-assignment state stmt =
+   case stmt of
+      SEM_ASSIGN s :
+         case s.rhs of
+	    SEM_SEXPR sexpr: return (update-bind-linear state s.lhs.offset s.size s.lhs.id sexpr)
+          | _ : return state
+         end
+    | _ : return state
+   end
 
 export update-with-stmt: (subst-map, sem_stmt) -> S subst-map  <{} => {}>
 val update-with-stmt state stmt = case stmt of

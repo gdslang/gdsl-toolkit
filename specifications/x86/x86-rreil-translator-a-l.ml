@@ -20,7 +20,9 @@ val sem-adc x = do
   write sz a (var t)
 end
 
-val sem-add x = do
+val sem-add x = return void
+
+val commented-test-function x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- lval sz x.opnd1;
   b <- rval sz x.opnd1;
