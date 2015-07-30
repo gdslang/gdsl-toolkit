@@ -20,7 +20,7 @@ arch_id::arch_id(string name) {
   this->name = name;
 }
 
-bool gdsl::rreil::arch_id::operator ==(id &other) {
+bool gdsl::rreil::arch_id::operator ==(id &other) const {
   bool equals = false;
   id_visitor iv;
   iv._((std::function<void(arch_id*)>)[&](arch_id *aid) {

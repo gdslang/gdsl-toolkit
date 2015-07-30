@@ -31,7 +31,7 @@ public:
     return inner;
   }
 
-  bool operator== (id &other);
+  bool operator== (id &other) const;
 
   std::string to_string();
   void accept(id_visitor &v);

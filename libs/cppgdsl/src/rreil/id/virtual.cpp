@@ -22,7 +22,7 @@ int_t _virtual::get_t() {
   return this->t;
 }
 
-bool gdsl::rreil::_virtual::operator ==(id &other) {
+bool gdsl::rreil::_virtual::operator ==(id &other) const {
   bool equals = false;
   id_visitor iv;
   iv._((std::function<void(_virtual*)>)[&](_virtual *aid) {

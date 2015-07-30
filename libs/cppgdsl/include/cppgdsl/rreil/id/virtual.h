@@ -22,7 +22,7 @@ public:
 
   int_t get_t();
 
-  bool operator== (id &other);
+  bool operator== (id &other) const;
   void accept(id_visitor &v);
 };
 

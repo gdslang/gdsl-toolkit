@@ -25,7 +25,7 @@ public:
 
   std::string to_string();
   friend std::ostream &operator<< (std::ostream &out, id &_this);
-  virtual bool operator== (id &other) = 0;
+  virtual bool operator== (id &other) const = 0;
 
   virtual void accept(id_visitor &v) = 0;
 };
