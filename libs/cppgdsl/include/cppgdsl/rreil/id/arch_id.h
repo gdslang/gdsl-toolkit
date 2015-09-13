@@ -17,8 +17,12 @@ private:
   std::string name;
 
   void put(std::ostream &out);
+
+  static size_t subclass_counter;
 public:
   arch_id(std::string name);
+
+  size_t get_subclass_counter();
 
   const std::string& get_name() {
     return name;

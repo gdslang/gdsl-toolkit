@@ -14,8 +14,14 @@ void gdsl::rreil::_virtual::put(std::ostream &out) {
   out << "t" << t;
 }
 
+size_t gdsl::rreil::_virtual::subclass_counter = id::subclass_counter++;
+
 _virtual::_virtual(int_t t) {
   this->t = t;
+}
+
+size_t gdsl::rreil::_virtual::get_subclass_counter() {
+  return subclass_counter;
 }
 
 int_t _virtual::get_t() {

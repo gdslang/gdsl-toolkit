@@ -24,9 +24,12 @@ private:
   shared_id_type inner;
 
   void put(std::ostream &out);
+
+  static size_t subclass_counter;
 public:
   shared_id(shared_id_type _id);
 
+  size_t get_subclass_counter();
   shared_id_type get_inner() {
     return inner;
   }

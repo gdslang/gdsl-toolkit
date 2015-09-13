@@ -16,8 +16,14 @@ void gdsl::rreil::arch_id::put(std::ostream &out) {
   out << name;
 }
 
+size_t gdsl::rreil::arch_id::subclass_counter = id::subclass_counter++;
+
 arch_id::arch_id(string name) {
   this->name = name;
+}
+
+size_t gdsl::rreil::arch_id::get_subclass_counter() {
+  return subclass_counter;
 }
 
 bool gdsl::rreil::arch_id::operator ==(id &other) const {

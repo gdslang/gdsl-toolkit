@@ -21,8 +21,14 @@ void gdsl::rreil::shared_id::put(std::ostream &out) {
   out << shared_id_type_to_string(this->inner);
 }
 
+size_t gdsl::rreil::shared_id::subclass_counter = id::subclass_counter++;
+
 gdsl::rreil::shared_id::shared_id(shared_id_type _id) {
   this->inner = _id;
+}
+
+size_t gdsl::rreil::shared_id::get_subclass_counter() {
+  return subclass_counter;
 }
 
 bool gdsl::rreil::shared_id::operator ==(id &other) const {
