@@ -97,27 +97,7 @@ val update-linear-assignment state stmt =
 type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map} 
 
 ## many commands are still missing; left hand side missing
-val emit-stmts-from-state stmt emitted-stmts = 
- case stmt of
-    SEM_ASSIGN s :
-       case s.rhs of
-          SEM_SEXPR sexpr : emit-all-sexpr-vars sexpr s.size emitted-stmts
-	| SEM_MUL a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_DIV a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_DIVS a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_MOD a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_MODS a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_SHL a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_SHR a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_SHRS a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_AND a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_OR a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_XOR a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_SX x : emit-all-linear-vars x.opnd1 s.size emitted-stmts
- 	| SEM_ZX x : emit-all-linear-vars x.opnd1 s.size emitted-stmts
-       end
-     | _ : emitted-stmts
- end
+val emit-stmts-from-state stmt emitted-stmts = emitted-stmts
 
 val emit-all-arity2-vars a2 sexpr emitted-stmts = do
 	it <- emit-all-linear-vars a2.opnd1 sexpr.size emitted-stmts;
