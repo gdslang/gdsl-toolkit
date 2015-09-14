@@ -22,13 +22,14 @@ private:
 public:
   arch_id(std::string name);
 
-  size_t get_subclass_counter();
+  size_t get_subclass_counter() const;
 
   const std::string& get_name() {
     return name;
   }
 
   bool operator== (id &other) const;
+  bool operator<(id const& other) const;
   void accept(id_visitor &v);
 };
 

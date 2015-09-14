@@ -29,12 +29,13 @@ private:
 public:
   shared_id(shared_id_type _id);
 
-  size_t get_subclass_counter();
+  size_t get_subclass_counter() const;
   shared_id_type get_inner() {
     return inner;
   }
 
   bool operator== (id &other) const;
+  bool operator<(id const& other) const;
 
   std::string to_string();
   void accept(id_visitor &v);

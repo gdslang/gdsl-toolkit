@@ -22,10 +22,11 @@ private:
 public:
   _virtual(int_t t);
 
-  size_t get_subclass_counter();
+  size_t get_subclass_counter() const;
   int_t get_t();
 
   bool operator== (id &other) const;
+  bool operator<(id const& other) const;
   void accept(id_visitor &v);
 };
 

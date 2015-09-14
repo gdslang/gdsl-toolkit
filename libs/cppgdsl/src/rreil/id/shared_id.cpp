@@ -27,18 +27,26 @@ gdsl::rreil::shared_id::shared_id(shared_id_type _id) {
   this->inner = _id;
 }
 
-size_t gdsl::rreil::shared_id::get_subclass_counter() {
+size_t gdsl::rreil::shared_id::get_subclass_counter() const {
   return subclass_counter;
 }
 
-bool gdsl::rreil::shared_id::operator ==(id &other) const {
+bool gdsl::rreil::shared_id::operator==(id &other) const {
   bool equals = false;
   id_visitor iv;
-  iv._((std::function<void(shared_id*)>)[&](shared_id *aid) {
-    equals = this->inner == aid->inner;
-  });
+  iv._((std::function<void(shared_id *)>)[&](shared_id * aid) { equals = this->inner == aid->inner; });
   other.accept(iv);
   return equals;
+}
+
+bool gdsl::rreil::shared_id::operator<(const id &other) const {
+  size_t scc_me = subclass_counter;
+  size_t scc_other = other.get_subclass_counter();
+  if(scc_me == scc_other) {
+    shared_id const &other_casted = dynamic_cast<shared_id const&>(other);
+    return inner < other_casted.inner;
+  } else
+    return scc_me < scc_other;
 }
 
 void gdsl::rreil::shared_id::accept(id_visitor &v) {

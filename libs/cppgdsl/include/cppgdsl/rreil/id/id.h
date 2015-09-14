@@ -25,7 +25,7 @@ public:
   virtual ~id() {
   }
 
-  virtual size_t get_subclass_counter() = 0;
+  virtual size_t get_subclass_counter() const = 0;
 
   std::string to_string();
   friend std::ostream &operator<< (std::ostream &out, id &_this);
