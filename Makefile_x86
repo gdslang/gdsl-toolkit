@@ -12,7 +12,7 @@ GDSL_MEX=_manual
 GDSL_COMP=$(GDSL)$(GDSL_MEX)
 GDSL_EXEC=$(GDSL)c
 GPREFIX=
-GDSLFLAGS=--maxIter=42
+GDSLFLAGS=--maxIter=45
 
 #GDSL_SOURCES=$(shell find specifications/basis specifications/rreil specifications/x86 -type f -name '*.ml')
 GDSL_BASIS_HL=specifications/basis/prelude.ml specifications/basis/bbtree.ml specifications/basis/tree-set.ml

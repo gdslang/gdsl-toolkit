@@ -40,7 +40,7 @@ val subst-stmt-list-m state stmts = case stmts of
 				new-state <- update-linear-assignment state new-stmt;
 				println "removed stmt:";
 				println (rreil-show-stmt s.hd);
-				println "head of new state:";
+				println "  new state:";
 				println (show-substmap new-state);			
 				println ".";
 				continued <- subst-stmt-list-m new-state s.tl;
@@ -50,14 +50,15 @@ val subst-stmt-list-m state stmts = case stmts of
 				# emit statements from the state
 				# check for lvalues; then for rvalues; emit; add to statements; take new state;
 				new-stmts <- emit-stmts-from-state s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
-				println "> old stmt:";
-				println (rreil-show-stmt s.hd);
 				println "> new stmts:";
-				println (rreil-show-stmt new-stmts.temp);
-				println (rreil-show-stmt new-stmts.assign);			
-				println "> head of new state:";
+				println (rreil-show-stmts new-stmts.temp);
+				println (rreil-show-stmts new-stmts.assign);
+				println "> base stmt:";
+				println (rreil-show-stmt s.hd);
+							
+				println "  > new state:";
 				println (show-substmap new-stmts.state);			
-				println ".";
+				println "..";
 				continued <- subst-stmt-list-m new-stmts.state s.tl;
 				return (append-stmt-list (append-stmt-list (append-stmt-list (SEM_CONS {hd=s.hd, tl=SEM_NIL}) new-stmts.temp) new-stmts.assign) continued)
 				end
@@ -97,31 +98,31 @@ val update-linear-assignment state stmt =
 type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map} 
 
 ## many commands are still missing; left hand side missing
-val emit-stmts-from-state stmt emitted-stmts = emitted-stmts
+val emit-stmts-from-state stmt emitted-stmts =
  case stmt of
     SEM_ASSIGN s :
        case s.rhs of
           SEM_SEXPR sexpr : emit-all-sexpr-vars sexpr s.size emitted-stmts
-	| SEM_MUL a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_DIV a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_DIVS a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_MOD a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_MODS a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_SHL a2 : emit-all-arity2-vars a2 s emitted-stmts
-	| SEM_SHR a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_SHRS a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_AND a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_OR a2 : emit-all-arity2-vars a2 s emitted-stmts
- 	| SEM_XOR a2 : emit-all-arity2-vars a2 s emitted-stmts
+	| SEM_MUL a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+ 	| SEM_DIV a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+	| SEM_DIVS a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+	| SEM_MOD a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+	| SEM_MODS a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+	| SEM_SHL a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+	| SEM_SHR a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+ 	| SEM_SHRS a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+ 	| SEM_AND a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+ 	| SEM_OR a2 : emit-all-arity2-vars a2 s.size emitted-stmts
+ 	| SEM_XOR a2 : emit-all-arity2-vars a2 s.size emitted-stmts
  	| SEM_SX x : emit-all-linear-vars x.opnd1 s.size emitted-stmts
  	| SEM_ZX x : emit-all-linear-vars x.opnd1 s.size emitted-stmts
        end
-     | _ : emitted-stmts
+     | _ : return emitted-stmts
  end
 
-val emit-all-arity2-vars a2 sexpr emitted-stmts = do
-	it <- emit-all-linear-vars a2.opnd1 sexpr.size emitted-stmts;
-	emit-all-linear-vars a2.opnd2 sexpr.size it
+val emit-all-arity2-vars a2 size emitted-stmts = do
+	it <- emit-all-linear-vars a2.opnd1 size emitted-stmts;
+	emit-all-linear-vars a2.opnd2 size it
  end
 
 val emit-var-from-state state var size emitted-stmts =
@@ -131,15 +132,15 @@ val emit-var-from-state state var size emitted-stmts =
 	emitted_linears <- emit-linear-from-state x var size emitted-stmts;
 	emit-var-from-state x.cont var size emitted_linears
     end
-  | Substmap-mark-overwritten x : return (emit-var-from-state x.cont var size emitted-stmts)
+  | Substmap-mark-overwritten x : emit-var-from-state x.cont var size emitted-stmts
  end
 
 ### dump variable assignment from state to stmt
 val mktemp-var = do
-  o <- query $tmpass;
-  o' <- return (o + 1);
-  update @{tmpass=o'};
-  return {id=VIRT_T o,offset=0}
+#  o <- query $tmpass;
+#  o' <- return (o + 1);
+#  update @{tmpass=o'};
+  return {id=VIRT_T 1,offset=0}
 end
 
 val emit-linear-from-state linear var size emitted-stmts =
@@ -148,7 +149,7 @@ val emit-linear-from-state linear var size emitted-stmts =
 		tempvar <- mktemp-var;
 		tempy <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
 		assigny <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs={id=linear.id, offset=linear.offset}, rhs=(SEM_SEXPR (SEM_SEXPR_LIN (SEM_LIN_VAR tempvar)))}), tl=emitted-stmts.assign});
-		return (emit-all-sexpr-vars linear.rhs size {temp=tempy, assign=assigny, state=(substmap-remove-linear emitted-stmts.state linear.size linear.offset linear.id)})
+		emit-all-sexpr-vars linear.rhs size {temp=tempy, assign=assigny, state=(substmap-remove-linear emitted-stmts.state linear.size linear.offset linear.id)}
 	   end
            else return emitted-stmts
 
@@ -162,25 +163,24 @@ val emit-all-sexpr-vars sexpr size emitted-stmts =
     SEM_SEXPR_LIN linear : emit-all-linear-vars linear size emitted-stmts
   | SEM_SEXPR_CMP cmp :
        case cmp.cmp of
-          SEM_CMPEQ a2 : emit-all-linear-vars a2.opnd2 size (emit-all-linear-vars a2.opnd1 size emitted-stmts)
-        | SEM_CMPNEQ a2 : emit-all-linear-vars a2.opnd2 size (emit-all-linear-vars a2.opnd1 size emitted-stmts)
-        | SEM_CMPLES a2 : emit-all-linear-vars a2.opnd2 size (emit-all-linear-vars a2.opnd1 size emitted-stmts)
-        | SEM_CMPLEU a2 : emit-all-linear-vars a2.opnd2 size (emit-all-linear-vars a2.opnd1 size emitted-stmts)
-        | SEM_CMPLTS a2 : emit-all-linear-vars a2.opnd2 size (emit-all-linear-vars a2.opnd1 size emitted-stmts)
-        | SEM_CMPLTU a2 : emit-all-linear-vars a2.opnd2 size (emit-all-linear-vars a2.opnd1 size emitted-stmts)
+          SEM_CMPEQ a2 : emit-all-arity2-vars a2 cmp.size emitted-stmts
+        | SEM_CMPNEQ a2 : emit-all-arity2-vars a2 cmp.size emitted-stmts
+        | SEM_CMPLES a2 : emit-all-arity2-vars a2 cmp.size emitted-stmts
+        | SEM_CMPLEU a2 : emit-all-arity2-vars a2 cmp.size emitted-stmts
+        | SEM_CMPLTS a2 : emit-all-arity2-vars a2 cmp.size emitted-stmts
+        | SEM_CMPLTU a2 : emit-all-arity2-vars a2 cmp.size emitted-stmts
        end
-  | SEM_SEXPR_ARB : emitted-stmts
+  | SEM_SEXPR_ARB : return emitted-stmts
  end
        
 val emit-all-linear-vars linear size emitted-stmts =
  case linear of
     SEM_LIN_VAR var : emit-var-from-state emitted-stmts.state var size emitted-stmts
   | SEM_LIN_IMM x : return emitted-stmts
-  | SEM_LIN_ADD a2 : emit-all-linear-vars a2.opnd2 size (emit-all-linear-vars a2.opnd1 size emitted-stmts)
-  | SEM_LIN_SUB a2 : emit-all-linear-vars a2.opnd2 size (emit-all-linear-vars a2.opnd1 size emitted-stmts)
+  | SEM_LIN_ADD a2 : emit-all-arity2-vars a2 size emitted-stmts
+  | SEM_LIN_SUB a2 : emit-all-arity2-vars a2 size emitted-stmts
   | SEM_LIN_SCALE s : emit-all-linear-vars s.opnd size emitted-stmts
  end
-
 
 export update-with-stmt: (subst-map, sem_stmt) -> S subst-map  <{} => {}>
 val update-with-stmt state stmt = case stmt of
