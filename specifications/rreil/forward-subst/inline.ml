@@ -100,7 +100,7 @@ type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst
 ## many commands are still missing; left hand side missing
 val emit-stmts-from-state stmt emitted-stmts =
  case stmt of
-    SEM_ASSIGN s :
+    SEM_ASSIGN s : do
        case s.rhs of
           SEM_SEXPR sexpr : emit-all-sexpr-vars sexpr s.size emitted-stmts
 	| SEM_MUL a2 : emit-all-arity2-vars a2 s.size emitted-stmts
@@ -116,8 +116,14 @@ val emit-stmts-from-state stmt emitted-stmts =
  	| SEM_XOR a2 : emit-all-arity2-vars a2 s.size emitted-stmts
  	| SEM_SX x : emit-all-linear-vars x.opnd1 s.size emitted-stmts
  	| SEM_ZX x : emit-all-linear-vars x.opnd1 s.size emitted-stmts
-       end
-     | _ : return emitted-stmts
+       end ;
+       emit-var-from-state emitted-stmts.state s.lhs s.size emitted-stmts
+     end
+  | SEM_LOAD s : do
+       emit-all-linear-vars s.address.address s.address.size emitted-stmts;
+       emit-var-from-state emitted-stmts.state s.lhs s.size emitted-stmts
+     end
+  | _ : return emitted-stmts
  end
 
 val emit-all-arity2-vars a2 size emitted-stmts = do
@@ -129,8 +135,8 @@ val emit-var-from-state state var size emitted-stmts =
  case state of
     Substmap-empty : return emitted-stmts
   | Substmap-bind-linear x : do
-	emitted_linears <- emit-linear-from-state x var size emitted-stmts;
-	emit-var-from-state x.cont var size emitted_linears
+	result <- emit-linear-from-state x var size emitted-stmts;
+	emit-var-from-state x.cont var size result
     end
   | Substmap-mark-overwritten x : emit-var-from-state x.cont var size emitted-stmts
  end
@@ -149,11 +155,16 @@ val emit-linear-from-state linear var size emitted-stmts =
 		tempvar <- mktemp-var;
 		tempy <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
 		assigny <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs={id=linear.id, offset=linear.offset}, rhs=(SEM_SEXPR (SEM_SEXPR_LIN (SEM_LIN_VAR tempvar)))}), tl=emitted-stmts.assign});
-		emit-all-sexpr-vars linear.rhs size {temp=tempy, assign=assigny, state=(substmap-remove-linear emitted-stmts.state linear.size linear.offset linear.id)}
+			println ("  >> state first: " +++ rreil-show-id var.id);
+			println (show-substmap emitted-stmts.state);			
+			println "  >> and then:";
+			println (show-substmap (substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id));
+		emit-all-sexpr-vars linear.rhs size {temp=tempy, assign=assigny, state=(substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id)}
 	   end
            else return emitted-stmts
 
-val is-linear-containing-var linear var size = (linear.offset === var.offset and linear.size === size and (id-eq? linear.id var.id)) or (sexpr-uses-location var.offset size var.id size linear.rhs)
+# not using the actual location (size)
+val is-linear-containing-var linear var size = ((id-eq? linear.id var.id)) or (sexpr-uses-location var.offset size var.id size linear.rhs)
 
 
 ### handle the sexpr vars for recursive search

@@ -28,6 +28,7 @@ val sem-add x = do
   t <- mktemp;
   ip <- ip-get;
   add sz t b (var ip);
+  xorb sz t b (var ip);
   write sz a (var t)
 end
 
