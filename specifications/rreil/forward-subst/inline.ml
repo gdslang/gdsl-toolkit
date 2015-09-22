@@ -108,34 +108,44 @@ type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst
 # TODO: many commands are still missing; left hand side missing
 # TODO: dump all assignemnt at the end of a block? jump etc
 # TODO: how to handle branches/if/loops
+# TODO: how to handle Prims?
 val emit-all-required-computations-from-state stmt emitted-stmts =
  case stmt of
     SEM_ASSIGN s : do
-       case s.rhs of
-          SEM_SEXPR sexpr : emit-all-vars-from-sexpr sexpr s.size emitted-stmts
-	| SEM_MUL a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
- 	| SEM_DIV a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
-	| SEM_DIVS a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
-	| SEM_MOD a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
-	| SEM_MODS a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
-	| SEM_SHL a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
-	| SEM_SHR a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
- 	| SEM_SHRS a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
- 	| SEM_AND a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
- 	| SEM_OR a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
- 	| SEM_XOR a2 : emit-all-vars-from-arity2 a2 s.size emitted-stmts
- 	| SEM_SX x : emit-all-vars-from-sem-linear x.opnd1 s.size emitted-stmts
- 	| SEM_ZX x : emit-all-vars-from-sem-linear x.opnd1 s.size emitted-stmts
-       end ;
-       emit-var-from-state emitted-stmts.state s.lhs s.size emitted-stmts
+       it <- emit-all-vars-from-expr s.rhs s.size emitted-stmts;
+       emit-var-from-state it.state s.lhs s.size it
      end
   | SEM_LOAD s : do
-       emit-all-vars-from-sem-linear s.address.address s.address.size emitted-stmts;
-       emit-var-from-state emitted-stmts.state s.lhs s.size emitted-stmts
+       it <- emit-all-vars-from-sem-linear s.address.address s.address.size emitted-stmts;
+       emit-var-from-state it.state s.lhs s.size it
      end
+  | SEM_STORE s : do
+       it <- emit-all-vars-from-sem-linear s.rhs s.size emitted-stmts;
+       emit-all-vars-from-sem-linear s.address.address s.address.size it
+     end
+  | SEM_PRIM s : return emitted-stmts
+  | SEM_THROW s : return emitted-stmts
   | _ : return emitted-stmts
  end
 
+val emit-all-vars-from-expr expr size emitted-stmts =
+       case expr of
+	  SEM_SEXPR sexpr : emit-all-vars-from-sexpr sexpr size emitted-stmts
+	| SEM_MUL a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_DIV a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_DIVS a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_MOD a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_MODS a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_SHL a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_SHR a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_SHRS a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_AND a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_OR a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_XOR a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
+	| SEM_SX x : emit-all-vars-from-sem-linear x.opnd1 size emitted-stmts
+	| SEM_ZX x : emit-all-vars-from-sem-linear x.opnd1 size emitted-stmts
+       end
+       
 val emit-all-vars-from-arity2 a2 size emitted-stmts = do
 	it <- emit-all-vars-from-sem-linear a2.opnd1 size emitted-stmts;
 	emit-all-vars-from-sem-linear a2.opnd2 size it
