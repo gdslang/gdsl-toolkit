@@ -27,7 +27,9 @@ val propagate-values stmts = subst-stmt-list-initial stmts
 export subst-stmt-list-initial : (sem_stmt_list)-> S sem_stmt_list  <{} => {}>
 val subst-stmt-list-initial stmts = do
 	l <- subst-stmt-list-m substmap-initial stmts;
-	#println "--------------------------";
+	println "==========================";
+	println (rreil-show-stmts stmts);
+	println "--------------------------";
 	return l
 	end
 
@@ -49,6 +51,7 @@ val subst-stmt-list-m state stmts = case stmts of
                               else do
 				# emit statements from the state
 				# check for lvalues; then for rvalues; emit; add to statements; take new state;
+				update @{tmpass=0};
 				new-stmts <- emit-all-required-computations-from-state s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
 				println "> new stmts:";
 				println (rreil-show-stmts new-stmts.temp);
@@ -60,7 +63,7 @@ val subst-stmt-list-m state stmts = case stmts of
 				println (show-substmap new-stmts.state);			
 				println "..";
 				continued <- subst-stmt-list-m new-stmts.state s.tl;
-				return (append-stmt-list (append-stmt-list (append-stmt-list (SEM_CONS {hd=s.hd, tl=SEM_NIL}) new-stmts.temp) new-stmts.assign) continued)
+				return (append-stmt-list (append-stmt-list (append-stmt-list new-stmts.temp new-stmts.assign) (SEM_CONS {hd=s.hd, tl=SEM_NIL})) continued)
 				end
 	|	SEM_NIL    : return SEM_NIL
 	end 
@@ -103,6 +106,8 @@ type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst
 
 # when a stmt needs a location from the state, the location is emitted as a statement
 # TODO: many commands are still missing; left hand side missing
+# TODO: dump all assignemnt at the end of a block? jump etc
+# TODO: how to handle branches/if/loops
 val emit-all-required-computations-from-state stmt emitted-stmts =
  case stmt of
     SEM_ASSIGN s : do
@@ -148,12 +153,11 @@ val emit-var-from-state state var size emitted-stmts =
  end
 
 # create temporary variable
-# TODO: create unique variables
 val mktemp-var = do
-#  o <- query $tmpass;
-#  o' <- return (o + 1);
-#  update @{tmpass=o'};
-  return {id=VIRT_T 1,offset=0}
+  o <- query $tmpass;
+  o' <- return (o + 1);
+  update @{tmpass=o'};
+  return {id=VIRT_O o,offset=0}
 end
 
 # when the subst linear uses the given variable, it is removed from the state and emitted as an statement
