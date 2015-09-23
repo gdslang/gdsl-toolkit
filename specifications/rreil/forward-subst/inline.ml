@@ -105,9 +105,9 @@ val update-linear-assignment state stmt =
 type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map} 
 
 # when a stmt needs a location from the state, the location is emitted as a statement
-# TODO: many commands are still missing; left hand side missing
+# TODO: many commands are still missing
 # TODO: dump all assignemnt at the end of a block? jump etc
-# TODO: how to handle branches/if/loops
+# TODO: how to handle branches(atm dumping whole state)/if/loops
 # TODO: how to handle Prims?
 val emit-all-required-computations-from-state stmt emitted-stmts =
  case stmt of
@@ -123,9 +123,24 @@ val emit-all-required-computations-from-state stmt emitted-stmts =
        it <- emit-all-vars-from-sem-linear s.rhs s.size emitted-stmts;
        emit-all-vars-from-sem-linear s.address.address s.address.size it
      end
+  | SEM_CBRANCH s : emit-whole-state emitted-stmts
+  | SEM_BRANCH s : emit-whole-state emitted-stmts
   | SEM_PRIM s : return emitted-stmts
   | SEM_THROW s : return emitted-stmts
   | _ : return emitted-stmts
+ end
+
+# emits all subst-linears from the state as stmts
+val emit-whole-state emitted-stmts = 
+ case emitted-stmts.state of
+    Substmap-empty : return emitted-stmts
+  | Substmap-bind-linear linear: do
+	tempvar <- mktemp-var;
+	temp_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
+	real_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs={id=linear.id, offset=linear.offset}, rhs=(SEM_SEXPR (SEM_SEXPR_LIN (SEM_LIN_VAR tempvar)))}), tl=emitted-stmts.assign});
+	emit-whole-state {temp=temp_assignment, assign=real_assignment, state=linear.cont}
+    end
+  | Substmap-mark-overwritten x : emit-whole-state {temp=emitted-stmts.temp, assign=emitted-stmts.assign, state=x.cont}
  end
 
 val emit-all-vars-from-expr expr size emitted-stmts =
@@ -171,17 +186,18 @@ val mktemp-var = do
 end
 
 # when the subst linear uses the given variable, it is removed from the state and emitted as an statement
+# TODO: emit-all-vars... with size or linear.size ?
 val emit-subst-linear-from-state-as-stmt linear var size emitted-stmts =
 	if is-subst-linear-using-this-var linear var size
            then do # build statements list
 		tempvar <- mktemp-var;
-		tempy <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
-		assigny <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs={id=linear.id, offset=linear.offset}, rhs=(SEM_SEXPR (SEM_SEXPR_LIN (SEM_LIN_VAR tempvar)))}), tl=emitted-stmts.assign});
+		temp_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
+		real_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs={id=linear.id, offset=linear.offset}, rhs=(SEM_SEXPR (SEM_SEXPR_LIN (SEM_LIN_VAR tempvar)))}), tl=emitted-stmts.assign});
 			println ("  >> state first: " +++ rreil-show-id var.id);
 			println (show-substmap emitted-stmts.state);			
 			println "  >> and then:";
 			println (show-substmap (substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id));
-		emit-all-vars-from-sexpr linear.rhs size {temp=tempy, assign=assigny, state=(substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id)}
+		emit-all-vars-from-sexpr linear.rhs size {temp=temp_assignment, assign=real_assignment, state=(substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id)}
 	   end
            else return emitted-stmts
 
