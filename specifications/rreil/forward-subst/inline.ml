@@ -53,19 +53,23 @@ val subst-stmt-list-m state stmts = case stmts of
 				# check for lvalues; then for rvalues; emit; add to statements; take new state;
 				update @{tmpass=0};
 				new-stmts <- emit-all-required-computations-from-state s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				upd-stmt <- return {stmt=s.hd, state=new-stmts.state};#optimize-stmt s.hd new-stmts.state;
 				println "> new stmts:";
 				println (rreil-show-stmts new-stmts.temp);
 				println (rreil-show-stmts new-stmts.assign);
-				println "> base stmt:";
-				println (rreil-show-stmt s.hd);
-							
+				println ("> base stmt:" +++ (rreil-show-stmt s.hd));
+				println ("> new  stmt:" +++ (rreil-show-stmt upd-stmt.stmt));
 				println "  > new state:";
-				println (show-substmap new-stmts.state);			
+				println (show-substmap upd-stmt.state);			
 				println "..";
-				continued <- subst-stmt-list-m new-stmts.state s.tl;
-				return (append-stmt-list (append-stmt-list (append-stmt-list new-stmts.temp new-stmts.assign) (SEM_CONS {hd=s.hd, tl=SEM_NIL})) continued)
+				continued <- subst-stmt-list-m upd-stmt.state s.tl;
+				return (append-stmt-list (append-stmt-list (append-stmt-list new-stmts.temp new-stmts.assign) (SEM_CONS {hd=upd-stmt.stmt, tl=SEM_NIL})) continued)
 				end
 	|	SEM_NIL    : return SEM_NIL
+#				do
+#				new-stmts <- emit-whole-state {temp=SEM_NIL, assign=SEM_NIL, state=state};
+#				return (append-stmt-list new-stmts.temp new-stmts.assign)
+#			     end		
 	end 
 	
 # concatenates two stmt-lists
@@ -102,12 +106,24 @@ val update-linear-assignment state stmt =
    end
 
 # return tuple for an optimization step
-type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map} 
+type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map}
+type emitted-stmt-state = {stmt:sem_stmt, state:subst-map}
+
+# recursively enters sub-stmt lists like for example in a ITE
+val optimize-stmt stmt state = 
+ case stmt of
+    SEM_ITE s : do
+	  then_b <- subst-stmt-list-m state s.then_branch; 
+	  else_b <- subst-stmt-list-m state s.else_branch;
+	  return {stmt=(SEM_ITE {cond=s.cond, then_branch=then_b, else_branch=else_b}), state=Substmap-empty}
+	end
+  | _ : return {stmt=stmt, state=state}
+ end
 
 # when a stmt needs a location from the state, the location is emitted as a statement
 # TODO: many commands are still missing
 # TODO: dump all assignemnt at the end of a block? jump etc
-# TODO: how to handle branches(atm dumping whole state)/if/loops
+# TODO: how to handle branches(atm dumping whole state)/if(cond, then branch, then dump all at last statement)/loops
 # TODO: how to handle Prims?
 val emit-all-required-computations-from-state stmt emitted-stmts =
  case stmt of
@@ -123,6 +139,7 @@ val emit-all-required-computations-from-state stmt emitted-stmts =
        it <- emit-all-vars-from-sem-linear s.rhs s.size emitted-stmts;
        emit-all-vars-from-sem-linear s.address.address s.address.size it
      end
+  | SEM_ITE s : emit-all-vars-from-sexpr s.cond 1 emitted-stmts
   | SEM_CBRANCH s : emit-whole-state emitted-stmts
   | SEM_BRANCH s : emit-whole-state emitted-stmts
   | SEM_PRIM s : return emitted-stmts
@@ -186,7 +203,7 @@ val mktemp-var = do
 end
 
 # when the subst linear uses the given variable, it is removed from the state and emitted as an statement
-# TODO: emit-all-vars... with size or linear.size ?
+# TODO: size or linear.size ?
 val emit-subst-linear-from-state-as-stmt linear var size emitted-stmts =
 	if is-subst-linear-using-this-var linear var size
            then do # build statements list
