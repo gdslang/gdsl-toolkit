@@ -35,7 +35,11 @@ val subst-stmt-list-initial stmts = do
 
 
 export subst-stmt-list-m : (subst-map, sem_stmt_list) -> S sem_stmt_list <{} => {}>
-val subst-stmt-list-m state stmts = case stmts of
+val subst-stmt-list-m state stmts = subst-stmt-list-m-helpy state stmts
+
+# how to handle ifs (maybe also loops): check the body for variables in the state that are acccessed -> dump them beforehand
+# -> do not optimize the- body, jump over it
+val subst-stmt-list-m-helpy state stmts = case stmts of
 		SEM_CONS s : if is-linear-assignment s.hd then do
 				# add this assignment to the state
  				new-stmt <- subst-stmt-m state s.hd;
@@ -45,7 +49,7 @@ val subst-stmt-list-m state stmts = case stmts of
 				println "  new state:";
 				println (show-substmap new-state);			
 				println ".";
-				continued <- subst-stmt-list-m new-state s.tl;
+				continued <- subst-stmt-list-m-helpy new-state s.tl;
 				return continued
 				end
                               else do
@@ -53,7 +57,7 @@ val subst-stmt-list-m state stmts = case stmts of
 				# check for lvalues; then for rvalues; emit; add to statements; take new state;
 				update @{tmpass=0};
 				new-stmts <- emit-all-required-computations-from-state s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
-				upd-stmt <- return {stmt=s.hd, state=new-stmts.state};#optimize-stmt s.hd new-stmts.state;
+				upd-stmt <- optimize-stmt s.hd new-stmts.state;
 				println "> new stmts:";
 				println (rreil-show-stmts new-stmts.temp);
 				println (rreil-show-stmts new-stmts.assign);
@@ -62,7 +66,7 @@ val subst-stmt-list-m state stmts = case stmts of
 				println "  > new state:";
 				println (show-substmap upd-stmt.state);			
 				println "..";
-				continued <- subst-stmt-list-m upd-stmt.state s.tl;
+				continued <- subst-stmt-list-m-helpy upd-stmt.state s.tl;
 				return (append-stmt-list (append-stmt-list (append-stmt-list new-stmts.temp new-stmts.assign) (SEM_CONS {hd=upd-stmt.stmt, tl=SEM_NIL})) continued)
 				end
 	|	SEM_NIL    : return SEM_NIL
@@ -113,8 +117,8 @@ type emitted-stmt-state = {stmt:sem_stmt, state:subst-map}
 val optimize-stmt stmt state = 
  case stmt of
     SEM_ITE s : do
-	  then_b <- subst-stmt-list-m state s.then_branch; 
-	  else_b <- subst-stmt-list-m state s.else_branch;
+	  then_b <- subst-stmt-list-m-helpy state s.then_branch; 
+	  else_b <- subst-stmt-list-m-helpy state s.else_branch;
 	  return {stmt=(SEM_ITE {cond=s.cond, then_branch=then_b, else_branch=else_b}), state=Substmap-empty}
 	end
   | _ : return {stmt=stmt, state=state}
@@ -203,7 +207,6 @@ val mktemp-var = do
 end
 
 # when the subst linear uses the given variable, it is removed from the state and emitted as an statement
-# TODO: size or linear.size ?
 val emit-subst-linear-from-state-as-stmt linear var size emitted-stmts =
 	if is-subst-linear-using-this-var linear var size
            then do # build statements list
@@ -214,17 +217,15 @@ val emit-subst-linear-from-state-as-stmt linear var size emitted-stmts =
 			println (show-substmap emitted-stmts.state);			
 			println "  >> and then:";
 			println (show-substmap (substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id));
-		emit-all-vars-from-sexpr linear.rhs size {temp=temp_assignment, assign=real_assignment, state=(substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id)}
+		emit-all-vars-from-sexpr linear.rhs linear.size {temp=temp_assignment, assign=real_assignment, state=(substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id)}
 	   end
            else return emitted-stmts
 
 # checks if a subst linear consists of a given var
-# TODO: currently not using the actual location (size)
-val is-subst-linear-using-this-var linear var size = ((id-eq? linear.id var.id)) or (sexpr-uses-location var.offset size var.id size linear.rhs)
+val is-subst-linear-using-this-var lin var size = ((id-eq? lin.id var.id) and (not (lin.offset + lin.size <= var.offset or lin.offset >= var.offset + size))) or (sexpr-uses-location var.offset size var.id size lin.rhs)
 
 
 # iterate recursively through a sexpr and emit all used variables
-# TODO: cmp.size or size????
 val emit-all-vars-from-sexpr sexpr size emitted-stmts = 
  case sexpr of
     SEM_SEXPR_LIN linear : emit-all-vars-from-sem-linear linear size emitted-stmts
