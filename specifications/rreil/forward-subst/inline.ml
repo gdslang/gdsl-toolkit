@@ -42,12 +42,13 @@ val subst-stmt-list-m state stmts = subst-stmt-list-m-helpy state stmts
 val subst-stmt-list-m-helpy state stmts = case stmts of
 		SEM_CONS s : if is-linear-assignment s.hd then do
 				# add this assignment to the state
+				emizzle <- emit-lvalue-when-its-a-sem-lin state s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
  				new-stmt <- subst-stmt-m state s.hd;
 				new-state <- update-linear-assignment state new-stmt;
 				println "removed stmt:";
 				println (rreil-show-stmt s.hd);
 				println "  new state:";
-				println (show-substmap new-state);			
+				println (show-substmap new-state);		
 				println ".";
 				continued <- subst-stmt-list-m-helpy new-state s.tl;
 				return continued
@@ -123,6 +124,28 @@ val optimize-stmt stmt state =
 	end
   | _ : return {stmt=stmt, state=state}
  end
+
+# dump state subst-linear when its lvalue is overlapping BUT NOT equal to the lvalue of the statement
+val emit-lvalue-when-its-a-sem-lin state stmt emitted-stmts = 
+ case stmt of
+    SEM_ASSIGN s :
+       case state of
+          Substmap-empty : return emitted-stmts
+        | Substmap-bind-linear x : do
+             if (overlapping-but-not-equal x s.lhs s.size) then do
+                result <- emit-subst-linear-from-state-as-stmt x s.lhs s.size emitted-stmts;
+	        emit-lvalue-when-its-a-sem-lin x.cont stmt result
+              end
+             else
+                emit-lvalue-when-its-a-sem-lin x.cont stmt emitted-stmts
+          end
+        | Substmap-mark-overwritten x : emit-var-from-state x.cont var s.size emitted-stmts
+       end
+ end
+
+# check whether the a var and the lvalue of a subst-linear are overlapping BUT NOT equal
+val overlapping-but-not-equal lin var size = ((id-eq? lin.id var.id) and (not (lin.offset === var.offset and lin.size === size) and (not (lin.offset + lin.size <= var.offset or lin.offset >= var.offset + size))))
+
 
 # when a stmt needs a location from the state, the location is emitted as a statement
 # TODO: many commands are still missing
@@ -208,7 +231,7 @@ end
 
 # when the subst linear uses the given variable, it is removed from the state and emitted as an statement
 val emit-subst-linear-from-state-as-stmt linear var size emitted-stmts =
-	if is-subst-linear-using-this-var linear var size
+	if (is-subst-linear-using-this-var linear var size)
            then do # build statements list
 		tempvar <- mktemp-var;
 		temp_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
@@ -221,7 +244,7 @@ val emit-subst-linear-from-state-as-stmt linear var size emitted-stmts =
 	   end
            else return emitted-stmts
 
-# checks if a subst linear consists of a given var
+# checks if a subst linear uses any bit of the given var
 val is-subst-linear-using-this-var lin var size = ((id-eq? lin.id var.id) and (not (lin.offset + lin.size <= var.offset or lin.offset >= var.offset + size))) or (sexpr-uses-location var.offset size var.id size lin.rhs)
 
 
