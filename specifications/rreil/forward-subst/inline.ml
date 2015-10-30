@@ -139,7 +139,7 @@ val emit-lvalue-when-its-a-sem-lin state stmt emitted-stmts =
              else
                 emit-lvalue-when-its-a-sem-lin x.cont stmt emitted-stmts
           end
-        | Substmap-mark-overwritten x : emit-var-from-state x.cont var s.size emitted-stmts
+        | Substmap-mark-overwritten x : emit-lvalue-when-its-a-sem-lin x.cont stmt emitted-stmts
        end
  end
 
