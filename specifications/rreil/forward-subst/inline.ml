@@ -20,6 +20,30 @@
 # Returns:
 #    list of statements with inlined right hand sides
 #
+############################################
+#### DOCUMENTARY
+############################################
+# IF: Statement is a linear assignment
+# STEP ONE: dump all linears from the state whose lval location is overlapping but not the same as the LVAL of the assignment
+# IDEA:	1) if the lvals are equal, they can be easily updated/replaced and thus, the code optimized. So they are kept in state.
+# 	2) if the lvals are not overlapping, they can be simply kept in state.
+#	3) if the lvals are overlapping, updating would get complex, so they are emitted from the state and the new linear just added. This means: not optimization for this case right now
+# STEP TWO: dump all linears from the state whose lval location is overlapping but not the same as the RVALs of the assignment 
+# IDEA:	1) if the lvals are equal, they can be easily substituted and thus, the code optimized. So they are kept in state.
+# 	2) if the lvals are not overlapping, they can be kept in state.
+#	3) if the lvals are overlapping, substitution would get complex, so they are emitted from the state. This means: not optimization for this case right now
+# STEP THREE: substitute the rvalues in the linear assignment with linears from the state. (Right now there should not be any overlapping values, so this is trivial)
+# STEP FOUR: update the linear in the state with the substituted assignment. In case it is not there just add it to the state
+#
+# ELSE:
+# STEP ONE: dump all linears from the state whose lval location is overlapping with the RVALs of the assignment
+# STEP TWO: dump all linears from the state whose lval location is overlapping with the LVAL of the assignment
+############################################
+# EMITTING STATEMENTS:
+# STEP ONE: remove linear from the state
+# STEP TWO: emit (recursively) all linears from the state whose location is used by removed linears right hand side (RVALs)
+############################################
+
 export propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
 val propagate-values stmts = subst-stmt-list-initial stmts
 
@@ -41,10 +65,12 @@ val subst-stmt-list-m state stmts = subst-stmt-list-m-helpy state stmts
 # -> do not optimize the- body, jump over it
 val subst-stmt-list-m-helpy state stmts = case stmts of
 		SEM_CONS s : if is-linear-assignment s.hd then do
-				# add this assignment to the state
-				emizzle <- emit-lvalue-when-its-a-sem-lin state s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				# emit all colliding (overlapping but equal locations from the state)
+				new-state <- emit-all-required-computations-from-state (is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				# substitute the statement with computations from the state
+#				emizzle <- emit-lvalue-when-its-a-sem-lin state s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
  				new-stmt <- subst-stmt-m state s.hd;
-				new-state <- update-linear-assignment state new-stmt;
+#				new-state <- update-linear-assignment state new-stmt;
 				println "removed stmt:";
 				println (rreil-show-stmt s.hd);
 				println "  new state:";
@@ -57,7 +83,7 @@ val subst-stmt-list-m-helpy state stmts = case stmts of
 				# emit statements from the state
 				# check for lvalues; then for rvalues; emit; add to statements; take new state;
 				update @{tmpass=0};
-				new-stmts <- emit-all-required-computations-from-state s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				new-stmts <- emit-all-required-computations-from-state (is-overlapping) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
 				upd-stmt <- optimize-stmt s.hd new-stmts.state;
 				println "> new stmts:";
 				println (rreil-show-stmts new-stmts.temp);
@@ -99,17 +125,6 @@ val is-linear-assignment stmt =
     | _ : '0'
    end
 
-# add the linear assignment statement to the state
-val update-linear-assignment state stmt =
-   case stmt of
-      SEM_ASSIGN s :
-         case s.rhs of
-	    SEM_SEXPR sexpr: return (update-bind-linear state s.lhs.offset s.size s.lhs.id sexpr)
-          | _ : return state
-         end
-    | _ : return state
-   end
-
 # return tuple for an optimization step
 type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map}
 type emitted-stmt-state = {stmt:sem_stmt, state:subst-map}
@@ -125,48 +140,34 @@ val optimize-stmt stmt state =
   | _ : return {stmt=stmt, state=state}
  end
 
-# dump state subst-linear when its lvalue is overlapping BUT NOT equal to the lvalue of the statement
-val emit-lvalue-when-its-a-sem-lin state stmt emitted-stmts = 
- case stmt of
-    SEM_ASSIGN s :
-       case state of
-          Substmap-empty : return emitted-stmts
-        | Substmap-bind-linear x : do
-             if (overlapping-but-not-equal x s.lhs s.size) then do
-                result <- emit-subst-linear-from-state-as-stmt x s.lhs s.size emitted-stmts;
-	        emit-lvalue-when-its-a-sem-lin x.cont stmt result
-              end
-             else
-                emit-lvalue-when-its-a-sem-lin x.cont stmt emitted-stmts
-          end
-        | Substmap-mark-overwritten x : emit-lvalue-when-its-a-sem-lin x.cont stmt emitted-stmts
-       end
- end
+# CRITERION: checks if this subst linears lvalue overlaps but equals the given var
+val is-overlapping-but-not-equal lin var-id var-offset size = ((id-eq? lin.id var-id) and (not (lin.offset === var-offset and lin.size === size) and (not (lin.offset + lin.size <= var-offset or lin.offset >= var-offset + size))))
 
-# check whether the a var and the lvalue of a subst-linear are overlapping BUT NOT equal
-val overlapping-but-not-equal lin var size = ((id-eq? lin.id var.id) and (not (lin.offset === var.offset and lin.size === size) and (not (lin.offset + lin.size <= var.offset or lin.offset >= var.offset + size))))
+# CRITERION: checks if this subst linear accesses any bit of the given var
+val is-overlapping lin var-id var-offset size = ((id-eq? lin.id var-id) and (not (lin.offset + lin.size <= var-offset or lin.offset >= var-offset + size))) or (sexpr-uses-location var-offset size var-id size lin.rhs)
 
-
-# when a stmt needs a location from the state, the location is emitted as a statement
+# when a stmt uses a location whose computation is stored in the state, the computation is emitted as a statement
+# in case the statement is a linear assignment, it is added to the state
+# the criterion specifies if assignments are emitted that overlap or overlap-but-not-identical
 # TODO: many commands are still missing
 # TODO: dump all assignemnt at the end of a block? jump etc
 # TODO: how to handle branches(atm dumping whole state)/if(cond, then branch, then dump all at last statement)/loops
 # TODO: how to handle Prims?
-val emit-all-required-computations-from-state stmt emitted-stmts =
+val emit-all-required-computations-from-state criterion stmt emitted-stmts =
  case stmt of
     SEM_ASSIGN s : do
-       it <- emit-all-vars-from-expr s.rhs s.size emitted-stmts;
-       emit-var-from-state it.state s.lhs s.size it
+       it <- emit-all-vars-of-expr criterion s.rhs s.size emitted-stmts;
+       emit-var-from-state criterion it.state s.lhs s.size it
      end
   | SEM_LOAD s : do
-       it <- emit-all-vars-from-sem-linear s.address.address s.address.size emitted-stmts;
-       emit-var-from-state it.state s.lhs s.size it
+       it <- emit-all-vars-of-sem-linear (is-overlapping) s.address.address s.address.size emitted-stmts;
+       emit-var-from-state (is-overlapping) it.state s.lhs s.size it
      end
   | SEM_STORE s : do
-       it <- emit-all-vars-from-sem-linear s.rhs s.size emitted-stmts;
-       emit-all-vars-from-sem-linear s.address.address s.address.size it
+       it <- emit-all-vars-of-sem-linear (is-overlapping) s.rhs s.size emitted-stmts;
+       emit-all-vars-of-sem-linear (is-overlapping) s.address.address s.address.size it
      end
-  | SEM_ITE s : emit-all-vars-from-sexpr s.cond 1 emitted-stmts
+  | SEM_ITE s : emit-all-vars-of-sexpr (is-overlapping) s.cond 1 emitted-stmts
   | SEM_CBRANCH s : emit-whole-state emitted-stmts
   | SEM_BRANCH s : emit-whole-state emitted-stmts
   | SEM_PRIM s : return emitted-stmts
@@ -174,7 +175,7 @@ val emit-all-required-computations-from-state stmt emitted-stmts =
   | _ : return emitted-stmts
  end
 
-# emits all subst-linears from the state as stmts
+# emits all remaining subst-linears from the state as stmts
 val emit-whole-state emitted-stmts = 
  case emitted-stmts.state of
     Substmap-empty : return emitted-stmts
@@ -187,38 +188,15 @@ val emit-whole-state emitted-stmts =
   | Substmap-mark-overwritten x : emit-whole-state {temp=emitted-stmts.temp, assign=emitted-stmts.assign, state=x.cont}
  end
 
-val emit-all-vars-from-expr expr size emitted-stmts =
-       case expr of
-	  SEM_SEXPR sexpr : emit-all-vars-from-sexpr sexpr size emitted-stmts
-	| SEM_MUL a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_DIV a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_DIVS a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_MOD a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_MODS a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_SHL a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_SHR a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_SHRS a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_AND a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_OR a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_XOR a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-	| SEM_SX x : emit-all-vars-from-sem-linear x.opnd1 size emitted-stmts
-	| SEM_ZX x : emit-all-vars-from-sem-linear x.opnd1 size emitted-stmts
-       end
-       
-val emit-all-vars-from-arity2 a2 size emitted-stmts = do
-	it <- emit-all-vars-from-sem-linear a2.opnd1 size emitted-stmts;
-	emit-all-vars-from-sem-linear a2.opnd2 size it
- end
-
-# dump all assignments where the var is used
-val emit-var-from-state state var size emitted-stmts =
+# dump all linears that have this var as an lvalue
+val emit-var-from-state criterion state var size emitted-stmts =
  case state of
     Substmap-empty : return emitted-stmts
   | Substmap-bind-linear x : do
-	result <- emit-subst-linear-from-state-as-stmt x var size emitted-stmts;
-	emit-var-from-state x.cont var size result
+	result <- emit-subst-linear-from-state-as-stmt criterion x var size emitted-stmts;
+	emit-var-from-state criterion x.cont var size result
     end
-  | Substmap-mark-overwritten x : emit-var-from-state x.cont var size emitted-stmts
+  | Substmap-mark-overwritten x : emit-var-from-state criterion x.cont var size emitted-stmts
  end
 
 # create temporary variable
@@ -230,8 +208,8 @@ val mktemp-var = do
 end
 
 # when the subst linear uses the given variable, it is removed from the state and emitted as an statement
-val emit-subst-linear-from-state-as-stmt linear var size emitted-stmts =
-	if (is-subst-linear-using-this-var linear var size)
+val emit-subst-linear-from-state-as-stmt criterion linear var size emitted-stmts =
+	if (criterion linear var.id var.offset size)
            then do # build statements list
 		tempvar <- mktemp-var;
 		temp_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
@@ -240,38 +218,68 @@ val emit-subst-linear-from-state-as-stmt linear var size emitted-stmts =
 			println (show-substmap emitted-stmts.state);			
 			println "  >> and then:";
 			println (show-substmap (substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id));
-		emit-all-vars-from-sexpr linear.rhs linear.size {temp=temp_assignment, assign=real_assignment, state=(substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id)}
+
+		# emit also all vars that are used by this expression; otherwise their values are incorrect
+		emit-all-vars-of-sexpr (is-overlapping) linear.rhs linear.size {temp=temp_assignment, assign=real_assignment, state=(substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id)}
 	   end
            else return emitted-stmts
 
 # checks if a subst linear uses any bit of the given var
 val is-subst-linear-using-this-var lin var size = ((id-eq? lin.id var.id) and (not (lin.offset + lin.size <= var.offset or lin.offset >= var.offset + size))) or (sexpr-uses-location var.offset size var.id size lin.rhs)
 
+val emit-all-vars-of-expr criterion expr size emitted-stmts =
+       case expr of
+	  SEM_SEXPR sexpr : emit-all-vars-of-sexpr criterion sexpr size emitted-stmts
+	| SEM_MUL a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_DIV a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_DIVS a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_MOD a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_MODS a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_SHL a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_SHR a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_SHRS a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_AND a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_OR a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_XOR a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+	| SEM_SX x : emit-all-vars-of-sem-linear criterion x.opnd1 size emitted-stmts
+	| SEM_ZX x : emit-all-vars-of-sem-linear criterion x.opnd1 size emitted-stmts
+       end
+      
+val emit-all-vars-of-arity2 criterion a2 size emitted-stmts = do
+	it <- emit-all-vars-of-sem-linear criterion a2.opnd1 size emitted-stmts;
+	emit-all-vars-of-sem-linear criterion a2.opnd2 size it
+ end
 
-# iterate recursively through a sexpr and emit all used variables
-val emit-all-vars-from-sexpr sexpr size emitted-stmts = 
+# iterate recursively through a sexpr and emit all used variables from the state
+val emit-all-vars-of-sexpr criterion sexpr size emitted-stmts = 
  case sexpr of
-    SEM_SEXPR_LIN linear : emit-all-vars-from-sem-linear linear size emitted-stmts
+    SEM_SEXPR_LIN linear : emit-all-vars-of-sem-linear criterion linear size emitted-stmts
   | SEM_SEXPR_CMP cmp :
        case cmp.cmp of
-          SEM_CMPEQ a2 : emit-all-vars-from-arity2 a2 cmp.size emitted-stmts
-        | SEM_CMPNEQ a2 : emit-all-vars-from-arity2 a2 cmp.size emitted-stmts
-        | SEM_CMPLES a2 : emit-all-vars-from-arity2 a2 cmp.size emitted-stmts
-        | SEM_CMPLEU a2 : emit-all-vars-from-arity2 a2 cmp.size emitted-stmts
-        | SEM_CMPLTS a2 : emit-all-vars-from-arity2 a2 cmp.size emitted-stmts
-        | SEM_CMPLTU a2 : emit-all-vars-from-arity2 a2 cmp.size emitted-stmts
+          SEM_CMPEQ a2 : emit-all-vars-of-arity2 criterion a2 cmp.size emitted-stmts
+        | SEM_CMPNEQ a2 : emit-all-vars-of-arity2 criterion a2 cmp.size emitted-stmts
+        | SEM_CMPLES a2 : emit-all-vars-of-arity2 criterion a2 cmp.size emitted-stmts
+        | SEM_CMPLEU a2 : emit-all-vars-of-arity2 criterion a2 cmp.size emitted-stmts
+        | SEM_CMPLTS a2 : emit-all-vars-of-arity2 criterion a2 cmp.size emitted-stmts
+        | SEM_CMPLTU a2 : emit-all-vars-of-arity2 criterion a2 cmp.size emitted-stmts
        end
   | SEM_SEXPR_ARB : return emitted-stmts
  end
        
-val emit-all-vars-from-sem-linear linear size emitted-stmts =
+val emit-all-vars-of-sem-linear criterion linear size emitted-stmts =
  case linear of
-    SEM_LIN_VAR var : emit-var-from-state emitted-stmts.state var size emitted-stmts
+    SEM_LIN_VAR var : emit-var-from-state criterion emitted-stmts.state var size emitted-stmts
   | SEM_LIN_IMM x : return emitted-stmts
-  | SEM_LIN_ADD a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-  | SEM_LIN_SUB a2 : emit-all-vars-from-arity2 a2 size emitted-stmts
-  | SEM_LIN_SCALE s : emit-all-vars-from-sem-linear s.opnd size emitted-stmts
+  | SEM_LIN_ADD a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+  | SEM_LIN_SUB a2 : emit-all-vars-of-arity2 criterion a2 size emitted-stmts
+  | SEM_LIN_SCALE s : emit-all-vars-of-sem-linear criterion s.opnd size emitted-stmts
  end
+
+
+
+
+
+
 
 export update-with-stmt: (subst-map, sem_stmt) -> S subst-map  <{} => {}>
 val update-with-stmt state stmt = case stmt of
