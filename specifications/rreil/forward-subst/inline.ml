@@ -1,15 +1,13 @@
 #
 # procedure propagate-values takes a sem_stmt_list and return a sem_stmt_list
-# with inlined right hand sides.
+# with inlined linear expressions (whose value can depend on itself)
 #
-# most simple implementation:
+# most simple implementation (no optimization though):
 #
 #   val propagate-values stmts = return stmts  
 #
-# suggested milestones:
-# 1) inline all constants
-# 2) inline linear expressions where possible
-# 3) fuse sequences like {ip=ip+n;...;ip=i+m} to {...;ip=ip+(n+m)}  
+# what it will do:
+# => fuse sequences like {ip=ip+n;...;ip=i+m} to {...;ip=ip+(n+m)}  
 #
 
 # do a forward propagation on a list of statements
@@ -20,29 +18,33 @@
 # Returns:
 #    list of statements with inlined right hand sides
 #
+
 ############################################
-#### DOCUMENTARY
+#### ALGORITHM DOCUMENTARY
 ############################################
 # IF: Statement is a linear assignment
 # STEP ONE: dump all linears from the state whose lval location is overlapping but not the same as the LVAL of the assignment
 # IDEA:	1) if the lvals are equal, they can be easily updated/replaced and thus, the code optimized. So they are kept in state.
 # 	2) if the lvals are not overlapping, they can be simply kept in state.
-#	3) if the lvals are overlapping, updating would get complex, so they are emitted from the state and the new linear just added. This means: not optimization for this case right now
+#	3) if the lvals are overlapping, updating would get complex, so they are emitted from the state and the new linear just added. This means: no optimization for this case right now
 # STEP TWO: dump all linears from the state whose lval location is overlapping but not the same as the RVALs of the assignment 
 # IDEA:	1) if the lvals are equal, they can be easily substituted and thus, the code optimized. So they are kept in state.
 # 	2) if the lvals are not overlapping, they can be kept in state.
 #	3) if the lvals are overlapping, substitution would get complex, so they are emitted from the state. This means: not optimization for this case right now
-# STEP THREE: substitute the rvalues in the linear assignment with linears from the state. (Right now there should not be any overlapping values, so this is trivial)
-# STEP FOUR: update the linear in the state with the substituted assignment. In case it is not there just add it to the state
+# STEP THREE: substitute the rvalues in the linear assignment with linears (definitions) from the state. (At this point there should not be any overlapping values => trivial)
+# STEP FOUR: update the linear in the state with the substituted definition. In case it is not already there, add it to the state
 #
 # ELSE:
 # STEP ONE: dump all linears from the state whose lval location is overlapping with the RVALs of the assignment
 # STEP TWO: dump all linears from the state whose lval location is overlapping with the LVAL of the assignment
 ############################################
-# EMITTING STATEMENTS:
+# EMITTING LINEARS AS STATEMENTS:
 # STEP ONE: remove linear from the state
-# STEP TWO: emit (recursively) all linears from the state whose location is used by removed linears right hand side (RVALs)
+# STEP TWO: Transform linear to a assignment statement and emit it
+# STEP THREE: emit (recursively) all linears from the state whose location is used by the removed linears right hand side (RVALs)
 ############################################
+
+
 
 export propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
 val propagate-values stmts = subst-stmt-list-initial stmts
@@ -65,36 +67,42 @@ val subst-stmt-list-m state stmts = subst-stmt-list-m-helpy state stmts
 # -> do not optimize the- body, jump over it
 val subst-stmt-list-m-helpy state stmts = case stmts of
 		SEM_CONS s : if is-linear-assignment s.hd then do
-				# emit all colliding (overlapping but equal locations from the state)
-				new-state <- emit-all-required-computations-from-state (is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
-				# substitute the statement with computations from the state
-#				emizzle <- emit-lvalue-when-its-a-sem-lin state s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
- 				new-stmt <- subst-stmt-m state s.hd;
-#				new-state <- update-linear-assignment state new-stmt;
+				# emit all colliding (overlapping but not equal locations from the state)
+				cleaned_state <- emit-all-required-computations-from-state (is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				# replace the statement's expression with definitions from the state
+ 				new-stmt <- subst-stmt-m cleaned_state.state s.hd;
+				# push the new statement to the state
+				new-state <- update-state-with-statement cleaned_state.state new-stmt;
+
 				println "removed stmt:";
 				println (rreil-show-stmt s.hd);
 				println "  new state:";
 				println (show-substmap new-state);		
 				println ".";
+
+				# concatenate the emitted statements list with the recursive optimized list
 				continued <- subst-stmt-list-m-helpy new-state s.tl;
-				return continued
+				return (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) continued)
 				end
                               else do
-				# emit statements from the state
-				# check for lvalues; then for rvalues; emit; add to statements; take new state;
-				update @{tmpass=0};
-				new-stmts <- emit-all-required-computations-from-state (is-overlapping) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
-				upd-stmt <- optimize-stmt s.hd new-stmts.state;
+				# emit all colliding (overlapping locations from the state)
+				update @{tmpass=0}; # needed to generate temporary variables
+				cleaned_state <- emit-all-required-computations-from-state (is-overlapping) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				# recursivly optimize code in if-then-else branches
+				upd-stmt <- optimize-ite-stmts s.hd cleaned_state.state;
+
 				println "> new stmts:";
-				println (rreil-show-stmts new-stmts.temp);
-				println (rreil-show-stmts new-stmts.assign);
+				println (rreil-show-stmts cleaned_state.temp);
+				println (rreil-show-stmts cleaned_state.assign);
 				println ("> base stmt:" +++ (rreil-show-stmt s.hd));
 				println ("> new  stmt:" +++ (rreil-show-stmt upd-stmt.stmt));
 				println "  > new state:";
 				println (show-substmap upd-stmt.state);			
 				println "..";
+				
+				# concatenate the emitted statements list with the recursive optimized list and the updated statement
 				continued <- subst-stmt-list-m-helpy upd-stmt.state s.tl;
-				return (append-stmt-list (append-stmt-list (append-stmt-list new-stmts.temp new-stmts.assign) (SEM_CONS {hd=upd-stmt.stmt, tl=SEM_NIL})) continued)
+				return (append-stmt-list (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) (SEM_CONS {hd=upd-stmt.stmt, tl=SEM_NIL})) continued)
 				end
 	|	SEM_NIL    : return SEM_NIL
 #				do
@@ -125,12 +133,21 @@ val is-linear-assignment stmt =
     | _ : '0'
    end
 
+# removes (in case there is one) existing definition from the state and pushes the new one
+val update-state-with-statement state stmt = 
+ case stmt of
+    SEM_ASSIGN s :
+       case s.rhs of
+          SEM_SEXPR sexpr : return (substmap-update-linear state s.lhs.offset s.size s.lhs.id sexpr)
+       end
+ end
+
 # return tuple for an optimization step
 type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map}
 type emitted-stmt-state = {stmt:sem_stmt, state:subst-map}
 
-# recursively enters sub-stmt lists like for example in a ITE
-val optimize-stmt stmt state = 
+# recursively enters sub-stmt lists like for example in an if-then-else; TODO: wont work out. not really optimizing right now
+val optimize-ite-stmts stmt state = 
  case stmt of
     SEM_ITE s : do
 	  then_b <- subst-stmt-list-m-helpy state s.then_branch; 

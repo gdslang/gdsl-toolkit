@@ -62,18 +62,41 @@ val substmap-bind-sexpr-inverted state offset size var linear
 # Returns:
 #   subst map without any occurrences of the linear
 #
-export substmap-remove-linear : (subst-map, int, int, sem_id) -> subst-map
-val substmap-remove-linear state offset size var =
+val substmap-remove-linear state offset size var-id =
    case state of
       Substmap-empty : state
     | Substmap-bind-linear l :
-         if l.offset === offset and l.size === size and (id-eq? l.id var)
-           then substmap-remove-linear l.cont offset size var
-           else Substmap-bind-linear {offset=l.offset, size=l.size, id=l.id, rhs=l.rhs, cont=(substmap-remove-linear l.cont offset size var), inverted=l.inverted}  
+         if l.offset === offset and l.size === size and (id-eq? l.id var-id)
+           then substmap-remove-linear l.cont offset size var-id
+           else Substmap-bind-linear {offset=l.offset, size=l.size, id=l.id, rhs=l.rhs, cont=(substmap-remove-linear l.cont offset size var-id), inverted=l.inverted}  
     | Substmap-mark-overwritten l :
-         if l.offset === offset and l.size === size and (id-eq? l.id var)
-           then substmap-remove-linear l.cont offset size var
-           else Substmap-mark-overwritten {offset=l.offset, size=l.size, id=l.id, cont=(substmap-remove-linear l.cont offset size var)}
+         if l.offset === offset and l.size === size and (id-eq? l.id var-id)
+           then substmap-remove-linear l.cont offset size var-id
+           else Substmap-mark-overwritten {offset=l.offset, size=l.size, id=l.id, cont=(substmap-remove-linear l.cont offset size var-id)}
+   end
+
+
+
+# update a location from the subst-map (removes existing and adds it then)
+#
+# Parameters:
+#   current subst map
+#   offset, size and register-id of write location
+#
+# Returns:
+#   subst map with the updated/new added linear
+#
+val substmap-update-linear state offset size var-id sexpr =
+   case state of
+      Substmap-empty : state
+    | Substmap-bind-linear l :
+         if l.offset === offset and l.size === size and (id-eq? l.id var-id)
+           then Substmap-bind-linear {offset=offset, size=size, id=var-id, rhs=sexpr, cont=(substmap-update-linear l.cont offset size var-id sexpr), inverted=0}  
+           else Substmap-bind-linear {offset=l.offset, size=l.size, id=l.id, rhs=l.rhs, cont=(substmap-update-linear l.cont offset size var-id sexpr), inverted=l.inverted}  
+    | Substmap-mark-overwritten l :
+         if l.offset === offset and l.size === size and (id-eq? l.id var-id)
+           then substmap-update-linear l.cont offset size var-id sexpr
+           else Substmap-mark-overwritten {offset=l.offset, size=l.size, id=l.id, cont=(substmap-update-linear l.cont offset size var-id sexpr)}
    end
 
 
