@@ -74,11 +74,13 @@ val subst-stmt-list-m-helpy state stmts = case stmts of
 				# push the new statement to the state
 				new-state <- update-state-with-statement cleaned_state.state new-stmt;
 
-				println "removed stmt:";
-				println (rreil-show-stmt s.hd);
-				println "  new state:";
+				println ("< rem stmt: " +++ (rreil-show-stmt s.hd) +++ "   substituted to   " +++ (rreil-show-stmt new-stmt));
+				println " > emitted stmts:";
+				println (rreil-show-stmts cleaned_state.temp);
+				println (rreil-show-stmts cleaned_state.assign);
+				println "< new state:";
 				println (show-substmap new-state);		
-				println ".";
+				println ".......................";
 
 				# concatenate the emitted statements list with the recursive optimized list
 				continued <- subst-stmt-list-m-helpy new-state s.tl;
@@ -91,14 +93,14 @@ val subst-stmt-list-m-helpy state stmts = case stmts of
 				# recursivly optimize code in if-then-else branches
 				upd-stmt <- optimize-ite-stmts s.hd cleaned_state.state;
 
-				println "> new stmts:";
+				println ("> org stmt: " +++ (rreil-show-stmt s.hd) +++ "   substituted to   " +++ (rreil-show-stmt upd-stmt.stmt));
+				println " > emitted stmts:";
 				println (rreil-show-stmts cleaned_state.temp);
 				println (rreil-show-stmts cleaned_state.assign);
-				println ("> base stmt:" +++ (rreil-show-stmt s.hd));
-				println ("> new  stmt:" +++ (rreil-show-stmt upd-stmt.stmt));
-				println "  > new state:";
+				println " > new state:";
 				println (show-substmap upd-stmt.state);			
-				println "..";
+				println ".......................";
+
 				
 				# concatenate the emitted statements list with the recursive optimized list and the updated statement
 				continued <- subst-stmt-list-m-helpy upd-stmt.state s.tl;

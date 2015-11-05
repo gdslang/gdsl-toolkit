@@ -88,10 +88,10 @@ val substmap-remove-linear state offset size var-id =
 #
 val substmap-update-linear state offset size var-id sexpr =
    case state of
-      Substmap-empty : state
+      Substmap-empty : Substmap-bind-linear {offset=offset, size=size, id=var-id, rhs=sexpr, cont=Substmap-empty, inverted=0} 
     | Substmap-bind-linear l :
          if l.offset === offset and l.size === size and (id-eq? l.id var-id)
-           then Substmap-bind-linear {offset=offset, size=size, id=var-id, rhs=sexpr, cont=(substmap-update-linear l.cont offset size var-id sexpr), inverted=0}  
+           then substmap-update-linear l.cont offset size var-id sexpr
            else Substmap-bind-linear {offset=l.offset, size=l.size, id=l.id, rhs=l.rhs, cont=(substmap-update-linear l.cont offset size var-id sexpr), inverted=l.inverted}  
     | Substmap-mark-overwritten l :
          if l.offset === offset and l.size === size and (id-eq? l.id var-id)
