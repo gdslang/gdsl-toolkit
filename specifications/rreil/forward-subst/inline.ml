@@ -28,15 +28,22 @@
 # 	2) if the lvals are not overlapping, they can be simply kept in state.
 #	3) if the lvals are overlapping, updating would get complex, so they are emitted from the state and the new linear just added. This means: no optimization for this case right now
 # STEP TWO: dump all linears from the state whose lval location is overlapping but not the same as the RVALs of the assignment 
-# IDEA:	1) if the lvals are equal, they can be easily substituted and thus, the code optimized. So they are kept in state.
-# 	2) if the lvals are not overlapping, they can be kept in state.
-#	3) if the lvals are overlapping, substitution would get complex, so they are emitted from the state. This means: not optimization for this case right now
-# STEP THREE: substitute the rvalues in the linear assignment with linears (definitions) from the state. (At this point there should not be any overlapping values => trivial)
+# IDEA:	1) if an lval is equal, it can be easily substituted into the right hand side of the statement and thus, the code optimized. So they are kept in state.
+# 	2) if an lval is not overlapping, it can simply be kept in state.
+#	3) if an lval is overlapping, substitution would get complex, but they cannot be kept in state => emitting from state. This means: no optimization right now
+# STEP THREE: substitute the rvalues in the linear assignment with linears (definitions) from the state. (At this point there should not be any overlapping values => trivial substitution)
 # STEP FOUR: update the linear in the state with the substituted definition. In case it is not already there, add it to the state
 #
 # ELSE:
-# STEP ONE: dump all linears from the state whose lval location is overlapping with the RVALs of the assignment
-# STEP TWO: dump all linears from the state whose lval location is overlapping with the LVAL of the assignment
+# STEP ONE: dump all linears from the state whose right hand side accesses the lval of the assignment or load
+# IDEA:	1) if rhs overlaps, this linear must be emitted from the state, since a value of its rhs changes.
+# IDEA: 2) if rhs doesn't overlap, this linear can be kept in state, since it's not dependant on the overwritten variable.
+# STEP TWO: dump all linears from the state whose lval location is overlapping but not the same as the RVALs of the assignment 
+# IDEA:	1) if an lval is equal, it can be easily substituted into the right hand side of the statement and thus, the code optimized. So they are kept in state.
+# 	2) if an lval is not overlapping, it can simply be kept in state.
+#	3) if an lval is overlapping, substitution would get complex, but they cannot be kept in state => emitting from state. This means: no optimization right now
+# STEP THREE: substitute the rvalues in the statement with linears (definitions) from the state. (At this point there should not be any overlapping values => trivial substitution)
+# STEP FOUR: remove the lvalue of the statement (in case it's an assignment or load) from the state, since it's value gets overwritten
 ############################################
 # EMITTING LINEARS AS STATEMENTS:
 # STEP ONE: remove linear from the state
