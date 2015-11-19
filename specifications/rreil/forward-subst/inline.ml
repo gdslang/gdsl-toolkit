@@ -153,7 +153,7 @@ val update-state-with-statement state stmt =
  case stmt of
     SEM_ASSIGN s :
        case s.rhs of
-          SEM_SEXPR sexpr : return (substmap-update-linear state s.lhs.offset s.size s.lhs.id sexpr)
+          SEM_SEXPR sexpr : return (substmap-update-linear state s.lhs.offset s.size s.lhs.id (simplify-sem-sexpr sexpr))
        end
  end
 
@@ -337,10 +337,51 @@ val emit-all-vars-of-sem-linear criterion linear size emitted-stmts =
   | SEM_LIN_SCALE s : emit-all-vars-of-sem-linear criterion s.opnd size emitted-stmts
  end
 
+val simplify-sem-sexpr sexpr =
+ case sexpr of
+    SEM_SEXPR_LIN linear : SEM_SEXPR_LIN (simplify-sem-lin linear 0)
+  | SEM_SEXPR_CMP cmp :
+       case cmp.cmp of
+          SEM_CMPEQ a2 : SEM_SEXPR_CMP {size=cmp.size, cmp=(SEM_CMPEQ {opnd1=(simplify-sem-lin a2.opnd1 0), opnd2=(simplify-sem-lin a2.opnd2 0)})}
+        | SEM_CMPNEQ a2 : SEM_SEXPR_CMP {size=cmp.size, cmp=(SEM_CMPNEQ {opnd1=(simplify-sem-lin a2.opnd1 0), opnd2=(simplify-sem-lin a2.opnd2 0)})}
+        | SEM_CMPLES a2 : SEM_SEXPR_CMP {size=cmp.size, cmp=(SEM_CMPLES {opnd1=(simplify-sem-lin a2.opnd1 0), opnd2=(simplify-sem-lin a2.opnd2 0)})}
+        | SEM_CMPLEU a2 : SEM_SEXPR_CMP {size=cmp.size, cmp=(SEM_CMPLEU {opnd1=(simplify-sem-lin a2.opnd1 0), opnd2=(simplify-sem-lin a2.opnd2 0)})}
+        | SEM_CMPLTS a2 : SEM_SEXPR_CMP {size=cmp.size, cmp=(SEM_CMPLTS {opnd1=(simplify-sem-lin a2.opnd1 0), opnd2=(simplify-sem-lin a2.opnd2 0)})}
+        | SEM_CMPLTU a2 : SEM_SEXPR_CMP {size=cmp.size, cmp=(SEM_CMPLTU {opnd1=(simplify-sem-lin a2.opnd1 0), opnd2=(simplify-sem-lin a2.opnd2 0)})}
+       end
+  | SEM_SEXPR_ARB : SEM_SEXPR_ARB
+ end
 
-
-
-
+val simplify-sem-lin lin imm = 
+ let
+    val f l = if (imm === 0) then l else if (imm < 0) then SEM_LIN_SUB {opnd1=l, opnd2=(SEM_LIN_IMM {const=imm})} else SEM_LIN_ADD {opnd1=l, opnd2=(SEM_LIN_IMM {const=imm})}
+ in
+ case lin of
+    SEM_LIN_VAR v: f lin
+  | SEM_LIN_IMM i: SEM_LIN_IMM {const=(i.const+imm)}
+  | SEM_LIN_ADD a:
+       case a.opnd1 of
+          SEM_LIN_IMM x : simplify-sem-lin a.opnd2 (x.const + imm)
+	| _ : case a.opnd2 of
+		 SEM_LIN_IMM x : simplify-sem-lin a.opnd1 (x.const + imm)
+               | _ : f (SEM_LIN_ADD {opnd1=(simplify-sem-lin a.opnd1 0), opnd2=(simplify-sem-lin a.opnd2 0)})
+	      end 
+       end
+  | SEM_LIN_SUB a:
+       case a.opnd1 of
+          SEM_LIN_IMM x : simplify-sem-lin a.opnd2 (x.const - imm)
+	| _ : case a.opnd2 of
+		 SEM_LIN_IMM x : simplify-sem-lin a.opnd1 (x.const - imm)
+               | _ : f (SEM_LIN_SUB {opnd1=(simplify-sem-lin a.opnd1 0), opnd2=(simplify-sem-lin a.opnd2 0)})
+	      end
+       end
+  | SEM_LIN_SCALE s :
+       case s.opnd of
+          SEM_LIN_IMM x : SEM_LIN_IMM {const=(x.const * s.const)}
+        | _ : SEM_LIN_SCALE {const=s.const, opnd=(simplify-sem-lin s.opnd 0)}
+       end
+ end
+end
 
 
 export update-with-stmt: (subst-map, sem_stmt) -> S subst-map  <{} => {}>
