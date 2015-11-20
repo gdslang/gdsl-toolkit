@@ -54,31 +54,28 @@
 
 
 export propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
-val propagate-values stmts = subst-stmt-list-initial stmts
+val propagate-values stmts = do update @{tmpass=0}; subst-stmt-list-initial stmts end
 
 
-export subst-stmt-list-initial : (sem_stmt_list)-> S sem_stmt_list  <{} => {}>
 val subst-stmt-list-initial stmts = do
-	l <- subst-stmt-list-m substmap-initial stmts;
+	l <- substitute-stmt-list substmap-initial stmts;
 	println "==========================";
 	println (rreil-show-stmts stmts);
 	println "--------------------------";
 	return l
 	end
 
-
-export subst-stmt-list-m : (subst-map, sem_stmt_list) -> S sem_stmt_list <{} => {}>
-val subst-stmt-list-m state stmts = subst-stmt-list-m-helpy state stmts
-
 # how to handle ifs (maybe also loops): check the body for variables in the state that are acccessed -> dump them beforehand
 # -> do not optimize the- body, jump over it
-val subst-stmt-list-m-helpy state stmts = case stmts of
+val substitute-stmt-list state stmts = case stmts of
 		SEM_CONS s : if is-linear-assignment s.hd then do
 				# emit all colliding (overlapping but not equal locations from the state)
-				cleaned_state <- emit-all-required-computations-from-state (lval-is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				cleaned_state <- emit-all-required-computations-from-state (lval-is-overlapping-but-not-equal) (lval-is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
 				# replace the statement's expression with definitions from the state
- 				new-stmt <- subst-stmt-m cleaned_state.state s.hd;
+ 				new-stmt <- substitute-stmt-with-state-definitions cleaned_state.state s.hd;
 				# push the new statement to the state
+				println "< current state:";
+				println (show-substmap cleaned_state.state);		
 				new-state <- update-state-with-statement cleaned_state.state new-stmt;
 
 				println ("< rem stmt: " +++ (rreil-show-stmt s.hd) +++ "   substituted to   " +++ (rreil-show-stmt new-stmt));
@@ -90,34 +87,28 @@ val subst-stmt-list-m-helpy state stmts = case stmts of
 				println ".......................";
 
 				# concatenate the emitted statements list with the recursive optimized list
-				continued <- subst-stmt-list-m-helpy new-state s.tl;
+				continued <- substitute-stmt-list new-state s.tl;
 				return (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) continued)
 				end
                               else do
-				# emit all colliding (overlapping locations from the state)
-				update @{tmpass=0}; # needed to generate temporary variables
-
-				cleaned_state <- emit-all-required-computations-from-state (rvals-are-overlapping) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				cleaned_state <- emit-all-required-computations-from-state (rvals-are-overlapping) (lval-is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
 				# substitute all expressions with definitions from the state
- 				new-stmt <- subst-stmt-m cleaned_state.state s.hd;
+ 				new-stmt <- substitute-stmt-with-state-definitions cleaned_state.state s.hd;
 				# remove lval from state since it's overwritten
 				new-state <- remove-overwritten-definition-from-state cleaned_state.state s.hd;
 
-				# recursivly optimize code in if-then-else branches
-				upd-stmt <- optimize-ite-stmts new-stmt new-state;
-
-				println ("> org stmt: " +++ (rreil-show-stmt s.hd) +++ "   substituted to   " +++ (rreil-show-stmt upd-stmt.stmt));
+				println ("> org stmt: " +++ (rreil-show-stmt s.hd) +++ "   substituted to   " +++ (rreil-show-stmt new-stmt));
 				println " > emitted stmts:";
 				println (rreil-show-stmts cleaned_state.temp);
 				println (rreil-show-stmts cleaned_state.assign);
 				println " > new state:";
-				println (show-substmap upd-stmt.state);			
+				println (show-substmap new-state);			
 				println ".......................";
 
 				
 				# concatenate the emitted statements list with the recursive optimized list and the updated statement
-				continued <- subst-stmt-list-m-helpy upd-stmt.state s.tl;
-				return (append-stmt-list (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) (SEM_CONS {hd=upd-stmt.stmt, tl=SEM_NIL})) continued)
+				continued <- substitute-stmt-list new-state s.tl;
+				return (append-stmt-list (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) (SEM_CONS {hd=new-stmt, tl=SEM_NIL})) continued)
 				end
 	|	SEM_NIL    : return SEM_NIL
 #				do
@@ -167,22 +158,20 @@ val remove-overwritten-definition-from-state state stmt =
 
 # return tuple for an optimization step
 type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map}
-type emitted-stmt-state = {stmt:sem_stmt, state:subst-map}
 
-# recursively enters sub-stmt lists like for example in an if-then-else; TODO: wont work out. not really optimizing right now
-val optimize-ite-stmts stmt state = 
- case stmt of
-    SEM_ITE s : do
-	  then_b <- subst-stmt-list-m-helpy state s.then_branch; 
-	  else_b <- subst-stmt-list-m-helpy state s.else_branch;
-	  return {stmt=(SEM_ITE {cond=s.cond, then_branch=then_b, else_branch=else_b}), state=Substmap-empty}
+# emits every location from the state that is accessed in any way
+val emit-all-accesses-in-stmt-list-from-state stmt-list emitted-stmts = 
+ case stmt-list of
+    SEM_CONS x : do
+	  it <- emit-all-required-computations-from-state (anything-is-overlapping) (anything-is-overlapping) x.hd emitted-stmts;
+	  emit-all-accesses-in-stmt-list-from-state x.tl it
 	end
-  | _ : return {stmt=stmt, state=state}
+  | SEM_NIL : return emitted-stmts
  end
 
 
 # CRITERION: checks if this subst linears lvalue overlaps but not equals the given var
-val lval-is-overlapping-but-not-equal lin var-id var-offset size = (id-eq? lin.id var-id) and ((not (lin.offset === var-offset)) and (not (lin.size === size))) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size))
+val lval-is-overlapping-but-not-equal lin var-id var-offset size = (id-eq? lin.id var-id) and ((not (lin.offset === var-offset)) or (not (lin.size === size))) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size))
 
 # CRITERION: checks if this subst linears lvalue overlaps the given var
 val lval-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size))
@@ -191,31 +180,34 @@ val lval-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) and 
 val rvals-are-overlapping lin var-id var-offset size = (sexpr-uses-location var-offset size var-id size lin.rhs)
 
 # CRITERION: checks if this subst linear accesses any bit of the given var
-val anything-is-overlapping lin var-id var-offset size =(id-eq? lin.id var-id) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size)) or (sexpr-uses-location var-offset size var-id size lin.rhs)
+val anything-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size)) or (sexpr-uses-location var-offset size var-id size lin.rhs)
 
 
-# when a stmt uses a location whose computation is stored in the state, the computation is emitted as a statement
-# in case the statement is a linear assignment, it is added to the state
-# the criterion specifies if assignments are emitted that overlap or overlap-but-not-identical
+# emit everything from the state that cannot be simply substituted in the given stmt
+# criterion-lhs is for all left hand side values and criterion.rhs for right hand side values
 # TODO: many commands are still missing
 # TODO: dump all assignemnt at the end of a block? jump etc
 # TODO: how to handle branches(atm dumping whole state)/if(cond, then branch, then dump all at last statement)/loops
 # TODO: how to handle Prims?
-val emit-all-required-computations-from-state criterion-lhs stmt emitted-stmts =
+val emit-all-required-computations-from-state criterion-lhs criterion-rhs stmt emitted-stmts =
  case stmt of
     SEM_ASSIGN s : do
        it <- emit-var-from-state criterion-lhs emitted-stmts.state s.lhs s.size emitted-stmts;
-       emit-all-vars-of-expr (lval-is-overlapping-but-not-equal) s.rhs s.size it
+       emit-all-vars-of-expr criterion-rhs s.rhs s.size it
      end
   | SEM_LOAD s : do
        it <- emit-var-from-state criterion-lhs emitted-stmts.state s.lhs s.size emitted-stmts;
-       emit-all-vars-of-sem-linear (lval-is-overlapping-but-not-equal) s.address.address s.address.size it
+       emit-all-vars-of-sem-linear criterion-rhs s.address.address s.address.size it
      end
   | SEM_STORE s : do
-       it <- emit-all-vars-of-sem-linear (lval-is-overlapping-but-not-equal) s.rhs s.size emitted-stmts;
+       it <- emit-all-vars-of-sem-linear criterion-rhs s.rhs s.size emitted-stmts;
        emit-all-vars-of-sem-linear (lval-is-overlapping-but-not-equal) s.address.address s.address.size it
      end
-  | SEM_ITE s : emit-all-vars-of-sexpr (lval-is-overlapping-but-not-equal) s.cond 1 emitted-stmts
+  | SEM_ITE s : do
+       it <- emit-all-vars-of-sexpr criterion-rhs s.cond 1 emitted-stmts;
+       it_then <- emit-all-accesses-in-stmt-list-from-state s.then_branch it;
+       emit-all-accesses-in-stmt-list-from-state s.else_branch it_then
+     end
   | SEM_WHILE s : emit-whole-state emitted-stmts
   | SEM_CBRANCH s : emit-whole-state emitted-stmts
   | SEM_BRANCH s : emit-whole-state emitted-stmts
@@ -383,97 +375,6 @@ val simplify-sem-lin lin imm =
  end
 end
 
-
-export update-with-stmt: (subst-map, sem_stmt) -> S subst-map  <{} => {}>
-val update-with-stmt state stmt = case stmt of
-    SEM_ASSIGN  s  : update-bind-expr state s.size s.lhs s.rhs
-  | SEM_LOAD    s  : return (update-mark-var-overwritten state s.lhs.offset s.size s.lhs.id)
-  | SEM_STORE   s  : return state
-  | SEM_ITE     s  : return substmap-initial # no join of branches, so we "approximate"
-  | SEM_WHILE   s  : return substmap-initial # no fixpoint calculation, so we "approximate"
-  | SEM_CBRANCH s  : return state
-  | SEM_BRANCH  s  : return state
-  | SEM_FLOP    s  : return (update-mark-varl-overwritten state s.lhs)
-  | SEM_PRIM    s  : return (update-mark-varl-list-overwritten state s.lhs)
-  | SEM_THROW   s  : return state
-	end
-
-
-export update-bind-expr : (subst-map, int, sem_var, sem_expr) -> S subst-map  <{} => {}>
-val update-bind-expr state size var expr = case expr of
-    SEM_SEXPR sexpr : return (update-bind-sexpr state size var sexpr)
-  | SEM_XOR a2      : do #println ("checking "+++rreil-show-expr expr);
-  						if size === 1 and is-inverting-xor a2.opnd1 a2.opnd2
-  						then do #println ("checking inv "+++rreil-show-expr expr);
-  						case subst-linear-to-cond state a2.opnd1 of
-  							  Nothing-sexpr :
-  									return (update-bind-sexpr-inverted state size var (SEM_SEXPR_LIN a2.opnd1))
-  							| Just-sexpr o1 :
-  									return (update-bind-sexpr-inverted state size var o1) 
-  							| Just-sexpr-inverted o1 :
-  									return (update-bind-sexpr state size var o1) 
-  							#TODO
-  							end
-  							end
-  						else return (update-mark-var-overwritten state var.offset size var.id)
-  						end
-  | x               : return (update-mark-var-overwritten state var.offset size var.id)
-    end
-  
-val is-inverting-xor opnd1 opnd2 = case opnd2 of
-	SEM_LIN_IMM l : l.const === 1
-	| x : '0'
-	end
-	  
-export update-bind-sexpr : (subst-map, int, sem_var, sem_sexpr) -> subst-map	
-val update-bind-sexpr state size var sexpr 
-	=	if sexpr-does-not-ref-to-var sexpr size var 
-			then update-bind-linear state var.offset size var.id sexpr
-			else update-mark-var-overwritten state var.offset size var.id
-
-export update-bind-sexpr-inverted : (subst-map, int, sem_var, sem_sexpr) -> subst-map	
-val update-bind-sexpr-inverted state size var sexpr 
-	=	if sexpr-does-not-ref-to-var sexpr size var 
-			then update-bind-linear-inverted state var.offset size var.id sexpr
-			else update-mark-var-overwritten state var.offset size var.id
-
-
-export sexpr-does-not-ref-to-var : (sem_sexpr, int, sem_var) -> |1|
-val sexpr-does-not-ref-to-var linear size var = case linear of
-	SEM_SEXPR_LIN l  : linear-does-not-ref-to-var l size var
-  | SEM_SEXPR_CMP x  : expr-cmp-does-not-ref-to-var x.cmp x.size var
-  | SEM_SEXPR_ARB    : '0' # quick hack to avoid the insertion of 'arbitrary'
-  end
-
-export expr-cmp-does-not-ref-to-var : (sem_expr_cmp, int, sem_var) -> |1|
-val expr-cmp-does-not-ref-to-var expr size var = case expr of
-   SEM_CMPEQ s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
- | SEM_CMPNEQ s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
- | SEM_CMPLES s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
- | SEM_CMPLEU s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
- | SEM_CMPLTS s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
- | SEM_CMPLTU s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
-  end
-
-
-export linear-does-not-ref-to-var : (sem_linear, int, sem_var) -> |1|
-val linear-does-not-ref-to-var linear size var = case linear of
-	SEM_LIN_VAR var2 : vars-do-not-overlap size var var2
-  | SEM_LIN_IMM s    : '1'
-  | SEM_LIN_ADD s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var 
-  | SEM_LIN_SUB s    : linear-does-not-ref-to-var s.opnd1 size var and linear-does-not-ref-to-var s.opnd2 size var
-  | SEM_LIN_SCALE s  : linear-does-not-ref-to-var s.opnd size var 
-  end
-
-
-export vars-do-not-overlap : (int, sem_var, sem_var) -> |1|
-val vars-do-not-overlap size var1 var2 =
-	if id-eq? var1.id var2.id
-	then ranges-do-not-overlap size var1.offset var2.offset
-   	else '1'
-
-
-export id-eq? : (sem_id, sem_id) -> |1|
 val id-eq? id1 id2 = case id1 of
   	VIRT_T v1 : case id2 of
         VIRT_T v2 : v1 === v2
@@ -482,29 +383,4 @@ val id-eq? id1 id2 = case id1 of
   | _ : index id1 === index id2
     end
 
-
-export ranges-do-not-overlap : (int,int,int) -> |1|
-val ranges-do-not-overlap size o1 o2 = o1+size <= o2 or o2+size <= o1
-
-
-export update-mark-varl-list-overwritten : (subst-map, sem_varl_list) -> subst-map
-val update-mark-varl-list-overwritten state varl = case varl of
-    SEM_VARLS_CONS s : update-mark-varl-list-overwritten (update-mark-varl-overwritten state s.hd) s.tl
-  | SEM_VARLS_NIL    : state
-	end
-
-
-export update-mark-varl-overwritten : (subst-map, sem_varl) -> subst-map
-val update-mark-varl-overwritten state varl = update-mark-var-overwritten state varl.offset varl.size varl.id 
-
-
-export update-bind-linear : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
-val update-bind-linear state offset size var linear = substmap-bind-sexpr state offset size var linear 
-
-export update-bind-linear-inverted : (subst-map, int, int, sem_id, sem_sexpr) -> subst-map
-val update-bind-linear-inverted state offset size var linear = substmap-bind-sexpr-inverted state offset size var linear 
-
-
-export update-mark-var-overwritten : (subst-map, int, int, sem_id) -> subst-map
-val update-mark-var-overwritten state offset size var = substmap-mark-overwritten state offset size var
 

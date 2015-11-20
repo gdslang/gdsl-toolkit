@@ -26,9 +26,21 @@ val sem-add x = do
   b <- rval sz x.opnd1;
   c <- rvals Signed sz x.opnd2;
   t <- mktemp;
+  counter <- mktemp;
+  resullllty <- mktemp;
+
   ip <- ip-get;
-  add sz t b (var ip);
-  xorb sz t b (var ip);
+  mov sz ip (var ip);
+#  xorb sz t b (var ip);
+  mov sz counter (var ip);
+
+  size <- return sz;
+  _if (/neq size b (imm 47)) _then do
+    mov size resullllty (var counter)
+  end _else
+    mov size t (imm 1337)
+  ;
+
   write sz a (var t)
 end
 
