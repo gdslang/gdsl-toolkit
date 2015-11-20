@@ -45,6 +45,9 @@
 # STEP THREE: substitute the rvalues in the statement with linears (definitions) from the state. (At this point there should not be any overlapping values => trivial substitution)
 # STEP FOUR: remove the lvalue of the statement (in case it's an assignment or load) from the state, since it's value gets overwritten
 ############################################
+# HANDLING WHILES: dump everything that is accessed in any way directly before the loop
+# IF-THEN_ELSES: dump everything that is accessed in any way directly before the ifte
+############################################
 # EMITTING LINEARS AS STATEMENTS:
 # STEP ONE: remove linear from the state
 # STEP TWO: Transform linear to an assignment statement and emit it
@@ -186,8 +189,6 @@ val anything-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) 
 # emit everything from the state that cannot be simply substituted in the given stmt
 # criterion-lhs is for all left hand side values and criterion.rhs for right hand side values
 # TODO: many commands are still missing
-# TODO: dump all assignemnt at the end of a block? jump etc
-# TODO: how to handle branches(atm dumping whole state)/if(cond, then branch, then dump all at last statement)/loops
 # TODO: how to handle Prims?
 val emit-all-required-computations-from-state criterion-lhs criterion-rhs stmt emitted-stmts =
  case stmt of
@@ -208,7 +209,10 @@ val emit-all-required-computations-from-state criterion-lhs criterion-rhs stmt e
        it_then <- emit-all-accesses-in-stmt-list-from-state s.then_branch it;
        emit-all-accesses-in-stmt-list-from-state s.else_branch it_then
      end
-  | SEM_WHILE s : emit-whole-state emitted-stmts
+  | SEM_WHILE s : do
+       it <- emit-all-vars-of-sexpr (anything-is-overlapping) s.cond 1 emitted-stmts;
+       emit-all-accesses-in-stmt-list-from-state s.body it
+     end
   | SEM_CBRANCH s : emit-whole-state emitted-stmts
   | SEM_BRANCH s : emit-whole-state emitted-stmts
   | SEM_PRIM s : return emitted-stmts

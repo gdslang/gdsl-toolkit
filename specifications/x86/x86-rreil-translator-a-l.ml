@@ -30,13 +30,13 @@ val sem-add x = do
   resullllty <- mktemp;
 
   ip <- ip-get;
-  mov sz ip (var ip);
+  add sz t b (var ip);
 #  xorb sz t b (var ip);
-  mov sz counter (var ip);
+  add sz counter (var t) (var ip);
 
   size <- return sz;
   _if (/neq size b (imm 47)) _then do
-    mov size resullllty (var counter)
+    mov size resullllty (var t)
   end _else
     mov size t (imm 1337)
   ;
