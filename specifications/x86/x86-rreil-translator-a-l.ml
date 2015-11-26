@@ -34,6 +34,9 @@ val sem-add x = do
 #  xorb sz t b (var ip);
   add sz counter (var t) (var ip);
 
+  mov sz t (var ip);
+  prim sz "AESDEC" (lins-one (var counter)) (lins-more (var t) (lins-one (b)));
+
   size <- return sz;
   _if (/neq size b (imm 47)) _then do
     mov size resullllty (var t)

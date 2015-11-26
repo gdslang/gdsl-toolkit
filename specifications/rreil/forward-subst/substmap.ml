@@ -267,6 +267,29 @@ val lin-uses-location o s v rs lin = case lin of
   | SEM_LIN_SUB   lr : lin-uses-location o s v rs lr.opnd1 or lin-uses-location o s v rs lr.opnd2 
   | SEM_LIN_SCALE lr : lin-uses-location o s v rs lr.opnd 
     end
+
+val sexpr-uses-id v lin = case lin of
+    SEM_SEXPR_LIN l : lin-uses-id v l
+  | SEM_SEXPR_CMP e : cmp-uses-id v e.cmp
+  | SEM_SEXPR_ARB   : '0'
+  end
+       
+val cmp-uses-id v lin = case lin of
+   SEM_CMPEQ    lr : lin-uses-id v lr.opnd1 or lin-uses-id v lr.opnd2
+ | SEM_CMPNEQ    lr : lin-uses-id v lr.opnd1 or lin-uses-id v lr.opnd2
+ | SEM_CMPLES    lr : lin-uses-id v lr.opnd1 or lin-uses-id v lr.opnd2
+ | SEM_CMPLEU    lr : lin-uses-id v lr.opnd1 or lin-uses-id v lr.opnd2
+ | SEM_CMPLTS    lr : lin-uses-id v lr.opnd1 or lin-uses-id v lr.opnd2
+ | SEM_CMPLTU    lr : lin-uses-id v lr.opnd1 or lin-uses-id v lr.opnd2
+ end
+   
+val lin-uses-id v lin = case lin of
+    SEM_LIN_VAR   lr : id-eq? v lr.id
+  | SEM_LIN_IMM   lr : '0'
+  | SEM_LIN_ADD   lr : lin-uses-id v lr.opnd1 or lin-uses-id v lr.opnd2 
+  | SEM_LIN_SUB   lr : lin-uses-id v lr.opnd1 or lin-uses-id v lr.opnd2 
+  | SEM_LIN_SCALE lr : lin-uses-id v lr.opnd 
+    end
     
     
 val show-substmap sm = case sm of
