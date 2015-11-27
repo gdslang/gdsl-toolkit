@@ -31,7 +31,7 @@ struct options {
 };
 
 enum p_option {
-  OPTION_ELF, OPTION_FILE, OPTION_OFFSET, OPTION_LENGTH, OPTION_PRESERVATION, OPTION_LIVENESS, OPTION_FSUBST, OPTION_CONTINUE
+  OPTION_ELF, OPTION_FILE, OPTION_OFFSET, OPTION_LENGTH, OPTION_PRESERVATION, OPTION_LIVENESS, OPTION_FSUBST, OPTION_DELAYED_FSUBST, OPTION_CONTINUE
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
@@ -45,7 +45,7 @@ static char args_parse(int argc, char **argv, struct options *options) {
   struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, { "file", required_argument, NULL,
       OPTION_FILE }, { "offset", required_argument, NULL, OPTION_FILE }, { "length",
   required_argument, NULL, OPTION_LENGTH }, { "preserve", required_argument, NULL, OPTION_PRESERVATION }, { "liveness",
-  no_argument, NULL, OPTION_LIVENESS }, { "fsubst", no_argument, NULL, OPTION_FSUBST }, { "continue", no_argument, NULL, OPTION_CONTINUE }, { NULL, 0,
+  no_argument, NULL, OPTION_LIVENESS }, { "fsubst", no_argument, NULL, OPTION_FSUBST }, { "delayed-fsubst", no_argument, NULL, OPTION_DELAYED_FSUBST }, { "continue", no_argument, NULL, OPTION_CONTINUE }, { NULL, 0,
   NULL, 0 } };
 
   while(1) {
@@ -91,6 +91,10 @@ static char args_parse(int argc, char **argv, struct options *options) {
         options->opt_config |= OC_FSUBST;
         break;
       }
+      case OPTION_DELAYED_FSUBST: {
+        options->opt_config |= OC_DELAYED_FSUBST;
+        break;
+      }
       case OPTION_CONTINUE: {
         options->_continue = 1;
         break;
@@ -113,7 +117,7 @@ int main(int argc, char** argv) {
   struct options options;
   if(args_parse(argc, argv, &options)) {
     printf(
-        "Usage: semantics-opt [--elf] [--offset offset] [--length length] --file file [--preserve everywhere|block|context] [--liveness] [--fsubst] [--continue]\n");
+        "Usage: semantics-opt [--elf] [--offset offset] [--length length] --file file [--preserve everywhere|block|context] [--liveness] [--fsubst] [--delayed-fsubst] [--continue]\n");
     return 1;
   }
 

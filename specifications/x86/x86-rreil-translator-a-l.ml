@@ -30,19 +30,19 @@ val sem-add x = do
   resullllty <- mktemp;
 
   ip <- ip-get;
-  add sz t b (var ip);
-#  xorb sz t b (var ip);
-  add sz counter (var t) (var ip);
+  add sz t b c;
+  add sz counter (var t) b;
+  xorb sz t (var counter) b;
 
-  mov sz t (var ip);
-  prim sz "AESDEC" (lins-one (var counter)) (lins-more (var t) (lins-one (b)));
+#  mov sz t (var ip);
+#  prim sz "AESDEC" (lins-one (var counter)) (lins-more (var t) (lins-one (b)));
 
-  size <- return sz;
-  _if (/neq size b (imm 47)) _then do
-    mov size resullllty (var t)
-  end _else
-    mov size t (imm 1337)
-  ;
+#  size <- return sz;
+#  _if (/neq size b (imm 47)) _then do
+#    mov size resullllty (var t)
+#  end _else
+#    mov size t (imm 1337)
+#  ;
 
   write sz a (var t)
 end
