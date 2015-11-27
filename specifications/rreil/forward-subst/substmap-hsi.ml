@@ -38,8 +38,8 @@ val substmap-initial = Substmap-empty
 # Returns:
 #   subst map with right hand side bound to write location
 #
-export substmap-bind-linear : (subst-map, int, int, sem_id, sem_linear) -> subst-map
-val substmap-bind-linear state offset size var linear = Substmap-bind-linear {offset=offset, size=size, id=var, rhs=linear, cont=(substmap-remove-linear state offset size var)}  
+val substmap-bind-linear state offset size var linear = Substmap-bind-linear {offset=offset, size=size, id=var, rhs=linear, cont=state}  
+
 
 
 # mark a location as overwritten.
@@ -54,31 +54,8 @@ val substmap-bind-linear state offset size var linear = Substmap-bind-linear {of
 # Returns:
 #   subst map with removed bindings
 #
-export substmap-mark-overwritten : (subst-map, int, int, sem_id) -> subst-map
-val substmap-mark-overwritten state offset size var = Substmap-mark-overwritten {offset=offset, size=size, id=var, cont=(substmap-remove-linear state offset size var)}
+val substmap-mark-overwritten state offset size var = Substmap-mark-overwritten {offset=offset, size=size, id=var, cont=state}
 
-
-# remove a location from the subst-map
-#
-# Parameters:
-#   current subst map
-#   offset, size and register-id of write location
-#
-# Returns:
-#   subst map without any occurrences of the linear
-#
-export substmap-remove-linear : (subst-map, int, int, sem_id, sem_linear) -> subst-map
-val substmap-remove-linear state offset size var = Substmap-empty
-   case state of
-      Substmap-empty : state
-    | Substmap-bind-linear l :
-         if l.offset === offset and l.size === size and I l.id === id
-           then substmap-remove-linear l.cont offset size var
-           else Substmap-bind-linear {offset=l.offset, size=l.size, id=l.id, rhs=l.rhs, cont=(substmap-remove-linear l.cont offset size var)}  
-    | Substmap-mark-overwritten l :
-         if l.offset === offset and l.size === size and l.id === id
-           then substmap-remove-linear l.cont offset size var
-           else Substmap-mark-overwritten {offset=l.offset, size=l.size, id=l.id, cont=(substmap-remove-linear l.cont offset size var)}  
 
 
 type maybe-linear = Nothing-linear | Just-linear of sem_linear
@@ -94,7 +71,6 @@ type maybe-linear = Nothing-linear | Just-linear of sem_linear
 # Returns:
 #   linear expression that substitutes value at location
 #
-export substmap-var-to-lin: (subst-map, int, int, sem_id) -> sem_linear
 val substmap-var-to-lin state offset size var = case substmap-lookup-var state offset size var of
     Nothing-linear     : SEM_LIN_VAR {id=var, offset=offset}
   | Just-linear linear : linear
@@ -112,7 +88,6 @@ val substmap-var-to-lin state offset size var = case substmap-lookup-var state o
 #   or nothing (if binding is nonexisting or overwritten or if rhs
 #   of binding refers to variables that are invalidated since then)  
 #
-export substmap-lookup-var: (subst-map, int, int, sem_id) -> maybe-linear
 val substmap-lookup-var state offset size var = case state of
     Substmap-bind-linear      s :
     	if id-eq? var s.id
@@ -133,7 +108,6 @@ val substmap-lookup-var state offset size var = case state of
   |	Substmap-empty              : Nothing-linear
     end
  
- export checkOverwritten : (int, int, sem_id, int, maybe-linear) -> maybe-linear
  val checkOverwritten offset size var rhssize maybeRhs = case maybeRhs of
      Nothing-linear : maybeRhs
    | Just-linear l  : if lin-uses-location offset size var rhssize l
@@ -141,7 +115,6 @@ val substmap-lookup-var state offset size var = case state of
    		else maybeRhs
    	end
 
-export lin-uses-location : (int,int,sem_id, int,sem_linear) -> |1|
 val lin-uses-location o s v rs lin = case lin of
     SEM_LIN_VAR   lr : id-eq? v lr.id and o+s> lr.offset and lr.offset+rs>o
   | SEM_LIN_IMM   lr : '0'

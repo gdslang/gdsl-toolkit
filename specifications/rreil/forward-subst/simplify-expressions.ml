@@ -1,7 +1,5 @@
 
 
-export simplify-linear : (sem_linear) -> sem_linear
-
 val simplify-linear lin = case lin of
     SEM_LIN_VAR v : lin 
   | SEM_LIN_IMM v : lin

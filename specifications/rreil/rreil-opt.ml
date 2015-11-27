@@ -3,16 +3,17 @@ export traverse-insn-list: (insn_list, insn_list_obj, (insn_list_obj, insndata) 
 export optimization-config : configuration[vec=optimization-configuration]
 
 #for optimization-sweep
-export propagate-contextful: (|1|, {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option}) ->  S {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option} <{} => {}>
+export propagate-contextful: (|1|, |1|, {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option}) ->  S {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option} <{} => {}>
 
-type optimization-configuration = |5|
+type optimization-configuration = |6|
 
 val optimization-config =
-  conf '00001' "preserve"  "instruction-wise optimizations" &*
-  conf '00010' "block"  "basic block-wise optimizations" &*
-  conf '00100' "inter"  "inter basic block-wise optimizations" &*
-  conf '01000' "liveness"  "liveness optimization" &*
-  conf '10000' "fsubst"  "forward propagation of constants and simple expressions"
+  conf '000001' "preserve"  "instruction-wise optimizations" &*
+  conf '000010' "block"  "basic block-wise optimizations" &*
+  conf '000100' "inter"  "inter basic block-wise optimizations" &*
+  conf '001000' "liveness"  "liveness optimization" &*
+  conf '010000' "fsubst"  "forward propagation of constants and simple expressions" &*
+  conf '100000' "delayed-fsubst"  "delayed forward propagation of constants and simple expressions"
 
 #  conf '00001' "preserve"  "instruction-wise optimizations" &*
 #  conf '00010' "liveness-block" "liveness analysis per basic block " &*
@@ -36,7 +37,7 @@ type sem_preservation =
  | SEM_PRESERVATION_BLOCK
  | SEM_PRESERVATION_CONTEXT
 
-val decode-translate-block-optimized-preserve config limit pres do-propagate lv = case pres of
+val decode-translate-block-optimized-preserve config limit pres do-delayed-fsubst do-fsubst lv = case pres of
    SEM_PRESERVATION_EVERYWHERE: do
      translated <- decode-translate-block config limit;
      clean <- cleanup translated;
@@ -45,7 +46,7 @@ val decode-translate-block-optimized-preserve config limit pres do-propagate lv 
    end
  | SEM_PRESERVATION_BLOCK: do
      translated <- decode-translate-block config limit;
-     translated <- propagate do-propagate translated;
+     translated <- propagate do-delayed-fsubst do-fsubst translated;
      translated <- if lv then do
        lv-result <- liveness translated;
        query $live
@@ -57,7 +58,7 @@ val decode-translate-block-optimized-preserve config limit pres do-propagate lv 
    end
  | SEM_PRESERVATION_CONTEXT: do
      translated <- decode-translate-super-block config limit;
-     translated <- propagate-contextful do-propagate translated;
+     translated <- propagate-contextful do-delayed-fsubst do-fsubst translated;
      translated <- if lv then do
        lv-result <- liveness_super translated;
        query $live
@@ -69,27 +70,46 @@ val decode-translate-block-optimized-preserve config limit pres do-propagate lv 
    end
 end
 
-val propagate-contextful do-propagate translated 
-  = do insns-p <- propagate do-propagate translated.insns;
+val propagate-contextful do-delayed-fsubst do-fsubst translated =
+ do
+    insns-p <- propagate do-delayed-fsubst do-fsubst translated.insns;
     return {insns=insns-p, succ_a=translated.succ_a, succ_b=translated.succ_b}
-    end
+ end
 
-val propagate do-propagate translated = case do-propagate of 
-        '1' : do  #println "-------------------";
-              #println "translated:";
-            #println (rreil-pretty translated);
-            #println "-------------------";
-              #println "propagating...";
-              p <- propagate-values translated;
-          #println "-------------------";
-            #println "after propagation";
-            #println (rreil-pretty p);
-            #println "-------------------";
-            #println "doing liveness optimization...";
-            return p
-            end
-      | '0' : return translated
+val propagate do-delayed-fsubst do-fsubst translated =
+ do
+    optimized <- delayed-forward-subsitution do-delayed-fsubst translated;
+    forward-subsitution do-fsubst optimized
+ end
+
+
+val delayed-forward-subsitution do-delayed-fsubst translated =
+ case do-delayed-fsubst of 
+    '1' : do
+       p <- delayed-fsubst-propagate-values translated;
+       return p
       end
+  | '0' : return translated
+ end
+
+val forward-subsitution do-fsubst translated =
+ case do-fsubst of 
+    '1' : do
+		#println "-------------------";
+		#println "translated:";
+		#println (rreil-pretty translated);
+		#println "-------------------";
+		#println "propagating...";
+       p <- fsubst-propagate-values translated;
+		#println "-------------------";
+		#println "after propagation";
+		#println (rreil-pretty p);
+		#println "-------------------";
+		#println "doing liveness optimization...";
+       return p
+      end
+  | '0' : return translated
+ end
 
 #val foot i = case i of 0 : return 0 | j : do println (show-int j);foot(i - 1) end end 
 
@@ -101,10 +121,10 @@ type opt-result = {
 val decode-translate-block-optimized config limit opt-config = do
   update @{insns=INSNS_NIL};
   rreil <- case opt-config of
-     'fs:1 lv:1 000': decode-translate-block config limit
-   | 'fs:1 lv:1 001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE fs lv
-   | 'fs:1 lv:1 01.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK fs lv
-   | 'fs:1 lv:1 1..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT fs lv
+     'dfs:1 fs:1 lv:1 000': decode-translate-block config limit
+   | 'dfs:1 fs:1 lv:1 001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE dfs fs lv
+   | 'dfs:1 fs:1 lv:1 01.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK dfs fs lv
+   | 'dfs:1 fs:1 lv:1 1..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT dfs fs lv
   end;
   insns <- query $insns;
   return {rreil=rreil, insns=insns}

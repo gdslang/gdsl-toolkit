@@ -47,6 +47,7 @@
 ############################################
 # HANDLING WHILES: dump everything that is accessed in any way directly before the loop
 # IF-THEN_ELSES: dump everything that is accessed in any way directly before the ifte
+# PRIMITIVES & FLOPS: dump every location that is accessed, but only remove lvalues from state when they use the exact location as the state linear
 ############################################
 # EMITTING LINEARS AS STATEMENTS:
 # STEP ONE: remove linear from the state
@@ -56,21 +57,19 @@
 
 
 
-export propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
-val propagate-values stmts = do update @{tmpass=0}; subst-stmt-list-initial stmts end
+export delayed-fsubst-propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
+val delayed-fsubst-propagate-values stmts = do update @{tmpass=0}; delayed-fsubst-stmt-list-initial stmts end
 
 
-val subst-stmt-list-initial stmts = do
-	l <- substitute-stmt-list substmap-initial stmts;
+val delayed-fsubst-stmt-list-initial stmts = do
+	l <- delayed-substitute-stmt-list substmap-initial stmts;
 	println "==========================";
 	println (rreil-show-stmts stmts);
 	println "--------------------------";
 	return l
 	end
 
-# how to handle ifs (maybe also loops): check the body for variables in the state that are acccessed -> dump them beforehand
-# -> do not optimize the- body, jump over it
-val substitute-stmt-list state stmts = case stmts of
+val delayed-substitute-stmt-list state stmts = case stmts of
 		SEM_CONS s : if is-linear-assignment s.hd then do
 				# emit all colliding (overlapping but not equal locations from the state)
 				cleaned_state <- emit-all-required-computations-from-state (lval-is-overlapping-but-not-equal) (lval-is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
@@ -90,7 +89,7 @@ val substitute-stmt-list state stmts = case stmts of
 				println ".......................";
 
 				# concatenate the emitted statements list with the recursive optimized list
-				continued <- substitute-stmt-list new-state s.tl;
+				continued <- delayed-substitute-stmt-list new-state s.tl;
 				return (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) continued)
 				end
                               else do
@@ -110,7 +109,7 @@ val substitute-stmt-list state stmts = case stmts of
 
 				
 				# concatenate the emitted statements list with the recursive optimized list and the updated statement
-				continued <- substitute-stmt-list new-state s.tl;
+				continued <- delayed-substitute-stmt-list new-state s.tl;
 				return (append-stmt-list (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) (SEM_CONS {hd=new-stmt, tl=SEM_NIL})) continued)
 				end
 	|	SEM_NIL    : return SEM_NIL
@@ -169,7 +168,7 @@ val remove-overwritten-varl-list-from-state state list =
  end
     
 
-# return tuple for an optimization step
+# return tuple for an optimization step; the emitted statements and the new state
 type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map}
 
 # emits every location from the state that is accessed in any way
@@ -201,7 +200,6 @@ val id-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) or (se
 
 # emit everything from the state that cannot be simply substituted in the given stmt
 # criterion-lhs is for all left hand side values and criterion.rhs for right hand side values
-# TODO: FLOP. How to handle flag param?
 val emit-all-required-computations-from-state criterion-lhs criterion-rhs stmt emitted-stmts =
  case stmt of
     SEM_ASSIGN s : do
@@ -418,13 +416,3 @@ val simplify-sem-lin lin imm =
        end
  end
 end
-
-val id-eq? id1 id2 = case id1 of
-  	VIRT_T v1 : case id2 of
-        VIRT_T v2 : v1 === v2
-      | _ : '0'
-      	end 
-  | _ : index id1 === index id2
-    end
-
-
