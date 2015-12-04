@@ -396,62 +396,52 @@ static obj_t sem_stmts_init(state_t state) {
 }
 
 callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
-  unboxed_sem_id_callbacks_t
-  sem_id_callbacks = {.shared = &_shared, .virt_t = &virt_t, .arch = &sem_id_arch};
+  unboxed_sem_id_callbacks_t sem_id_callbacks = {&sem_id_arch, &_shared,
+                                                 &virt_t};
 
-  unboxed_sem_exception_callbacks_t
-  sem_exception_callbacks = {.shared = &exception_shared, .arch = &exception_arch};
+  unboxed_sem_exception_callbacks_t sem_exception_callbacks = {
+      &exception_arch, &exception_shared};
 
-  unboxed_sem_address_callbacks_t
-  sem_address_callbacks = {.sem_address_ = &sem_address};
+  unboxed_sem_address_callbacks_t sem_address_callbacks = {&sem_address};
 
-  unboxed_sem_var_callbacks_t
-  sem_var_callbacks = {.sem_var_ = &sem_var};
+  unboxed_sem_var_callbacks_t sem_var_callbacks = {&sem_var};
 
-  unboxed_sem_linear_callbacks_t
-  sem_linear_callbacks = {.sem_lin_var = &sem_lin_var, .sem_lin_imm = &sem_lin_imm,
-    .sem_lin_add = &sem_lin_add, .sem_lin_sub = &sem_lin_sub, .sem_lin_scale = &sem_lin_scale};
+  unboxed_sem_linear_callbacks_t sem_linear_callbacks = {
+      &sem_lin_add, &sem_lin_imm, &sem_lin_scale, &sem_lin_sub, &sem_lin_var};
 
   unboxed_sem_sexpr_callbacks_t
-  sem_sexpr_callbacks = {.sem_sexpr_lin = &sem_sexpr_lin,
-    .sem_sexpr_cmp = &sem_sexpr_cmp, .sem_sexpr_arb = &sem_sexpr_arb};
+    sem_sexpr_callbacks = { &sem_sexpr_arb, &sem_sexpr_cmp, &sem_sexpr_lin};
 
-  unboxed_sem_expr_cmp_callbacks_t
-  sem_expr_cmp_callbacks = {.sem_cmpeq = &sem_cmpeq, .sem_cmpneq = &sem_cmpneq,
-    .sem_cmples = &sem_cmples, .sem_cmpleu = &sem_cmpleu, .sem_cmplts = &sem_cmplts, .sem_cmpltu = &sem_cmpltu};
+  unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks = {
+      &sem_cmpeq,  &sem_cmples, &sem_cmpleu,
+      &sem_cmplts, &sem_cmpltu, &sem_cmpneq};
 
-  unboxed_sem_expr_callbacks_t
-  sem_expr_callbacks = {.sem_sexpr = &sem_sexpr, .sem_mul = &sem_mul, .sem_div = &sem_div,
-    .sem_divs = &sem_divs, .sem_mod = &sem_mod, .sem_mods = &sem_mods, .sem_shl = &sem_shl, .sem_shr = &sem_shr,
-    .sem_shrs = &sem_shrs, .sem_and = &sem_and, .sem_or = &sem_or, .sem_xor = &sem_xor, .sem_sx = &sem_sx, .sem_zx =
-    &sem_zx};
+  unboxed_sem_expr_callbacks_t sem_expr_callbacks = {
+      &sem_and,   &sem_div, &sem_divs, &sem_mod,  &sem_mods, &sem_mul, &sem_or,
+      &sem_sexpr, &sem_shl, &sem_shr,  &sem_shrs, &sem_sx,   &sem_xor, &sem_zx};
 
   unboxed_sem_varl_callbacks_t
-  sem_varl_callbacks = {.sem_varl_ = &sem_varl};
+  sem_varl_callbacks = { &sem_varl};
 
   unboxed_sem_varl_list_callbacks_t
-  sem_varl_list_callbacks = {.sem_varl_list_next = &sem_varls_next, .sem_varl_list_init =
-    &sem_varls_init};
+    sem_varl_list_callbacks = { &sem_varls_init, &sem_varls_next };
 
   unboxed_sem_flop_callbacks_t
-  sem_flop_callbacks = {.sem_flop_ = &sem_flop};
+  sem_flop_callbacks = { &sem_flop};
 
-  unboxed_sem_stmt_callbacks_t
-  sem_stmt_callbacks = {.sem_assign = &sem_assign, .sem_load = &sem_load, .sem_store =
-    &sem_store, .sem_ite = &sem_ite, .sem_while = &sem_while, .sem_cbranch = &sem_cbranch, .sem_branch = &sem_branch,
-    .sem_flop = &sem_flop_stmt, .sem_prim = &sem_prim, .sem_throw = &sem_throw};
+  unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
+      &sem_assign, &sem_branch, &sem_cbranch, &sem_flop_stmt, &sem_ite,
+      &sem_load,   &sem_prim,   &sem_store,   &sem_throw,     &sem_while};
 
-  unboxed_branch_hint_callbacks_t
-  branch_hint_callbacks = {.branch_hint_ = &_branch_hint};
+  unboxed_branch_hint_callbacks_t branch_hint_callbacks = {&_branch_hint};
 
   //  unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
   //      .list_init = &list_init,
   //      .list_next = &list_next
   //  };
 
-  unboxed_sem_stmt_list_callbacks_t
-  sem_stmt_list_callbacks = {.sem_stmt_list_next = &sem_stmts_next, .sem_stmt_list_init =
-    &sem_stmts_init};
+  unboxed_sem_stmt_list_callbacks_t sem_stmt_list_callbacks = {&sem_stmts_init,
+                                                               &sem_stmts_next};
 
   struct unboxed_callbacks {
     unboxed_callbacks_t callbacks;
@@ -488,22 +478,29 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
   callbacks_heap->sem_exception_callbacks = sem_exception_callbacks;
   callbacks_heap->sem_stmt_list_callbacks = sem_stmt_list_callbacks;
 
-  unboxed_callbacks_t
-  callbacks = {.sem_id = &callbacks_heap->sem_id_callbacks, .sem_address =
-    &callbacks_heap->sem_address_callbacks, .sem_var = &callbacks_heap->sem_var_callbacks, .sem_linear =
-    &callbacks_heap->sem_linear_callbacks, .sem_sexpr = &callbacks_heap->sem_sexpr_callbacks, .sem_expr_cmp =
-    &callbacks_heap->sem_expr_cmp_callbacks, .sem_expr = &callbacks_heap->sem_expr_callbacks, .sem_varl =
-    &callbacks_heap->sem_varl_callbacks, .sem_varl_list = &callbacks_heap->sem_varl_list_callbacks, .sem_flop =
-    &callbacks_heap->sem_flop_callbacks, .sem_stmt = &callbacks_heap->sem_stmt_callbacks, .branch_hint =
-    &callbacks_heap->branch_hint_callbacks, .sem_exception = &callbacks_heap->sem_exception_callbacks, .sem_stmt_list =
-    &callbacks_heap->sem_stmt_list_callbacks};
+  unboxed_callbacks_t callbacks = {
+      &callbacks_heap->branch_hint_callbacks,
+      &callbacks_heap->sem_address_callbacks,
+      &callbacks_heap->sem_exception_callbacks,
+      &callbacks_heap->sem_expr_callbacks,
+      &callbacks_heap->sem_expr_cmp_callbacks,
+      &callbacks_heap->sem_flop_callbacks,
+      &callbacks_heap->sem_id_callbacks,
+      &callbacks_heap->sem_linear_callbacks,
+      &callbacks_heap->sem_sexpr_callbacks,
+      &callbacks_heap->sem_stmt_callbacks,
+      &callbacks_heap->sem_stmt_list_callbacks,
+      &callbacks_heap->sem_var_callbacks,
+      &callbacks_heap->sem_varl_callbacks,
+      &callbacks_heap->sem_varl_list_callbacks,
+  };
 
   callbacks_heap->callbacks = callbacks;
 
   return &callbacks_heap->callbacks;
 }
 
-gdsl::rreil_builder::rreil_builder(gdsl::gdsl *g) {
+gdsl::rreil_builder::rreil_builder(gdsl *g) {
   this->g = g;
 }
 

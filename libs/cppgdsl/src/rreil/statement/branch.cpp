@@ -21,6 +21,6 @@ void gdsl::rreil::branch::accept(statement_visitor &v) {
   v.visit(this);
 }
 
-void gdsl::rreil::branch::put(std::ostream &out) {
+void gdsl::rreil::branch::put(std::ostream &out) const {
   out << branch_hint_to_string(hint) << " => " << *target;
 }

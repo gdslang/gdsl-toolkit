@@ -18,10 +18,10 @@ class expr_sexpr;
 
 class expr_visitor {
 private:
-  std::function<void(expr_binop*)> expr_binop_callback = NULL;
-  std::function<void(expr_ext*)> expr_ext_callback = NULL;
-  std::function<void(expr_sexpr*)> expr_sexpr_callback = NULL;
-  std::function<void(expr*)> default_callback = NULL;
+  std::function<void(expr_binop*)> expr_binop_callback = nullptr;
+  std::function<void(expr_ext*)> expr_ext_callback = nullptr;
+  std::function<void(expr_sexpr*)> expr_sexpr_callback = nullptr;
+  std::function<void(expr*)> default_callback = nullptr;
 public:
   virtual ~expr_visitor() {
   }

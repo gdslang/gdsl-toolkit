@@ -26,29 +26,29 @@ private:
   variable_limited *lhs;
   std::vector<variable_limited*> rhs;
 
-  void put(std::ostream &out);
+  void put(std::ostream &out) const override;
 public:
   floating(flop op, variable *flags, variable_limited *lhs, std::vector<variable_limited*> rhs);
-  ~floating();
+  ~floating() override;
 
-  flop get_op() {
+  flop get_op() const {
     return op;
   }
 
-  variable *get_flags() {
+  variable *get_flags() const {
     return flags;
   }
 
-  variable_limited *get_lhs() {
+  variable_limited *get_lhs() const {
     return lhs;
   }
 
-  std::vector<variable_limited*> const &get_rhs() {
+  const std::vector<variable_limited*> &get_rhs() const {
     return rhs;
   }
 
-  void accept(statement_visitor &v);
+  void accept(statement_visitor &v) override;
 };
 
-}
-}
+}  // namespace rreil
+}  // namespace gdsl

@@ -12,6 +12,10 @@ gdsl::block::block(std::vector<instruction> *instructions, std::vector<rreil::st
   this->statements = statements;
 }
 
+gdsl::block::block(block &&o) : instructions(o.instructions), statements(o.statements) {
+  o.instructions = NULL;
+}
+
 gdsl::block::~block() {
   delete instructions;
 }

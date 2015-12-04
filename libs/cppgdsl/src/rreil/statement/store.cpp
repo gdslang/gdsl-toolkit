@@ -24,6 +24,6 @@ void gdsl::rreil::store::accept(statement_visitor &v) {
   v.visit(this);
 }
 
-void gdsl::rreil::store::put(std::ostream &out) {
+void gdsl::rreil::store::put(std::ostream &out) const {
   out << "*" << *_address << " =:" << size << " " << *rhs;
 }

@@ -8,8 +8,6 @@
 #include <cppgdsl/rreil/statement/ite.h>
 #include <iostream>
 
-using namespace std;
-
 gdsl::rreil::ite::ite(sexpr *cond, std::vector<statement*> *then_branch, std::vector<statement*> *else_branch) {
   this->cond = cond;
   this->then_branch = then_branch;
@@ -30,7 +28,7 @@ void gdsl::rreil::ite::accept(statement_visitor &v) {
   v.visit(this);
 }
 
-void gdsl::rreil::ite::put(std::ostream &out) {
+void gdsl::rreil::ite::put(std::ostream &out) const {
   out << "if(" << *cond << ") {\n";
   for(auto stmt : *then_branch)
     out << *stmt << "\n";

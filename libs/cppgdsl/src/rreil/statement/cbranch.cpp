@@ -24,6 +24,6 @@ void gdsl::rreil::cbranch::accept(statement_visitor &v) {
   v.visit(this);
 }
 
-void gdsl::rreil::cbranch::put(std::ostream &out) {
+void gdsl::rreil::cbranch::put(std::ostream &out) const {
   out << *cond << " ? goto " << *target_true << " : goto " << *target_false;
 }

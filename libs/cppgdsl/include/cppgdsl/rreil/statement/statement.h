@@ -6,41 +6,34 @@
  */
 
 #pragma once
-#include "statement_visitor.h"
 #include <iosfwd>
 #include <string>
 #include <vector>
 
+#include "cppgdsl/rreil/statement/statement_visitor.h"
+
 namespace gdsl {
 namespace rreil {
 
-typedef std::vector<rreil::statement*> statements_t;
-
+// Acts as the base class for all expression and statement types in the RReil
+// language.
 class statement {
 private:
-  virtual void put(std::ostream &out) = 0;
+  virtual void put(std::ostream &out) const = 0;
+  friend std::ostream &operator<<(std::ostream &out,
+                                  const statement &statement);
+
 public:
-  virtual ~statement() {
-  }
-
-  virtual std::string to_string();
-  friend std::ostream& operator<< (std::ostream &out, statement &_this);
-
+  virtual ~statement() {}
   virtual void accept(statement_visitor &v) = 0;
+  std::string to_string() const;
 };
 
-std::ostream& operator<<(std::ostream &out, statement &_this);
+typedef std::vector<rreil::statement*> statements_t;
 
-}
-}
+// Appends the string representation of the given statement to the output
+// stream.
+std::ostream &operator<<(std::ostream &out, const statement &statement);
 
-#include "assign.h"
-#include "branch.h"
-#include "cbranch.h"
-#include "floating.h"
-#include "ite.h"
-#include "load.h"
-#include "prim.h"
-#include "store.h"
-#include "throw.h"
-#include "while.h"
+}  // namespace rreil
+}  // namespace gdsl

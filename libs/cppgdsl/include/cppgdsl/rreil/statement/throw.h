@@ -20,17 +20,17 @@ class _throw : public statement {
 private:
   exception *inner;
 
-  void put(std::ostream &out);
+  void put(std::ostream &out) const override;
 public:
-  _throw(exception *inner);
-  ~_throw();
+  explicit _throw(exception *inner);
+  ~_throw() override;
 
-  exception *get_inner() {
+  exception *get_inner() const {
     return inner;
   }
 
-  void accept(statement_visitor &v);
+  void accept(statement_visitor &v) override;
 };
 
-}
-}
+}  // namespace rreil
+}  // namespace gdsl

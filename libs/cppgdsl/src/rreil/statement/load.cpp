@@ -23,6 +23,6 @@ void gdsl::rreil::load::accept(statement_visitor &v) {
   v.visit(this);
 }
 
-void gdsl::rreil::load::put(std::ostream &out) {
+void gdsl::rreil::load::put(std::ostream &out) const {
   out << *lhs << " =:" << size << " *" << *_address;
 }

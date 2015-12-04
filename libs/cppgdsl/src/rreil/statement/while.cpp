@@ -9,9 +9,7 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
-
-gdsl::rreil::_while::_while(sexpr *cond, vector<statement*> *body) {
+gdsl::rreil::_while::_while(sexpr *cond, std::vector<statement*> *body) {
   this->cond = cond;
   this->body = body;
 }
@@ -27,9 +25,9 @@ void gdsl::rreil::_while::accept(statement_visitor &v) {
   v.visit(this);
 }
 
-void gdsl::rreil::_while::put(ostream &out) {
+void gdsl::rreil::_while::put(std::ostream &out) const {
   out << "while(" << *cond << ") {\n";
   for(auto stmt: *body)
-    out << *stmt << endl;
+    out << *stmt << std::endl;
   out << "\n}";
 }

@@ -15,7 +15,7 @@ size_t readhex_hex_read(FILE *f, uint8_t **buffer) {
 	*buffer = (uint8_t*)malloc(size);
 
 	while(1) {
-		size_t size_str = 2;
+                enum { size_str = 2 };
 		size_t length_str = 0;
 		char target[size_str];
 		while(1) {

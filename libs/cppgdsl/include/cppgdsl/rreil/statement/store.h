@@ -23,24 +23,25 @@ private:
   address *_address;
   linear *rhs;
 
-  void put(std::ostream &out);
+  void put(std::ostream &out) const override;
 public:
   store(int_t size, address *_address, linear *rhs);
-  ~store();
+  ~store() override;
 
-  int_t get_size() {
+  int_t get_size() const {
     return size;
   }
 
-  address *get_address() {
+  address *get_address() const {
     return _address;
   }
 
-  linear *get_rhs() {
+  linear *get_rhs() const {
     return rhs;
   }
 
-  void accept(statement_visitor &v);
+  void accept(statement_visitor &v) override;
 };
 
-}}
+}  //namespace rreil
+}  //namespace gdsl

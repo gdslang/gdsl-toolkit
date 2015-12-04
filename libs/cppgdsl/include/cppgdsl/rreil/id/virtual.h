@@ -17,12 +17,16 @@ private:
   int_t t;
 
   void put(std::ostream &out);
+
+  static size_t subclass_counter;
 public:
   _virtual(int_t t);
 
+  size_t get_subclass_counter() const;
   int_t get_t();
 
-  bool operator== (id &other);
+  bool operator== (id &other) const;
+  bool operator<(id const& other) const;
   void accept(id_visitor &v);
 };
 

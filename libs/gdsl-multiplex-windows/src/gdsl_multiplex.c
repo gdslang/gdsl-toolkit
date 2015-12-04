@@ -35,9 +35,8 @@ size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs) {
   return gdsl_multiplex_frontends_list_with_base(descs, NULL);
 }
 
-#define ADD_FUNCTION_GENERIC(CAT,FUNC,NAME)\
-		frontend->CAT.FUNC = (__typeof__(frontend->CAT.FUNC))&NAME;
-#define ADD_FUNCTION(CAT,FUNC) ADD_FUNCTION_GENERIC(CAT,FUNC,gdsl_##FUNC)
+#define ADD_FUNCTION_GENERIC(CAT, FUNC, NAME) frontend->CAT.FUNC = &NAME;
+#define ADD_FUNCTION(CAT, FUNC) ADD_FUNCTION_GENERIC(CAT, FUNC, gdsl_##FUNC)
 
 static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
   ADD_FUNCTION(generic, init)

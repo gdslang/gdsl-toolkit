@@ -18,10 +18,10 @@ class sexpr_lin;
 
 class sexpr_visitor {
 private:
-  std::function<void(arbitrary*)> arbitrary_callback = NULL;
-  std::function<void(sexpr_cmp*)> sexpr_cmp_callback = NULL;
-  std::function<void(sexpr_lin*)> sexpr_lin_callback = NULL;
-  std::function<void(sexpr*)> default_callback = NULL;
+  std::function<void(arbitrary*)> arbitrary_callback = nullptr;
+  std::function<void(sexpr_cmp*)> sexpr_cmp_callback = nullptr;
+  std::function<void(sexpr_lin*)> sexpr_lin_callback = nullptr;
+  std::function<void(sexpr*)> default_callback = nullptr;
 
 public:
   virtual ~sexpr_visitor() {

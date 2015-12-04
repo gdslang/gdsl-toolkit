@@ -25,17 +25,17 @@ class _throw;
 
 class statement_visitor {
 private:
-  std::function<void(assign*)> assign_callback = NULL;
-  std::function<void(load*)> load_callback = NULL;
-  std::function<void(store*)> store_callback = NULL;
-  std::function<void(ite*)> ite_callback = NULL;
-  std::function<void(_while*)> _while_callback = NULL;
-  std::function<void(cbranch*)> cbranch_callback = NULL;
-  std::function<void(branch*)> branch_callback = NULL;
-  std::function<void(floating*)> floating_callback = NULL;
-  std::function<void(prim*)> prim_callback = NULL;
-  std::function<void(_throw*)> _throw_callback = NULL;
-  std::function<void(statement*)> default_callback = NULL;
+  std::function<void(assign*)> assign_callback = nullptr;
+  std::function<void(load*)> load_callback = nullptr;
+  std::function<void(store*)> store_callback = nullptr;
+  std::function<void(ite*)> ite_callback = nullptr;
+  std::function<void(_while*)> _while_callback = nullptr;
+  std::function<void(cbranch*)> cbranch_callback = nullptr;
+  std::function<void(branch*)> branch_callback = nullptr;
+  std::function<void(floating*)> floating_callback = nullptr;
+  std::function<void(prim*)> prim_callback = nullptr;
+  std::function<void(_throw*)> _throw_callback = nullptr;
+  std::function<void(statement*)> default_callback = nullptr;
 
 public:
   virtual ~statement_visitor() {

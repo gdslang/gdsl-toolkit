@@ -22,24 +22,25 @@ private:
   variable *lhs;
   expr *rhs;
 
-  void put(std::ostream &out);
+  void put(std::ostream &out) const override;
 public:
   assign(int_t size, variable *lhs, expr *rhs);
-  ~assign();
+  ~assign() override;
 
-  int_t get_size() {
+  int_t get_size() const {
     return size;
   }
 
-  variable *get_lhs() {
+  variable *get_lhs() const {
     return lhs;
   }
 
-  expr *get_rhs() {
+  expr *get_rhs() const {
     return rhs;
   }
 
-  void accept(statement_visitor &v);
+  void accept(statement_visitor &v) override;
 };
 
-}}
+}  // namespace rreil
+}  //namespace gdsl

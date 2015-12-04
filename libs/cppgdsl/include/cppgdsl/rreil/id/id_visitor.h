@@ -18,10 +18,10 @@ class id;
 
 class id_visitor {
 private:
-  std::function<void(arch_id*)> arch_id_callback = NULL;
-  std::function<void(shared_id*)> shared_id_callback = NULL;
-  std::function<void(_virtual*)> _virtual_callback = NULL;
-  std::function<void(id*)> default_callback = NULL;
+  std::function<void(arch_id*)> arch_id_callback;
+  std::function<void(shared_id*)> shared_id_callback;
+  std::function<void(_virtual*)> _virtual_callback;
+  std::function<void(id*)> default_callback;
 public:
   virtual ~id_visitor() {
   }
