@@ -17,7 +17,7 @@
 #include <generator_tree.h>
 #include <setjmp.h>
 #include <tester.h>
-#include <gdsl.h>
+#include <gdsl_generic.h>
 #include <readhex.h>
 
 enum mode {
