@@ -12,7 +12,7 @@ GDSL_MEX=_manual
 GDSL_COMP=$(GDSL)$(GDSL_MEX)
 GDSL_EXEC=$(GDSL)c
 GPREFIX=
-GDSLFLAGS=
+GDSLFLAGS=--maxIter=42
 
 GDSL_BASIS_HL=specifications/basis/prelude.ml specifications/basis/bbtree.ml
 GDSL_RREIL_HL = \

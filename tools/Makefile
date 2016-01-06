@@ -30,7 +30,10 @@ CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(DEFINES
 CPPFLAGS=-c -std=c++11 -ggdb3 $(DEFINES) $(INCDS)
 
 PROJECTS=
-EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep semantics-opt optimization-sweep cppgdsl-demo cgdsl-demo
+EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep semantics-opt optimization-sweep cppgdsl-demo
+ifeq ($(GDSL_ARCH),x86)
+EXECUTABLES+=cgdsl-demo
+endif
 
 .PHONY: $(PROJECTS) clean-projects
 
