@@ -12,7 +12,7 @@ GDSL_MEX=_manual
 GDSL_COMP=$(GDSL)$(GDSL_MEX)
 GDSL_EXEC=$(GDSL)c
 GPREFIX=
-GDSLFLAGS=
+GDSLFLAGS=--maxIter=45
 
 GDSL_BASIS_HL=specifications/basis/prelude.ml specifications/basis/bbtree.ml
 #GDSL_RREIL_EMIT_HL=specifications/rreil/rreil-emit.ml specifications/rreil/rreil-examples.ml specifications/rreil/rreil-cif.ml specifications/rreil/rreil-pretty.ml specifications/rreil/fmap.ml
