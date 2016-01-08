@@ -20,34 +20,34 @@ val sem-adc x = do
   write sz a (var t)
 end
 
-val sem-add x = do
-  sz <- sizeof2 x.opnd1 x.opnd2;
-  a <- lval sz x.opnd1;
-  b <- rval sz x.opnd1;
-  c <- rvals Signed sz x.opnd2;
-  t <- mktemp;
-  counter <- mktemp;
-  resullllty <- mktemp;
-
-  ip <- ip-get;
-  add sz t b c;
-  add sz counter (var t) b;
-  xorb sz t (var counter) b;
-
+#val sem-add x = do
+#  sz <- sizeof2 x.opnd1 x.opnd2;
+#  a <- lval sz x.opnd1;
+#  b <- rval sz x.opnd1;
+#  c <- rvals Signed sz x.opnd2;
+#  t <- mktemp;
+#  counter <- mktemp;
+#  resullllty <- mktemp;
+#
+#  ip <- ip-get;
+#  add sz t b c;
+#  add sz counter (var t) b;
+#  xorb sz t (var counter) b;
+#
 #  mov sz t (var ip);
 #  prim sz "AESDEC" (lins-one (var counter)) (lins-more (var t) (lins-one (b)));
-
+#
 #  size <- return sz;
 #  _if (/neq size b (imm 47)) _then do
 #    mov size resullllty (var t)
 #  end _else
 #    mov size t (imm 1337)
 #  ;
+#
+#  write sz a (var t)
+#end
 
-  write sz a (var t)
-end
-
-val commented-test-function x = do
+val sem-add x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- lval sz x.opnd1;
   b <- rval sz x.opnd1;

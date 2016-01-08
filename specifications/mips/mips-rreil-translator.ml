@@ -392,9 +392,7 @@ type sem_exception =
 ### semantics of instructions ###
 #################################
 
-val overflow-add-addi size res rs rt = return void
-
-val this-is-commented size res rs rt = do
+val overflow-add-addi size res rs rt = do
 	t1 <- mktemp;
 	t2 <- mktemp;
 	t3 <- mktemp;
