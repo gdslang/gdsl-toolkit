@@ -158,7 +158,7 @@ static struct data simulator_sexpr_simulate(struct context *context, struct rrei
       break;
     }
     case RREIL_SEXPR_TYPE_CMP: {
-//      result = simulator_comparator_simulate(context, sexpr->cmp, size);
+      result = simulator_comparator_simulate(context, sexpr->cmp.comp, sexpr->cmp.size);
       break;
     }
     case RREIL_SEXPR_TYPE_ARB: {
