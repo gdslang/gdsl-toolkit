@@ -408,7 +408,7 @@ opt_result_t doSomeMagic(state_t state, size_t data_size) {
 	if(setjmp(*gdsl_err_tgt(state))) return NULL;
 	//obj_t rreil_insns = gdsl_decode_translate_block(state, gdsl_config_default(state), data_size);
 	enum optimization_configuration opt_config;
-	opt_config = PRESERVATION_CONTEXT | OC_DELAYED_FSUBST;
+	opt_config = PRESERVATION_CONTEXT | OC_DELAYED_FSUBST | OC_LIVENESS | OC_FSUBST;
 	opt_result_t opt_result = gdsl_decode_translate_block_optimized(state, gdsl_config_default(state), data_size, opt_config);
 	return opt_result;
 }

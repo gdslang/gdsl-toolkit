@@ -112,11 +112,10 @@ val delayed-substitute-stmt-list state stmts = case stmts of
 				continued <- delayed-substitute-stmt-list new-state s.tl;
 				return (append-stmt-list (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) (SEM_CONS {hd=new-stmt, tl=SEM_NIL})) continued)
 				end
-	|	SEM_NIL    : return SEM_NIL
-#				do
-#				new-stmts <- emit-whole-state {temp=SEM_NIL, assign=SEM_NIL, state=state};
-#				return (append-stmt-list new-stmts.temp new-stmts.assign)
-#			     end		
+	|	SEM_NIL    : do
+				new-stmts <- emit-whole-state {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				return (append-stmt-list new-stmts.temp new-stmts.assign)
+			     end		
 	end 
 	
 # concatenates two stmt-lists
