@@ -404,11 +404,11 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
   return result;
 }
 
-opt_result_t doSomeMagic(state_t state, size_t data_size) {
+opt_result_t decodeAndTranslateBlock(state_t state, size_t data_size) {
 	if(setjmp(*gdsl_err_tgt(state))) return NULL;
 	//obj_t rreil_insns = gdsl_decode_translate_block(state, gdsl_config_default(state), data_size);
 	enum optimization_configuration opt_config;
-	opt_config = PRESERVATION_CONTEXT | OC_DELAYED_FSUBST | OC_LIVENESS | OC_FSUBST;
+	opt_config = PRESERVATION_CONTEXT | OC_DELAYED_FSUBST | OC_FSUBST;
 	opt_result_t opt_result = gdsl_decode_translate_block_optimized(state, gdsl_config_default(state), data_size, opt_config);
 	return opt_result;
 }
@@ -421,7 +421,7 @@ struct tester_result tester_test_binary_block(void (*name)(char *), char fork_, 
   state_t state = gdsl_init();
   gdsl_set_code(state, data, data_size, 0);
 
-  opt_result_t insn = doSomeMagic(state, data_size);
+  opt_result_t insn = decodeAndTranslateBlock(state, data_size);
   if (!insn) {
     printf("Decode/Translate failed\n");
     fflush(stderr);

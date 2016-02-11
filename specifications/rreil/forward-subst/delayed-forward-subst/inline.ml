@@ -391,20 +391,20 @@ val simplify-sem-lin lin imm =
  in
  case lin of
     SEM_LIN_VAR v: f lin
-  | SEM_LIN_IMM i: SEM_LIN_IMM {const=(i.const+imm)}
+  | SEM_LIN_IMM i: SEM_LIN_IMM {const=(imm + i.const)}
   | SEM_LIN_ADD a:
        case a.opnd1 of
-          SEM_LIN_IMM x : simplify-sem-lin a.opnd2 (x.const + imm)
+          SEM_LIN_IMM x : simplify-sem-lin a.opnd2 (imm + x.const)
 	| _ : case a.opnd2 of
-		 SEM_LIN_IMM x : simplify-sem-lin a.opnd1 (x.const + imm)
+		 SEM_LIN_IMM x : simplify-sem-lin a.opnd1 (imm + x.const)
                | _ : f (SEM_LIN_ADD {opnd1=(simplify-sem-lin a.opnd1 0), opnd2=(simplify-sem-lin a.opnd2 0)})
 	      end 
        end
   | SEM_LIN_SUB a:
        case a.opnd1 of
-          SEM_LIN_IMM x : simplify-sem-lin a.opnd2 (x.const - imm)
+          SEM_LIN_IMM x : simplify-sem-lin a.opnd2 (imm - x.const)
 	| _ : case a.opnd2 of
-		 SEM_LIN_IMM x : simplify-sem-lin a.opnd1 (x.const - imm)
+		 SEM_LIN_IMM x : simplify-sem-lin a.opnd1 (imm - x.const)
                | _ : f (SEM_LIN_SUB {opnd1=(simplify-sem-lin a.opnd1 0), opnd2=(simplify-sem-lin a.opnd2 0)})
 	      end
        end
