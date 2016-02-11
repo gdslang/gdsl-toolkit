@@ -387,7 +387,7 @@ val simplify-sem-sexpr sexpr =
 
 val simplify-sem-lin lin imm = 
  let
-    val f l = if (imm === 0) then l else if (imm < 0) then SEM_LIN_SUB {opnd1=l, opnd2=(SEM_LIN_IMM {const=imm})} else SEM_LIN_ADD {opnd1=l, opnd2=(SEM_LIN_IMM {const=imm})}
+    val f l = if (imm === 0) then l else if (imm < 0) then SEM_LIN_SUB {opnd1=l, opnd2=(SEM_LIN_IMM {const=(0 - imm)})} else SEM_LIN_ADD {opnd1=l, opnd2=(SEM_LIN_IMM {const=imm})} 
  in
  case lin of
     SEM_LIN_VAR v: f lin
