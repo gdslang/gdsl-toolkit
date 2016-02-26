@@ -1522,6 +1522,7 @@ in
    | RSQRTSS x: sem-default-arity2 insn.insn (comb x)
    | SAHF: sem-sahf (comb {})
    | SAL x: sem-sal-shl (comb x)
+   | SALC: sem-salc (comb {})
    | SAR x: sem-shr-sar (comb x) '1'
    | SBB x: sem-sbb (comb x)
    | SCASB: sem-scas 8 (comb {})
