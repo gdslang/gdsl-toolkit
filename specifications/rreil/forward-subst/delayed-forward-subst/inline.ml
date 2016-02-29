@@ -58,7 +58,7 @@
 
 
 export delayed-fsubst-propagate-values : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
-val delayed-fsubst-propagate-values stmts = do update @{tmpass=20}; delayed-fsubst-stmt-list-initial stmts end
+val delayed-fsubst-propagate-values stmts = do update @{tmpass=0}; delayed-fsubst-stmt-list-initial stmts end
 
 
 val delayed-fsubst-stmt-list-initial stmts = do
@@ -71,7 +71,6 @@ val delayed-fsubst-stmt-list-initial stmts = do
 
 val delayed-substitute-stmt-list state stmts = case stmts of
 		SEM_CONS s : if is-linear-assignment s.hd then do
-				update @{tmpass=20};
 				# emit all colliding (overlapping but not equal locations from the state)
 				cleaned_state <- emit-all-required-computations-from-state (lval-is-overlapping-but-not-equal) (lval-is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
 				# replace the statement's expression with definitions from the state
@@ -94,7 +93,6 @@ val delayed-substitute-stmt-list state stmts = case stmts of
 				return (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) continued)
 				end
                               else do
-				update @{tmpass=20};
 				cleaned_state <- emit-all-required-computations-from-state (lval-is-overlapping-but-not-equal-or-rvals-are-overlapping) (lval-is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
 				# substitute all expressions with definitions from the state
  				new-stmt <- substitute-stmt-with-state-definitions cleaned_state.state s.hd;
@@ -288,7 +286,7 @@ val mktemp-var = do
   o <- query $tmpass;
   o' <- return (o + 1);
   update @{tmpass=o'};
-  return {id=VIRT_T o,offset=0}
+  return {id=VIRT_O o,offset=0}
 end
 
 # when the subst linear's lval overlaps with the location of the given var, the linear is removed from the state and emitted as an statement
