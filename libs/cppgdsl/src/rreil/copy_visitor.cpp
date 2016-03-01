@@ -157,8 +157,8 @@ void gdsl::rreil::copy_visitor::visit(prim *a) {
     var->accept(*this);
     rhs.push_back(_variable_limited);
   }
-  if(prim_ctor != NULL) _statement = prim_ctor(a->get_op(), a->get_lhs(), a->get_rhs());
-  else _statement = new prim(a->get_op(), a->get_lhs(), a->get_rhs());
+  if(prim_ctor != NULL) _statement = prim_ctor(a->get_op(), lhs, rhs);
+  else _statement = new prim(a->get_op(), lhs, rhs);
 }
 
 void gdsl::rreil::copy_visitor::visit(arbitrary *a) {
