@@ -33,7 +33,6 @@ public:
     return opnd;
   }
 
-  std::string to_string();
   void accept(linear_visitor &v);
 };
 
