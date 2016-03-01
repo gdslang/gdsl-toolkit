@@ -555,6 +555,7 @@ val traverse f insn = case insn of
  | RSQRTSS a: f "RSQRTSS" (UA2 a)
  | SAHF: f "SAHF" UA0
  | SAL a: f "SAL" (UA2 a)
+ | SALC: f "SALC" UA0
  | SAR a: f "SAR" (UA2 a)
  | SBB a: f "SBB" (UA2 a)
  | SCASB: f "SCASB" UA0

@@ -2289,6 +2289,15 @@ val sem-sahf x = do
   emit-virt-flags
 end
 
+val sem-salc x = do
+  al <- return (semantic-register-of AL);
+  cf <- fCF;
+  _if (/eq 1 (var cf) (imm 0)) _then
+      mov al.size al (imm 0)
+      _else
+      mov al.size al (imm 0xff)
+end
+
 val sem-sal-shl x = do
   sz <- sizeof1 x.opnd1;
   dst <- lval sz x.opnd1;

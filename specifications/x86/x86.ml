@@ -1299,6 +1299,7 @@ type x86-insn =
  | RSQRTSS of arity2
  | SAHF
  | SAL of arity2
+ | SALC 
  | SAR of arity2
  | SBB of arity2
  | SCASB
@@ -5536,6 +5537,10 @@ val /vex/f3/0f/vexv [0x52 /r] = varity3 avx VRSQRTSS xmm128 v/xmm xmm/m32
 ###  - Store AH into Flags
 val / [0x9e] = arity0 none SAHF
 
+### SALC
+### Undocumented Opcode.
+val / [0xd6] = arity0 none SALC               
+                      
 ### SAL/SAR/SHL/SHR
 ### - Shift
 #### SAL/SHL
