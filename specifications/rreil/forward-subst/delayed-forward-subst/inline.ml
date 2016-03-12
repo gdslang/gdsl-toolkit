@@ -27,8 +27,8 @@
 # IDEA:	1) if the lvals are equal, they can be easily updated/replaced and thus, the code optimized. So they are kept in state.
 # 	2) if the lvals are not overlapping, they can be simply kept in state.
 #	3) if the lvals are overlapping, updating would get complex, so they are emitted from the state and the new linear just added. This means: no optimization for this case right now
-# STEP TWO: dump all linears from the state whose lval location is overlapping but not the same as the RVALs of the assignment 
-# IDEA:	1) if an lval is equal, it can be easily substituted into the right hand side of the statement and thus, the code optimized. So they are kept in state.
+# STEP TWO: dump all linears from the state whose lval location is overlapping but not a superset of the RVALs of the assignment 
+# IDEA:	1) if an lval is a superset, it can be easily substituted into the right hand side of the statement and thus, the code optimized. So they are kept in state.
 # 	2) if an lval is not overlapping, it can simply be kept in state.
 #	3) if an lval is overlapping, substitution would get complex, but they cannot be kept in state => emitting from state. This means: no optimization right now
 # STEP THREE: substitute the rvalues in the linear assignment with linears (definitions) from the state. (At this point there should not be any overlapping values => trivial substitution)
@@ -38,8 +38,8 @@
 # STEP ONE: dump all linears from the state whose right hand side accesses the lval of the assignment or load
 # IDEA:	1) if rhs overlaps, this linear must be emitted from the state, since a value of its rhs changes.
 # IDEA: 2) if rhs doesn't overlap, this linear can be kept in state, since it's not dependant on the overwritten variable.
-# STEP TWO: dump all linears from the state whose lval location is overlapping but not the same as the RVALs of the assignment 
-# IDEA:	1) if an lval is equal, it can be easily substituted into the right hand side of the statement and thus, the code optimized. So they are kept in state.
+# STEP TWO: dump all linears from the state whose lval location is overlapping but a superset of the RVALs of the assignment 
+# IDEA:	1) if an lval is a superset, it can be easily substituted into the right hand side of the statement and thus, the code optimized. So they are kept in state.
 # 	2) if an lval is not overlapping, it can simply be kept in state.
 #	3) if an lval is overlapping, substitution would get complex, but they cannot be kept in state => emitting from state. This means: no optimization right now
 # STEP THREE: substitute the rvalues in the statement with linears (definitions) from the state. (At this point there should not be any overlapping values => trivial substitution)
@@ -72,7 +72,7 @@ val delayed-fsubst-stmt-list-initial stmts = do
 val delayed-substitute-stmt-list state stmts = case stmts of
 		SEM_CONS s : if is-linear-assignment s.hd then do
 				# emit all colliding (overlapping but not equal locations from the state)
-				cleaned_state <- emit-all-required-computations-from-state (lval-is-overlapping-but-not-equal) (lval-is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				cleaned_state <- emit-all-required-computations-from-state (lval-is-overlapping-but-not-equal) (lval-is-overlapping-but-no-superset) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
 				# replace the statement's expression with definitions from the state
  				new-stmt <- substitute-stmt-with-state-definitions cleaned_state.state s.hd;
 				# push the new statement to the state
@@ -80,7 +80,7 @@ val delayed-substitute-stmt-list state stmts = case stmts of
 				println (show-substmap cleaned_state.state);		
 				new-state <- update-state-with-statement cleaned_state.state new-stmt;
 
-				println ("< rem stmt: " +++ (rreil-show-stmt s.hd) +++ "   substituted to   " +++ (rreil-show-stmt new-stmt));
+				println ("< rem stmt: " +++ (rreil-show-stmt s.hd) +++ "   substitutedXXX to   " +++ (rreil-show-stmt new-stmt));
 				println " > emitted stmts:";
 				println (rreil-show-stmts cleaned_state.temp);
 				println (rreil-show-stmts cleaned_state.assign);
@@ -93,7 +93,7 @@ val delayed-substitute-stmt-list state stmts = case stmts of
 				return (append-stmt-list (append-stmt-list cleaned_state.temp cleaned_state.assign) continued)
 				end
                               else do
-				cleaned_state <- emit-all-required-computations-from-state (lval-is-overlapping-but-not-equal-or-rvals-are-overlapping) (lval-is-overlapping-but-not-equal) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
+				cleaned_state <- emit-all-required-computations-from-state (lval-is-overlapping-but-not-equal-or-rvals-are-overlapping) (lval-is-overlapping-but-no-superset) s.hd {temp=SEM_NIL, assign=SEM_NIL, state=state};
 				# substitute all expressions with definitions from the state
  				new-stmt <- substitute-stmt-with-state-definitions cleaned_state.state s.hd;
 				# remove lval from state since it's overwritten
@@ -180,6 +180,9 @@ val emit-all-accesses-in-stmt-list-from-state stmt-list emitted-stmts =
   | SEM_NIL : return emitted-stmts
  end
 
+
+# CRITERION: checks if this subst linears lvalue overlaps but is no superset of the given var
+val lval-is-overlapping-but-no-superset lin var-id var-offset size = (id-eq? lin.id var-id) and ((lin.offset > var-offset) or (lin.offset + lin.size < var-offset + size)) and ((lin.offset + lin.size > var-offset) and (var-offset + size > lin.offset))
 
 # CRITERION: checks if this subst linears lvalue overlaps but not equals the given var
 val lval-is-overlapping-but-not-equal lin var-id var-offset size = (id-eq? lin.id var-id) and ((not (lin.offset === var-offset)) or (not (lin.size === size))) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size))
