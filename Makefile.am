@@ -262,12 +262,11 @@ GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/rreil-translator.ml \
 	$(srcdir)/specifications/rreil/forward-subst/delayed-forward-subst/inline.ml \
 	$(srcdir)/specifications/rreil/forward-subst/delayed-forward-subst/substitute.ml \
+	$(srcdir)/specifications/rreil/forward-subst/delayed-forward-subst/substmap.ml \
 	$(srcdir)/specifications/rreil/forward-subst/forward-subst/inline.ml \
 	$(srcdir)/specifications/rreil/forward-subst/forward-subst/substitute.ml \
-	$(srcdir)/specifications/rreil/forward-subst/delayed-forward-subst/substmap.ml \
-	$(srcdir)/specifications/rreil/forward-subst/substitute.ml \
-	$(srcdir)/specifications/rreil/forward-subst/substmap.ml \
-	$(srcdir)/specifications/rreil/forward-subst/simplify-expressions.ml
+	$(srcdir)/specifications/rreil/forward-subst/forward-subst/substmap.ml \
+	$(srcdir)/specifications/rreil/forward-subst/forward-subst/simplify-expressions.ml
 
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
