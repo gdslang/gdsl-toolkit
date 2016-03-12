@@ -1,2 +1,0 @@
-
-val petti = 5

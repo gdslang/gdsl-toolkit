@@ -1,2 +1,0 @@
-
-val roddi = 5

@@ -192,20 +192,3 @@ val df-substmap-update-linear state offset size var-id sexpr =
            then df-substmap-update-linear l.cont offset size var-id sexpr
            else SUBSTMAP_LINEAR {offset=l.offset, size=l.size, id=l.id, rhs=l.rhs, cont=(df-substmap-update-linear l.cont offset size var-id sexpr)}  
    end
-
-
-val id-eq? id1 id2 =
- case id1 of
-    VIRT_T v1 :
-       case id2 of
-          VIRT_T v2 : v1 === v2
-        | _ : '0'
-       end 
-  | VIRT_O v1 :
-       case id2 of
-          VIRT_O v2 : v1 === v2
-        | _ : '0'
-       end 
-  | _ : index id1 === index id2
- end
-
