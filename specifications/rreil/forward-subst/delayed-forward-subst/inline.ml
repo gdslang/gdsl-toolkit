@@ -62,7 +62,7 @@ val delayed-fsubst-propagate-values stmts = do update @{tmpass=0}; delayed-fsubs
 
 
 val delayed-fsubst-stmt-list-initial stmts = do
-	l <- delayed-substitute-stmt-list substmap-initial stmts;
+	l <- delayed-substitute-stmt-list df-substmap-initial stmts;
 	println "==========================";
 	println (rreil-show-stmts stmts);
 	println "--------------------------";
@@ -77,7 +77,7 @@ val delayed-substitute-stmt-list state stmts = case stmts of
  				new-stmt <- substitute-stmt-with-state-definitions cleaned_state.state s.hd;
 				# push the new statement to the state
 				println "< current state:";
-				println (show-substmap cleaned_state.state);		
+				println (df-show-substmap cleaned_state.state);		
 				new-state <- update-state-with-statement cleaned_state.state new-stmt;
 
 				println ("< rem stmt: " +++ (rreil-show-stmt s.hd) +++ "   substitutedXXX to   " +++ (rreil-show-stmt new-stmt));
@@ -85,7 +85,7 @@ val delayed-substitute-stmt-list state stmts = case stmts of
 				println (rreil-show-stmts cleaned_state.temp);
 				println (rreil-show-stmts cleaned_state.assign);
 				println "< new state:";
-				println (show-substmap new-state);		
+				println (df-show-substmap new-state);		
 				println ".......................";
 
 				# concatenate the emitted statements list with the recursive optimized list
@@ -104,7 +104,7 @@ val delayed-substitute-stmt-list state stmts = case stmts of
 				println (rreil-show-stmts cleaned_state.temp);
 				println (rreil-show-stmts cleaned_state.assign);
 				println " > new state:";
-				println (show-substmap new-state);			
+				println (df-show-substmap new-state);			
 				println ".......................";
 
 				
@@ -145,16 +145,16 @@ val update-state-with-statement state stmt =
  case stmt of
     SEM_ASSIGN s :
        case s.rhs of
-          SEM_SEXPR sexpr : return (substmap-update-linear state s.lhs.offset s.size s.lhs.id (simplify-sem-sexpr sexpr))
+          SEM_SEXPR sexpr : return (df-substmap-update-linear state s.lhs.offset s.size s.lhs.id (simplify-sem-sexpr sexpr))
        end
  end
 
 # removes (in case there is one) existing definition from the state
 val remove-overwritten-definition-from-state state stmt = 
  case stmt of
-    SEM_ASSIGN s : return (substmap-remove-linear state s.lhs.offset s.size s.lhs.id)
-  | SEM_LOAD s : return (substmap-remove-linear state s.lhs.offset s.size s.lhs.id)
-  | SEM_FLOP s : return (substmap-remove-linear state s.lhs.offset s.lhs.size s.lhs.id)
+    SEM_ASSIGN s : return (df-substmap-remove-linear state s.lhs.offset s.size s.lhs.id)
+  | SEM_LOAD s : return (df-substmap-remove-linear state s.lhs.offset s.size s.lhs.id)
+  | SEM_FLOP s : return (df-substmap-remove-linear state s.lhs.offset s.lhs.size s.lhs.id)
   | SEM_PRIM s : remove-overwritten-varl-list-from-state state s.lhs 
   | _ : return state
  end
@@ -163,12 +163,12 @@ val remove-overwritten-definition-from-state state stmt =
 val remove-overwritten-varl-list-from-state state list = 
  case list of
     SEM_VARLS_NIL : return state
-  | SEM_VARLS_CONS v : remove-overwritten-varl-list-from-state (substmap-remove-linear state v.hd.offset v.hd.size v.hd.id) v.tl
+  | SEM_VARLS_CONS v : remove-overwritten-varl-list-from-state (df-substmap-remove-linear state v.hd.offset v.hd.size v.hd.id) v.tl
  end
     
 
 # return tuple for an optimization step; the emitted statements and the new state
-type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:subst-map}
+type emitted-stmts-list = {temp:sem_stmt_list, assign:sem_stmt_list, state:df-subst-map}
 
 # emits every location from the state that is accessed in any way
 val emit-all-accesses-in-stmt-list-from-state stmt-list emitted-stmts = 
@@ -191,13 +191,13 @@ val lval-is-overlapping-but-not-equal lin var-id var-offset size = (id-eq? lin.i
 val lval-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size))
 
 # CRITERION: checks if this subst linears rvalues access any bit of the given var
-val lval-is-overlapping-but-not-equal-or-rvals-are-overlapping lin var-id var-offset size = (lval-is-overlapping-but-not-equal lin var-id var-offset size) or (sexpr-uses-location var-offset size var-id size lin.rhs)
+val lval-is-overlapping-but-not-equal-or-rvals-are-overlapping lin var-id var-offset size = (lval-is-overlapping-but-not-equal lin var-id var-offset size) or (df-sexpr-uses-location var-offset size var-id size lin.rhs)
 
 # CRITERION: checks if this subst linear accesses any bit of the given var
-val anything-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size)) or (sexpr-uses-location var-offset size var-id size lin.rhs)
+val anything-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size)) or (df-sexpr-uses-location var-offset size var-id size lin.rhs)
 
 # CRITERION: checks if this subst linear accesses anything from of the given location id
-val id-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) or (sexpr-uses-id var-id lin.rhs)
+val id-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) or (df-sexpr-uses-id var-id lin.rhs)
 
 
 # emit everything from the state that cannot be simply substituted in the given stmt
@@ -242,25 +242,23 @@ val emit-all-required-computations-from-state criterion-lhs criterion-rhs stmt e
 # emits all remaining subst-linears from the state as stmts
 val emit-whole-state emitted-stmts = 
  case emitted-stmts.state of
-    Substmap-empty : return emitted-stmts
-  | Substmap-bind-linear linear: do
+    SUBSTMAP_EMPTY : return emitted-stmts
+  | SUBSTMAP_LINEAR linear: do
 	tempvar <- mktemp-var;
 	temp_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
 	real_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs={id=linear.id, offset=linear.offset}, rhs=(SEM_SEXPR (SEM_SEXPR_LIN (SEM_LIN_VAR tempvar)))}), tl=emitted-stmts.assign});
 	emit-whole-state {temp=temp_assignment, assign=real_assignment, state=linear.cont}
     end
-  | Substmap-mark-overwritten x : emit-whole-state {temp=emitted-stmts.temp, assign=emitted-stmts.assign, state=x.cont}
  end
 
 # dump all linears whose lval/rvals overlap (based on the criterion) with the given var
 val emit-var-from-state criterion state var size emitted-stmts =
  case state of
-    Substmap-empty : return emitted-stmts
-  | Substmap-bind-linear x : do
+    SUBSTMAP_EMPTY : return emitted-stmts
+  | SUBSTMAP_LINEAR x : do
 	result <- emit-subst-linear-from-state-as-stmt criterion x var size emitted-stmts;
 	emit-var-from-state criterion x.cont var size result
     end
-  | Substmap-mark-overwritten x : emit-var-from-state criterion x.cont var size emitted-stmts
  end
 
 val emit-all-vars-of-varl-list criterion list emitted-stmts = 
@@ -275,12 +273,11 @@ val emit-all-vars-of-varl-list criterion list emitted-stmts =
 # emit everything that uses this location id
 val emit-id-from-state state var emitted-stmts =
  case state of
-    Substmap-empty : return emitted-stmts
-  | Substmap-bind-linear x : do
+    SUBSTMAP_EMPTY : return emitted-stmts
+  | SUBSTMAP_LINEAR x : do
 	result <- emit-subst-linear-from-state-as-stmt (id-is-overlapping) x var 1 emitted-stmts;
 	emit-id-from-state x.cont var result
     end
-  | Substmap-mark-overwritten x : emit-id-from-state x.cont var emitted-stmts
  end
 
 
@@ -300,11 +297,11 @@ val emit-subst-linear-from-state-as-stmt criterion linear var size emitted-stmts
 		temp_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
 		real_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs={id=linear.id, offset=linear.offset}, rhs=(SEM_SEXPR (SEM_SEXPR_LIN (SEM_LIN_VAR tempvar)))}), tl=emitted-stmts.assign});
 			println ("  >> state first: " +++ rreil-show-id var.id);
-			println (show-substmap emitted-stmts.state);			
+			println (df-show-substmap emitted-stmts.state);			
 			println "  >> and then:";
-			println (show-substmap (substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id));
+			println (df-show-substmap (df-substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id));
 
-		upd-state <- return {temp=temp_assignment, assign=real_assignment, state=(substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id)};
+		upd-state <- return {temp=temp_assignment, assign=real_assignment, state=(df-substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id)};
 		# emit also all linears that use this expression; otherwise their values will be incorrect
 		emit-all-definitions-that-use-this-var upd-state.state var linear.size upd-state 
 	   end
@@ -312,16 +309,15 @@ val emit-subst-linear-from-state-as-stmt criterion linear var size emitted-stmts
 
 val emit-all-definitions-that-use-this-var state var size emitted-stmts = 
  case state of
-    Substmap-empty : return emitted-stmts
-  | Substmap-bind-linear x : do
-	if (sexpr-uses-location var.offset size var.id size x.rhs)
+    SUBSTMAP_EMPTY : return emitted-stmts
+  | SUBSTMAP_LINEAR x : do
+	if (df-sexpr-uses-location var.offset size var.id size x.rhs)
 	   then do # dump this linear
 		result <- emit-var-from-state (anything-is-overlapping) emitted-stmts.state {id=x.id, offset=x.offset} size emitted-stmts;
 		emit-all-definitions-that-use-this-var x.cont var size result
 	   end
            else emit-all-definitions-that-use-this-var x.cont var size emitted-stmts
     end
-  | Substmap-mark-overwritten x : emit-all-definitions-that-use-this-var x.cont var size emitted-stmts
  end
 
 
