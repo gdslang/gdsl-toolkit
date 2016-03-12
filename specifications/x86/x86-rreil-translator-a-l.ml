@@ -47,17 +47,6 @@ end
 #  write sz a (var t)
 #end
 
-val sem-addeliho x = do
-  sz <- sizeof2 x.opnd1 x.opnd2;
-  a <- lval sz x.opnd1;
-  b <- rval sz x.opnd1;
-  c <- rvals Signed sz x.opnd2;
-  t <- mktemp;
-  add sz t b c;
-  emit-add-adc-flags sz (var t) b c (imm 0) '1';
-  write sz a (var t)
-end
-
 val sem-add x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- lval sz x.opnd1;
@@ -65,8 +54,7 @@ val sem-add x = do
   c <- rvals Signed sz x.opnd2;
   t <- mktemp;
   add sz t b c;
-  t3 <- mktemp;
-  mov sz t3 (var t);
+  emit-add-adc-flags sz (var t) b c (imm 0) '1';
   write sz a (var t)
 end
 

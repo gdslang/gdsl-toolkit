@@ -180,21 +180,24 @@ val emit-all-accesses-in-stmt-list-from-state stmt-list emitted-stmts =
   | SEM_NIL : return emitted-stmts
  end
 
+val integer-max a b = if a > b then a else b
+val integer-min a b = if a < b then a else b
+val intervals-intersect a-offset a-size b-offset b-size = if ((integer-max a-offset b-offset) <= (integer-min (a-offset + a-size) (b-offset + b-size))) then '1' else '0'
 
 # CRITERION: checks if this subst linears lvalue overlaps but is no superset of the given var
 val lval-is-overlapping-but-no-superset lin var-id var-offset size = (id-eq? lin.id var-id) and ((lin.offset > var-offset) or (lin.offset + lin.size < var-offset + size)) and ((lin.offset + lin.size > var-offset) and (var-offset + size > lin.offset))
 
 # CRITERION: checks if this subst linears lvalue overlaps but not equals the given var
-val lval-is-overlapping-but-not-equal lin var-id var-offset size = (id-eq? lin.id var-id) and ((not (lin.offset === var-offset)) or (not (lin.size === size))) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size))
+val lval-is-overlapping-but-not-equal lin var-id var-offset size = (id-eq? lin.id var-id) and ((not (lin.offset === var-offset)) or (not (lin.size === size))) and (intervals-intersect lin.offset lin.offset var-offset size)
 
 # CRITERION: checks if this subst linears lvalue overlaps the given var
-val lval-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size))
+val lval-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) and (intervals-intersect lin.offset lin.size var-offset size)
 
 # CRITERION: checks if this subst linears rvalues access any bit of the given var
 val lval-is-overlapping-but-not-equal-or-rvals-are-overlapping lin var-id var-offset size = (lval-is-overlapping-but-not-equal lin var-id var-offset size) or (df-sexpr-uses-location var-offset size var-id size lin.rhs)
 
 # CRITERION: checks if this subst linear accesses any bit of the given var
-val anything-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) and ((lin.offset + lin.size > var-offset) or (lin.offset < var-offset + size)) or (df-sexpr-uses-location var-offset size var-id size lin.rhs)
+val anything-is-overlapping lin var-id var-offset size = ((id-eq? lin.id var-id) and (intervals-intersect lin.offset lin.size var-offset size)) or (df-sexpr-uses-location var-offset size var-id size lin.rhs)
 
 # CRITERION: checks if this subst linear accesses anything from of the given location id
 val id-is-overlapping lin var-id var-offset size = (id-eq? lin.id var-id) or (df-sexpr-uses-id var-id lin.rhs)
@@ -297,6 +300,14 @@ val emit-subst-linear-from-state-as-stmt criterion linear var size emitted-stmts
 		temp_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs=tempvar, rhs=(SEM_SEXPR linear.rhs)}), tl=emitted-stmts.temp});
 		real_assignment <- return (SEM_CONS {hd=(SEM_ASSIGN {size=linear.size, lhs={id=linear.id, offset=linear.offset}, rhs=(SEM_SEXPR (SEM_SEXPR_LIN (SEM_LIN_VAR tempvar)))}), tl=emitted-stmts.assign});
 			println ("  >> state first: " +++ rreil-show-id var.id);
+
+#			println (" 1) " +++ (if (lval-is-overlapping-but-no-superset linear var.id var.offset size) then "Y" else "N"));
+#			println (" 2) " +++ (if (lval-is-overlapping-but-not-equal-or-rvals-are-overlapping linear var.id var.offset size) then "Y" else "N"));
+#			println (" 3) " +++ (if (anything-is-overlapping linear var.id var.offset size) then "Y" else "N"));
+#			println (" 4) " +++ (if (id-is-overlapping linear var.id var.offset size) then "Y" else "N"));
+#			println (" 5) " +++ (if (partaa linear var.id var.offset size) then "Y" else "N"));
+#			println (" 6) " +++ (if (partbb linear var.id var.offset size) then "Y" else "N"));
+
 			println (df-show-substmap emitted-stmts.state);			
 			println "  >> and then:";
 			println (df-show-substmap (df-substmap-remove-linear emitted-stmts.state linear.offset linear.size linear.id));
