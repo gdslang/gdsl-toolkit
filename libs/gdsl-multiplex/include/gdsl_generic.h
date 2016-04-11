@@ -113,6 +113,7 @@ typedef unboxed_sem_flop_callbacks_t* sem_flop_callbacks_t;
 typedef struct {
   obj_t (*arch)(state_t,string_t);
   obj_t (*shared)(state_t,int_t);
+  obj_t (*virt_o)(state_t,int_t);
   obj_t (*virt_t)(state_t,int_t);
 } unboxed_sem_id_callbacks_t;
 typedef unboxed_sem_id_callbacks_t* sem_id_callbacks_t;

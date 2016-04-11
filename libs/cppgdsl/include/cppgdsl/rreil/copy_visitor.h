@@ -51,7 +51,7 @@ private:
 
   std::function<id*(std::string)> arch_id_ctor = NULL;
   std::function<id*(shared_id_type)> shared_id_ctor = NULL;
-  std::function<id*(int_t)> _virtual_ctor = NULL;
+  std::function<id*(int_t, bool)> _virtual_ctor = NULL;
 
   std::function<linear*(binop_lin_op, linear*, linear*)> lin_binop_ctor = NULL;
   std::function<linear*(int_t)> lin_imm_ctor = NULL;
@@ -207,7 +207,7 @@ public:
   void _(std::function<id*(shared_id_type)> c) {
     this->shared_id_ctor = c;
   }
-  void _(std::function<id*(int_t)> c) {
+  void _(std::function<id*(int_t, bool)> c) {
     this->_virtual_ctor = c;
   }
 

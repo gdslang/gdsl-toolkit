@@ -220,8 +220,8 @@ void gdsl::rreil::copy_visitor::visit(shared_id *a) {
 }
 
 void gdsl::rreil::copy_visitor::visit(_virtual *a) {
-  if(_virtual_ctor != NULL) _id = _virtual_ctor(a->get_t());
-  else _id = new _virtual(a->get_t());
+  if(_virtual_ctor != NULL) _id = _virtual_ctor(a->get_t(), a->get_opt());
+  else _id = new _virtual(a->get_t(), a->get_opt());
 }
 
 void gdsl::rreil::copy_visitor::visit(expr_binop *a) {

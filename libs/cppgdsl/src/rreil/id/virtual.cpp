@@ -11,13 +11,14 @@
 using namespace gdsl::rreil;
 
 void gdsl::rreil::_virtual::put(std::ostream &out) {
-  out << "t" << t;
+  out << (opt ? "o" : "t") << t;
 }
 
 size_t gdsl::rreil::_virtual::subclass_counter = id::subclass_counter++;
 
-_virtual::_virtual(int_t t) {
+_virtual::_virtual(int_t t, bool opt) {
   this->t = t;
+  this->opt = opt;
 }
 
 size_t gdsl::rreil::_virtual::get_subclass_counter() const {
@@ -26,6 +27,10 @@ size_t gdsl::rreil::_virtual::get_subclass_counter() const {
 
 int_t _virtual::get_t() {
   return this->t;
+}
+
+bool _virtual::get_opt() {
+  return this->opt;
 }
 
 bool gdsl::rreil::_virtual::operator==(id &other) const {
@@ -41,7 +46,11 @@ bool gdsl::rreil::_virtual::operator<(const id &other) const {
   size_t scc_other = other.get_subclass_counter();
   if(scc_me == scc_other) {
     _virtual const &other_casted = dynamic_cast<_virtual const &>(other);
-    return t < other_casted.t;
+    if(opt && !other_casted.opt)
+      return true;
+    else if(!opt && other_casted.opt)
+      return false;
+    else return t < other_casted.t;
   } else
     return scc_me < scc_other;
 }

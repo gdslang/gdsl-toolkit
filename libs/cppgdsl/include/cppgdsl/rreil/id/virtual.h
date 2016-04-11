@@ -15,15 +15,17 @@ namespace rreil {
 class _virtual : public id {
 private:
   int_t t;
+  bool opt;
 
   void put(std::ostream &out);
 
   static size_t subclass_counter;
 public:
-  _virtual(int_t t);
+  _virtual(int_t t, bool opt);
 
   size_t get_subclass_counter() const;
   int_t get_t();
+  bool get_opt();
 
   bool operator== (id &other) const;
   bool operator<(id const& other) const;

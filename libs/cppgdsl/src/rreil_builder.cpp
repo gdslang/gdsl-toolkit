@@ -72,7 +72,12 @@ static obj_t _shared(state_t state, int_t con) {
 
 static obj_t virt_t(state_t state, int_t t) {
   using namespace gdsl::rreil;
-  return new _virtual(t);
+  return new _virtual(t, false);
+}
+
+static obj_t virt_o(state_t state, int_t t) {
+  using namespace gdsl::rreil;
+  return new _virtual(t, true);
 }
 
 obj_t sem_id_arch(state_t state, string_t id_str) {
@@ -397,7 +402,7 @@ static obj_t sem_stmts_init(state_t state) {
 
 callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
   unboxed_sem_id_callbacks_t sem_id_callbacks = {&sem_id_arch, &_shared,
-                                                 &virt_t};
+                                                 &virt_o, &virt_t};
 
   unboxed_sem_exception_callbacks_t sem_exception_callbacks = {
       &exception_arch, &exception_shared};
