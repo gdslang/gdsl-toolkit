@@ -1,10 +1,10 @@
 
 
+
 # substitute defs of state in right hand side of stmt
 #
 # SEM_WHILE and SEM_ITE use the top-level function for a rough approximation
 #
-export subst-stmt-m : (subst-map, sem_stmt) -> S sem_stmt <{} => {}>
 val subst-stmt-m state stmt = case stmt of
 	SEM_ASSIGN s  : return (SEM_ASSIGN{lhs=s.lhs, size=s.size, rhs = subst-expr state s.size s.rhs})
   | SEM_LOAD   s  : return (SEM_LOAD {size=s.size, lhs=s.lhs, address= subst-address state s.address})
@@ -55,14 +55,13 @@ val subst-stmt-m state stmt = case stmt of
   | SEM_THROW  e  : return (SEM_THROW e)
 	end
 
-export subst-cond : (subst-map, sem_sexpr) -> S maybe-sexpr <{} => {}>
+
 val subst-cond state c = case c of
     SEM_SEXPR_LIN linear : return (subst-linear-to-cond state linear)
   | SEM_SEXPR_CMP s      : return (Just-sexpr (SEM_SEXPR_CMP {size=s.size, cmp=subst-expr-cmp state s.size s.cmp}))
   | SEM_SEXPR_ARB        : return (Just-sexpr c)
 	end
 
-export subst-linear-to-cond: (subst-map, sem_linear) -> maybe-sexpr
 val subst-linear-to-cond state linear =
 	case linear of
     SEM_LIN_VAR var : substmap-lookup-var-to-cond state var.offset var.id
@@ -89,7 +88,6 @@ val subst-linear-to-cond state linear =
 #	end
 #	end
 
-export subst-expr : (subst-map, int, sem_expr) -> sem_expr
 val subst-expr state size expr = case expr of
     SEM_SEXPR sexpr : SEM_SEXPR (subst-sexpr state size sexpr)
   | SEM_MUL  s  : SEM_MUL  (subst-arity2 state size s)
@@ -109,7 +107,6 @@ val subst-expr state size expr = case expr of
 
 
 
-export subst-sexpr: (subst-map, int, sem_sexpr) -> sem_sexpr
 val subst-sexpr state size sexpr = case sexpr of
     SEM_SEXPR_LIN linear : subst-linear-to-sexpr state size linear
   | SEM_SEXPR_CMP s      : SEM_SEXPR_CMP {size=s.size, cmp=subst-expr-cmp state s.size s.cmp}
@@ -117,11 +114,9 @@ val subst-sexpr state size sexpr = case sexpr of
 	end
 
 
-export subst-address: (subst-map, sem_address) -> sem_address
 val subst-address state s = {size=s.size, address= subst-linear state s.size s.address}
 
 
-export subst-expr-cmp: (subst-map, int, sem_expr_cmp) -> sem_expr_cmp
 val subst-expr-cmp state size cmp = case cmp of
     SEM_CMPEQ s  : SEM_CMPEQ  (subst-arity2 state size s)
   | SEM_CMPNEQ s : SEM_CMPNEQ (subst-arity2 state size s)
@@ -132,11 +127,9 @@ val subst-expr-cmp state size cmp = case cmp of
 	end
 
 
-export subst-arity2: (subst-map, int, sem_arity2) -> sem_arity2
 val subst-arity2 state size s = {opnd1= subst-linear state size s.opnd1, opnd2= subst-linear state size s.opnd2 }
 
 
-export subst-linear-to-sexpr: (subst-map, int, sem_linear) -> sem_sexpr
 val subst-linear-to-sexpr state size linear = case linear of
     SEM_LIN_VAR var : subst-var-to-sexpr state size var
   | SEM_LIN_IMM s   : SEM_SEXPR_LIN linear
@@ -145,7 +138,6 @@ val subst-linear-to-sexpr state size linear = case linear of
   | SEM_LIN_SCALE s : SEM_SEXPR_LIN (SEM_LIN_SCALE {const=s.const, opnd=subst-linear state size s.opnd})
 	end
 
-export subst-linear: (subst-map, int, sem_linear) -> sem_linear
 val subst-linear state size linear = case linear of
     SEM_LIN_VAR var : subst-var-to-lin state size var
   | SEM_LIN_IMM s   : linear
@@ -155,23 +147,19 @@ val subst-linear state size linear = case linear of
 	end
 
 
-export subst-varl-list: (subst-map, sem_varl_list) -> sem_varl_list
 val subst-varl-list state varlist = case varlist of
     SEM_VARLS_CONS s : SEM_VARLS_CONS {hd=subst-varl-to-varl state s.hd, tl=subst-varl-list state s.tl}
   | SEM_VARLS_NIL    : varlist
     end
 
 
-export subst-varl-to-varl: (subst-map, sem_varl) -> sem_varl
 val subst-varl-to-varl state varl = case substmap-var-to-lin state varl.offset varl.size varl.id of
     SEM_LIN_VAR v : {id=v.id, offset=v.offset, size=varl.size}
   | _ : varl
 	end  
 
 
-export subst-var-to-sexpr: (subst-map, int, sem_var) -> sem_sexpr
 val subst-var-to-sexpr state size var = substmap-var-to-sexpr state var.offset size var.id 
 
-export subst-var-to-lin: (subst-map, int, sem_var) -> sem_linear
 val subst-var-to-lin state size var = substmap-var-to-lin state var.offset size var.id 
 

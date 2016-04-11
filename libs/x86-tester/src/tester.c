@@ -404,6 +404,54 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
   return result;
 }
 
+opt_result_t decodeAndTranslateBlock(state_t state, size_t data_size) {
+	if(setjmp(*gdsl_err_tgt(state))) return NULL;
+	//obj_t rreil_insns = gdsl_decode_translate_block(state, gdsl_config_default(state), data_size);
+	enum optimization_configuration opt_config;
+	opt_config = PRESERVATION_CONTEXT | OC_DELAYED_FSUBST;
+	opt_result_t opt_result = gdsl_decode_translate_block_optimized(state, gdsl_config_default(state), data_size, opt_config);
+	return opt_result;
+}
+
+struct tester_result tester_test_binary_block(void (*name)(char *), char fork_, uint8_t *data, size_t data_size,
+    char test_unused) {
+  struct tester_result result;
+  result.type = TESTER_RTYPE_SUCCESS;
+
+  state_t state = gdsl_init();
+  gdsl_set_code(state, data, data_size, 0);
+
+  opt_result_t insn = decodeAndTranslateBlock(state, data_size);
+  if (!insn) {
+    printf("Decode/Translate failed\n");
+    fflush(stderr);
+    fflush(stdout);
+    result.type = TESTER_RTYPE_DECODING_ERROR;
+    goto cu;
+  }
+
+  printf("Initial RREIL instructions:\n");
+  string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, insn->rreil));
+
+  puts(fmt);
+  fflush(stdout);
+
+  callbacks_t callbacks = rreil_gdrr_builder_callbacks_get(state);
+  struct rreil_statements *statements = (struct rreil_statements*)gdsl_rreil_convert_sem_stmt_list(state, callbacks,
+      insn->rreil);
+  free(callbacks);
+
+  result = tester_forked_test_translated(fork_, statements, data, data_size, test_unused);
+
+  rreil_statements_free(statements);
+
+  cu: ;
+
+  gdsl_destroy(state);
+
+  return result;
+}
+
 void tester_result_type_print(enum tester_result_type result_type) {
   switch(result_type) {
     case TESTER_RTYPE_SUCCESS: {

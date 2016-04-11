@@ -12,14 +12,14 @@ GDSL_MEX=_manual
 GDSL_COMP=$(GDSL)$(GDSL_MEX)
 GDSL_EXEC=$(GDSL)c
 GPREFIX=
-GDSLFLAGS=
+GDSLFLAGS=--maxIter=45
 
 GDSL_BASIS_HL=specifications/basis/prelude.ml specifications/basis/bbtree.ml
 #GDSL_RREIL_EMIT_HL=specifications/rreil/rreil-emit.ml specifications/rreil/rreil-examples.ml specifications/rreil/rreil-cif.ml specifications/rreil/rreil-pretty.ml specifications/rreil/fmap.ml
 #GDSL_RREIL_DECL_HL=specifications/rreil/rreil-decl.ml
 GDSL_ASM_HL=specifications/asm/asm.ml specifications/asm/asm-pretty.ml specifications/asm/asm-cif.ml
 GDSL_RREIL_HL=specifications/rreil/rreil.ml specifications/rreil/rreil-examples.ml specifications/rreil/rreil-cif.ml specifications/rreil/rreil-pretty.ml specifications/rreil/fmap.ml specifications/rreil/rreil-opt.ml specifications/rreil/rreil-translator.ml
-GDSL_OPT_HL=specifications/rreil/rreil-liveness.ml specifications/rreil/rreil-forward-subst.ml specifications/rreil/forward-subst/inline.ml specifications/rreil/rreil-cleanup.ml specifications/rreil/forward-subst/substitute.ml specifications/rreil/forward-subst/substmap.ml specifications/rreil/forward-subst/simplify-expressions.ml
+GDSL_OPT_HL=specifications/rreil/rreil-liveness.ml specifications/rreil/rreil-forward-subst.ml specifications/rreil/forward-subst/delayed-forward-subst/inline.ml specifications/rreil/forward-subst/delayed-forward-subst/substitute.ml specifications/rreil/forward-subst/delayed-forward-subst/substmap.ml specifications/rreil/forward-subst/forward-subst/inline.ml specifications/rreil/forward-subst/forward-subst/substitute.ml specifications/rreil/forward-subst/forward-subst/substmap.ml specifications/rreil/forward-subst/forward-subst/simplify-expressions.ml specifications/rreil/rreil-cleanup.ml
 
 GDSL_MIPS_HL_R5=specifications/mips/mips_r5.ml specifications/mips/mips-pretty_r5.ml specifications/mips/mips-rreil-translator_r5.ml specifications/mips/mips-asm_r5.ml specifications/mips/mips-traverse_r5.ml
 GDSL_MIPS_HL_R6=specifications/mips/mips_r6.ml specifications/mips/mips-pretty_r6.ml specifications/mips/mips-rreil-translator_r6.ml specifications/mips/mips-asm_r6.ml specifications/mips/mips-traverse_r6.ml

@@ -4,6 +4,7 @@ export rreil-stmts-count : (sem_stmt_list) -> int
 type sem_id =
    FLOATING_FLAGS
  | VIRT_T of int
+ | VIRT_O of int
 
 val sizeof-id id = case id of
    FLOATING_FLAGS: 64
@@ -474,6 +475,7 @@ val rreil-ltid? a b =
       val ltf? a b =
          case b of
             VIRT_T x: '0'
+          | VIRT_O x: '0'
           | _ : index a < index b
          end
    in
@@ -481,6 +483,14 @@ val rreil-ltid? a b =
          VIRT_T x:
             case b of
                VIRT_T y: x < y
+             | VIRT_O y: '1'
+             | _ : '1'
+            end
+
+       | VIRT_O x:
+            case b of
+               VIRT_O y: x < y
+             | VIRT_T y: '0'
              | _ : '1'
             end
        | _: ltf? a b

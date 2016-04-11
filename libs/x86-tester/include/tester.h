@@ -42,6 +42,8 @@ extern struct tester_result tester_test_translated(
 		size_t instruction_length, char test_unused);
 extern struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 		uint8_t *data, size_t data_size, char test_unused);
+extern struct tester_result tester_test_binary_block(void (*name)(char *), char fork_,
+		uint8_t *data, size_t data_size, char test_unused);
 extern void tester_result_type_print(enum tester_result_type result);
 
 #endif /* TESTER_H_ */

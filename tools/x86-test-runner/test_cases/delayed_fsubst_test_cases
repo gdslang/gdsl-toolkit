@@ -1,0 +1,149 @@
+////////////////////
+//	LINEAR
+////////////
+
+//////
+// lvalue is not already in the state
+// rval is not overlapping
+mov eax, ebx
+add dx, cx
+
+// rval is equal
+mov ebx, 400
+add eax, ebx
+mov dx, cx
+xor ecx, ebx
+
+// rval is overlapping >
+mov ebx, 320
+add dx, bx
+mov eax, ebx
+
+// rval is overlapping <
+mov bx, 10
+add edx, ebx
+add eax, ebx
+
+
+//////
+// lvalue is in state
+
+// lval is not overlapping
+mov eax, 290
+add ebx, 200
+add eax, ecx
+
+xor ebx, ebx
+xor ebx, edx
+mov ebx, 300
+add eax, ecx
+
+// lval is equal
+mov eax, ecx
+add eax, ebx
+mov eax, 400
+
+xor ebx, ecx
+xor ebx, edx
+mov eax, ebx
+add eax, 400
+add eax, ecx
+add eax, eax
+add eax, 10
+
+// lval is overlapping >
+add eax, ebx
+add ax, bx
+add eax, ecx
+mov eax, ebx
+
+xor ebx, ecx
+xor ebx, edx
+add eax, ebx
+mov eax, 10
+add ax, bx
+
+// lval is overlapping <
+mov ax, bx
+add eax, ecx
+add ecx, edx
+
+add ebx, 300
+mov eax, 400
+add ax, bx
+
+
+////////////////////
+//	NON-LINEAR
+////////////
+
+//////
+// lvalue is not already in the state
+// rval is not overlapping
+xor eax, ebx
+xor ax, bx
+
+// rval is equal
+mov ebx, 400
+xor eax, ebx
+
+// rval is overlapping >
+mov ebx, 320
+xor dx, bx
+
+// rval is overlapping <
+add bx, 10
+xor eax, ebx
+
+//////
+// lvalue is in state
+
+// lval is not overlapping
+mov eax, 290
+add ebx, 200
+xor eax, ecx
+
+xor ebx, ebx
+xor ebx, edx
+add ebx, 300
+xor eax, ecx
+
+// lval is equal
+mov eax, ecx
+add eax, ebx
+xor eax, 400
+
+xor ebx, ecx
+xor ebx, edx
+mov eax, ebx
+add eax, 400
+add eax, ecx
+add eax, eax
+xor eax, 10
+
+// lval is overlapping >
+add eax, ebx
+xor ax, bx
+add eax, ecx
+xor eax, ebx
+
+xor ebx, ecx
+xor ebx, edx
+xor eax, ebx
+mov eax, 10
+xor ax, bx
+
+// lval is overlapping <
+mov ax, bx
+xor eax, ecx
+add ecx, edx
+
+add ebx, 300
+mov eax, 400
+xor ax, bx
+
+
+///////
+// WHILE AND IF
+
+bsf eax, ebx

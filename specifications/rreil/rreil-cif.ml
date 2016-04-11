@@ -3,6 +3,7 @@ export rreil-convert-sem-stmt-list : (callbacks, sem_stmt_list) -> sem_stmt_list
 type sem_id_callbacks = {
   shared: (int) -> sem_id_obj,
   virt_t: (int) -> sem_id_obj,
+  virt_o: (int) -> sem_id_obj,
   arch: (string) -> sem_id_obj
 }
 type sem_address_callbacks = {
@@ -120,6 +121,7 @@ end
 val rreil-convert-sem-id cbs id = case id of
    FLOATING_FLAGS: cbs.sem_id.shared ((id_shared_enum id) + 0)
  | VIRT_T t: cbs.sem_id.virt_t (t + 0)
+ | VIRT_O t: cbs.sem_id.virt_o (t + 0)
  | _: cbs.sem_id.arch (string-from-rope (pretty-arch-id id))
 end
 

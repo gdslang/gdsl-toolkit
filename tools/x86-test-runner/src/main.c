@@ -30,6 +30,7 @@ struct options {
   unsigned long n;
   char fork;
   char test_unused;
+  char multiple_instructions;
 };
 
 //static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer,
@@ -134,7 +135,13 @@ static void result_print(struct tester_result result) {
 static void test_stream(FILE *stream, struct options *options) {
   uint8_t *buffer;
   size_t buffer_length = readhex_hex_read(stream, &buffer);
-  struct tester_result result = tester_test_binary(NULL, options->fork, buffer, buffer_length, options->test_unused);
+  struct tester_result result;
+  if (options->multiple_instructions) {
+	  result = tester_test_binary_block(NULL, options->fork, buffer, buffer_length, options->test_unused);
+  }
+  else {
+	  result = tester_test_binary(NULL, options->fork, buffer, buffer_length, options->test_unused);
+  }
   free(buffer);
   result_print(result);
 }
@@ -223,9 +230,10 @@ static char args_parse(int argc, char **argv, struct options *options) {
   options->n = 100;
   options->fork = 0;
   options->test_unused = 0;
+  options->multiple_instructions = 0;
 
   while(1) {
-    char c = getopt(argc, argv, "gcpm:n:fu");
+    char c = getopt(argc, argv, "gcpm:n:b:n:fu");
     switch(c) {
       case 'g': {
         options->mode = MODE_GENERATOR;
@@ -243,6 +251,12 @@ static char args_parse(int argc, char **argv, struct options *options) {
         options->mode = MODE_CMDLINE;
         options->parameter = optarg;
         break;
+      }
+      case 'b': {
+    	  options->mode = MODE_CMDLINE;
+		  options->parameter = optarg;
+		  options->multiple_instructions = 1;
+		  break;
       }
       case 'n': {
         sscanf(optarg, "%lu", &options->n);

@@ -17,7 +17,7 @@ GDSLFLAGS=--maxIter=42
 GDSL_BASIS_HL=specifications/basis/prelude.ml specifications/basis/bbtree.ml
 GDSL_RREIL_HL=specifications/rreil/rreil.ml specifications/rreil/rreil-examples.ml specifications/rreil/rreil-cif.ml specifications/rreil/rreil-pretty.ml specifications/rreil/fmap.ml specifications/rreil/rreil-opt.ml specifications/rreil/rreil-translator.ml
 GDSL_ASM_HL=specifications/asm/asm.ml specifications/asm/asm-pretty.ml specifications/asm/asm-cif.ml
-GDSL_OPT_HL=specifications/rreil/rreil-liveness.ml specifications/rreil/rreil-forward-subst.ml specifications/rreil/forward-subst/inline.ml specifications/rreil/rreil-cleanup.ml specifications/rreil/forward-subst/substitute.ml specifications/rreil/forward-subst/substmap.ml specifications/rreil/forward-subst/simplify-expressions.ml
+GDSL_OPT_HL=specifications/rreil/rreil-liveness.ml specifications/rreil/rreil-forward-subst.ml specifications/rreil/forward-subst/delayed-forward-subst/inline.ml specifications/rreil/forward-subst/delayed-forward-subst/substitute.ml specifications/rreil/forward-subst/delayed-forward-subst/substmap.ml specifications/rreil/forward-subst/forward-subst/inline.ml specifications/rreil/forward-subst/forward-subst/substitute.ml specifications/rreil/forward-subst/forward-subst/substmap.ml specifications/rreil/forward-subst/forward-subst/simplify-expressions.ml specifications/rreil/rreil-cleanup.ml
 
 GDSL_AVR_HL=specifications/avr/avr.ml specifications/avr/avr-traverse.ml specifications/avr/avr-pretty.ml specifications/avr/avr-asm.ml
 GDSL_AVR_TRANS_HL=specifications/avr/avr-rreil-pretty.ml specifications/avr/avr-rreil-registermapping.ml specifications/avr/avr-rreil-translator.ml specifications/avr/avr-liveness.ml

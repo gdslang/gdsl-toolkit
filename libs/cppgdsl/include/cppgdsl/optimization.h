@@ -15,7 +15,8 @@ enum optimization_configuration {
   BLOCK = PRESERVATION_BLOCK,
   CONTEXT = PRESERVATION_CONTEXT,
   LIVENESS = OC_LIVENESS,
-  FSUBST = OC_FSUBST
+  FSUBST = OC_FSUBST,
+  DELAYEDFSUBST = OC_DELAYED_FSUBST
 };
 
 inline optimization_configuration operator|(optimization_configuration a, optimization_configuration b) {

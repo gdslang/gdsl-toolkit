@@ -144,6 +144,7 @@ val rreil-show-id id =
    case id of
       FLOATING_FLAGS: "FLOATING_FLAGS"
     | VIRT_T x: "T" +++ show-int x
+    | VIRT_O x: "O" +++ show-int x
     | _: arch-show-id id
    end
 

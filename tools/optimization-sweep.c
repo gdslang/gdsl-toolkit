@@ -407,13 +407,13 @@ char analyze(char *file, char print, enum mode mode, char fsubst, char chain, ch
       case MODE_CHILDREN: {
         if(fsubst && chain) {
           translated = gdsl_liveness_super_chainable(state, translated);
-          translated = gdsl_propagate_contextful(state, 1, translated);
+          translated = gdsl_propagate_contextful(state, 0, 1, translated);
           lv_super_result_t lv_r = gdsl_liveness_super(state, translated);
           lv_initial = lv_r->initial;
           lv_after = lv_r->after;
           rreil_result = gdsl_select_live(state);
         } else if(fsubst) {
-          translated = gdsl_propagate_contextful(state, 1, translated);
+          translated = gdsl_propagate_contextful(state, 0, 1, translated);
           lv_super_result_t lv_r = gdsl_liveness_super(state, translated);
           lv_initial = lv_r->initial;
           lv_after = lv_r->after;
@@ -552,7 +552,7 @@ int main(int argc, char** argv) {
   struct options options;
 
   if(args_parse(argc, argv, &options)) {
-    printf("Usage: liveness-sweep [--children] [--offset offset] [--elf] [--cleanup] --file file\n");
+    printf("Usage: optimization-sweep [--children] [--offset offset] [--elf] [--cleanup] --file file\n");
     return 42;
   }
 
