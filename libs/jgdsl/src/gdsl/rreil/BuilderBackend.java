@@ -29,6 +29,18 @@ public class BuilderBackend {
   private Object shared_floating_flags () {
     return builder.shared_floating_flags();
   }
+  
+  private Object virt_o (Object o) {
+    return builder.virt_o((Long) o);
+  }
+  
+  private Object virt_t (Object t) {
+    return builder.virt_t((Long) t);
+  }
+
+  private Object arch (Object name) {
+    return builder.arch((String)name);
+  }
 
   /*
    * sem_exception
@@ -39,14 +51,6 @@ public class BuilderBackend {
 
   private Object exception_arch (Object t) {
     return builder.exception_arch((String) t);
-  }
-
-  private Object virt_t (Object t) {
-    return builder.virt_t((Long) t);
-  }
-
-  private Object arch (Object name) {
-    return builder.arch((String)name);
   }
 
   /*

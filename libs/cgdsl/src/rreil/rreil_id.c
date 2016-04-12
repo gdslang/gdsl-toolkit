@@ -45,6 +45,9 @@ char rreil_id_compare(struct rreil_id *a, struct rreil_id *b) {
       return compare_long_unsinged(a->shared, b->shared);
     }
     case RREIL_ID_TYPE_TEMPORARY: {
+      char opt_cmp = compare_long_unsinged(a->opt, b->opt);
+      if(opt_cmp != 0)
+        return opt_cmp;
       return compare_long_unsinged(a->temporary, b->temporary);
     }
 #ifdef GDSL_X86

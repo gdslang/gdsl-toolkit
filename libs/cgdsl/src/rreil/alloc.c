@@ -63,10 +63,11 @@ struct rreil_statement *rreil_cbranch_alloc(struct rreil_sexpr *cond, struct rre
   return stmt;
 }
 
-struct rreil_id *rreil_temporary_alloc(long long unsigned temporary) {
+struct rreil_id *rreil_temporary_alloc(long long unsigned temporary, char opt) {
   struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
   id->type = RREIL_ID_TYPE_TEMPORARY;
   id->temporary = temporary;
+  id->opt = opt;
   return id;
 }
 

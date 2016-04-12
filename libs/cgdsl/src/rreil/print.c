@@ -79,7 +79,7 @@ void rreil_id_print(FILE *stream, struct rreil_id *id) {
       break;
     }
     case RREIL_ID_TYPE_TEMPORARY: {
-      fprintf(stream, "T%llu", id->temporary);
+      fprintf(stream, "%s%llu", id->opt ? "O" : "T", id->temporary);
       break;
     }
 #ifdef GDSL_X86

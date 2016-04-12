@@ -28,6 +28,11 @@ static obj_t virt_t(state_t state, int_t t) {
   return (obj_t) ret;
 }
 
+static obj_t virt_o(state_t state, int_t o) {
+  jobject ret = java_method_call(state, "virt_o", 1, java_long_create(state, (long int) o));
+  return (obj_t) ret;
+}
+
 static obj_t arch(state_t state, string_t eid) {
   jstring id_str = java_string_create(state, eid);
   jobject ret = java_method_call(state, "arch", 1, (jobject) id_str);
@@ -306,7 +311,7 @@ static obj_t sem_stmts_init(state_t state) {
 }
 
 #define BUILD_CALLBACKS \
-		unboxed_sem_id_callbacks_t sem_id_callbacks = { .shared = &shared, .virt_t = &virt_t, .arch = &arch };\
+		unboxed_sem_id_callbacks_t sem_id_callbacks = { .shared = &shared, .virt_o = &virt_o, .virt_t = &virt_t, .arch = &arch };\
 		unboxed_sem_exception_callbacks_t sem_exception_callbacks = { .shared = &exception_shared, .arch = &exception_arch };\
 		unboxed_sem_address_callbacks_t sem_address_callbacks = { .sem_address_ = &sem_address };\
 		unboxed_sem_var_callbacks_t sem_var_callbacks = { .sem_var_ = &sem_var };\

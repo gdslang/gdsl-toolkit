@@ -16,7 +16,6 @@ import gdsl.rreil.LimitedVariable;
 import gdsl.rreil.Variable;
 import gdsl.rreil.exception.GenericArchException;
 import gdsl.rreil.exception.IException;
-import gdsl.rreil.exception.x86.X86Exception;
 import gdsl.rreil.expression.And;
 import gdsl.rreil.expression.Compare;
 import gdsl.rreil.expression.CompareEqual;
@@ -45,9 +44,6 @@ import gdsl.rreil.id.ArchRegister;
 import gdsl.rreil.id.FloatingFlags;
 import gdsl.rreil.id.IId;
 import gdsl.rreil.id.Id;
-import gdsl.rreil.id.VirtualLessOrEqualSignedId;
-import gdsl.rreil.id.VirtualLessOrEqualUnsignedId;
-import gdsl.rreil.id.VirtualLessSignedId;
 import gdsl.rreil.id.VirtualTemporaryId;
 import gdsl.rreil.linear.ILinearExpression;
 import gdsl.rreil.linear.LinearAdditionExpression;
@@ -82,9 +78,13 @@ public class DefaultRReilBuilder implements IRReilBuilder {
   @Override public IId shared_floating_flags () {
     return new FloatingFlags();
   }
+  
+  @Override public Id virt_o (long o) {
+    return new VirtualTemporaryId(o, true);
+  }
 
   @Override public Id virt_t (long t) {
-    return new VirtualTemporaryId(t);
+    return new VirtualTemporaryId(t, false);
   }
 
   @Override public IId arch (String name) {

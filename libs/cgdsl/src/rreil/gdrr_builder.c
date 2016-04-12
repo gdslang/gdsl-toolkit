@@ -33,6 +33,14 @@ static obj_t virt_t(state_t state, int_t t) {
   struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
   id->type = RREIL_ID_TYPE_TEMPORARY;
   id->temporary = t;
+  id->opt = 0;
+  return (obj_t)id;
+}
+static obj_t virt_o(state_t state, int_t o) {
+  struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
+  id->type = RREIL_ID_TYPE_TEMPORARY;
+  id->temporary = o;
+  id->opt = 1;
   return (obj_t)id;
 }
 
@@ -469,7 +477,7 @@ static obj_t sem_stmts_init(state_t state) {
 }
 
 callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
-  unboxed_sem_id_callbacks_t sem_id_callbacks = {.shared = &shared, .virt_t = &virt_t, .arch = &sem_id_arch};
+  unboxed_sem_id_callbacks_t sem_id_callbacks = {.shared = &shared, .virt_o = &virt_o, .virt_t = &virt_t, .arch = &sem_id_arch};
 
   unboxed_sem_exception_callbacks_t sem_exception_callbacks = {.shared = &exception_shared, .arch = &exception_arch};
 

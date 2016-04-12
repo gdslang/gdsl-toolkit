@@ -21,6 +21,8 @@ public interface IRReilBuilder {
 
   IId shared_floating_flags ();
 
+  IId virt_o (long o);
+
   IId virt_t (long t);
 
   IId arch (String name);

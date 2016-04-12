@@ -41,13 +41,16 @@ struct rreil_id {
 #else
       char *arch;
 #endif
+      struct {
+        long long unsigned temporary;
+        char opt;
+      };
     };
-    long long unsigned temporary;
   };
 };
 
 extern char rreil_id_equals(struct rreil_id *a, struct rreil_id *b);
 extern char rreil_id_compare(struct rreil_id *a, struct rreil_id *b);
-extern struct rreil_id *rreil_temporary_alloc(long long unsigned temporary);
+extern struct rreil_id *rreil_temporary_alloc(long long unsigned temporary, char opt);
 
 #endif /* RREIL_ID_H_ */

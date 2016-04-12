@@ -35,7 +35,7 @@ public:
     return body;
   }
 
-  void accept(statement_visitor &v);
+  void accept(statement_visitor &v) override;
 };
 
 }  // namespace rreil
