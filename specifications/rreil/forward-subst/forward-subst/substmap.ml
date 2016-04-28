@@ -177,7 +177,6 @@ val substmap-lookup-var-to-linear state offset size var = #Nothing-linear
    | Just-sexpr-inverted l  : if sexpr-uses-location offset size var rhssize l
    		then Nothing-sexpr
    		else maybeRhs
-#   | Just-sexpr-inverted l : Nothing-sexpr 
    	end
  
  val checkOverwritten-linear offset size var rhssize maybeRhs = case maybeRhs of
