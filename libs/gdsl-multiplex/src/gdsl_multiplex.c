@@ -41,9 +41,6 @@ static char frontend_get(struct frontend_desc *desc, char *file) {
       memcpy(decoder, file + prefix_length, decoder_length);
       decoder[decoder_length] = 0;
 
-//			char *suffix_ = (char*)malloc(suffix_length + 1);
-//			memcpy(suffix_, suffix, suffix_length + 1);
-
       desc->name = decoder;
       desc->ext = suffix_next;
 
