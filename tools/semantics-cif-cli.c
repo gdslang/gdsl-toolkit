@@ -1,16 +1,15 @@
 /* vim:cindent:ts=2:sw=2:expandtab */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <readhex.h>
 #include <gdsl.h>
 #include <gdsl_generic.h>
+#include <readhex.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static obj_t indent_unary(obj_t a) {
   size_t me = (size_t)a + 1;
-  for(size_t i = 0; i < me; ++i)
-    printf("=");
+  for (size_t i = 0; i < me; ++i) printf("=");
   return (obj_t)me;
 }
 
@@ -34,7 +33,8 @@ static obj_t indent_quaternary(obj_t a, obj_t b, obj_t c, obj_t d) {
 
 // Generic ASM
 
-static obj_t asm_insn(state_t state, int_t length, string_t mnemonic, obj_t annotations, obj_t opnds) {
+static obj_t asm_insn(state_t state, int_t length, string_t mnemonic,
+                      obj_t annotations, obj_t opnds) {
   obj_t indent = indent_binary(annotations, opnds);
   printf("> insn {length=%lld, mnemonic=%s}\n\n", length, mnemonic);
   return indent;
@@ -184,12 +184,12 @@ static obj_t asm_annotation_opnd(state_t state, string_t name, obj_t opnd) {
 // RReil
 
 // sem_id
-//static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
+// static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
 //	printf("=> virt#%ld\n", con);
 //	return NULL ;
 //}
 static obj_t shared(state_t state, int_t con) {
-  switch(con) {
+  switch (con) {
     case ID_FLOATING_FLAGS: {
       printf("> FLOATING_FLAGS\n");
       break;
@@ -208,7 +208,7 @@ static obj_t arch(state_t state, string_t id) {
 
 // sem_exception
 static obj_t exception_shared(state_t state, int_t con) {
-  switch(con) {
+  switch (con) {
     case EXCEPTION_DIVISION_BY_ZERO: {
       printf("> DIVISION_BY_ZERO\n");
       break;
@@ -221,259 +221,259 @@ static obj_t exception_arch(state_t state, string_t ex) {
   return (obj_t)0;
 }
 
-//static gdrr_sem_id_t virt_eq(state_t state) {
+// static gdrr_sem_id_t virt_eq(state_t state) {
 //	printf("=> virt_eq\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t virt_neq(state_t state) {
+// static gdrr_sem_id_t virt_neq(state_t state) {
 //	printf("=> virt_neq\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t virt_les(state_t state) {
+// static gdrr_sem_id_t virt_les(state_t state) {
 //	printf("=> virt_les\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t virt_leu(state_t state) {
+// static gdrr_sem_id_t virt_leu(state_t state) {
 //	printf("=> virt_leu\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t virt_lts(state_t state) {
+// static gdrr_sem_id_t virt_lts(state_t state) {
 //	printf("=> virt_lts\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t virt_ltu(state_t state) {
+// static gdrr_sem_id_t virt_ltu(state_t state) {
 //	printf("=> virt_ltu\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t virt_t(state_t state, int_t t) {
+// static gdrr_sem_id_t virt_t(state_t state, int_t t) {
 //	printf("=> id {t=%lu}\n", t);
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_ip(state_t state) {
+// static gdrr_sem_id_t sem_ip(state_t state) {
 //	printf("=> sem_ip\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_flags(state_t state) {
+// static gdrr_sem_id_t sem_flags(state_t state) {
 //	printf("=> sem_flags\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_mxcsr(state_t state) {
+// static gdrr_sem_id_t sem_mxcsr(state_t state) {
 //	printf("=> sem_mxcsr\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_ax(state_t state) {
+// static gdrr_sem_id_t sem_ax(state_t state) {
 //	printf("=> sem_ax\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_bx(state_t state) {
+// static gdrr_sem_id_t sem_bx(state_t state) {
 //	printf("=> sem_bx\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_cx(state_t state) {
+// static gdrr_sem_id_t sem_cx(state_t state) {
 //	printf("=> sem_cx\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_dx(state_t state) {
+// static gdrr_sem_id_t sem_dx(state_t state) {
 //	printf("=> sem_dx\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_si(state_t state) {
+// static gdrr_sem_id_t sem_si(state_t state) {
 //	printf("=> sem_si\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_di(state_t state) {
+// static gdrr_sem_id_t sem_di(state_t state) {
 //	printf("=> sem_di\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_sp(state_t state) {
+// static gdrr_sem_id_t sem_sp(state_t state) {
 //	printf("=> sem_sp\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_bp(state_t state) {
+// static gdrr_sem_id_t sem_bp(state_t state) {
 //	printf("=> sem_bp\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_r8(state_t state) {
+// static gdrr_sem_id_t sem_r8(state_t state) {
 //	printf("=> sem_r8\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_r9(state_t state) {
+// static gdrr_sem_id_t sem_r9(state_t state) {
 //	printf("=> sem_r9\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_r10(state_t state) {
+// static gdrr_sem_id_t sem_r10(state_t state) {
 //	printf("=> sem_r10\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_r11(state_t state) {
+// static gdrr_sem_id_t sem_r11(state_t state) {
 //	printf("=> sem_r11\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_r12(state_t state) {
+// static gdrr_sem_id_t sem_r12(state_t state) {
 //	printf("=> sem_r12\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_r13(state_t state) {
+// static gdrr_sem_id_t sem_r13(state_t state) {
 //	printf("=> sem_r13\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_r14(state_t state) {
+// static gdrr_sem_id_t sem_r14(state_t state) {
 //	printf("=> sem_r14\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_r15(state_t state) {
+// static gdrr_sem_id_t sem_r15(state_t state) {
 //	printf("=> sem_r15\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_cs(state_t state) {
+// static gdrr_sem_id_t sem_cs(state_t state) {
 //	printf("=> sem_cs\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_ds(state_t state) {
+// static gdrr_sem_id_t sem_ds(state_t state) {
 //	printf("=> sem_ds\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_ss(state_t state) {return NULL;
+// static gdrr_sem_id_t sem_ss(state_t state) {return NULL;
 //	printf("=> sem_ss\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_es(state_t state) {
+// static gdrr_sem_id_t sem_es(state_t state) {
 //	printf("=> sem_es\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_fs(state_t state) {
+// static gdrr_sem_id_t sem_fs(state_t state) {
 //	printf("=> sem_fs\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_gs(state_t state) {
+// static gdrr_sem_id_t sem_gs(state_t state) {
 //	printf("=> sem_gs\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_st0(state_t state) {
+// static gdrr_sem_id_t sem_st0(state_t state) {
 //	printf("=> sem_st0\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_st1(state_t state) {
+// static gdrr_sem_id_t sem_st1(state_t state) {
 //	printf("=> sem_st1\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_st2(state_t state) {
+// static gdrr_sem_id_t sem_st2(state_t state) {
 //	printf("=> sem_st2\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_st3(state_t state) {
+// static gdrr_sem_id_t sem_st3(state_t state) {
 //	printf("=> sem_st3\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_st4(state_t state) {
+// static gdrr_sem_id_t sem_st4(state_t state) {
 //	printf("=> sem_st4\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_st5(state_t state) {
+// static gdrr_sem_id_t sem_st5(state_t state) {
 //	printf("=> sem_st5\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_st6(state_t state) {
+// static gdrr_sem_id_t sem_st6(state_t state) {
 //	printf("=> sem_st6\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_st7(state_t state) {
+// static gdrr_sem_id_t sem_st7(state_t state) {
 //	printf("=> sem_st7\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_mm0(state_t state) {
+// static gdrr_sem_id_t sem_mm0(state_t state) {
 //	printf("=> sem_mm0\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_mm1(state_t state) {
+// static gdrr_sem_id_t sem_mm1(state_t state) {
 //	printf("=> sem_mm1\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_mm2(state_t state) {
+// static gdrr_sem_id_t sem_mm2(state_t state) {
 //	printf("=> sem_mm2\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_mm3(state_t state) {
+// static gdrr_sem_id_t sem_mm3(state_t state) {
 //	printf("=> sem_mm3\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_mm4(state_t state) {
+// static gdrr_sem_id_t sem_mm4(state_t state) {
 //	printf("=> sem_mm4\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_mm5(state_t state) {
+// static gdrr_sem_id_t sem_mm5(state_t state) {
 //	printf("=> sem_mm5\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_mm6(state_t state) {
+// static gdrr_sem_id_t sem_mm6(state_t state) {
 //	printf("=> sem_mm6\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_mm7(state_t state) {
+// static gdrr_sem_id_t sem_mm7(state_t state) {
 //	printf("=> sem_mm7\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm0(state_t state) {
+// static gdrr_sem_id_t sem_xmm0(state_t state) {
 //	printf("=> sem_xmm0\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm1(state_t state) {
+// static gdrr_sem_id_t sem_xmm1(state_t state) {
 //	printf("=> sem_xmm1\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm2(state_t state) {
+// static gdrr_sem_id_t sem_xmm2(state_t state) {
 //	printf("=> sem_xmm2\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm3(state_t state) {
+// static gdrr_sem_id_t sem_xmm3(state_t state) {
 //	printf("=> sem_xmm3\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm4(state_t state) {
+// static gdrr_sem_id_t sem_xmm4(state_t state) {
 //	printf("=> sem_xmm4\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm5(state_t state) {
+// static gdrr_sem_id_t sem_xmm5(state_t state) {
 //	printf("=> sem_xmm5\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm6(state_t state) {
+// static gdrr_sem_id_t sem_xmm6(state_t state) {
 //	printf("=> sem_xmm6\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm7(state_t state) {
+// static gdrr_sem_id_t sem_xmm7(state_t state) {
 //	printf("=> sem_xmm7\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm8(state_t state) {
+// static gdrr_sem_id_t sem_xmm8(state_t state) {
 //	printf("=> sem_xmm8\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm9(state_t state) {
+// static gdrr_sem_id_t sem_xmm9(state_t state) {
 //	printf("=> sem_xmm9\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm10(state_t state) {
+// static gdrr_sem_id_t sem_xmm10(state_t state) {
 //	printf("=> sem_xmm10\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm11(state_t state) {
+// static gdrr_sem_id_t sem_xmm11(state_t state) {
 //	printf("=> sem_xmm11\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm12(state_t state) {
+// static gdrr_sem_id_t sem_xmm12(state_t state) {
 //	printf("=> sem_xmm12\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm13(state_t state) {
+// static gdrr_sem_id_t sem_xmm13(state_t state) {
 //	printf("=> sem_xmm13\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm14(state_t state) {
+// static gdrr_sem_id_t sem_xmm14(state_t state) {
 //	printf("=> sem_xmm14\n");
 //	return NULL;
 //}
-//static gdrr_sem_id_t sem_xmm15(state_t state) {
+// static gdrr_sem_id_t sem_xmm15(state_t state) {
 //	printf("=> sem_xmm15\n");
 //	return NULL;
 //}
@@ -662,15 +662,15 @@ static obj_t sem_flop(state_t state, int_t con) {
   return (obj_t)0;
 }
 
-//static gdrr_sem_branch_hint_t hint_jump(state_t state) {
+// static gdrr_sem_branch_hint_t hint_jump(state_t state) {
 //	printf("==> branch_hint_jump\n");
 //	return NULL;
 //}
-//static gdrr_sem_branch_hint_t hint_call(state_t state) {
+// static gdrr_sem_branch_hint_t hint_call(state_t state) {
 //	printf("==> branch_hint_call\n");
 //	return NULL;
 //}
-//static gdrr_sem_branch_hint_t hint_ret(state_t state) {
+// static gdrr_sem_branch_hint_t hint_ret(state_t state) {
 //	printf("==> branch_hint_ret\n");
 //	return NULL;
 //}
@@ -691,7 +691,8 @@ static obj_t sem_store(state_t state, int_t size, obj_t address, obj_t rhs) {
   printf("> store {size=%lld}\n", size);
   return indent;
 }
-static obj_t sem_ite(state_t state, obj_t cond, obj_t then_branch, obj_t else_branch) {
+static obj_t sem_ite(state_t state, obj_t cond, obj_t then_branch,
+                     obj_t else_branch) {
   obj_t indent = indent_unary(cond);
   printf("> ite\n");
   return indent;
@@ -701,7 +702,8 @@ static obj_t sem_while(state_t state, obj_t cond, obj_t body) {
   printf("> while\n");
   return indent;
 }
-static obj_t sem_cbranch(state_t state, obj_t cond, obj_t target_true, obj_t target_false) {
+static obj_t sem_cbranch(state_t state, obj_t cond, obj_t target_true,
+                         obj_t target_false) {
   obj_t indent = indent_ternary(cond, target_true, target_false);
   printf("> cbranch\n");
   return indent;
@@ -711,7 +713,8 @@ static obj_t sem_branch(state_t state, obj_t branch_hint, obj_t target) {
   printf("> branch\n");
   return indent;
 }
-static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs, obj_t rhs) {
+static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs,
+                           obj_t rhs) {
   obj_t indent = indent_quaternary(op, flags, lhs, rhs);
   printf("> sem_flop\n");
   return indent;
@@ -734,12 +737,12 @@ static obj_t branch_hint(state_t state, int_t con) {
 }
 
 // sem_stmts
-//static gdrr_sem_stmts_t sem_cons(state_t state, gdrr_sem_stmt_t hd,
+// static gdrr_sem_stmts_t sem_cons(state_t state, gdrr_sem_stmt_t hd,
 //		gdrr_sem_stmts_t tl) {
 //	printf("sem_cons\n\n");
 //	return NULL ;
 //}
-//static gdrr_sem_stmts_t sem_nil(state_t state) {
+// static gdrr_sem_stmts_t sem_nil(state_t state) {
 //	printf("sem_nil\n");
 //	return NULL ;
 //}
@@ -756,31 +759,47 @@ static obj_t sem_stmts_init(state_t state) {
 }
 
 int main(int argc, char** argv) {
-  uint8_t *buffer;
+  uint8_t* buffer;
   size_t size = readhex_hex_read(stdin, &buffer);
 
   state_t state = gdsl_init();
   gdsl_set_code(state, buffer, size, 0);
 
   obj_t insn = gdsl_decode(state, gdsl_config_default(state));
-//	__obj state = __createState(blob, i, 0, 0);
-//	__obj insn = __runMonadicNoArg(__decode__, &state);
+  //	__obj state = __createState(blob, i, 0, 0);
+  //	__obj insn = __runMonadicNoArg(__decode__, &state);
 
   string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
   puts(fmt);
 
   printf("\n");
 
-  unboxed_asm_opnd_list_callbacks_t asm_opnd_list_callbacks = {.opnd_list_next = &asm_opnds_next, .init = &asm_opnds_init};
-  unboxed_asm_opnd_callbacks_t asm_opnd_callbacks = {.opnd_register = &asm_register, .memory = &asm_memory, .imm =
-      &asm_imm, .post_op = &asm_post_op, .pre_op = &asm_pre_op, .rel = &asm_rel, .annotated = &asm_annotated, .sum =
-      &asm_sum, .scale = &asm_scale, .bounded = &asm_bounded, .sign = &asm_sign, .composite = &asm_composite};
-  unboxed_asm_signedness_callbacks_t asm_signedness_callbacks = {.asm_signed = &asm_signed, .asm_unsigned = &asm_unsigned};
-  unboxed_asm_boundary_callbacks_t asm_boundary_callbacks = {.sz = &asm_sz, .sz_o = &asm_sz_o};
-  unboxed_asm_annotation_list_callbacks_t asm_annotation_list_callbacks = {.annotation_list_next = &asm_annotations_next, .init =
-      &asm_annotations_init};
-  unboxed_asm_annotation_callbacks_t asm_annotation_callbacks = {.ann_string = &asm_annotation_string, .function =
-      &asm_annotation_function, .opnd = &asm_annotation_opnd};
+  unboxed_asm_opnd_list_callbacks_t asm_opnd_list_callbacks = {
+      .opnd_list_next = &asm_opnds_next, .init = &asm_opnds_init};
+  unboxed_asm_opnd_callbacks_t asm_opnd_callbacks = {
+      .opnd_register = &asm_register,
+      .memory = &asm_memory,
+      .imm = &asm_imm,
+      .post_op = &asm_post_op,
+      .pre_op = &asm_pre_op,
+      .rel = &asm_rel,
+      .annotated = &asm_annotated,
+      .sum = &asm_sum,
+      .scale = &asm_scale,
+      .bounded = &asm_bounded,
+      .sign = &asm_sign,
+      .composite = &asm_composite};
+  unboxed_asm_signedness_callbacks_t asm_signedness_callbacks = {
+      .asm_signed = &asm_signed, .asm_unsigned = &asm_unsigned};
+  unboxed_asm_boundary_callbacks_t asm_boundary_callbacks = {.sz = &asm_sz,
+                                                             .sz_o = &asm_sz_o};
+  unboxed_asm_annotation_list_callbacks_t asm_annotation_list_callbacks = {
+      .annotation_list_next = &asm_annotations_next,
+      .init = &asm_annotations_init};
+  unboxed_asm_annotation_callbacks_t asm_annotation_callbacks = {
+      .ann_string = &asm_annotation_string,
+      .function = &asm_annotation_function,
+      .opnd = &asm_annotation_opnd};
 
   unboxed_asm_callbacks_t asm_callbacks = {
       .insn = &asm_insn,
@@ -794,7 +813,8 @@ int main(int argc, char** argv) {
 
   obj_t generic_insn = gdsl_generalize(state, insn);
 
-  /*obj_t ginsn_converted = */gdsl_asm_convert_insn(state, &asm_callbacks, generic_insn);
+  /*obj_t ginsn_converted = */ gdsl_asm_convert_insn(state, &asm_callbacks,
+                                                     generic_insn);
 
   printf("---------------------------\n\n");
 
@@ -803,65 +823,111 @@ int main(int argc, char** argv) {
   fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
   puts(fmt);
 
-  unboxed_sem_id_callbacks_t sem_id_callbacks = {.shared = &shared, .virt_t = &virt_t, .arch = &arch};
+  unboxed_sem_id_callbacks_t sem_id_callbacks = {
+      .shared = &shared, .virt_t = &virt_t, .arch = &arch};
 
-  unboxed_sem_exception_callbacks_t sem_exception_callbacks = {.shared = &exception_shared, .arch = &exception_arch};
+  unboxed_sem_exception_callbacks_t sem_exception_callbacks = {
+      .shared = &exception_shared, .arch = &exception_arch};
 
-  unboxed_sem_address_callbacks_t sem_address_callbacks = {.sem_address_ = &sem_address};
+  unboxed_sem_address_callbacks_t sem_address_callbacks = {.sem_address_ =
+                                                               &sem_address};
 
   unboxed_sem_var_callbacks_t sem_var_callbacks = {.sem_var_ = &sem_var};
 
-  unboxed_sem_linear_callbacks_t sem_linear_callbacks = {.sem_lin_var = &sem_lin_var, .sem_lin_imm = &sem_lin_imm,
-      .sem_lin_add = &sem_lin_add, .sem_lin_sub = &sem_lin_sub, .sem_lin_scale = &sem_lin_scale};
+  unboxed_sem_linear_callbacks_t sem_linear_callbacks = {
+      .sem_lin_var = &sem_lin_var,
+      .sem_lin_imm = &sem_lin_imm,
+      .sem_lin_add = &sem_lin_add,
+      .sem_lin_sub = &sem_lin_sub,
+      .sem_lin_scale = &sem_lin_scale};
 
-  unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {.sem_sexpr_lin = &sem_sexpr_lin, .sem_sexpr_cmp = &sem_sexpr_cmp,
+  unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
+      .sem_sexpr_lin = &sem_sexpr_lin,
+      .sem_sexpr_cmp = &sem_sexpr_cmp,
       .sem_sexpr_arb = &sem_sexpr_arb};
 
-  unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks = {.sem_cmpeq = &sem_cmpeq, .sem_cmpneq = &sem_cmpneq,
-      .sem_cmples = &sem_cmples, .sem_cmpleu = &sem_cmpleu, .sem_cmplts = &sem_cmplts, .sem_cmpltu = &sem_cmpltu};
+  unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks = {
+      .sem_cmpeq = &sem_cmpeq,
+      .sem_cmpneq = &sem_cmpneq,
+      .sem_cmples = &sem_cmples,
+      .sem_cmpleu = &sem_cmpleu,
+      .sem_cmplts = &sem_cmplts,
+      .sem_cmpltu = &sem_cmpltu};
 
-  unboxed_sem_expr_callbacks_t sem_expr_callbacks = {.sem_sexpr = &sem_sexpr, .sem_mul = &sem_mul, .sem_div = &sem_div,
-      .sem_divs = &sem_divs, .sem_mod = &sem_mod, .sem_mods = &sem_mods, .sem_shl = &sem_shl, .sem_shr = &sem_shr,
-      .sem_shrs = &sem_shrs, .sem_and = &sem_and, .sem_or = &sem_or, .sem_xor = &sem_xor, .sem_sx = &sem_sx, .sem_zx =
-          &sem_zx};
+  unboxed_sem_expr_callbacks_t sem_expr_callbacks = {.sem_sexpr = &sem_sexpr,
+                                                     .sem_mul = &sem_mul,
+                                                     .sem_div = &sem_div,
+                                                     .sem_divs = &sem_divs,
+                                                     .sem_mod = &sem_mod,
+                                                     .sem_mods = &sem_mods,
+                                                     .sem_shl = &sem_shl,
+                                                     .sem_shr = &sem_shr,
+                                                     .sem_shrs = &sem_shrs,
+                                                     .sem_and = &sem_and,
+                                                     .sem_or = &sem_or,
+                                                     .sem_xor = &sem_xor,
+                                                     .sem_sx = &sem_sx,
+                                                     .sem_zx = &sem_zx};
 
   unboxed_sem_varl_callbacks_t sem_varl_callbacks = {.sem_varl_ = &sem_varl};
 
-  unboxed_sem_varl_list_callbacks_t sem_varl_list_callbacks = {.sem_varl_list_next = &sem_varls_next, .sem_varl_list_init =
-      &sem_varls_init};
+  unboxed_sem_varl_list_callbacks_t sem_varl_list_callbacks = {
+      .sem_varl_list_next = &sem_varls_next,
+      .sem_varl_list_init = &sem_varls_init};
 
   unboxed_sem_flop_callbacks_t sem_flop_callbacks = {.sem_flop_ = &sem_flop};
 
-  unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {.sem_assign = &sem_assign, .sem_load = &sem_load, .sem_store =
-      &sem_store, .sem_ite = &sem_ite, .sem_while = &sem_while, .sem_cbranch = &sem_cbranch, .sem_branch = &sem_branch,
-      .sem_flop = &sem_flop_stmt, .sem_prim = &sem_prim, .sem_throw = &sem_throw};
+  unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
+      .sem_assign = &sem_assign,
+      .sem_load = &sem_load,
+      .sem_store = &sem_store,
+      .sem_ite = &sem_ite,
+      .sem_while = &sem_while,
+      .sem_cbranch = &sem_cbranch,
+      .sem_branch = &sem_branch,
+      .sem_flop = &sem_flop_stmt,
+      .sem_prim = &sem_prim,
+      .sem_throw = &sem_throw};
 
-  unboxed_branch_hint_callbacks_t branch_hint_callbacks = {.branch_hint_ = &branch_hint};
+  unboxed_branch_hint_callbacks_t branch_hint_callbacks = {.branch_hint_ =
+                                                               &branch_hint};
 
-//	unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
-//			.list_init = &list_init,
-//			.list_next = &list_next
-//	};
+  //	unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
+  //			.list_init = &list_init,
+  //			.list_next = &list_next
+  //	};
 
-  unboxed_sem_stmt_list_callbacks_t sem_stmt_list_callbacks = {.sem_stmt_list_next = &sem_stmts_next, .sem_stmt_list_init =
-      &sem_stmts_init};
+  unboxed_sem_stmt_list_callbacks_t sem_stmt_list_callbacks = {
+      .sem_stmt_list_next = &sem_stmts_next,
+      .sem_stmt_list_init = &sem_stmts_init};
 
-  unboxed_callbacks_t callbacks = {.sem_id = &sem_id_callbacks, .sem_address = &sem_address_callbacks, .sem_var =
-      &sem_var_callbacks, .sem_linear = &sem_linear_callbacks, .sem_sexpr = &sem_sexpr_callbacks, .sem_expr_cmp =
-      &sem_expr_cmp_callbacks, .sem_expr = &sem_expr_callbacks, .sem_varl = &sem_varl_callbacks, .sem_varl_list =
-      &sem_varl_list_callbacks, .sem_flop = &sem_flop_callbacks, .sem_stmt = &sem_stmt_callbacks, .branch_hint =
-      &branch_hint_callbacks, .sem_exception = &sem_exception_callbacks, .sem_stmt_list = &sem_stmt_list_callbacks};
+  unboxed_callbacks_t callbacks = {.sem_id = &sem_id_callbacks,
+                                   .sem_address = &sem_address_callbacks,
+                                   .sem_var = &sem_var_callbacks,
+                                   .sem_linear = &sem_linear_callbacks,
+                                   .sem_sexpr = &sem_sexpr_callbacks,
+                                   .sem_expr_cmp = &sem_expr_cmp_callbacks,
+                                   .sem_expr = &sem_expr_callbacks,
+                                   .sem_varl = &sem_varl_callbacks,
+                                   .sem_varl_list = &sem_varl_list_callbacks,
+                                   .sem_flop = &sem_flop_callbacks,
+                                   .sem_stmt = &sem_stmt_callbacks,
+                                   .branch_hint = &branch_hint_callbacks,
+                                   .sem_exception = &sem_exception_callbacks,
+                                   .sem_stmt_list = &sem_stmt_list_callbacks};
 
-//		config.callbacks.sem_stmts.sem_cons = &sem_cons;
-//		config.callbacks.sem_stmts.sem_nil = &sem_nil;
-//		config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_RECURSIVE;
+  //		config.callbacks.sem_stmts.sem_cons = &sem_cons;
+  //		config.callbacks.sem_stmts.sem_nil = &sem_nil;
+  //		config.gdrr_config_stmts_handling =
+  // GDRR_CONFIG_STMTS_HANDLING_RECURSIVE;
 
-//	obj_t stmts_rest = rreil;
-//	while(gdsl_rreil_sem_stmts_has_more(state, stmts_rest)) {
-//		printf("~~~ (loop) next statement\n");
-//		gdsl_rreil_convert_sem_stmt_manual(state, &callbacks, gdsl_rreil_sem_stmts_head(state, stmts_rest));
-//		stmts_rest = gdsl_rreil_sem_stmts_tail(state, stmts_rest);
-//	}
+  //	obj_t stmts_rest = rreil;
+  //	while(gdsl_rreil_sem_stmts_has_more(state, stmts_rest)) {
+  //		printf("~~~ (loop) next statement\n");
+  //		gdsl_rreil_convert_sem_stmt_manual(state, &callbacks,
+  // gdsl_rreil_sem_stmts_head(state, stmts_rest));
+  //		stmts_rest = gdsl_rreil_sem_stmts_tail(state, stmts_rest);
+  //	}
 
   gdsl_rreil_convert_sem_stmt_list(state, &callbacks, rreil);
 
@@ -870,4 +936,3 @@ int main(int argc, char** argv) {
 
   return 0;
 }
-
