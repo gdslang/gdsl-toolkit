@@ -38,17 +38,17 @@ state_t
    in GDSL returns when no bytes have been consumed. */
 void
 @set_code@
-(state_t s, unsigned char* buf, size_t buf_len, size_t base);
+(state_t s, const unsigned char* buf, size_t buf_len, uint64_t base);
 
 /* Query the offset of the current IP relative to base. */
-size_t
+uint64_t
 @get_ip@
 (state_t s);
 
 /* Set the current code position to this address. */
 int_t
 @seek@
-(state_t s, size_t i);
+(state_t s, uint64_t i);
 
 /* An exception handler must be installed by calling setjmp with the argument
  * returned by this function.
@@ -74,7 +74,7 @@ void
 (state_t s);
 
 /* Query the no of bytes currently allocated on the heap. */
-size_t
+uint64_t
 @heap_residency@
 (state_t s);
 

@@ -14,22 +14,27 @@
 
 
 struct state {
-  void* userdata;      /* a pointer to arbitrary data */
-  char* heap_base;    /* the beginning of the heap */
-  char* heap_limit;   /* first byte beyond the heap buffer */
-  char* heap;         /* current top of the heap */
+  void* userdata;          /* a pointer to arbitrary data */
+  char* heap_base;         /* the beginning of the heap */
+  char* heap_limit;        /* first byte beyond the heap buffer */
+  char* heap;              /* current top of the heap */
+                           /* the current monadic state */
 @state_type@
-;      /* the current monadic state */
-  unsigned char* ip_start;     /* beginning of code buffer */
-  size_t ip_base;     /* base address of code */
-  unsigned char* ip_limit;     /* first byte beyond the code buffer */
-  unsigned char* ip;           /* current pointer into the buffer */
+;
+  const unsigned char* ip_start;
+                           /* beginning of code buffer */
+  uint64_t ip_base;        /* base address of code */
+  const unsigned char* ip_limit;
+                           /* first byte beyond the code buffer */
+  const unsigned char* ip; /* current pointer into the buffer */
   int_t token_addr_inv;
-  char* err_str;      /* a string describing the fatal error that occurred */
-  jmp_buf err_tgt;    /* the position of the exception handler */
-  FILE* handle;       /* the file that the puts primitve uses */
+  char* err_str;           /* a string describing the fatal error that
+                              occurred */
+  jmp_buf err_tgt;         /* the position of the exception handler */
+  FILE* handle;            /* the file that the puts primitve uses */
   char* const_heap_base;
-  /* the following fields contain the values of constant GDSL expressions */
+                           /* the following fields contain the values of
+                              constant GDSL expressions */
   @gdsl_constants@
 
 };
@@ -72,7 +77,7 @@ typedef unsigned int field_tag_t;
 #endif
 
 
-static NO_INLINE_ATTR void alloc_heap(state_t s, char* prev_page, size_t size) {
+static NO_INLINE_ATTR void alloc_heap(state_t s, char* prev_page, uint64_t size) {
   if (size<CHUNK_SIZE) size = CHUNK_SIZE; else size = CHUNK_SIZE*((size/CHUNK_SIZE)+1);
   s->heap_base = (char*) malloc(size);
   if (s->heap_base==NULL) {
@@ -103,11 +108,11 @@ void
   memset(&(s->mon_state), 0, sizeof(s->mon_state));
 };
 
-size_t
+uint64_t
 @heap_residency@
 (state_t s) {
   char* heap = s->heap_base;
-  size_t res;
+  uint64_t res;
   if (heap==NULL) return 0;
   res = s->heap - s->heap_base;
   while (1) {
@@ -119,7 +124,7 @@ size_t
   return res;
 };
 
-static INLINE_ATTR MALLOC_ATTR void* alloc(state_t s, size_t bytes) {
+static INLINE_ATTR MALLOC_ATTR void* alloc(state_t s, uint64_t bytes) {
   bytes = ((bytes+7)>>3)<<3;    /* align to multiple of 8 */
   if (s->heap+bytes >= s->heap_limit) alloc_heap(s, s->heap_base, bytes);
   char* res = s->heap;
@@ -322,14 +327,14 @@ static string_t int_to_string(state_t s, int_t v) {
 
 void
 @set_code@
-(state_t s, unsigned char* buf, size_t buf_len, size_t base) {
+(state_t s, const unsigned char* buf, size_t buf_len, uint64_t base) {
   s->ip = buf;
   s->ip_limit = buf+buf_len;
   s->ip_start = buf;
   s->ip_base = base;
 }
 
-size_t
+uint64_t
 @get_ip@
 (state_t s) {
   return s->ip_base + (s->ip - s->ip_start);
@@ -337,9 +342,9 @@ size_t
 
 int_t
 @seek@
-(state_t s, size_t i) {
-  size_t size = (size_t)(s->ip_limit - s->ip_start);
-  size_t start_offset = i - s->ip_base;
+(state_t s, uint64_t i) {
+  uint64_t size = (uint64_t)(s->ip_limit - s->ip_start);
+  uint64_t start_offset = i - s->ip_base;
   if(start_offset >= size)
     return 1;
   s->ip = s->ip_start + start_offset;
@@ -348,8 +353,8 @@ int_t
 
 void
 @seekf@
-(state_t s, size_t i) {
-  size_t start_offset = i - s->ip_base;
+(state_t s, uint64_t i) {
+  uint64_t start_offset = i - s->ip_base;
   s->ip = s->ip_start + start_offset;
 }
 
@@ -361,7 +366,7 @@ string_t
 @rope_length@
 (s,rope);
   if (len<0) return ""; /* make MSVC happy */
-  buf = (string_t) alloc(s,(size_t) len);
+  buf = (string_t) alloc(s,(uint64_t) len);
   end =
 @rope_to_string@
 (s,rope,buf);
@@ -430,15 +435,15 @@ state_t
 #define BUF_SIZE 32*1024*1024
 static unsigned char blob[BUF_SIZE];
 
-int readNum(char* str, size_t* res) {
-  size_t mult = 10;
+int readNum(char* str, uint64_t* res) {
+  uint64_t mult = 10;
   *res = 0;
   while (*str) {
     char c = *str;
     if (c=='x') mult=16; else
-      if ((c>='0') && (c<='9')) *res=*res*mult+(size_t) (c-'0'); else
-        if ((c>='a') && (c<='f')) *res=*res*mult+10+(size_t) (c-'a'); else
-          if ((c>='A') && (c<='F')) *res=*res*mult+10+(size_t) (c-'A'); else
+      if ((c>='0') && (c<='9')) *res=*res*mult+(uint64_t) (c-'0'); else
+        if ((c>='a') && (c<='f')) *res=*res*mult+10+(uint64_t) (c-'a'); else
+          if ((c>='A') && (c<='F')) *res=*res*mult+10+(uint64_t) (c-'A'); else
             return 1;
     str++;
   }
@@ -446,7 +451,7 @@ int readNum(char* str, size_t* res) {
 }
 
 int main (int argc, char** argv) {
-  size_t buf_size = BUF_SIZE;
+  uint64_t buf_size = BUF_SIZE;
   FILE* file = NULL;
   int_t decode_options =
 #if defined(gdsl_default_config)
@@ -457,8 +462,8 @@ int main (int argc, char** argv) {
   int_t optimization_options = 0;
   int_t run_translate = 0;
   int_t translate_options = 0;
-  size_t base_address = 0;
-  size_t start_address = 0;
+  uint64_t base_address = 0;
+  uint64_t start_address = 0;
   int print_addr = 0;
   obj_t config;
   state_t s = gdsl_init();
@@ -535,11 +540,11 @@ int main (int argc, char** argv) {
   /* fill the buffer, either in binary from file or as sequence
      of hex bytes separated by space or newlines */
   if (file) {
-    size_t bytes_read = fread(blob, 1, BUF_SIZE, file);
+    uint64_t bytes_read = fread(blob, 1, BUF_SIZE, file);
     if (bytes_read == 0) return 1;
     buf_size = bytes_read;
   } else {
-    size_t i=0;
+    uint64_t i=0;
     int num=0;
     int digit=0;
     while (i<buf_size) {
@@ -564,7 +569,7 @@ int main (int argc, char** argv) {
   alloc_max = 0;
 
   while (gdsl_get_ip(s)-base_address<buf_size) {
-    size_t size;
+    uint64_t size;
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (run_translate) {
 #ifdef HAVE_TRANS
@@ -594,7 +599,7 @@ int main (int argc, char** argv) {
       }
     } else {
       fprintf(stdout,"exception at address 0x%lx: %s", gdsl_get_ip(s), gdsl_get_error_message(s));
-      size_t step = (s->token_addr_inv>0 ? (size_t) s->token_addr_inv+1 : 1u);
+      uint64_t step = (s->token_addr_inv>0 ? (uint64_t) s->token_addr_inv+1 : 1u);
       if(gdsl_seek(s,gdsl_get_ip(s)+step))
 				break;
     }
