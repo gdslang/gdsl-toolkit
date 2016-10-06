@@ -23,10 +23,10 @@ val generalize-flow opnd = case opnd of
 end
 
 val generalize-opnd signed opnd = case opnd of
-   IMM8 i: generalize-immediate 8 (if signed then sx i.imm else zx i.imm)
- | IMM16 i: generalize-immediate 16 (if signed then sx i.imm else zx i.imm)
- | IMM32 i: generalize-immediate 32 (if signed then sx i.imm else zx i.imm)
- | IMM64 i: generalize-immediate 64 (if signed then sx i.imm else zx i.imm)
+   IMM8 i: generalize-immediate-off 8 i.address (if signed then sx i.imm else zx i.imm)
+ | IMM16 i: generalize-immediate-off 16 i.address (if signed then sx i.imm else zx i.imm)
+ | IMM32 i: generalize-immediate-off 32 i.address (if signed then sx i.imm else zx i.imm)
+ | IMM64 i: generalize-immediate-off 64 i.address (if signed then sx i.imm else zx i.imm)
  | REG r: generalize-register r
  | MEM m: generalize-memory m
  | X86_SUM s: asm-sum (generalize-opnd signed s.a) (generalize-opnd signed s.b)
@@ -34,6 +34,7 @@ val generalize-opnd signed opnd = case opnd of
 end
 
 val generalize-immediate sz imm = asm-bounded (asm-boundary-sz sz) (asm-imm imm)
+val generalize-immediate-off sz addr imm = asm-bounded (asm-boundary-sz-o sz addr) (asm-imm imm)
 #val generalize-imm-signed sz imm = asm-signed (asm-bounded (asm-boundary-sz sz) (asm-imm imm))
 #val generalize-imm-unsigned sz imm = asm-unsigned (asm-bounded (asm-boundary-sz sz) (asm-imm imm))
 
