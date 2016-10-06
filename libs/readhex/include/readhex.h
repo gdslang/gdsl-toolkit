@@ -8,10 +8,10 @@
 #ifndef READHEX_H_
 #define READHEX_H_
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-size_t readhex_hex_read(FILE *f, uint8_t **buffer);
+size_t readhex_hex_read(FILE* f, uint8_t** buffer);
 
 #endif /* READHEX_H_ */
