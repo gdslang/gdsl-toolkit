@@ -28,7 +28,7 @@ class shared_id final : public id {
   shared_id(shared_id const&) = default;
   shared_id& operator=(shared_id const&) = delete;
 
-  size_t get_subclass_counter() const;
+  size_t get_subclass_counter() const override;
   shared_id_type get_inner() const { return inner; }
 
   bool operator==(id const& other) const override;

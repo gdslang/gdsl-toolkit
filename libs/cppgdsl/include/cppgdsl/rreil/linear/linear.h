@@ -40,7 +40,7 @@ class linear {
 std::ostream& operator<<(std::ostream& out, linear const& _this);
 
 inline std::unique_ptr<linear> make_linear(std::unique_ptr<linear> linear_arg) {
-  return std::move(linear_arg);
+  return linear_arg;
 }
 
 }  // namespace rreil

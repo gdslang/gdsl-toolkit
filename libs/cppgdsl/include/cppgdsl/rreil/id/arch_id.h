@@ -24,7 +24,7 @@ class arch_id final : public id {
   arch_id(arch_id const&) = default;
   arch_id& operator=(arch_id const&) = delete;
 
-  size_t get_subclass_counter() const;
+  size_t get_subclass_counter() const override;
 
   const std::string& get_name() const { return name; }
 

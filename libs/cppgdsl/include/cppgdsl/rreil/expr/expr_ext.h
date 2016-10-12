@@ -25,7 +25,7 @@ class expr_ext final : public expr {
   int_t fromsize;
   std::unique_ptr<linear> operand_;
 
-  void put(std::ostream& out) const;
+  void put(std::ostream& out) const override;
 
  public:
   expr_ext(ext_op op, int_t fromsize, std::unique_ptr<linear> operand_arg);

@@ -38,7 +38,7 @@ class _virtual final : public id {
   _virtual(_virtual const&) = default;
   _virtual& operator=(_virtual const&) = delete;
 
-  size_t get_subclass_counter() const;
+  size_t get_subclass_counter() const override;
   int_t get_t() const;
   bool get_opt() const;
 

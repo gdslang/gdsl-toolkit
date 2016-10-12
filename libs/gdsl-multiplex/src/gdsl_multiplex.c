@@ -148,7 +148,7 @@ static char gdsl_multiplex_frontend_library_open_desc(void **dl, struct frontend
   return 0;
 }
 
-char gdsl_multiplex_frontend_get_by_desc(struct frontend *frontend, struct frontend_desc desc) {
+int gdsl_multiplex_frontend_get_by_desc(struct frontend *frontend, struct frontend_desc desc) {
   void *dl;
   char error = gdsl_multiplex_frontend_library_open_desc(&dl, desc);
   if(error) return error;
@@ -156,7 +156,7 @@ char gdsl_multiplex_frontend_get_by_desc(struct frontend *frontend, struct front
   return gdsl_multiplex_frontend_get(frontend, dl);
 }
 
-char gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char const *name) {
+int gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char const *name) {
   char *lib;
   size_t lib_length;
   FILE *libf = open_memstream(&lib, &lib_length);

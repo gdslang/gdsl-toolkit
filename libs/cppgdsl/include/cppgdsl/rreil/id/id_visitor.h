@@ -38,8 +38,8 @@ class id_visitor {
   void _(std::function<void(_virtual const*)> c) {
     _virtual_callback = std::move(c);
   }
-  void _default(std::function<void(id const*)> default_callback) {
-    default_callback = std::move(default_callback);
+  void _default(std::function<void(id const*)> c) {
+    default_callback = std::move(c);
   }
 };
 
