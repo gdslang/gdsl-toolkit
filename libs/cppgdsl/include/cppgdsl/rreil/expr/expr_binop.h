@@ -26,7 +26,7 @@ class expr_binop final : public expr {
       : expr(e), op(e.op), lhs(e.lhs->copy()), rhs(e.rhs->copy()) {}
   expr_binop& operator=(expr_binop const&);
 
-  binop_op get_op() { return op; }
+  binop_op get_op() const { return op; }
 
   linear const& get_lhs() const { return *lhs; }
 

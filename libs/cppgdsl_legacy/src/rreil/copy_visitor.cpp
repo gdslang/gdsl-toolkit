@@ -229,7 +229,7 @@ void gdsl::rreil::copy_visitor::visit(expr_binop *a) {
   linear *opnd1 = _linear;
   a->get_opnd2()->accept(*this);
   linear *opnd2 = _linear;
-  if(expr_binop_ctor != NULL) _expr = expr_binop_ctor(a->get_op(), a->get_opnd1(), a->get_opnd2());
+  if(expr_binop_ctor != NULL) _expr = expr_binop_ctor(a->get_op(), opnd1, opnd2);
   else _expr = new expr_binop(a->get_op(), opnd1, opnd2);
   ;
 }

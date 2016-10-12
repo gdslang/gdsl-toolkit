@@ -39,9 +39,10 @@ using variables_limited_t = std::vector<std::unique_ptr<variable_limited>>;
 
 variables_limited_t copy(variables_limited_t const& vars_limited);
 
-inline std::unique_ptr<variable> make_variable(std::unique_ptr<id> _id,
-                                               int_t offset, int_t size) {
-  return std::unique_ptr<variable>(
+inline std::unique_ptr<variable_limited> make_variable(std::unique_ptr<id> _id,
+                                                       int_t offset,
+                                                       int_t size) {
+  return std::unique_ptr<variable_limited>(
       new rreil::variable_limited(std::move(_id), offset, size));
 }
 

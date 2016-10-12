@@ -28,7 +28,7 @@ class expr_cmp {
       : op(e.op), lhs(e.lhs->copy()), rhs(e.rhs->copy()) {}
   expr_cmp& operator=(expr_cmp const&) = delete;
 
-  cmp_op get_op() { return op; }
+  cmp_op get_op() const { return op; }
 
   linear const& get_lhs() const { return *lhs; }
 
@@ -49,9 +49,9 @@ class expr_cmp {
 
 std::ostream& operator<<(std::ostream& out, expr_cmp const& _this);
 
-inline std::unique_ptr<expr_cmp> make_expr_cmp(cmp_op op,
-                                               std::unique_ptr<linear> lhs,
-                                               std::unique_ptr<linear> rhs) {
+inline std::unique_ptr<expr_cmp> make_expr(cmp_op op,
+                                           std::unique_ptr<linear> lhs,
+                                           std::unique_ptr<linear> rhs) {
   return std::unique_ptr<expr_cmp>(
       new expr_cmp(op, std::move(lhs), std::move(rhs)));
 }
