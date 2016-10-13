@@ -42,7 +42,7 @@ void gdsl::rreil::copy_visitor::visit(expr_cmp const *a) {
   if (expr_cmp_ctor != NULL)
     _expr_cmp = expr_cmp_ctor(a->get_op(), std::move(lhs), std::move(rhs));
   else
-    _expr_cmp = make_expr(a->get_op(), std::move(lhs), std::move(rhs));
+    _expr_cmp = make_expr_cmp(a->get_op(), std::move(lhs), std::move(rhs));
 }
 
 void gdsl::rreil::copy_visitor::visit(_throw const *a) {
@@ -307,3 +307,7 @@ void gdsl::rreil::copy_visitor::visit(shared_exception const* a) {
   else
     _exception = make_exception(a->get_type());
 }
+
+gdsl::rreil::copy_visitor::~copy_visitor() {}
+
+gdsl::rreil::copy_visitor::copy_visitor() {}

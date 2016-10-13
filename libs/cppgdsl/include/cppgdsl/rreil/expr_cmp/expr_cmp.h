@@ -49,7 +49,7 @@ class expr_cmp {
 
 std::ostream& operator<<(std::ostream& out, expr_cmp const& _this);
 
-inline std::unique_ptr<expr_cmp> make_expr(cmp_op op,
+inline std::unique_ptr<expr_cmp> make_expr_cmp(cmp_op op,
                                            std::unique_ptr<linear> lhs,
                                            std::unique_ptr<linear> rhs) {
   return std::unique_ptr<expr_cmp>(

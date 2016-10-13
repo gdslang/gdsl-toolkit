@@ -1,19 +1,18 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
-#include <cppgdsl/rreil/branch_hint.h>
-#include <cppgdsl/rreil/exception/shared_exception.h>
-#include <cppgdsl/rreil/expr_cmp/cmp_op.h>
-#include <cppgdsl/rreil/expr/binop_op.h>
-#include <cppgdsl/rreil/expr/expr_ext.h>
-#include <cppgdsl/rreil/flop.h>
-#include <cppgdsl/rreil/id/shared_id.h>
-#include <cppgdsl/rreil/linear/binop_lin_op.h>
-#include <cppgdsl/rreil/visitor.h>
-
+#include "cppgdsl/rreil/branch_hint.h"
+#include "cppgdsl/rreil/exception/shared_exception.h"
+#include "cppgdsl/rreil/expr_cmp/cmp_op.h"
+#include "cppgdsl/rreil/expr/binop_op.h"
+#include "cppgdsl/rreil/expr/expr_ext.h"
+#include "cppgdsl/rreil/flop.h"
+#include "cppgdsl/rreil/id/shared_id.h"
+#include "cppgdsl/rreil/visitor.h"
 extern "C" {
-#include <gdsl_generic.h>
+#include "gdsl_generic.h"
 }
 
 namespace gdsl {
@@ -141,6 +140,9 @@ class copy_visitor : public visitor {
   std::unique_ptr<gdsl::rreil::exception> _exception;
 
  public:
+  ~copy_visitor();
+  copy_visitor();
+
   std::unique_ptr<variable> retrieve_variable() { return std::move(_variable); }
 
   std::unique_ptr<variable_limited> retrieve_variable_limited() {
