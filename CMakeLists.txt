@@ -5,7 +5,7 @@ set(GDSL_MAJOR_VERSION 1)
 set(GDSL_MINOR_VERSION 1)
 set(GDSL_PATCH_VERSION 0)
 set(GDSL_VERSION
-  ${GDSL_MAJOR_VERSION}.${GDSL_MINOR_VERSION}.${GSDL_PATCH_VERSION})
+  ${GDSL_MAJOR_VERSION}.${GDSL_MINOR_VERSION}.${GDSL_PATCH_VERSION})
 
 # Offer the user the choice of overriding the installation directories
 set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
