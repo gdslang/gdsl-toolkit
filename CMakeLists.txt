@@ -33,21 +33,21 @@ file(GLOB_RECURSE MLTON_SOURCES
 )
 
 add_custom_command(COMMAND mlton -output ${CMAKE_BINARY_DIR}/gdslc ${CMAKE_SOURCE_DIR}/gdslc.mlb
-  OUTPUT gdslc
+  OUTPUT ${CMAKE_BINARY_DIR}/gdslc
   DEPENDS gdslc.mlb ${MLTON_SOURCES}
 )
 
 macro(frontend fend sources)
   set(sources_merged ${sources} ${ARGN})
   list(APPEND FRONTENDS ${fend})
-  add_custom_command(COMMAND ./gdslc --maxIter=42
+  add_custom_command(COMMAND ${CMAKE_BINARY_DIR}/gdslc --maxIter=42
     --runtime=${CMAKE_CURRENT_SOURCE_DIR}/detail/codegen
     --outname=gdsl-${fend}-rreil
     ${sources_merged}
     OUTPUT gdsl-${fend}-rreil.c gdsl-${fend}-rreil.h
     DEPENDS ${CMAKE_BINARY_DIR}/gdslc ${sources_merged}
   )
-  add_library(gdsl_${fend}_rreil gdsl-${fend}-rreil.c)
+  add_library(gdsl_${fend}_rreil SHARED gdsl-${fend}-rreil.c)
   set_target_properties(gdsl_${fend}_rreil PROPERTIES C_STANDARD 11)
   target_include_directories(gdsl_${fend}_rreil PUBLIC
     $<BUILD_INTERFACE: ${CMAKE_BINARY_DIR}/ arch/${fend}/>
