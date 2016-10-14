@@ -28,13 +28,13 @@ foreach(p LIB BIN INCLUDE CMAKE)
   endif()
 endforeach()
 
-file(GLOB_RECURSE MLTON_SOURCES
+file(GLOB_RECURSE COMPILER_SOURCES
   "detail/**.ml"
 )
 
 add_custom_command(COMMAND mlton -output ${CMAKE_BINARY_DIR}/gdslc ${CMAKE_SOURCE_DIR}/gdslc.mlb
   OUTPUT ${CMAKE_BINARY_DIR}/gdslc
-  DEPENDS gdslc.mlb ${MLTON_SOURCES}
+  DEPENDS gdslc.mlb ${COMPILER_SOURCES}
 )
 
 add_custom_target(gdsl-compiler DEPENDS ${CMAKE_BINARY_DIR}/gdslc)
