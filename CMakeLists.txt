@@ -37,6 +37,8 @@ add_custom_command(COMMAND mlton -output ${CMAKE_BINARY_DIR}/gdslc ${CMAKE_SOURC
   DEPENDS gdslc.mlb ${MLTON_SOURCES}
 )
 
+add_custom_target(gdsl-compiler DEPENDS ${CMAKE_BINARY_DIR}/gdslc)
+
 macro(frontend fend sources)
   set(sources_merged ${sources} ${ARGN})
   list(APPEND FRONTENDS ${fend})
@@ -45,7 +47,7 @@ macro(frontend fend sources)
     --outname=gdsl-${fend}-rreil
     ${sources_merged}
     OUTPUT gdsl-${fend}-rreil.c gdsl-${fend}-rreil.h
-    DEPENDS ${CMAKE_BINARY_DIR}/gdslc ${sources_merged}
+    DEPENDS gdsl-compiler ${sources_merged}
   )
   add_library(gdsl_${fend}_rreil SHARED gdsl-${fend}-rreil.c)
   set_target_properties(gdsl_${fend}_rreil PROPERTIES C_STANDARD 11)
