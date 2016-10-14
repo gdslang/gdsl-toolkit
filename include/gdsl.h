@@ -1,1 +1,0 @@
-../gdsl_manual.h

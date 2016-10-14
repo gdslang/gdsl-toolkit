@@ -6,7 +6,7 @@ file(GLOB_RECURSE SOURCES
 )
 
 add_library(readhex ${SOURCES})
-set_target_properties(readhex PROPERTIES COMPILE_FLAGS "-std=c11 -m32")
+set_target_properties(readhex PROPERTIES COMPILE_FLAGS "-std=c11")
 target_include_directories(readhex PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
   $<INSTALL_INTERFACE:include/>  # <prefix>/include/

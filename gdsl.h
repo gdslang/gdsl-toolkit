@@ -13,6 +13,8 @@
 #include "gdsl-mips.h"
 #elif USE_MIPS_RREIL
 #include "gdsl-mips-rreil.h"
+#elif USE_ARM7_RREIL
+#include "gdsl-arm7-rreil.h"
 #endif
  
 

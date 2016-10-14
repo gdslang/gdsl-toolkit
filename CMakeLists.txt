@@ -28,32 +28,43 @@ foreach(p LIB BIN INCLUDE CMAKE)
   endif()
 endforeach()
 
-macro(frontend fend sources)
-set(sources_merged ${sources} ${ARGN})
-list(APPEND FRONTENDS ${fend})
-add_custom_command(COMMAND gdsl_compiler --maxIter=42
-  --runtime=${CMAKE_CURRENT_SOURCE_DIR}/detail/codegen
-  --outname=gdsl_${fend}_rreil_frontend
-  ${sources_merged}
-  OUTPUT gdsl_${fend}_rreil_frontend.c gdsl_${fend}_rreil_frontend.h
-  DEPENDS gdsl_compiler ${sources_merged}
-)
-add_library(gdsl_${fend}_rreil gdsl_${fend}_rreil_frontend.c)
-set_target_properties(gdsl_${fend}_rreil PROPERTIES COMPILE_FLAGS "-std=c11 -fPIC -m32")
-target_include_directories(gdsl_${fend}_rreil PUBLIC
-  $<BUILD_INTERFACE: ${CMAKE_BINARY_DIR}/ arch/${fend}/>
-  $<INSTALL_INTERFACE:arch/${fend}/> $<INSTALL_INTERFACE:${INSTALL_BIN_DIR}>  # <prefix>/include/
+file(GLOB_RECURSE MLTON_SOURCES
+  "detail/**.ml"
 )
 
-list(APPEND EXPORT_LIBRARIES gdsl_${fend}_rreil)
-install(TARGETS gdsl_${fend}_rreil
-  # IMPORTANT: Add the library to the "export-set"
-  EXPORT gdslTargets
-  RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-  LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
-  ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
-  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/"
-    COMPONENT dev)
+add_custom_command(COMMAND mlton -output ${CMAKE_BINARY_DIR}/gdslc ${CMAKE_SOURCE_DIR}/gdslc.mlb
+  OUTPUT gdslc
+  DEPENDS gdslc.mlb ${MLTON_SOURCES}
+)
+
+macro(frontend fend sources)
+  set(sources_merged ${sources} ${ARGN})
+  list(APPEND FRONTENDS ${fend})
+  add_custom_command(COMMAND ./gdslc --maxIter=42
+    --runtime=${CMAKE_CURRENT_SOURCE_DIR}/detail/codegen
+    --outname=gdsl-${fend}-rreil
+    ${sources_merged}
+    OUTPUT gdsl-${fend}-rreil.c gdsl-${fend}-rreil.h
+    DEPENDS ${CMAKE_BINARY_DIR}/gdslc ${sources_merged}
+  )
+  add_library(gdsl_${fend}_rreil gdsl-${fend}-rreil.c)
+  set_target_properties(gdsl_${fend}_rreil PROPERTIES COMPILE_FLAGS "-std=c11 -fPIC")
+  target_include_directories(gdsl_${fend}_rreil PUBLIC
+    $<BUILD_INTERFACE: ${CMAKE_BINARY_DIR}/ arch/${fend}/>
+    $<INSTALL_INTERFACE:arch/${fend}/> $<INSTALL_INTERFACE:${INSTALL_BIN_DIR}>  # <prefix>/include/
+  )
+  string(TOUPPER ${fend} FEND)
+  target_compile_definitions(gdsl_${fend}_rreil PUBLIC "USE_${FEND}_RREIL")
+
+  list(APPEND EXPORT_LIBRARIES gdsl_${fend}_rreil)
+  install(TARGETS gdsl_${fend}_rreil
+    # IMPORTANT: Add the library to the "export-set"
+    EXPORT gdslTargets
+    RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+    LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
+    ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
+    PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/"
+      COMPONENT dev)
 endmacro(frontend)
 
 set(GDSL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/specifications)
@@ -136,7 +147,6 @@ frontend(mips ${FRONTEND_SRCS_COMMON}
   ${GDSL_DIR}/mips/mips-traverse_r6.ml
 )
 
-add_subdirectory(gdslc)
 add_subdirectory(libs)
 add_subdirectory(tools)
 
