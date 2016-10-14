@@ -7,13 +7,9 @@ file(GLOB_RECURSE SOURCES
     "src/**.cpp"
 )
 
-# The following line is the correct way to switch C++ standard.
-# However, this doesn't seem to work with CMake 2.8.
-#set_property(TARGET cppgdsl PROPERTY CXX_STANDARD 11)
-
 macro(cppgdsl fend)
   add_library(cppgdsl_${fend} ${SOURCES})
-  set_target_properties(cppgdsl_${fend} PROPERTIES COMPILE_FLAGS "-fPIC -std=c++11")
+  set_target_properties(cppgdsl_${fend} PROPERTIES CXX_STANDARD 11)
   target_include_directories(cppgdsl_${fend} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
     $<INSTALL_INTERFACE:include/>  # <prefix>/include/

@@ -48,7 +48,7 @@ macro(frontend fend sources)
     DEPENDS ${CMAKE_BINARY_DIR}/gdslc ${sources_merged}
   )
   add_library(gdsl_${fend}_rreil gdsl-${fend}-rreil.c)
-  set_target_properties(gdsl_${fend}_rreil PROPERTIES COMPILE_FLAGS "-std=c11 -fPIC")
+  set_target_properties(gdsl_${fend}_rreil PROPERTIES C_STANDARD 11)
   target_include_directories(gdsl_${fend}_rreil PUBLIC
     $<BUILD_INTERFACE: ${CMAKE_BINARY_DIR}/ arch/${fend}/>
     $<INSTALL_INTERFACE:arch/${fend}/> $<INSTALL_INTERFACE:${INSTALL_BIN_DIR}>  # <prefix>/include/

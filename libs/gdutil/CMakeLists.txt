@@ -11,7 +11,7 @@ macro(gdutil fend)
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
     $<INSTALL_INTERFACE:include/>  # <prefix>/include/
   )
-  set_target_properties(gdutil_${fend} PROPERTIES COMPILE_FLAGS "-std=c11")
+  set_target_properties(gdutil_${fend} PROPERTIES C_STANDARD 11)
 
   list(APPEND EXPORT_LIBRARIES gdutil_${fend})
   install(TARGETS gdutil_${fend}

@@ -11,7 +11,7 @@ macro(multiplex fend)
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
     $<INSTALL_INTERFACE:include/>  # <prefix>/include/
   )
-  set_target_properties(multiplex_${fend} PROPERTIES COMPILE_FLAGS "-std=c11")
+  set_target_properties(multiplex_${fend} PROPERTIES C_STANDARD 11)
   target_link_libraries(multiplex_${fend} dl)
 
   list(APPEND EXPORT_LIBRARIES multiplex_${fend})
