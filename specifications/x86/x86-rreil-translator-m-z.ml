@@ -2621,7 +2621,12 @@ val sem-test-inner sz r = do
   af <- fAF;
   undef 1 af;
 
-  emit-virt-flags
+  leu <- fLEU;
+  lts <- fLTS;
+  les <- fLES;
+  cmpeq sz leu r (imm 0);
+  cmplts sz lts r (imm 0);
+  cmples sz les r (imm 0)
 end
 
 val sem-test x = do
@@ -2629,10 +2634,11 @@ val sem-test x = do
   a <- rval sz x.opnd1;
   b <- rvals Signed sz x.opnd2;
 
-  if (equals-opnd x.opnd1 x.opnd2) or
-    (zero-opnd x.opnd1) or (zero-opnd x.opnd2) then do
+  if (equals-opnd x.opnd1 x.opnd2) then do
     sem-test-inner sz a
-    end
+  end else if (zero-opnd x.opnd1) or (zero-opnd x.opnd2) then do
+    sem-test-inner sz (imm 0)
+  end
   else do
     temp <- mktemp;
     andb sz temp a b;
