@@ -1,6 +1,8 @@
 # vim:ai:filetype=sml:ts=3:sw=3:expandtab
 export rreil-stmts-count : (sem_stmt_list) -> int
 
+# Architectures may add additional registers; these architecture-specific
+# registers must not have arguments (see id_eq)!
 type sem_id =
    FLOATING_FLAGS
  | VIRT_T of int

@@ -87,6 +87,7 @@ val delayed-forward-subsitution do-delayed-fsubst translated =
  case do-delayed-fsubst of 
     '1' : do
        p <- delayed-fsubst-propagate-values translated;
+       #p <- cleanup p;
        return p
       end
   | '0' : return translated
@@ -101,6 +102,8 @@ val forward-subsitution do-fsubst translated =
 		#println "-------------------";
 		#println "propagating...";
        p <- fsubst-propagate-values translated;
+       p <- cleanup p;
+       p <- fsubst-propagate-values p;
 		#println "-------------------";
 		#println "after propagation";
 		#println (rreil-pretty p);
