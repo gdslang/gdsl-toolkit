@@ -12,6 +12,7 @@ macro(gdutil fend)
     $<INSTALL_INTERFACE:include/>  # <prefix>/include/
   )
   set_target_properties(gdutil_${fend} PROPERTIES C_STANDARD 11)
+  target_link_libraries(gdutil_${fend} multiplex)
 
   list(APPEND EXPORT_LIBRARIES gdutil_${fend})
   install(TARGETS gdutil_${fend}
