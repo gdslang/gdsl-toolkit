@@ -78,7 +78,8 @@ val propagate-contextful do-delayed-fsubst do-fsubst translated =
 
 val propagate do-delayed-fsubst do-fsubst translated =
  do
-    optimized <- delayed-forward-subsitution do-delayed-fsubst translated;
+    optimized <- forward-subsitution do-fsubst translated;
+    optimized <- delayed-forward-subsitution do-delayed-fsubst optimized;
     forward-subsitution do-fsubst optimized
  end
 
@@ -87,7 +88,6 @@ val delayed-forward-subsitution do-delayed-fsubst translated =
  case do-delayed-fsubst of 
     '1' : do
        p <- delayed-fsubst-propagate-values translated;
-       #p <- cleanup p;
        return p
       end
   | '0' : return translated
@@ -101,16 +101,14 @@ val forward-subsitution do-fsubst translated =
 		#println (rreil-pretty translated);
 		#println "-------------------";
 		#println "propagating...";
-       p <- fsubst-propagate-values translated;
-       p <- cleanup p;
-       p <- fsubst-propagate-values p;
+    p <- fsubst-propagate-values translated;
 		#println "-------------------";
 		#println "after propagation";
 		#println (rreil-pretty p);
 		#println "-------------------";
 		#println "doing liveness optimization...";
-       return p
-      end
+    return p
+    end
   | '0' : return translated
  end
 
