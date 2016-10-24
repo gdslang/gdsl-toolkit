@@ -208,3 +208,6 @@ tools/xed-cmp/build/
 *.o
 *.la
 *.lo
+
+.kdev4/
+gdsl-toolkit.kdev4
