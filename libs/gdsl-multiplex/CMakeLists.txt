@@ -5,7 +5,7 @@ file(GLOB_RECURSE SOURCES
   "src/**.c"
 )
 
-add_library(multiplex ${SOURCES})
+add_library(multiplex SHARED ${SOURCES})
 target_include_directories(multiplex PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
   $<INSTALL_INTERFACE:include/>  # <prefix>/include/
