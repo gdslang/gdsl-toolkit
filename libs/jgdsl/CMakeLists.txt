@@ -5,8 +5,9 @@ find_package (JNI)
 find_package (Java)
 include(UseJava)
 find_file(JUnit_PATH junit4.jar HINTS /usr/share/java)
+string(COMPARE EQUAL ${JUnit_PATH} "JUnit_PATH-NOTFOUND" NO_JUNIT)
 
-if(JNI_FOUND AND Java_FOUND AND ${JUnit_PATH})
+if(JNI_FOUND AND Java_FOUND AND NOT ${NO_JUNIT})
   file(GLOB_RECURSE C_SOURCES
     "src/**.c"
   )
