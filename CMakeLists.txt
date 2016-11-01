@@ -32,7 +32,7 @@ file(GLOB_RECURSE COMPILER_SOURCES
   "detail/**.ml"
 )
 
-add_custom_command(COMMAND mlton -output ${CMAKE_BINARY_DIR}/gdslc ${CMAKE_SOURCE_DIR}/gdslc.mlb
+add_custom_command(COMMAND mlton -output ${CMAKE_BINARY_DIR}/gdslc ${CMAKE_CURRENT_SOURCE_DIR}/gdslc.mlb
   OUTPUT ${CMAKE_BINARY_DIR}/gdslc
   DEPENDS gdslc.mlb ${COMPILER_SOURCES}
 )
@@ -51,9 +51,11 @@ macro(frontend fend sources)
   )
   add_library(gdsl_${fend}_rreil SHARED gdsl-${fend}-rreil.c)
   set_target_properties(gdsl_${fend}_rreil PROPERTIES C_STANDARD 11)
-  target_include_directories(gdsl_${fend}_rreil PUBLIC
-    $<BUILD_INTERFACE: ${CMAKE_BINARY_DIR}/ arch/${fend}/>
-    $<INSTALL_INTERFACE:arch/${fend}/> $<INSTALL_INTERFACE:${INSTALL_BIN_DIR}>  # <prefix>/include/
+  message(${CMAKE_CURRENT_BINARY_DIR})
+  target_include_directories(gdsl_${fend}_rreil PUBLIC #${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}>  # <prefix>/include/
   )
   string(TOUPPER ${fend} FEND)
   target_compile_definitions(gdsl_${fend}_rreil PUBLIC "USE_${FEND}_RREIL")
