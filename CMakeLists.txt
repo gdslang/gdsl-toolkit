@@ -51,7 +51,6 @@ macro(frontend fend sources)
   )
   add_library(gdsl_${fend}_rreil SHARED gdsl-${fend}-rreil.c)
   set_target_properties(gdsl_${fend}_rreil PROPERTIES C_STANDARD 11)
-  message(${CMAKE_CURRENT_BINARY_DIR})
   target_include_directories(gdsl_${fend}_rreil PUBLIC #${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
