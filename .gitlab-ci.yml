@@ -1,0 +1,44 @@
+build:
+  stage: build
+  # instead of calling g++ directly you can also use some build toolkit like make
+  # install the necessary build tools when needed
+  #before_script: 
+  #  - sudo apt update && sudo apt -y install cmake
+  script:
+    - mkdir build
+    - cd build
+    - export CXX=clang++
+    - export CC=clang
+    - cmake ..
+    - make
+  artifacts:
+    paths:
+      - build/libgdsl_arm7_rreil.so
+      - build/libgdsl_mips_rreil.so
+      - build/libgdsl_avr_rreil.so
+      - build/libgdsl_x86_rreil.so
+      - build/gdsl-avr-rreil.c
+      - build/gdsl-mips-rreil.c
+      - build/gdsl-arm7-rreil.c
+      - build/gdsl-x86-rreil.c
+      - build/gdsl-avr-rreil.h
+      - build/gdsl-arm7-rreil.h
+      - build/gdsl-x86-rreil.h
+      - build/gdsl-mips-rreil.h
+      - build/libs/cppgdsl/libcppgdsl.a
+      - build/libs/gdsl-multiplex/libmultiplex.so
+      - build/libs/gdutil/libgdutil_avr.a
+      - build/libs/gdutil/libgdutil_arm7.a
+      - build/libs/gdutil/libgdutil_mips.a
+      - build/libs/gdutil/libgdutil_x86.a
+      - build/libs/readhex/libreadhex.a
+  # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
+  cache:
+     paths:
+      - "*.o"
+
+# run tests using the binary built before
+#test:
+#  stage: test
+#  script:
+#    - ./test.sh
