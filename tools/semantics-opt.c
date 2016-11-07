@@ -53,7 +53,7 @@ static char args_parse(int argc, char** argv, struct options* options) {
   struct option long_options[] = {
       {"elf", no_argument, NULL, OPTION_ELF},
       {"file", required_argument, NULL, OPTION_FILE},
-      {"offset", required_argument, NULL, OPTION_FILE},
+      {"offset", required_argument, NULL, OPTION_OFFSET},
       {"length", required_argument, NULL, OPTION_LENGTH},
       {"preserve", required_argument, NULL, OPTION_PRESERVATION},
       {"liveness", no_argument, NULL, OPTION_LIVENESS},
@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
   size_t buffer_size = options.length + 15;
   unsigned char* buffer = (unsigned char*)malloc(buffer_size);
   size_t buffer_length = fread(buffer, 1, buffer_size, f);
-
+  
   fclose(f);
 
   state_t state = gdsl_init();
