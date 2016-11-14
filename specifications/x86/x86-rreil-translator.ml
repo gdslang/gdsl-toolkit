@@ -647,20 +647,11 @@ val sem-undef-flow1 x = do
 end
 
 val emit-parity-flag r = do
-  byte-size <- return 8;
-
-  low-byte <- mktemp;
-  mov byte-size low-byte r;
-
   pf <- fPF;
-  # Bitwise XNOR
-  cmpeq 1 pf (var (at-offset low-byte 7)) (var (at-offset low-byte 6));
-  cmpeq 1 pf (var pf) (var (at-offset low-byte 5));
-  cmpeq 1 pf (var pf) (var (at-offset low-byte 4));
-  cmpeq 1 pf (var pf) (var (at-offset low-byte 3));
-  cmpeq 1 pf (var pf) (var (at-offset low-byte 2));
-  cmpeq 1 pf (var pf) (var (at-offset low-byte 1));
-  cmpeq 1 pf (var pf) (var (at-offset low-byte 0))
+  low-byte <- mktemp;
+  xorb 4 low-byte (var r) (var (at-offset r 4));
+  xorb 2 low-byte (var low-byte) (var (at-offset low-byte 2));
+  xorb 1 pf (var low-byte) (var (at-offset low-byte 1))
 end
 
 val emit-arithmetic-adjust-flag sz r op0 op1 = do
@@ -685,27 +676,27 @@ val emit-add-adc-flags sz sum s0 s1 carry set-carry = let
     t2 <- mktemp;
     t3 <- mktemp;
   
-    xorb sz t1 sum s0;
-    xorb sz t2 sum s1;
+    xorb sz t1 (var sum) s0;
+    xorb sz t2 (var sum) s1;
     andb sz t3 (var t1) (var t2);
     cmplts sz ov (var t3) (imm 0);
-    cmplts sz sf sum (imm 0);
-    cmpeq sz zf sum (imm 0);
+    cmplts sz sf (var sum) (imm 0);
+    cmpeq sz zf (var sum) (imm 0);
   
     # Hacker's Delight - Unsigned Add/Subtract
     if set-carry then (
       _if (/d carry) _then do
-        cmpleu 4 af sum s0;
-        cmpleu sz cf sum s0
+        cmpleu 4 af (var sum) s0;
+        cmpleu sz cf (var sum) s0
       end _else do
-        cmpltu 4 af sum s0;
-        cmpltu sz cf sum s0
+        cmpltu 4 af (var sum) s0;
+        cmpltu sz cf (var sum) s0
       end
     ) else (
       _if (/d carry) _then do
-        cmpleu 4 af sum s0
+        cmpleu 4 af (var sum) s0
       end _else do
-        cmpltu 4 af sum s0
+        cmpltu 4 af (var sum) s0
       end
     );
 
@@ -727,7 +718,7 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
     t2 <- mktemp;
     t3 <- mktemp;
 
-    cmplts sz sf difference (imm 0);
+    cmplts sz sf (var difference) (imm 0);
 
     # Hacker's Delight - Unsigned Add/Subtract
     _if (/d carry) _then do

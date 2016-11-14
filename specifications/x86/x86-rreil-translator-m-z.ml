@@ -302,7 +302,7 @@ val sem-neg x = do
   cmpeq size ov (var temp) src;
   xorb 1 ov (var ov) (var zf);
 
-  emit-parity-flag (var temp);
+  emit-parity-flag temp;
   emit-arithmetic-adjust-flag size (var temp) (imm 0) src; #Todo: Correct?
   emit-virt-flags;
 
@@ -342,7 +342,7 @@ val sem-or x = do
   cmplts sz sf (var temp) (imm 0);
   zf <- fZF;
   cmpeq sz zf (var temp) (imm 0);
-  emit-parity-flag (var temp);
+  emit-parity-flag temp;
   af <- fAF;
   undef 1 af;
   emit-virt-flags;
@@ -2343,7 +2343,7 @@ val sem-sal-shl x = do
     zf <- fZF;
     cmpeq sz zf (var tdst) (imm 0);
     
-    emit-parity-flag (var tdst)
+    emit-parity-flag tdst
   end _else
     mov sz tdst src
   ;
@@ -2411,7 +2411,7 @@ val sem-shr-sar x signed = do
     shifter sz tdst (var tdst) (imm 1);
 
     cmplts sz sf (var tdst) (imm 0);
-    emit-parity-flag (var tdst);
+    emit-parity-flag tdst;
 
     cmpeq sz zf (var tdst) (imm 0)
   end _else do
@@ -2454,7 +2454,7 @@ val sem-sbb x = do
   add sz t (var t) subtrahend;
   sub sz t minuend (var t);
 
-  emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf) '1';
+  emit-sub-sbb-flags sz t minuend subtrahend (var cf) '1';
 
   write sz difference (var t)
 end
@@ -2471,7 +2471,7 @@ val sem-scas size x = let
     temp <- mktemp;
     sub size temp (var a) (var mem-val);
 
-    emit-sub-sbb-flags size (var temp) (var a) (var mem-val) (imm 0) '1';
+    emit-sub-sbb-flags size temp (var a) (var mem-val) (imm 0) '1';
 
     direction-adjust mem-sem.size mem-sem size
   end
@@ -2546,7 +2546,7 @@ val sem-shld-shrd s1-shifter s2-shifter x = do
       mov 1 cf (var temp-cf);
       mov 1 sf (var (at-offset temp-dst (size - 1)));
       cmpeq size zf (var temp-dst) (imm 0);
-      emit-parity-flag (var temp-dst);
+      emit-parity-flag temp-dst;
       undef 1 af;
 
       _if (/eq size (var temp-count) (imm 1)) _then
@@ -2597,7 +2597,7 @@ val sem-sub x = do
   t <- mktemp;
   sub sz t minuend subtrahend;
 
-  emit-sub-sbb-flags sz (var t) minuend subtrahend (imm 0) '1';
+  emit-sub-sbb-flags sz t minuend subtrahend (imm 0) '1';
   write sz difference (var t)
 end
 
@@ -2610,7 +2610,9 @@ val sem-test-inner sz r = do
   zf <- fZF;
   cmpeq sz zf r (imm 0);
 
-  emit-parity-flag r;
+  t <- mktemp;
+  mov sz t r;
+  emit-parity-flag t;
 
   cf <- fCF;
   mov 1 cf (imm 0);
@@ -2778,7 +2780,7 @@ val sem-xadd x = do
   sum <- mktemp;
   add size sum src0 src1;
 
-  emit-add-adc-flags size (var sum) src0 src1 (imm 0) '1';
+  emit-add-adc-flags size sum src0 src1 (imm 0) '1';
 
   t <- mktemp;
   mov size t src0;
@@ -2815,7 +2817,7 @@ val sem-xor x = do
   zf <- fZF;
   cmpeq sz zf (var temp) (imm 0);
 
-  emit-parity-flag (var temp);
+  emit-parity-flag temp;
 
   cf <- fCF;
   mov 1 cf (imm 0);

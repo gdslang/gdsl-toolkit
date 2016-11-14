@@ -16,7 +16,7 @@ val sem-adc x = do
   movzx sz tc 1 (var cf);
   add sz t (var t) (var tc);
 
-  emit-add-adc-flags sz (var t) b c (var cf) '1';
+  emit-add-adc-flags sz t b c (var cf) '1';
   write sz a (var t)
 end
 
@@ -54,7 +54,7 @@ val sem-add x = do
   c <- rvals Signed sz x.opnd2;
   t <- mktemp;
   add sz t b c;
-  emit-add-adc-flags sz (var t) b c (imm 0) '1';
+  emit-add-adc-flags sz t b c (imm 0) '1';
   write sz a (var t)
 end
 
@@ -95,7 +95,7 @@ val sem-and x = do
   mov 1 sf (var (at-offset temp (size - 1)));
   zf <- fZF;
   cmpeq size zf (var temp) (imm 0);
-  emit-parity-flag (var temp);
+  emit-parity-flag temp;
   af <- fAF;
   undef 1 af;
   emit-virt-flags;
@@ -439,7 +439,7 @@ val sem-cmp x = do
   c <- rvals Signed sz x.opnd2;
   t <- mktemp;
   sub sz t b c;
-  emit-sub-sbb-flags sz (var t) b c (imm 0) '1'
+  emit-sub-sbb-flags sz t b c (imm 0) '1'
 end
 
 val sem-cmps x = do
@@ -449,7 +449,7 @@ val sem-cmps x = do
 
   temp <- mktemp;
   sub sz temp src0 src1;
-  emit-sub-sbb-flags sz (var temp) src0 src1 (imm 0) '1';
+  emit-sub-sbb-flags sz temp src0 src1 (imm 0) '1';
 
   reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
   reg1-sem <- return (semantic-register-of (read-addr-reg x.opnd2));
@@ -500,7 +500,7 @@ val sem-cmpxchg x = do
   difference <- mktemp;
   sub size difference (var minuend) subtrahend;
 
-  emit-sub-sbb-flags size (var difference) (var minuend) subtrahend (imm 0) '1';
+  emit-sub-sbb-flags size difference (var minuend) subtrahend (imm 0) '1';
 
   zf <- fZF;
   _if (/d (var zf)) _then do
@@ -585,7 +585,7 @@ val sem-dec x = do
   temp <- mktemp;
   sub sz temp src (imm 1);
 
-  emit-sub-sbb-flags sz (var temp) src (imm 1) (imm 0) '0';
+  emit-sub-sbb-flags sz temp src (imm 1) (imm 0) '0';
 
   write sz dst (var temp)
 end
@@ -709,7 +709,7 @@ val sem-inc x = do
   temp <- mktemp;
   add sz temp src (imm 1);
 
-  emit-add-adc-flags sz (var temp) src (imm 1) (imm 0) '0';
+  emit-add-adc-flags sz temp src (imm 1) (imm 0) '0';
 
   write sz dst (var temp)
 end
