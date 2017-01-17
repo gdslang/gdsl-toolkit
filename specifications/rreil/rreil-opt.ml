@@ -58,15 +58,14 @@ val decode-translate-block-optimized-preserve config limit pres do-delayed-fsubs
    end
  | SEM_PRESERVATION_CONTEXT: do
      translated <- decode-translate-super-block config limit;
-     live <- if lv then do
+     translated <- propagate-contextful do-delayed-fsubst do-fsubst translated;
+     translated <- if lv then do
        lv-result <- liveness_super translated;
        query $live
      end else
        return ($insns translated)
      ;
-     translated <- return {insns=live, succ_a=translated.succ_a, succ_b=translated.succ_b};
-     translated <- propagate-contextful do-delayed-fsubst do-fsubst translated;
-     clean <- cleanup translated.insns;
+     clean <- cleanup translated;
      return clean
    end
 end
