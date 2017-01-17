@@ -228,8 +228,8 @@ val emit-all-required-computations-from-state criterion-lhs criterion-rhs stmt e
        it <- emit-all-vars-of-sexpr (anything-is-overlapping) s.cond 1 emitted-stmts;
        emit-all-accesses-in-stmt-list-from-state s.body it
      end
-  | SEM_CBRANCH s : emit-whole-state emitted-stmts
-  | SEM_BRANCH s : emit-whole-state emitted-stmts
+  | SEM_CBRANCH s : do x <- emit-whole-state emitted-stmts; return {temp=x.temp, assign=SEM_CONS{hd=(/PRIM (string-from-rope "CBRANCH_Marker") SEM_VARLS_NIL SEM_VARLS_NIL), tl=x.assign}, state=x.state} end
+  | SEM_BRANCH s : do x <- emit-whole-state emitted-stmts; return {temp=x.temp, assign=SEM_CONS{hd=(/PRIM (string-from-rope "BRANCH_Marker") SEM_VARLS_NIL SEM_VARLS_NIL), tl=x.assign}, state=x.state} end
   | SEM_FLOP s : do
        it1 <- emit-id-from-state emitted-stmts.state s.flags emitted-stmts;
        it2 <- emit-var-from-state criterion-lhs emitted-stmts.state s.lhs s.lhs.size it1;
