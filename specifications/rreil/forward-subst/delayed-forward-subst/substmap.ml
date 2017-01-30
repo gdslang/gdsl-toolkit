@@ -95,8 +95,8 @@ val df-substmap-lookup-var-to-linear state offset size var =
                SEM_SEXPR sex: case sex of
                  SEM_SEXPR_LIN l : JUST_LINEAR l
                  | _ : NOTHING_LINEAR
+               end
              | _: NOTHING_LINEAR
-             end
             end
             else NOTHING_LINEAR)
           else NOTHING_LINEAR))
