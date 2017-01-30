@@ -13,7 +13,7 @@
 #
 type df-subst-map = 
     SUBSTMAP_EMPTY
-  | SUBSTMAP_LINEAR of {offset:int, size:int, id:sem_id, rhs:sem_sexpr, cont:df-subst-map}
+  | SUBSTMAP_LINEAR of {offset:int, size:int, id:sem_id, rhs:sem_expr, cont:df-subst-map}
 
 val df-substmap-initial = SUBSTMAP_EMPTY
 
@@ -34,12 +34,12 @@ type df-maybe-sexpr = NOTHING_SEXPR | JUST_SEXPR of sem_sexpr
 val df-substmap-var-to-lin state offset size var = case df-substmap-lookup-var-to-linear state offset size var of
     NOTHING_LINEAR        : SEM_LIN_VAR {id=var, offset=offset}
   | JUST_LINEAR linear    : linear
-	end
-	
+  end
+  
 val df-substmap-var-to-sexpr state offset size var = case df-substmap-lookup-var-to-sexpr state offset size var of
     NOTHING_SEXPR              : SEM_SEXPR_LIN (SEM_LIN_VAR {id=var, offset=offset})
   | JUST_SEXPR linear          : linear
-	end
+  end
 
 
 
@@ -60,16 +60,16 @@ val df-substmap-lookup-var-to-cond state offset var = df-substmap-lookup-var-to-
 val df-substmap-lookup-var-to-sexpr state offset size var =
  case state of
     SUBSTMAP_LINEAR      s :
-    	if id-eq? var s.id
-    	then (if size+offset <= s.offset or s.size+s.offset <= offset
-    		then  df-substmap-lookup-var-to-sexpr s.cont offset size var
-    		else (if size+offset <= s.offset+s.size
-    			then (if offset===s.offset
-    				then JUST_SEXPR s.rhs
-    				else NOTHING_SEXPR)
-    			else NOTHING_SEXPR))
-    	else df-substmap-lookup-var-to-sexpr s.cont offset size var
-  |	SUBSTMAP_EMPTY              : NOTHING_SEXPR
+      if id-eq? var s.id
+      then (if size+offset <= s.offset or s.size+s.offset <= offset
+        then  df-substmap-lookup-var-to-sexpr s.cont offset size var
+        else (if size+offset <= s.offset+s.size
+          then (if offset===s.offset
+            then JUST_SEXPR s.rhs
+            else NOTHING_SEXPR)
+          else NOTHING_SEXPR))
+      else df-substmap-lookup-var-to-sexpr s.cont offset size var
+  | SUBSTMAP_EMPTY              : NOTHING_SEXPR
     end
 
 # lookup binding for location, recursive worker function
@@ -86,19 +86,19 @@ val df-substmap-lookup-var-to-sexpr state offset size var =
 val df-substmap-lookup-var-to-linear state offset size var =
  case state of
     SUBSTMAP_LINEAR      s :
-    	if id-eq? var s.id
-    	then (if size+offset <= s.offset or s.size+s.offset <= offset
-    		then df-substmap-lookup-var-to-linear s.cont offset size var
-    		else (if size+offset <= s.offset+s.size
-    			then (if offset===s.offset
-    				then case s.rhs of
-    					SEM_SEXPR_LIN l : JUST_LINEAR l
-    					| _ : NOTHING_LINEAR
-    				end
-    				else NOTHING_LINEAR)
-    			else NOTHING_LINEAR))
-    	else df-substmap-lookup-var-to-linear s.cont offset size var
-  |	SUBSTMAP_EMPTY              : NOTHING_LINEAR
+      if id-eq? var s.id
+      then (if size+offset <= s.offset or s.size+s.offset <= offset
+        then df-substmap-lookup-var-to-linear s.cont offset size var
+        else (if size+offset <= s.offset+s.size
+          then (if offset===s.offset
+            then case s.rhs of
+              SEM_SEXPR_LIN l : JUST_LINEAR l
+              | _ : NOTHING_LINEAR
+            end
+            else NOTHING_LINEAR)
+          else NOTHING_LINEAR))
+      else df-substmap-lookup-var-to-linear s.cont offset size var
+  | SUBSTMAP_EMPTY              : NOTHING_LINEAR
     end
 
 val df-sexpr-uses-location o s v rs lin = case lin of
@@ -128,8 +128,8 @@ val df-lin-uses-location o s v rs lin = case lin of
     
 val df-show-substmap sm = case sm of
     SUBSTMAP_EMPTY : ""
-  | SUBSTMAP_LINEAR x : rreil-show-id x.id +++ "." +++ show-int x.offset +++ ":" +++ show-int x.size +++ " = " +++ rreil-show-sexpr x.rhs +++ "\n" +++ df-show-substmap x.cont 
-	end
+  | SUBSTMAP_LINEAR x : rreil-show-id x.id +++ "." +++ show-int x.offset +++ ":" +++ show-int x.size +++ " = " +++ rreil-show-expr x.rhs +++ "\n" +++ df-show-substmap x.cont 
+  end
 
 
 val df-sexpr-uses-id v lin = case lin of
