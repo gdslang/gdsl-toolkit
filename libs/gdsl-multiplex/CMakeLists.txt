@@ -4,7 +4,6 @@ project (multiplex)
 file(GLOB_RECURSE SOURCES
   "src/**.c"
 )
-
 add_library(multiplex SHARED ${SOURCES})
 target_include_directories(multiplex PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
@@ -12,7 +11,9 @@ target_include_directories(multiplex PUBLIC
 )
 set_target_properties(multiplex PROPERTIES C_STANDARD 11)
 target_link_libraries(multiplex dl)
-
+if (NOT HAVE_MEMSTREAM)
+    target_link_libraries(multiplex memstream)
+endif (NOT HAVE_MEMSTREAM)
 list(APPEND EXPORT_LIBRARIES multiplex)
 install(TARGETS multiplex
   # IMPORTANT: Add the library to the "export-set"

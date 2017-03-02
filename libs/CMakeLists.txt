@@ -1,5 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 project (gdsl-libs)
+include (CheckFunctionExists)
+check_function_exists (open_memstream HAVE_MEMSTREAM)
+if (NOT HAVE_MEMSTREAM)
+    add_subdirectory(memstream)
+endif (NOT HAVE_MEMSTREAM)
 
 add_subdirectory(gdsl-multiplex)
 add_subdirectory(cppgdsl)

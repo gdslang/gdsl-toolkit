@@ -1,5 +1,12 @@
 cmake_minimum_required (VERSION 2.8)
 project (gdutil)
+find_path(HAS_GELF_H gelf.h)
+if (NOT HAS_GELF_H)
+    find_package(PkgConfig)
+    if (PKG_CONFIG_FOUND)
+	    pkg_check_modules(LIBELF REQUIRED libelf)
+    endif (PKG_CONFIG_FOUND)
+endif (NOT HAS_GELF_H)
 
 file(GLOB_RECURSE SOURCES
   "src/**.c"
@@ -13,6 +20,10 @@ macro(gdutil fend)
   )
   set_target_properties(gdutil_${fend} PROPERTIES C_STANDARD 11)
   target_link_libraries(gdutil_${fend} multiplex)
+  if (LIBELF_FOUND) 
+    target_include_directories (gdutil_${fend} PUBLIC ${LIBELF_INCLUDE_DIRS})
+    target_link_libraries (gdutil_${fend} ${LIBELF_LDFLAGS})
+  endif (LIBELF_FOUND)
 
   list(APPEND EXPORT_LIBRARIES gdutil_${fend})
   install(TARGETS gdutil_${fend}
