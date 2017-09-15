@@ -1040,6 +1040,7 @@ type vec3nsimm = {
   m:1,
   vm:operand,
   imm:operand
+}
 
 # Generic instruction without any operands
 type nullop = {
