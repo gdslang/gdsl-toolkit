@@ -3054,211 +3054,211 @@ val / ['/cond 000 1 0 1 1 0 /rn /rd 0000 0101 /rm'] = satop QDSUB cond rn rd rm
 
 ### PKH (*Todo: Update immshiftsthtb to support case differentiation.*)
 ###  - Pack Halfword
-val / ['/cond 011 0 1 0 0 0 /rn /rd /shfreg'] = pup PKH rn rd shfreg
+val / ['/cond 011 0 1 0 0 0 /rn /rd /shfreg'] = pup PKH cond rn rd shfreg
 
 ### SXTAB
 ###  - Signed Extend and Add Byte
-val / ['/cond 011 0 1 0 1 0 /rn /rd /rotreg'] = pup SXTAB rn rd rotreg
+val / ['/cond 011 0 1 0 1 0 /rn /rd /rotreg'] = pup SXTAB cond rn rd rotreg
 
 ### SXTAB16
 ###  - Signed Extend and Add Byte 16
-val / ['/cond 011 0 1 0 0 0 /rn /rd /rotreg'] = pup SXTAB16 rn rd rotreg
+val / ['/cond 011 0 1 0 0 0 /rn /rd /rotreg'] = pup SXTAB16 cond rn rd rotreg
 
 ### SXTAH
 ###  - Signed Extend and Add Halfword
-val / ['/cond 011 0 1 0 1 1 /rn /rd /rotreg'] = pup SXTAH rn rd rotreg
+val / ['/cond 011 0 1 0 1 1 /rn /rd /rotreg'] = pup SXTAH cond rn rd rotreg
 
 ### SXTB
 ###  - Signed Extend Byte
-val / ['/cond 011 0 1 0 1 0 1111 /rd /rotreg'] = pup SXTB r15 rd rotreg
+val / ['/cond 011 0 1 0 1 0 1111 /rd /rotreg'] = pup SXTB cond r15 rd rotreg
 
 ### SXTB16
 ###  - Signed Extend Byte 16
-val / ['/cond 011 0 1 0 0 0 1111 /rd /rotreg'] = pup SXTB16 r15 rd rotreg
+val / ['/cond 011 0 1 0 0 0 1111 /rd /rotreg'] = pup SXTB16 cond r15 rd rotreg
 
 ### SXTH
 ###  - Signed Extend Halfword
-val / ['/cond 011 0 1 0 1 1 1111 /rd /rotreg'] = pup SXTH r15 rd rotreg
+val / ['/cond 011 0 1 0 1 1 1111 /rd /rotreg'] = pup SXTH cond r15 rd rotreg
 
 ### UXTAB
 ###  - Unsigned Extend and Add Byte
-val / ['/cond 011 0 1 1 1 0 /rn /rd /rotreg'] = pup UXTAB rn rd rotreg
+val / ['/cond 011 0 1 1 1 0 /rn /rd /rotreg'] = pup UXTAB cond rn rd rotreg
 
 ### UXTAB16
 ###  - Unsigned Extend and Add Byte 16
-val / ['/cond 011 0 1 1 0 0 /rn /rd /rotreg'] = pup UXTAB16 rn rd rotreg
+val / ['/cond 011 0 1 1 0 0 /rn /rd /rotreg'] = pup UXTAB16 cond rn rd rotreg
 
 ### UXTAH
 ###  - Unsigned Extend and Add Halfword
-val / ['/cond 011 0 1 1 1 1 /rn /rd /rotreg'] = pup UXTAH rn rd rotreg
+val / ['/cond 011 0 1 1 1 1 /rn /rd /rotreg'] = pup UXTAH cond rn rd rotreg
 
 ### UXTB
 ###  - Unsigned Extend Byte
-val / ['/cond 011 0 1 1 1 0 1111 /rd /rotreg'] = pup UXTB r15 rd rotreg
+val / ['/cond 011 0 1 1 1 0 1111 /rd /rotreg'] = pup UXTB cond r15 rd rotreg
 
 ### UXTB16
 ###  - Unsigned Extend Byte 16
-val / ['/cond 011 0 1 1 0 0 1111 /rd /rotreg'] = pup UXTB16 r15 rd rotreg  
+val / ['/cond 011 0 1 1 0 0 1111 /rd /rotreg'] = pup UXTB16 cond r15 rd rotreg  
 
 ### UXTH
 ###  - Unsigned Extend Halfword
-val / ['/cond 011 0 1 1 1 1 1111 /rd /rotreg'] = pup UXTH r15 rd rotreg
+val / ['/cond 011 0 1 1 1 1 1111 /rd /rotreg'] = pup UXTH cond r15 rd rotreg
 
 # --- Parallel addition and substraction instructions ------------------
 
 ### SADD16
 ###  - Signed Add 16
-val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 0001 /rm'] = pas SADD16 rn rd rm
+val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 0001 /rm'] = pas SADD16 cond rn rd rm
 
 ### SASX
 ###  - Signed Add and Substract with Extend
-val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 0011 /rm'] = pas SASX rn rd rm
+val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 0011 /rm'] = pas SASX cond rn rd rm
 
 ### SSAX
 ###  - Signed Substract and Add with Exchange
-val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 0101 /rm'] = pas SSAX rn rd rm
+val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 0101 /rm'] = pas SSAX cond rn rd rm
 
 ### SSUB16
 ###  - Signed Substract 16
-val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 0111 /rm'] = pas SSUB16 rn rd rm
+val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 0111 /rm'] = pas SSUB16 cond rn rd rm
 
 ### SADD8
 ###  - Signed Add 8
-val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 1001 /rm'] = pas SADD8 rn rd rm
+val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 1001 /rm'] = pas SADD8 cond n rd rm
 
 ### SSUB8
 ###  - Signed Substract 8
-val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 1111 /rm'] = pas SSUB8 rn rd rm
+val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 1111 /rm'] = pas SSUB8 cond rn rd rm
 
 ### QADD16
 ###  - Saturating Add 16
-val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 0001 /rm'] = pas QADD16 rn rd rm
+val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 0001 /rm'] = pas QADD16 cond rn rd rm
 
 ### QASX
 ###  - Saturating Add and Substract with Exchange
-val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 0011 /rm'] = pas QASX rn rd rm
+val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 0011 /rm'] = pas QASX cond rn rd rm
 
 ### QSAX
 ###  - Saturating Substract and Add with Exchange
-val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 0101 /rm'] = pas QSAX rn rd rm
+val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 0101 /rm'] = pas QSAX cond rn rd rm
 
 ### QSUB16
 ###  - Saturating Substract 16
-val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 0111 /rm'] = pas QSUB16 rn rd rm
+val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 0111 /rm'] = pas QSUB16 cond rn rd rm
 
 ### QADD8
 ###  - Saturating Add 8
-val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 1001 /rm'] = pas QADD8 rn rd rm
+val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 1001 /rm'] = pas QADD8 cond rn rd rm
 
 ### QSUB8
 ###  - Saturating Substract 8
-val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 1111 /rm'] = pas QSUB8 rn rd rm
+val / ['/cond 011 0 0 0 1 0 /rn /rd 1111 1111 /rm'] = pas QSUB8 cond rn rd rm
 
 ### SHADD16
 ###  - Signed Halbing Add 16
-val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 0001 /rm'] = pas SHADD16 rn rd rm
+val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 0001 /rm'] = pas SHADD16 cond rn rd rm
 
 ### SHASX
 ###  - Signed Halving Add and Substract with Exchange
-val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 0011 /rm'] = pas SHASX rn rd rm
+val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 0011 /rm'] = pas SHASX cond rn rd rm
 
 ### SHSAX
 ###  - Signed Halving Substract and Add with Exchange
-val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 0101 /rm'] = pas SHSAX rn rd rm
+val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 0101 /rm'] = pas SHSAX cond rn rd rm
 
 ### SHSUB16
 ###  - Signed Halving Substract 16
-val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 0111 /rm'] = pas SHSUB16 rn rd rm
+val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 0111 /rm'] = pas SHSUB16 cond rn rd rm
 
 ### SHADD8
 ###  - Signed Halving Add 8
-val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 1001 /rm'] = pas SHADD8 rn rd rm
+val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 1001 /rm'] = pas SHADD8 cond rn rd rm
 
 ### SHSUB8
 ###  - Signed Halving Substract 8
-val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 1111 /rm'] = pas SHSUB8 rn rd rm
+val / ['/cond 011 0 0 0 1 1 /rn /rd 1111 1111 /rm'] = pas SHSUB8 cond rn rd rm
 
 ### UADD16
 ###  - Unsigned Add 16
-val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 0001 /rm'] = pas UADD16 rn rd rm
+val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 0001 /rm'] = pas UADD16 cond rn rd rm
 
 ### UASX
 ###  - Unsigned Add and Substract with Exchange
-val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 0011 /rm'] = pas UASX rn rd rm
+val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 0011 /rm'] = pas UASX cond rn rd rm
 
 ### USAX
 ###  - Unsigned Substract and Add with Exchange
-val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 0101 /rm'] = pas USAX rn rd rm
+val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 0101 /rm'] = pas USAX cond rn rd rm
 
 ### USUB16
 ###  - Unsigned Substract 16
-val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 0111 /rm'] = pas USUB16 rn rd rm
+val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 0111 /rm'] = pas USUB16 cond rn rd rm
 
 ### UADD8
 ###  - Unsigned Add 8
-val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 1001 /rm'] = pas UADD8 rn rd rm
+val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 1001 /rm'] = pas UADD8 cond rn rd rm
 
 ### USUB8
 ###  - Unsigned Substract 8
-val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 1111 /rm'] = pas USUB8 rn rd rm
+val / ['/cond 011 0 0 1 0 1 /rn /rd 1111 1111 /rm'] = pas USUB8 cond rn rd rm
 
 ### UQADD16
 ###  - Unsigned Saturating Add 16
-val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 0001 /rm'] = pas UQADD16 rn rd rm
+val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 0001 /rm'] = pas UQADD16 cond rn rd rm
 
 ### UQASX
 ###  - Unsigned Saturating Add and Substract with Exchange
-val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 0011 /rm'] = pas UQASX rn rd rm
+val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 0011 /rm'] = pas UQASX cond rn rd rm
 
 ### UQSAX
 ###  - Unsigned Saturating Substract and Add with Exchange
-val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 0101 /rm'] = pas UQSAX rn rd rm 
+val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 0101 /rm'] = pas UQSAX cond rn rd rm 
 
 ### UQSUB16
 ###  - Unsigned Saturating Substract 16
-val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 0111 /rm'] = pas UQSUB16 rn rd rm
+val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 0111 /rm'] = pas UQSUB16 cond rn rd rm
 
 ### UQADD8
 ###  - Unsigned Saturating Add 8
-val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 1001 /rm'] = pas UQADD8 rn rd rm
+val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 1001 /rm'] = pas UQADD8 cond rn rd rm
 
 ### UQSUB8
 ###  - Unsigned Saturating Sub 8
-val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 1111 /rm'] = pas UQSUB8 rn rd rm
+val / ['/cond 011 0 0 1 1 0 /rn /rd 1111 1111 /rm'] = pas UQSUB8 cond rn rd rm
 
 ### UHADD16
 ###  - Unsigned Halving Add 16
-val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 0001 /rm'] = pas UHADD16 rn rd rm
+val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 0001 /rm'] = pas UHADD16 cond rn rd rm
 
 ### UHASX
 ###  - Unsigned Halving Add and Substract with Exchange
-val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 0011 /rm'] = pas UHASX rn rd rm
+val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 0011 /rm'] = pas UHASX cond rn rd rm
 
 ### UHSAX
 ###  - Unsigned Halving Substract and Add with Exchange
-val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 0101 /rm'] = pas UHSAX rn rd rm
+val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 0101 /rm'] = pas UHSAX cond rn rd rm
 
 ### UHSUB16
 ###  - Unsigned Halving Substract 16
-val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 0111 /rm'] = pas UHSUB16 rn rd rm
+val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 0111 /rm'] = pas UHSUB16 cond rn rd rm
 
 ### UHADD8
 ###  - Unsigned Halving Add 8
-val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 1001 /rm'] = pas UHADD8 rn rd rm
+val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 1001 /rm'] = pas UHADD8 cond rn rd rm
 
 ### UHSUB8
 ###  - Unsigned Halving Substract 8
-val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 1111 /rm'] = pas UHSUB8 rn rd rm
+val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 1111 /rm'] = pas UHSUB8 cond rn rd rm
 
 # --- Divide instructions ----------------------------------------------
 
 ### SDIV
 ###  - Signed Divide
-val / ['/cond 011 1 0 0 0 1 /rd 1111 /rm 0001 /rn'] = divi SDIV rn rd rm
+val / ['/cond 011 1 0 0 0 1 /rd 1111 /rm 0001 /rn'] = divi SDIV cond rn rd rm
 
 ### UDIV
 ###  - Unsigned Divide
-val / ['/cond 011 1 0 0 1 1 /rd 1111 /rm 0001 /rn'] = divi UDIV rn rd rm
+val / ['/cond 011 1 0 0 1 1 /rd 1111 /rm 0001 /rn'] = divi UDIV cond rn rd rm
 
 # --- Miscellaneous data-processing instructions -----------------------
 
