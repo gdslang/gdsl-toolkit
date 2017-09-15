@@ -2876,7 +2876,7 @@ val / ['/cond 000 1 0 0 0 0 /rd /ra /rm 1110 /rn'] = ml SMLATT cond set0 rd ra r
 
 ### SMLAD
 ###  - Signed Multiply Accumulate Dual
-val / ['/cond 011 1 0 0 0 0 /rd /ra /rm 0001 /rn'] = ml SMLAD cond set0 rd ra rn
+val / ['/cond 011 1 0 0 0 0 /rd /ra /rm 0001 /rn'] = ml SMLAD cond set0 rd ra rm rn
 
 ### SMLADX
 ###  - Signed Multiply Accumulate Dual Exchange
