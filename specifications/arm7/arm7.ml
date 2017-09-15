@@ -602,7 +602,7 @@ type lstr = {
 }
 
 # Preload instructions
-type pre {
+type pre = {
   cond:condition,
   rn:operand,
   u:1,
@@ -610,7 +610,7 @@ type pre {
 }
 
 # Swap instructions
-type swap {
+type swap = {
   cond:condition,
   rn:operand,
   rt:operand,
@@ -618,7 +618,7 @@ type swap {
 }
 
 # Exception related instructions
-type exc {
+type exc = {
   cond:condition,
   p:1,
   u:1,
@@ -627,7 +627,7 @@ type exc {
 }
 
 # SUBS instruction
-type subs {
+type subs = {
   cond:condition,
   opcode:operand,
   rn:operand,
@@ -635,7 +635,7 @@ type subs {
 }
 
 # LDM instruction
-type ldm {
+type ldm = {
   cond:condition,
   p:1,
   u:1,
@@ -645,7 +645,7 @@ type ldm {
 }
 
 # SRS instruction
-type srs {
+type srs = {
   cond:condition,
   p:1,
   u:1,
@@ -654,7 +654,7 @@ type srs {
 }
 
 # CDP/CDP2 instructions
-type cdp {
+type cdp = {
   cond:condition,
   coproc:operand,
   opc1:operand,
@@ -665,7 +665,7 @@ type cdp {
 }
 
 # MCR/MCR2 instructions
-type mcr {
+type mcr = {
   cond:condition,
   coproc:operand,
   opc1:operand,
@@ -676,7 +676,7 @@ type mcr {
 }
 
 # MCRR/MCRR2 instructions
-type mcrr {
+type mcrr = {
   cond:condition,
   coproc:operand,
   opc1:operand,
@@ -686,7 +686,7 @@ type mcrr {
 }
 
 # MRC/MRC2 instructions
-type mrc {
+type mrc = {
   cond:condition,
   coproc:operand,
   opc1:operand,
@@ -697,7 +697,7 @@ type mrc {
 }
 
 # MRRC/MRRC2 instructions
-type mrrc {
+type mrrc = {
   cond:condition,
   opc:operand,
   rt:operand,
@@ -706,7 +706,7 @@ type mrrc {
 }
 
 # LDC/LDC2/STC/STC2 instructions
-type cop {
+type cop = {
   cond:condition,
   coproc:operand,
   crd:operand,
@@ -716,7 +716,7 @@ type cop {
 }
 
 # Vector Load/Store Multiple instructions
-type vlsm {
+type vlsm = {
   cond:condition,
   rn:operand,
   w:1,
@@ -727,7 +727,7 @@ type vlsm {
 }
 
 # Vector Load/Store Register instructions
-type vlsr {
+type vlsr = {
   cond:condition,
   q:1,
   d:1,
@@ -738,7 +738,7 @@ type vlsr {
 }
 
 # Vector Load/Store instructions
-type vls {
+type vls = {
   cond:condition,
   size:operand,
   q:1,
@@ -750,7 +750,7 @@ type vls {
 }
 
 # Vector instructions
-type vec {
+type vec = {
   cond:condition,
   size:operand,
   q:1,
@@ -759,7 +759,7 @@ type vec {
   op2:operand
 }
 
-type vecrev {
+type vecrev = {
   cond:condition,
   size:operand,
   op:operand,
@@ -768,7 +768,7 @@ type vecrev {
   vn:operand
 }
 
-type vecimm {
+type vecimm = {
   cond:condition,
   dt:operand,
   q:1,
@@ -777,7 +777,7 @@ type vecimm {
   imm:operand,
 }
 
-type vecbit4imm {
+type vecbit4imm = {
   cond:condition,
   op:1,
   sz1:1,
@@ -789,14 +789,14 @@ type vecbit4imm {
   imm:operand
 }
 
-type vecns {
+type vecns = {
   cond:condition,
   d:1,
   vd:operand,
   op2:operand
 }
 
-type vecrevns {
+type vecrevns = {
   cond:condition,
   op:operand,
   q:1,
@@ -804,7 +804,7 @@ type vecrevns {
   vn:operand
 }
 
-type vecns2 {
+type vecns2 = {
   cond:condition,
   q:1,
   d:1,
@@ -816,7 +816,7 @@ type vecns2 {
   op4:operand
 }
 
-type vecrevns2 {
+type vecrevns2 = {
   cond:condition,
   op:operand,
   op2:operand,
@@ -828,7 +828,7 @@ type vecrevns2 {
   vd4:operand
 }
 
-type vec2 {
+type vec2 = {
   cond:condition,
   size:operand,
   d:1,
@@ -837,7 +837,7 @@ type vec2 {
   vm:operand
 }
 
-type vec2imm {
+type vec2imm = {
   cond:condition,
   size:operand,
   qd:1,
@@ -849,7 +849,7 @@ type vec2imm {
   imm:operand
 }
 
-type vec2bit {
+type vec2bit = {
   cond:condition,
   sz:1,
   qd:1,
@@ -860,7 +860,7 @@ type vec2bit {
   vm:operand
 }
 
-type vec2bit2 {
+type vec2bit2 = {
   cond:condition,
   sz1:1,
   sz2:1,
@@ -872,7 +872,7 @@ type vec2bit2 {
   vm:operand
 }
 
-type vec2opbit {
+type vec2opbit = {
   cond:condition,
   op:operand,
   sz:1,
@@ -884,7 +884,7 @@ type vec2opbit {
   vm:operand
 }
 
-type vec2sig {
+type vec2sig = {
   cond:condition,
   u:1,
   size:operand,
@@ -896,7 +896,7 @@ type vec2sig {
   vm:operand
 }
 
-type vec2sigimm {
+type vec2sigimm = {
   cond:condition,
   u:1,
   size:operand,
@@ -909,7 +909,7 @@ type vec2sigimm {
   imm:operand
 }
 
-type vec2sigbitimm {
+type vec2sigbitimm = {
   cond:condition,
   u:1,
   op:1,
@@ -922,7 +922,7 @@ type vec2sigbitimm {
   imm:operand
 }
 
-type vec2ns {
+type vec2ns = {
   cond:condition,
   qd:1,
   d:1,
@@ -932,7 +932,7 @@ type vec2ns {
   vm:operand
 }
 
-type vec3 {
+type vec3 = {
   cond:condition,
   size:operand,
   qd:1,
@@ -946,7 +946,7 @@ type vec3 {
   vm:operand
 }
 
-type vec3bit {
+type vec3bit = {
   cond:condition,
   sz:1,
   qd:1,
@@ -960,7 +960,7 @@ type vec3bit {
   vm:operand
 }
 
-type vec3sig {
+type vec3sig = {
   cond:condition,
   u:1,
   size:operand,
@@ -975,7 +975,7 @@ type vec3sig {
   vm:operand
 }
 
-type vec3sig2 {
+type vec3sig2 = {
   cond:condition,
   op:1,
   u:1,
@@ -991,7 +991,7 @@ type vec3sig2 {
   vm:operand
 }
 
-type vec3ns {
+type vec3ns = {
   cond:condition,
   qd:1,
   d:1,
@@ -1004,7 +1004,7 @@ type vec3ns {
   vm:operand
 }
 
-type vec3nslist {
+type vec3nslist = {
   cond:condition,
   qd:1,
   d:1,
@@ -1338,6 +1338,7 @@ val cdp cond coproc opc1 crd crn crm opc2 = do
   crn <- crn;
   crm <- crm;
   opc2 <- opc2;
+  return (cons {cond=cond, coproc=coproc, opc1=opc1, crd=crd, crn=crn, crm=crm, opc2=opc2})
 end
 
 val mcr cond coproc opc1 rt crn crm opc2 = do
@@ -1379,7 +1380,7 @@ val mrrc cond coproc opc rt rt2 crm = do
   rt <- rt;
   rt2 <- rt2;
   crm <- crm;
-  return (cons {cond=cond, coproc=coproc, opc=opc, rt=rt, rt2=rt2 crm=crm})
+  return (cons {cond=cond, coproc=coproc, opc=opc, rt=rt, rt2=rt2, crm=crm})
 end
 
 val cop cond coproc crd rn pudw option = do
@@ -2003,6 +2004,7 @@ val advsimdexpandimm-c op cmode imm8 =
 			  else
 			    (*TODO: throw UNDEFINED exception*)
 			    {result='0000000000000000000000000000000000000000000000000000000000000000'}
+  end
 
 val advsimdexpandimm-bic cmode imm8 = (advsimdexpandimm-c 1 cmode imm8).result
 
