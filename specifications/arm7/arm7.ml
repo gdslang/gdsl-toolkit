@@ -3689,7 +3689,7 @@ val / ['/cond 100 /P /U 1 0 1 /rn 1 /reglst15'] = ldm LDMerur cond p u set0 rn r
 
 ### SRS
 ###  - Store Return State
-val / ['1111 100 /P /U 1 /W 0 1101 0000 0101 000 /imm4'] = srs SRS none p u w imm4
+val / ['1111 100 /P /U 1 /W 0 1101 0000 0101 000 /imm5'] = srs SRS none p u w imm5
 
 # --- Coprocessor instructions -----------------------------------------
 
