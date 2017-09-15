@@ -3890,7 +3890,7 @@ val / ['1111 0100 1 /D 00 /rn /vd /size 11 /index_align /rm'] = vls VST4 none si
 
 ### VDUP
 ###  - Vector Duplicate Arm Core Register
-val / ['cond 1110 1 B:1 /Q 0 /vd /rt 1011 /D 0 E:1 1 0000'] = vec VDUP cond imm4 q d vd rt
+val / ['/cond 1110 1 B:1 /Q 0 /vd /rt 1011 /D 0 E:1 1 0000'] = vec VDUP cond imm4 q d vd rt
 
 ### VMOV
 ###  - Vector Move ARM core register to scalar
