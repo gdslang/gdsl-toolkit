@@ -302,9 +302,13 @@ type instruction =
   | VSTMDB of vlsm
   | VSTR of vlsr
   | VLD1 of vls
+  | VLD1a of vlsbit
   | VLD2 of vls
+  | VLD2a of vlsbit
   | VLD3 of vls
+  | VLD3a of vlsbit
   | VLD4 of vls
+  | VLD4a of vlsbit
   | VST1 of vls
   | VST2 of vls
   | VST3 of vls
@@ -759,6 +763,18 @@ type vls = {
   vd:operand,
   rn:operand,
   align:operand,
+  rm:operand
+}
+
+# Vector Load/Store align as bit instructions
+type vlsbit = {
+  cond:condition,
+  size:operand,
+  q:1,
+  d:1,
+  vd:operand,
+  rn:operand,
+  a:1,
   rm:operand
 }
 
@@ -1477,6 +1493,18 @@ val vls cons cond size q d vd rn align rm = do
   align <- align;
   rm <- rm;
   return (cons {cond=cond, size=size, q=q, d=d, vd=vd, rn=rn, align=align, rm=rm})
+end
+
+val vlsbit cons cond size q d vd rn a rm = do
+  cond <- cond;
+  size <- size;
+  q <- q;
+  d <- d;
+  vd <- vd;
+  rn <- rn;
+  a <- a;
+  rm <- rm;
+  return (cons {cond=cond, size=size, q=q, d=d, vd=vd, rn=rn, a=a, rm=rm})
 end
 
 val vec cons cond size q d vd op2 = do
@@ -3787,7 +3815,7 @@ val / ['1111 0100 1 /D 10 /rn /vd /size 00 /index_align /rm'] = vls VLD1 none si
 
 ### VLD1 (all lanes)
 ###  - Vector Load single element to all lanes
-val / ['1111 0100 1 /D 10 /rn /vd 11 00 /size T:1 /a /rm'] = vls VLD1 none size set0 d vd rn a rm
+val / ['1111 0100 1 /D 10 /rn /vd 11 00 /size T:1 /a /rm'] = vlsbit VLD1a none size set0 d vd rn a rm
 
 ### VLD2 (multiple structures)
 ###  - Vector Load multiple 2-element structures
@@ -3799,7 +3827,7 @@ val / ['1111 0100 1 /D 10 /rn /vd /size 01 /index_align /rm'] = vls VLD2 none si
 
 ### VLD2 (all lanes)
 ###  - Vector Load 2-element structure to all lanes
-val / ['1111 0100 1 /D 10 /rn /vd 11 01 /size T:1 /a /rm'] = vls VLD2 none size set0 d vd rn a rm
+val / ['1111 0100 1 /D 10 /rn /vd 11 01 /size T:1 /a /rm'] = vlsbit VLD2a none size set0 d vd rn a rm
 
 ### VLD3 (multiple structures)
 ###  - Vector Load multiple 3-element structures
@@ -3811,7 +3839,7 @@ val / ['1111 0100 1 /D 10 /rn /vd /size 10 /index_align /rm'] = vls VLD3 none si
 
 ### VLD3 (all lanes)
 ###  - Vector Load 3-element structure to all lanes
-val / ['1111 0100 1 /D 10 /rn /vd 11 10 /size T:1 /a /rm'] = vls VLD3 none size set0 d vd rn a rm
+val / ['1111 0100 1 /D 10 /rn /vd 11 10 /size T:1 /a /rm'] = vlsbit VLD3a none size set0 d vd rn a rm
 
 ### VLD4 (multiple structures)
 ###  - Vector Load multiple 4-element structures
@@ -3823,7 +3851,7 @@ val / ['1111 0100 1 /D 10 /rn /vd /size 11 /index_align /rm'] = vls VLD4 none si
 
 ### VLD4 (all lanes)
 ###  - Vector Load 4-element structure to all lanes
-val / ['1111 0100 1 /D 10 /rn /vd 11 11 /size T:1 /a /rm'] = vls VLD4 none size set0 d vd rn a rm
+val / ['1111 0100 1 /D 10 /rn /vd 11 11 /size T:1 /a /rm'] = vlsbit VLD4a none size set0 d vd rn a rm
 
 ### VST1 (multiple elments)
 ###  - Vector Store multiple single elements
