@@ -3886,8 +3886,6 @@ val / ['1111 0100 0 /D 00 /rn /vd /vls4_type /size /aligna /rm'] = vls VST4 none
 ###  - Vector Store 4-element structure from one lane
 val / ['1111 0100 1 /D 00 /rn /vd /size 11 /index_align /rm'] = vls VST4 none size set0 d vd rn index_align rm
 
-val / ['cond 1110 1 B:1 /Q 0 /vd /rt 1011 /D 0 E:1 1 0000']
-
 # --- Advanced SIMD and floating-point register transfer instructions --
 
 ### VDUP
