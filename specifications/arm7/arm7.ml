@@ -2620,8 +2620,8 @@ end
 
 # operand subdecoder: register + immediate rotate-r
 val /immrotate ['rotate:2 00 0111'] = do
-  imm <- return (immediate (IMM2 rotate));
-  update@{shift={amount=(imm^'000'), shifttype=ROR}}
+  imm <- return (immediate (IMM5 (rotate^'000'));
+  update@{shift={amount=imm, shifttype=ROR}}
 end
 
 val shfreg = do
