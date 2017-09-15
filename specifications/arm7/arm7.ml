@@ -2652,6 +2652,7 @@ end
 # --- operand list/register list subdecoders ---------------------------
 
 val /reglst ['regs:16'] = update@{operands=(decode-registerlist regs)}
+val /reglst15 ['regs:15'] = update@{operands=(decode-registerlist regs)}
 
 val reglst = do
   operands <- query $operands;
@@ -3679,11 +3680,12 @@ val / ['/cond 000 1 0 1 0 0 /imm12 0111 /imm4'] = unop HVC cond combine-imm16-re
 ###  - Exception Return
 val / ['/cond 000 1 0 1 1 0 000000000000 0110 1110'] = nullop ERET cond
 
+(*TODO: adjust to represent subversions as fullversions*)
 ### LDM
 ###  - Load Multiple (Exception Return)
-val / ['/cond 100 /P /U 1 /W 1 /rn 1 /reglst'] = ldm LDMerur cond p u w rn reglst
+val / ['/cond 100 /P /U 1 /W 1 /rn 1 /reglst15'] = ldm LDMerur cond p u w rn reglst
 ###  - Load Multiple (User registers)
-val / ['/cond 100 /P /U 1 0 1 /rn 0 /reglst'] = ldm LDMerur cond p u set0 rn reglst
+val / ['/cond 100 /P /U 1 0 1 /rn 1 /reglst15'] = ldm LDMerur cond p u set0 rn reglst
 
 ### SRS
 ###  - Store Return State
