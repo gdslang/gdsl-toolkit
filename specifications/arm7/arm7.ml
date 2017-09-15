@@ -2486,7 +2486,7 @@ val aligna = do
 end
 
 # opc12
-val /opc12 ['opc12:3'] = update@{opc12=opc12}
+val /opc12 ['opc12:2'] = update@{opc12=opc12}
 
 val opc12 = do
   opc12 <- query $opc12;
@@ -2494,7 +2494,7 @@ val opc12 = do
 end
 
 # opc22
-val /opc22 ['opc22:3'] = update@{opc22=opc22}
+val /opc22 ['opc22:2'] = update@{opc22=opc22}
 
 val opc22 = do
   opc22 <- query $opc22;
