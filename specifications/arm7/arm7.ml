@@ -50,24 +50,25 @@ val reset = do
   update@{
     cond='0000',
     b='0', p='0', w='0', s='0', d='0',
-	iflags='000',
-	e='0',
-	m='0', n='0', f='0', u='0', r='0',
+	  iflags='000',
+	  e='0',
+	  m='0', n='0', f='0', u='0', r='0',
     a='0',
-	sz='0', sx='0', sf='0', op='0',
-	i='0',
-    size='00', align='00',
-	opc12='00', opc22='00',
+	  sz='0', sz1='0', op='0',
+	  i='0',
+    size='00', aligna='00',
+	  opc12='00', opc22='00',
     opc13='000', opc23='000',
-	opc14='0000', opc24='0000',
-    crn='0000', crm='0000', coproc='0000',
+	  opc14='0000', opc24='0000',
+    crd='0', crn='0000', crm='0000', coproc='0000',
     vd='0000', vn='0000', vm='0000',
-	cmode='0000',
+	  cmode='0000',
     index_align='0000', vdl_type='0000',
-	imm3='000',
+	  imm3='000',
     imm4='0000', imm4H='0000', imm4L='0000',
-	imm5='00000',
-    msb='00000', lsb='00000', widthm1='00000',
+	  imm5='00000',
+    msbit='00000', lsbit='00000', widthm1='00000',
+    imm8='00000000',
     imm12='000000000000',
     imm24='000000000000000000000000',
     byte='00000000', rot='0000',
@@ -278,7 +279,7 @@ type instruction =
   | SUBS of subs
   | HVC of unop
   | ERET of nullop
-  | LDM of ldm
+  | LDMerur of ldm
   | SRS of srs
   | CDP of cdp
   | CDP2 of cdp
@@ -309,12 +310,12 @@ type instruction =
   | VST3 of vls
   | VST4 of vls
   | VDUP of vec2
-  | VMOV of vec
-  | VMOV of vecrev
-  | VMOV of vecns
-  | VMOV of vecrevns
-  | VMOV of vecns2
-  | VMOV of vecrevns2
+  | VMOVacs of vec
+  | VMOVsac of vecrev
+  | VMOVacsp of vecns
+  | VMOVspac of vecrevns
+  | VMOVacsp2 of vecns2
+  | VMOVspac2 of vecrevns2
   | VMRS of unop
   | VMSR of unop
   | VADD of vec3
@@ -332,43 +333,44 @@ type instruction =
   | VRSUBHN of vec3
   | VQADD of vec3sig
   | VQSUB of vec3sig
-  | VSUB of vec3
-  | VSUB of vec3bit
+  | VSUBiasimd of vec3
+  | VSUBfpasimd of vec3bit
   | VSUBHN of vec3
   | VSUBL of vec3sig
   | VSUBW of vec3sig
   | VAND of vec3ns
-  | VBIC of vecimm
+  | VBICimm of vecimm
+  | VBICreg of vec3ns
   | VEOR of vec3ns
   | VBIF of vec3ns
   | VBIT of vec3ns
   | VBSL of vec3ns
-  | VMOV of vecimm
-  | VMOV of vec2ns
-  | VMVN of vecimm
-  | VMVN of vec2
-  | VORR of vecimm
-  | VORR of vec3ns
+  | VMOVimmasimd of vecimm
+  | VMOVregasimd of vec2ns
+  | VMVNimm of vecimm
+  | VMVNreg of vec2
+  | VORRimm of vecimm
+  | VORRreg of vec3ns
   | VORN of vec3ns
   | VACGE of vec3bit
   | VACGT of vec3bit
-  | VCEQ of vec3
-  | VCEQ of vec3bit
-  | VCEQ of vec2sig
-  | VCGE of vec3sig
-  | VCGE of vec3bit
-  | VCGE of vec2sig
-  | VCGT of vec3sig
-  | VCGT of vec3bit
-  | VCGT of vec2sig
+  | VCEQrega of vec3
+  | VCEQregb of vec3bit
+  | VCEQimm of vec2sig
+  | VCGErega of vec3sig
+  | VCGEregb of vec3bit
+  | VCGEimm of vec2sig
+  | VCGTrega of vec3sig
+  | VCGTregb of vec3bit
+  | VCGTimm of vec2sig
   | VCLE of vec2sig
   | VCLT of vec2sig
   | VTST of vec3
   | VQRSHL of vec3sig
   | VQRSHRN of vec2sigimm
   | VQRSHRUN of vec2sigimm
-  | VQSHL of vec3sig
-  | VQSHL of vec2sigimm
+  | VQSHLreg of vec3sig
+  | VQSHLimm of vec2sigimm
   | VQSHLU of vec2sigimm
   | VQSHRN of vec2sigimm
   | VQSHRUN of vec2sigimm
@@ -376,55 +378,58 @@ type instruction =
   | VRSHR of vec2sigimm
   | VRSRA of vec2sigimm
   | VRSHRN of vec2imm
-  | VSHL of vec2imm
-  | VSHL of vec3sig
+  | VSHLimm of vec2imm
+  | VSHLreg of vec3sig
   | VSHLL of vec2sigimm
   | VSHR of vec2sigimm
   | VSHRN of vec2imm
   | VSLI of vec2imm
   | VSRA of vec2sigimm
   | VSRI of vec2imm
-  | VMLA of vec3
-  | VMLA of vec3bit
-  | VMLA of vec3sig
+  | VMLAiasimd of vec3
+  | VMLAfpasimd of vec3bit
+  | VMLAsasimd of vec3sig
   | VMLAL of vec3sig
-  | VMLS of vec3
-  | VMLS of vec3bit
-  | VMLS of vec3sig
+  | VMLSiasimd of vec3
+  | VMLpasimd of vec3bit
+  | VMLSsasimd of vec3sig
   | VMLSL of vec3sig
-  | VMUL of vec3sig
-  | VMUL of vec3bit
-  | VMULL of vec3sig
+  | VMULipasimd of vec3sig
+  | VMULfpasimd of vec3bit
+  | VMULsasimd of vec3sig
+  | VMULLipasimd of vec3sig2
+  | VMULLsasim of vec3sig
   | VFMA of vec3bit
   | VFMS of vec3bit
   | VQDMLAL of vec3
   | VQDMLSL of vec3
   | VQDMULH of vec3
-  | YQRDMULH of vec3
+  | VQRDMULH of vec3
   | VQDMULL of vec3
   | VABA of vec3sig
   | VABAL of vec3sig
-  | VABD of vec3sig
-  | VABD of vec3bit
+  | VABDi of vec3sig
+  | VABDfp of vec3bit
   | VABDL of vec3sig
-  | VABS of vec2sig
-  | VCVT of vec2
-  | VCVT of vec2sigbitimm
+  | VABSasimd of vec2sig
+  | VCVTfpiasimd of vec2
+  | VCVTfpfpasimd of vec2sigbitimm
+  | VCVThpspasimd of vec2
   | VCLS of vec2
   | VCLZ of vec2
   | VCNT of vec2
   | VEXT of vec3nsimm
   | VMOVN of vec2
   | VMOVL of vec2
-  | VMAX of vec3sig
-  | VMAX of vec3bit
-  | VMIN of vec3sig
-  | VMIN of vec3bit
-  | VNEG of vec3sig
-  | VPMAX of vec3sig
-  | VPMAX of vec3bit
-  | VPMIN of vec3sig
-  | VPMIN of vec3bit
+  | VMAXi of vec3sig
+  | VMAXfp of vec3bit
+  | VMINi of vec3sig
+  | VMINfp of vec3bit
+  | VNEGasimd of vec3sig
+  | VPMAXi of vec3sig
+  | VPMAXfp of vec3bit
+  | VPMINi of vec3sig
+  | VPMINfp of vec3bit
   | VRECPE of vec2sig
   | VRECPS of vec3bit
   | VRSQRTE of vec2sig
@@ -442,24 +447,29 @@ type instruction =
   | VTRN of vec2
   | VUZP of vec2
   | VZIP of vec2
-  | VABS of vec2bit
+  | VABSfp of vec2bit
   | VCMP of vec3bit
   | VCMPE of vec2bit
-  | VCVT of vec2bit2
-  | VCVT of vecbit4imm
-  | VCVT of vec2ns
+  | VCVTfpifp of vec2bit2
+  | VCVTfpfpfp of vecbit4imm
+  | VCVTdpspfp of vec2ns
   | VCVTR of vec2opbit
   | VCVTB of vec2bit
-  | VCVIT of vec2bit
+  | VCVTT of vec2bit
   | VDIV of vec2bit
-  | VMOV of vec2bit
-  | VNEG of vec2bit
+  | VMLAfpfp of vec3bit
+  | VMLSfpfp of vec3bit
+  | VMOVimmfp of vecimm
+  | VMOVregfp of vec2bit
+  | VMULfpfp of vec3bit
+  | VNEGfp of vec2bit
   | VNMLA of vec2bit
   | VNMLS of vec2bit
   | VNMUL of vec2bit
   | VFNMA of vec2bit
   | VFNMS of vec2bit
   | VSQRT of vec3bit
+  | VSUBfpfp of vec3bit 
 
 # Standard data-processing instruction
 type dp = {
@@ -535,7 +545,7 @@ type bf = {
   cond:condition,
   wsrc:operand,
   rd:operand,
-  lsb:operand,
+  lsbit:operand,
   rn:operand
 }
 
@@ -1018,6 +1028,19 @@ type vec3nslist = {
   vm:operand
 }
 
+type vec3nsimm = {
+  cond:condition,
+  qd:1,
+  d:1,
+  vd:operand,
+  qn:1,
+  n:1,
+  vn:operand,
+  qm:1,
+  m:1,
+  vm:operand,
+  imm:operand
+
 # Generic instruction without any operands
 type nullop = {
   cond:condition
@@ -1207,13 +1230,13 @@ val div cons cond rn rd rm = do
   return (cons {cond=cond, rn=rn, rd=rd, rm=rm})
 end
 
-val bf cons cond wsrc rd lsb = do
+val bf cons cond wsrc rd lsbit = do
   cond <- cond;
   wsrc <- wsrc;
   rd <- rd;
-  lsb <- lsb;
+  lsbit <- lsbit;
   rn <- rn;
-  return (cons {cond=cond, wsrc=wsrc, rd=rd, lsb=lsb, rn=rn})
+  return (cons {cond=cond, wsrc=wsrc, rd=rd, lsbit=lsbit, rn=rn})
 end
 
 val mdp cons cond rn rd rm = do
@@ -1303,7 +1326,7 @@ val exc cons cond p u w rn = do
   return (cons {cond=cond, p=p, u=u, w=w, rn=rn})  
 end
 
-val subs cond opcode rn rm = do
+val subs cons cond opcode rn rm = do
   cond <- cond;
   opcode <- opcode;
   rn <- rn;
@@ -1311,7 +1334,7 @@ val subs cond opcode rn rm = do
   return (cons {cond=cond, opcode=opcode, rn=rn, rm=rm})
 end
 
-val ldm cond p u w rn reglst = do
+val ldm cons cond p u w rn reglst = do
   cond <- cond;
   p <- p;
   u <- u;
@@ -1321,7 +1344,7 @@ val ldm cond p u w rn reglst = do
   return (cons {cond=cond, p=p, u=u, w=w, rn=rn, reglst=reglst})
 end
 
-val srs cond p u w mode = do
+val srs cons cond p u w mode = do
   cond <- cond;
   p <- p;
   u <- u;
@@ -1330,7 +1353,7 @@ val srs cond p u w mode = do
   return (cons {cond=cond, p=p, u=u, w=w, mode=mode})
 end
 
-val cdp cond coproc opc1 crd crn crm opc2 = do
+val cdp cons cond coproc opc1 crd crn crm opc2 = do
   cond <- cond;
   coproc <- coproc;
   opc1 <- opc1;
@@ -1341,7 +1364,7 @@ val cdp cond coproc opc1 crd crn crm opc2 = do
   return (cons {cond=cond, coproc=coproc, opc1=opc1, crd=crd, crn=crn, crm=crm, opc2=opc2})
 end
 
-val mcr cond coproc opc1 rt crn crm opc2 = do
+val mcr cons cond coproc opc1 rt crn crm opc2 = do
   cond <- cond;
   coproc <- coproc;
   opc1 <- opc1;
@@ -1352,7 +1375,7 @@ val mcr cond coproc opc1 rt crn crm opc2 = do
   return (cons {cond=cond, coproc=coproc, opc1=opc1, rt=rt, crn=crn, crm=crm, opc2=opc2})
 end
 
-val mcrr cond coproc opc1 rt rt2 crm = do
+val mcrr cons cond coproc opc1 rt rt2 crm = do
   cond <- cond;
   coproc <- coproc;
   opc1 <- opc1;
@@ -1362,7 +1385,7 @@ val mcrr cond coproc opc1 rt rt2 crm = do
   return (cons {cond=cond, coproc=coproc, opc1=opc1, rt=rt, rt2=rt2, crm=crm})
 end
 
-val mrc cond coproc opc1 rt crn crm opc2 = do
+val mrc cons cond coproc opc1 rt crn crm opc2 = do
   cond <- cond;
   coproc <- coproc;
   opc1 <- opc1;
@@ -1373,7 +1396,7 @@ val mrc cond coproc opc1 rt crn crm opc2 = do
   return (cons {cond=cond, coproc=coproc, opc1=opc1, rt=rt, crn=crn, crm=crm, opc2=opc2})
 end
 
-val mrrc cond coproc opc rt rt2 crm = do
+val mrrc cons cond coproc opc rt rt2 crm = do
   cond <- cond;
   coproc <- coproc;
   opc <- opc;
@@ -1383,7 +1406,7 @@ val mrrc cond coproc opc rt rt2 crm = do
   return (cons {cond=cond, coproc=coproc, opc=opc, rt=rt, rt2=rt2, crm=crm})
 end
 
-val cop cond coproc crd rn pudw option = do
+val cop cons cond coproc crd rn pudw option = do
   cond <- cond;
   coproc <- coproc;
   crd <- crd;
@@ -1393,7 +1416,7 @@ val cop cond coproc crd rn pudw option = do
   return (cons {cond=cond, coproc=coproc, crd=crd, rn=rn, pudw=pudw, option=option})
 end
 
-val vlsm cond rn w q d vd op = do
+val vlsm cons cond rn w q d vd op = do
   cond <- cond;
   rn <- rn;
   w <- w;
@@ -1404,7 +1427,7 @@ val vlsm cond rn w q d vd op = do
   return (cons {cond=cond, rn=rn, w=w, q=q, d=d, vd=vd, op=op})
 end
 
-val vlsr cond q d vd rn u op = do
+val vlsr cons cond q d vd rn u op = do
   cond <- cond;
   q <- q;
   d <- d;
@@ -1415,7 +1438,7 @@ val vlsr cond q d vd rn u op = do
   return (cons {cond=cond, q=q, d=d, vd=vd, rn=rn, u=u, op=op})
 end
 
-val vls cond size q d vd rn align rm = do
+val vls cons cond size q d vd rn align rm = do
   cond <- cond;
   size <- size;
   q <- q;
@@ -1427,7 +1450,7 @@ val vls cond size q d vd rn align rm = do
   return (cons {cond=cond, size=size, q=q, d=d, vd=vd, rn=rn, align=align, rm=rm})
 end
 
-val vec cond size q d vd op2 = do
+val vec cons cond size q d vd op2 = do
   cond <- cond;
   size <- size;
   q <- q;
@@ -1437,7 +1460,7 @@ val vec cond size q d vd op2 = do
   return (cons {cond=cond, size=size, q=q, d=d, vd=vd, op2=op2})
 end
 
-val vecrev cond size op q n vn = do
+val vecrev cons cond size op q n vn = do
   cond <- cond;
   size <- size;
   op <- op;
@@ -1447,7 +1470,7 @@ val vecrev cond size op q n vn = do
   return (cons {cond=cond, size=size, op=op, q=q, n=n, vn=vn})
 end
 
-val vecimm cond dt q d vd imm = do
+val vecimm cons cond dt q d vd imm = do
   cond <- cond;
   dt <- dt;
   q <- q;
@@ -1457,7 +1480,7 @@ val vecimm cond dt q d vd imm = do
   return (cons {cond=cond, dt=dt, q=q, d=d, vd=vd, imm=imm})
 end
 
-val vecbit4imm cond op sz1 u sz2 qd d vd qm m vm imm = do
+val vecbit4imm cons cond op sz1 u sz2 qd d vd qm m vm imm = do
   cond <- cond;
   op <- op;
   sz1 <- sz1;
@@ -1473,7 +1496,7 @@ val vecbit4imm cond op sz1 u sz2 qd d vd qm m vm imm = do
   return (cons {cond=cond, op=op, sz1=sz1, u=u, sz2=sz2, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
 end
 
-val vecns cond q d vd op2 = do
+val vecns cons cond q d vd op2 = do
   cond <- cond;
   q <- q;
   d <- d;
@@ -1482,7 +1505,7 @@ val vecns cond q d vd op2 = do
   return (cons {cond=cond, q=q, d=d, vd=vd, op2=op2})
 end
 
-val vecrevns cond op q n vn = do
+val vecrevns cons cond op q n vn = do
   cond <- cond;
   op <- op;
   q <- q;
@@ -1491,7 +1514,7 @@ val vecrevns cond op q n vn = do
   return (cons {cond=cond, op=op, q=q, n=n, vn=vn})
 end
 
-val vecns2 cond q d vd q2 d2 vd2 op3 op4 = do
+val vecns2 cons cond q d vd q2 d2 vd2 op3 op4 = do
   cond <- cond;
   q <- q;
   d <- d;
@@ -1504,7 +1527,7 @@ val vecns2 cond q d vd q2 d2 vd2 op3 op4 = do
   return (cons {cond=cond, q=q, d=d, vd=vd, q2=q2, d2=d2, vd2=vd2, op3=op3, op4=op4})
 end
 
-val vecrevns2 cond op op2 q3 d3 vd3 q4 d4 vd4 = do
+val vecrevns2 cons cond op op2 q3 d3 vd3 q4 d4 vd4 = do
   cond <- cond;
   op <- op;
   op2 <- op2;
@@ -1517,7 +1540,7 @@ val vecrevns2 cond op op2 q3 d3 vd3 q4 d4 vd4 = do
   return (cons {cond=cond, op=op, op2=op2, q3=q3, d3=d3, vd3=vd3, q4=q4, d4=d4, vd4=vd4})
 end
 
-val vecns2half cond q d vd op2 op3 = do
+val vecns2half cons cond q d vd op2 op3 = do
   cond <- cond;
   q <- q;
   d <- d;
@@ -1527,7 +1550,7 @@ val vecns2half cond q d vd op2 op3 = do
   return (cons {cond=cond, q=q, d=d, vd=vd, op2=op2, op3=op3})
 end
 
-val vecrevns2half cond op op2 q3 d3 vd3 = do
+val vecrevns2half cons cond op op2 q3 d3 vd3 = do
   cond <- cond;
   op <- op;
   op2 <- op2;
@@ -1537,7 +1560,7 @@ val vecrevns2half cond op op2 q3 d3 vd3 = do
   return (cons {cond=cond, op=op, op2=op2, q3=q3, d3=d3, vd3=vd3})
 end
 
-val vec2 cond size qd d vd qm m vm = do
+val vec2 cons cond size qd d vd qm m vm = do
   cond <- cond;
   size <- size;
   qd <- qd;
@@ -1549,7 +1572,7 @@ val vec2 cond size qd d vd qm m vm = do
   return (cons {cond=cond, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2imm cond size qd d vd qm m vm imm = do
+val vec2imm cons cond size qd d vd qm m vm imm = do
   cond <- cond;
   size <- size;
   qd <- qd;
@@ -1562,7 +1585,7 @@ val vec2imm cond size qd d vd qm m vm imm = do
   return (cons {cond=cond, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
 end
 
-val vec2bit cond sz qd d vd qm m vm = do
+val vec2bit cons cond sz qd d vd qm m vm = do
   cond <- cond;
   sz <- sz;
   qd <- qd;
@@ -1574,7 +1597,7 @@ val vec2bit cond sz qd d vd qm m vm = do
   return (cons {cond=cond, sz=sz, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2bit2 cond sz1 sz2 qd d vd qm m vm = do
+val vec2bit2 cons cond sz1 sz2 qd d vd qm m vm = do
   cond <- cond;
   sz1 <- sz1;
   sz2 <- sz2;
@@ -1587,7 +1610,7 @@ val vec2bit2 cond sz1 sz2 qd d vd qm m vm = do
   return (cons {cond=cond, sz1=sz1, sz2=sz2, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2opbit cond op sz qd d vd qm m vm = do
+val vec2opbit cons cond op sz qd d vd qm m vm = do
   cond <- cond;
   op <- op;
   sz <- sz;
@@ -1600,7 +1623,7 @@ val vec2opbit cond op sz qd d vd qm m vm = do
   return (cons {cond=cond, op=op, sz=sz, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2sig cond u size qd d vd qm m vm = do
+val vec2sig cons cond u size qd d vd qm m vm = do
   cond <- cond;
   u <- u;
   size <- size;
@@ -1613,7 +1636,7 @@ val vec2sig cond u size qd d vd qm m vm = do
   return (cons {cond=cond, u=u, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2sigimm cond u size qd d vd qm m vm imm = do
+val vec2sigimm cons cond u size qd d vd qm m vm imm = do
   cond <- cond;
   u <- u;
   size <- size;
@@ -1627,7 +1650,7 @@ val vec2sigimm cond u size qd d vd qm m vm imm = do
   return (cons {cond=cond, u=u, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
 end
 
-val vec2sigbitimm cond u op qd d vd qm m vm imm = do
+val vec2sigbitimm cons cond u op qd d vd qm m vm imm = do
   cond <- cond;
   u <- u;
   op <- op;
@@ -1641,7 +1664,7 @@ val vec2sigbitimm cond u op qd d vd qm m vm imm = do
   return (cons {cond=cond, u=u, op=op, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
 end
 
-val vec2ns cond qd d vd qm m vm = do
+val vec2ns cons cond qd d vd qm m vm = do
   cond <- cond;
   qd <- qd;
   d <- d;
@@ -1652,7 +1675,7 @@ val vec2ns cond qd d vd qm m vm = do
   return (cons {cond=cond, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec3 cond size qd d vd qn n vn qm m vm = do
+val vec3 cons cond size qd d vd qn n vn qm m vm = do
   cond <- cond;
   size <- size;
   qd <- qd;
@@ -1667,7 +1690,7 @@ val vec3 cond size qd d vd qn n vn qm m vm = do
   return (cons {cond=cond, size=size, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3bit cond sz qd d vd qn n vn qm m vm = do
+val vec3bit cons cond sz qd d vd qn n vn qm m vm = do
   cond <- cond;
   sz <- sz;
   qd <- qd;
@@ -1682,7 +1705,7 @@ val vec3bit cond sz qd d vd qn n vn qm m vm = do
   return (cons {cond=cond, sz=sz, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3sig cond u size qd d vd qn n vn qm m vm = do
+val vec3sig cons cond u size qd d vd qn n vn qm m vm = do
   cond <- cond;
   u <- u;
   size <- size;
@@ -1698,7 +1721,7 @@ val vec3sig cond u size qd d vd qn n vn qm m vm = do
   return (cons {cond=cond, u=u, size=size, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3sig2 cond op u size qd d vd qn n vn qm m vm = do
+val vec3sig2 cons cond op u size qd d vd qn n vn qm m vm = do
   cond <- cond;
   op <- op;
   u <- u;
@@ -1715,7 +1738,7 @@ val vec3sig2 cond op u size qd d vd qn n vn qm m vm = do
   return (cons {cond=cond, op=op, u=u, size=size, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3ns cond qd d vd qn n vn qm m vm = do
+val vec3ns cons cond qd d vd qn n vn qm m vm = do
   cond <- cond;
   qd <- qd;
   d <- d;
@@ -1730,7 +1753,7 @@ val vec3ns cond qd d vd qn n vn qm m vm = do
 end
 
 
-val vec3nslist cond qd d vd len qn n vn qm m vm = do
+val vec3nslist cons cond qd d vd len qn n vn qm m vm = do
   cond <- cond;
   qd <- qd;
   d <- d;
@@ -1745,7 +1768,7 @@ val vec3nslist cond qd d vd len qn n vn qm m vm = do
   return (cons {cond=cond, qd=qd, d=d, vd=vd, len=len, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3nsimm cond qd d vd qn n vn qm m vm imm = do
+val vec3nsimm cons cond qd d vd qn n vn qm m vm imm = do
   cond <- cond;
   qd <- qd;
   d <- d;
@@ -1789,10 +1812,10 @@ val imm-to-int imm =
   case imm of
       IMMi i: i
     | IMM2 i: zx i
-	| IMM3 i: zx i
+	  | IMM3 i: zx i
     | IMM4 i: zx i
     | IMM5 i: zx i
-	| IMM6 i: zx i
+	  | IMM6 i: zx i
     | IMM8 i: zx i
     | IMM12 i: zx i
     | IMM24 i: zx i
@@ -2107,6 +2130,14 @@ val /cmode-mvn ['cmode@1010'] = update@{cmode=cmode}
 val /cmode-mvn ['cmode@1100'] = update@{cmode=cmode}
 val /cmode-mvn ['cmode@1101'] = update@{cmode=cmode}
 
+# cmode for vorr instruction, can only be 0001, 0011, 0101, 0111, 1001, or 1011
+val /cmode-vorr ['cmode@0001'] = update@{cmode=cmode}
+val /cmode-vorr ['cmode@0011'] = update@{cmode=cmode}
+val /cmode-vorr ['cmode@0101'] = update@{cmode=cmode}
+val /cmode-vorr ['cmode@0111'] = update@{cmode=cmode}
+val /cmode-vorr ['cmode@1001'] = update@{cmode=cmode}
+val /cmode-vorr ['cmode@1011'] = update@{cmode=cmode}
+
 val cmode = do
   cmode <- query $cmode;
   return (immediate (IMM4 (cmode)))
@@ -2244,6 +2275,20 @@ val imm4 = do
   return (immediate (IMM4 (imm4)))
 end
 
+val /imm5 ['imm5:5'] = update@{imm5=imm5}
+
+val imm5 = do
+  imm5 <- query $imm5;
+  return (immediate (IMM5 (imm5)))
+end
+
+val /imm8 ['imm8:8'] = update@{imm8=imm8}
+
+val imm8 = do
+  imm8 <- query $imm8;
+  return (immediate (IMM8 (imm8)))
+end
+
 # concats the 4 bit and 12 bit immediates that were decoded most recently
 val combine-imm16 = do
   imm4 <- query $imm4;
@@ -2277,7 +2322,6 @@ end
 
 # m-bit
 val /M ['m:1'] = update@{m=m}
-val /m ['m:1'] = update@{m=m}
 
 val m = do
   m <- query $m;
@@ -2332,18 +2376,11 @@ val sz = do
   return sz
 end
 
-val /sx ['sx:1'] = update@{sx=sx}
+val /sz1 ['sz1:1'] = update@{sz1=sz1}
 
-val sx = do
-  sx <- query $sx;
-  return sx
-end
-
-val /sf ['sf:1'] = update@{sf=sf}
-
-val sf = do
-  sf <- query $sf;
-  return sf
+val sz1 = do
+  sz1 <- query $sz1;
+  return sz1
 end
 
 # operation-bit
@@ -2377,11 +2414,11 @@ val len = do
 end
 
 # align
-val /align ['align:2'] = update@{align=align}
+val /aligna ['aligna:2'] = update@{aligna=aligna}
 
-val align = do
-  align <- query $align;
-  return (immediate (IMM2 (align)))
+val aligna = do
+  aligna <- query $aligna;
+  return (immediate (IMM2 (aligna)))
 end
 
 # opc12
@@ -2447,6 +2484,14 @@ val opc24 = do
   return (immediate (IMM4 (opc24)))
 end
 
+# crd
+val /crd ['crd:4'] = update@{crd=crd}
+
+val crd = do
+  crd <- query $crd;
+  return (immediate (IMM4 (crd)))
+end
+
 # crn
 val /crn ['crn:4'] = update@{crn=crn}
 
@@ -2504,19 +2549,19 @@ val index_align = do
 end
 
 # most significant bit
-val /msb ['msb:5'] = update@{msb=msb}
+val /msbit ['msbit:5'] = update@{msbit=msbit}
 
-val msb = do
-  msb <- query $msb;
-  return (immediate (IMM5 (msb)))
+val msbit = do
+  msbit <- query $msbit;
+  return (immediate (IMM5 (msbit)))
 end
 
 # least significant bit
-val /lsb ['lsb:5'] = update@{lsb=lsb}
+val /lsbit ['lsbit:5'] = update@{lsbit=lsbit}
 
-val lsb = do
-  lsb <- query $lsb;
-  return (immediate (IMM5 (lsb)))
+val lsbit = do
+  lsbit <- query $lsbit;
+  return (immediate (IMM5 (lsbit)))
 end
 
 # imm5 representing width
@@ -3197,11 +3242,11 @@ val / ['/cond 011 1 0 0 1 1 /rd 1111 /rm 0001 /rn'] = div UDIV rn rd rm
 
 ### BFC
 ###  - Bit Field Clear
-val / ['/cond 011 1 1 1 0 /msb /rd /lsb 0 0 1 1111'] = bf BFC cond msb rd lsb r15
+val / ['/cond 011 1 1 1 0 /msbit /rd /lsbit 0 0 1 1111'] = bf BFC cond msbit rd lsbit r15
 
 ### BFI
 ###  - Bit Field Insert
-val / ['/cond 011 1 1 1 0 /msb /rd /lsb 0 0 1 /rn'] = bf BFI cond msb rd lsb rn
+val / ['/cond 011 1 1 1 0 /msbit /rd /lsbit 0 0 1 /rn'] = bf BFI cond msbit rd lsbit rn
 
 ### CLZ
 ###  - Count Leading Zeros
@@ -3229,7 +3274,7 @@ val / ['/cond 011 0 1 1 1 1 1111 /rd 1111 1011 /rm'] = binop REVSH cond rd rm
 
 ### SBFX
 ###  - Signed Bit Field Extract
-val / ['/cond 011 1 1 0 1 /widthm1 /rd /lsb 1 0 1 /rn'] = bf SBFX cond widthm1 rd lsb rn
+val / ['/cond 011 1 1 0 1 /widthm1 /rd /lsbit 1 0 1 /rn'] = bf SBFX cond widthm1 rd lsbit rn
 
 ### SEL
 ###  - Select Bytes
@@ -3237,7 +3282,7 @@ val / ['/cond 011 0 1 0 0 0 /rn /rd 1111 1011 /rm'] = mdp SEL cond rn rd rm
 
 ### UBFX
 ###  - Unsigned Bit Field Extract
-val / ['/cond 011 1 1 1 1 /widthm1 /rd /lsb 1 0 1 /rn'] = bf UBFX cond widthm1 rd lsb rn
+val / ['/cond 011 1 1 1 1 /widthm1 /rd /lsbit 1 0 1 /rn'] = bf UBFX cond widthm1 rd lsbit rn
 
 ### USAD8
 ###  - Unsigned Sum of Absolute Difference
@@ -3251,12 +3296,12 @@ val / ['/cond 011 1 1 0 0 0 /rd /ra /rm 0001 /rn'] = madp USADA8 cond rn rd rm r
 
 ### MRS
 ###  - Move to Register form Banked or Special register
-val / ['/cond 000 10 /r 00 /m1 /rd 001 /m 0000 0000'] = brdr MRS cond r m1 rd m
+val / ['/cond 000 10 /r 00 /imm4 /rd 001 /M 0000 0000'] = brdr MRS cond r imm4 rd m
 
 ### MSR (immediate) //add later on
 ### MSR (banked register)
 ###  - Move to Banked or Special register from ARM core register
-val / ['/cond 000 10 /r 10 /m1 1111 001 /m 0000 /rn'] = brnr MSR cond r m1 m rn
+val / ['/cond 000 10 /r 10 /imm4 1111 001 /M 0000 /rn'] = brnr MSR cond r imm4 m rn
 
 ### CPS
 ###  - Change processor state
@@ -3413,7 +3458,7 @@ val / ['/cond 000 1 1 0 1 0 /rn /rd 1111 1001 /rt'] = lstr STREXD cond rn rd rt
 
 ### STREXH
 ###  - Store Register Exclusive Halfword
-val / ['/cond 000 1 1 1 1 0 /rn /rd 1111 1001 /rt'] = lstr Strexh cond rn rd rt
+val / ['/cond 000 1 1 1 1 0 /rn /rd 1111 1001 /rt'] = lstr STREXH cond rn rd rt
 
 # --- Load/store multiple instructions ---------------------------------
 
@@ -3601,9 +3646,9 @@ val / ['/cond 000 1 0 1 1 0 000000000000 0110 1110'] = nullop ERET cond
 
 ### LDM
 ###  - Load Multiple (Exception Return)
-val / ['/cond 100 /P /U 1 /W 1 /rn 1 /reglst'] = ldm LDM cond p u w rn reglst
+val / ['/cond 100 /P /U 1 /W 1 /rn 1 /reglst'] = ldm LDMerur cond p u w rn reglst
 ###  - Load Multiple (User registers)
-val / ['/cond 100 /P /U 1 0 1 /rn 0 /reglst'] = ldm LDM cond p u set0 rn reglst
+val / ['/cond 100 /P /U 1 0 1 /rn 0 /reglst'] = ldm LDMerur cond p u set0 rn reglst
 
 ### SRS
 ###  - Store Return State
@@ -3697,7 +3742,7 @@ val / ['/cond 110 1 /U /D 00 /rn /vd 101 h:1 /imm8'] = vlsr VSTR cond set0 d vd 
 
 ### VLD1 (multiple single elements)
 ###  - Vector Load multiple single elements
-val / ['1111 0100 0 /D 10 /rn /vd /vls1_type /size /align /rm'] = vls VLD1 none size set0 d vd rn align rm
+val / ['1111 0100 0 /D 10 /rn /vd /vls1_type /size /aligna /rm'] = vls VLD1 none size set0 d vd rn aligna rm
 
 ### VLD1 (one lane)
 ###  - Vector Load single element to one lane
@@ -3709,7 +3754,7 @@ val / ['1111 0100 1 /D 10 /rn /vd 11 00 /size T:1 /a /rm'] = vls VLD1 none size 
 
 ### VLD2 (multiple structures)
 ###  - Vector Load multiple 2-element structures
-val / ['1111 0100 0 /D 10 /rn /vd /vls2_type /size /align /rm'] = vls VLD2 none size set0 d vd rn align rm
+val / ['1111 0100 0 /D 10 /rn /vd /vls2_type /size /aligna /rm'] = vls VLD2 none size set0 d vd rn aligna rm
 
 ### VLD2 (one lane)
 ###  - Vector Load 2-element structure to one lane
@@ -3721,7 +3766,7 @@ val / ['1111 0100 1 /D 10 /rn /vd 11 01 /size T:1 /a /rm'] = vls VLD2 none size 
 
 ### VLD3 (multiple structures)
 ###  - Vector Load multiple 3-element structures
-val / ['1111 0100 0 /D 10 /rn /vd /vls3_type /size /align /rm'] = vls VLD3 none size set0 d vd rn align rm
+val / ['1111 0100 0 /D 10 /rn /vd /vls3_type /size /aligna /rm'] = vls VLD3 none size set0 d vd rn aligna rm
 
 ### VLD3 (one lane)
 ###  - Vector Load 3-element structure to one lane
@@ -3733,7 +3778,7 @@ val / ['1111 0100 1 /D 10 /rn /vd 11 10 /size T:1 /a /rm'] = vls VLD3 none size 
 
 ### VLD4 (multiple structures)
 ###  - Vector Load multiple 4-element structures
-val / ['1111 0100 0 /D 10 /rn /vd /vls4_type /size /align /rm'] = vls VLD4 none size set0 d vd rn align rm
+val / ['1111 0100 0 /D 10 /rn /vd /vls4_type /size /aligna /rm'] = vls VLD4 none size set0 d vd rn aligna rm
 
 ### VLD4 (one lane)
 ###  - Vector Load 4-element structure to one lane
@@ -3745,7 +3790,7 @@ val / ['1111 0100 1 /D 10 /rn /vd 11 11 /size T:1 /a /rm'] = vls VLD4 none size 
 
 ### VST1 (multiple elments)
 ###  - Vector Store multiple single elements
-val / ['1111 0100 0 /D 00 /rn /vd /vls1_type /size /align /rm'] = vls VST1 none size set0 d vd rn align rm
+val / ['1111 0100 0 /D 00 /rn /vd /vls1_type /size /aligna /rm'] = vls VST1 none size set0 d vd rn aligna rm
 
 ### VST1 (one lane)
 ###  - Vector Store single element from one lane
@@ -3753,7 +3798,7 @@ val / ['1111 0100 1 /D 00 /rn /vd /size 00 /index_align /rm'] = vls VST1 none si
 
 ### VST2 (multiple structures)
 ###  - Vector Store multiple 2-element structures
-val / ['1111 0100 0 /D 00 /rn /vd /vls2_type /size /align /rm'] = vls VST2 none size set0 d vd rn align rm
+val / ['1111 0100 0 /D 00 /rn /vd /vls2_type /size /aligna /rm'] = vls VST2 none size set0 d vd rn aligna rm
 
 ### VST2 (one lane)
 ###  - Vector Store 2-element structure from one lane
@@ -3761,7 +3806,7 @@ val / ['1111 0100 1 /D 00 /rn /vd /size 01 /index_align /rm'] = vls VST2 none si
 
 ### VST3 (multiple structures)
 ###  - Vector Store multiple 3-element structures
-val / ['1111 0100 0 /D 00 /rn /vd /vls3_type /size /align /rm'] = vls VST3 none size set0 d vd rn align rm
+val / ['1111 0100 0 /D 00 /rn /vd /vls3_type /size /aligna /rm'] = vls VST3 none size set0 d vd rn aligna rm
 
 ### VST3 (one lane)
 ###  - Vector Store 3-element structure from one lane
@@ -3769,7 +3814,7 @@ val / ['1111 0100 1 /D 00 /rn /vd /size 10 /index_align /rm'] = vls VST3 none si
 
 ### VST4 (multiple structures)
 ###  - Vector Store multiple 4-element structures
-val / ['1111 0100 0 /D 00 /rn /vd /vls4_type /size /align /rm'] = vls VST4 none size set0 d vd rn align rm
+val / ['1111 0100 0 /D 00 /rn /vd /vls4_type /size /aligna /rm'] = vls VST4 none size set0 d vd rn aligna rm
 
 ### VST4 (one lane)
 ###  - Vector Store 4-element structure from one lane
@@ -3783,19 +3828,19 @@ val / ['/cond 1110 1 B:1 /Q 0 /vd /rt 1011 /D 0 E:1 1 0000'] = vec VDUP cond imm
 
 ### VMOV
 ###  - Vector Move ARM core register to scalar
-val / ['/cond 1110 0 /opc12 0 /vd /rt 1011 /D /opc22 1 0000'] = vec VMOV cond combine-opc2 set0 d vd rt
+val / ['/cond 1110 0 /opc12 0 /vd /rt 1011 /D /opc22 1 0000'] = vec VMOVacs cond combine-opc2 set0 d vd rt
 ###  - Vector Move scalar to ARM core register
-val / ['/cond 1110 /U /opc12 1 /vn /rt 1011 /N /opc22 1 0000'] = vecrev VMOV cond combine-u-opc2 rt set0 n vn
+val / ['/cond 1110 /U /opc12 1 /vn /rt 1011 /N /opc22 1 0000'] = vecrev VMOVsac cond combine-u-opc2 rt set0 n vn
 ###  - Vector Move between ARM core register and single-precision register
-val / ['/cond 1110 0 00 0 /vn /rt 1010 /N 00 1 0000'] = vecns VMOV cond set0 n vn rt
-val / ['/cond 1110 0 00 1 /vn /rt 1010 /N 00 1 0000'] = vecrevns VMOV cond rt set0 n vn
+val / ['/cond 1110 0 00 0 /vn /rt 1010 /N 00 1 0000'] = vecns VMOVacsp cond set0 n vn rt
+val / ['/cond 1110 0 00 1 /vn /rt 1010 /N 00 1 0000'] = vecrevns VMOVspac cond rt set0 n vn
 (*TODO: Adjust second 'm vm' to represent next vector*)
 ###  - Vector Move between two ARM core and two single-precision registers
-val / ['/cond 1100 0 10 0 /rt2 /rt 1010 00 /M 1 /vm'] = vecns2 VMOV cond set0 m vm set0 m vm rt rt2
-val / ['/cond 1100 0 10 1 /rt2 /rt 1010 00 /M 1 /vm'] = vecrevns2 VMOV cond rt rt2 set0 m vm set0 m vm
+val / ['/cond 1100 0 10 0 /rt2 /rt 1010 00 /M 1 /vm'] = vecns2 VMOVacsp2 cond set0 m vm set0 m vm rt rt2
+val / ['/cond 1100 0 10 1 /rt2 /rt 1010 00 /M 1 /vm'] = vecrevns2 VMOVspac2 cond rt rt2 set0 m vm set0 m vm
 ###  - Vector Move between two ARM core and doubleword extension register
-val / ['/cond 1100 0 10 0 /rt2 /rt 1011 00 /M 1 /vm'] = vecns2half VMOV cond set0 m vm rt rt2
-val / ['/cond 1100 0 10 1 /rt2 /rt 1011 00 /M 1 /vm'] = vecrevns2half VMOV cond rt rt2 set0 m vm
+val / ['/cond 1100 0 10 0 /rt2 /rt 1011 00 /M 1 /vm'] = vecns2half VMOVacdwe cond set0 m vm rt rt2
+val / ['/cond 1100 0 10 1 /rt2 /rt 1011 00 /M 1 /vm'] = vecrevns2half VMOVdweac cond rt rt2 set0 m vm
 
 ### VMRS
 val / ['/cond 1110 1111 0001 /rt 1010 000 1 0000'] = unop VMRS cond rt
@@ -3866,9 +3911,9 @@ val / ['1111 001 /U 0 /D /size /vn /vd 0010 /N /Q /M 1 /vm'] = vec3sig VQSUB non
 
 ### VSUB
 ###  - Vector Subtract integer
-val / ['1111 0011 0 /D /size /vn /vd 1000 /N /Q /M 0 /vm'] = vec3 VSUB none size q d vd q n vn q m vm
+val / ['1111 0011 0 /D /size /vn /vd 1000 /N /Q /M 0 /vm'] = vec3 VSUBiasimd none size q d vd q n vn q m vm
 ###  - Vector Subtract floating-point (Encoding A1)
-val / ['1111 0010 0 /D 1 0 /vn /vd 1101 /N /Q /M 0 /vm'] = vec3bit VSUB none set0 q d vd q n vn q m vm
+val / ['1111 0010 0 /D 1 0 /vn /vd 1101 /N /Q /M 0 /vm'] = vec3bit VSUBfpasimd none set0 q d vd q n vn q m vm
 
 ### VSUBHN
 ###  - Vector Subtract and Narrow high half
@@ -3890,9 +3935,9 @@ val / ['1111 0010 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VAND none q d v
 
 ### VBIC
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBIC none cmode q d vd (advsimdexpandimm-bic cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBICimm none cmode q d vd (advsimdexpandimm-bic cmode (i^imm3^imm4))
 ###  - Vector Bitwise Bit Clear register
-val / ['1111 0100 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBIC none q d vd q n vn q m vm
+val / ['1111 0100 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBICreg none q d vd q n vn q m vm
 
 ### VEOR
 ###  - Vector Bitwise Exclusive OR
@@ -3908,22 +3953,22 @@ val / ['1111 0011 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBIF none q d v
 
 ### VMOV
 ###  - Vector Move immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = vecimm VMOV none cmode q d vd (advsimdexpandimm 0 cmode (i^imm3^imm4))
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = vecimm VMOV none cmode q d vd (advsimdexpandimm 0 cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 0 cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 0 cmode (i^imm3^imm4))
 ###  - Vector Move register
-val / ['1111 0010 0 /D 10 /vm /vd 0001 0 /Q /M 1 /vm'] = vec2ns VMOV none q d vd q m vm
+val / ['1111 0010 0 /D 10 /vm /vd 0001 0 /Q /M 1 /vm'] = vec2ns VMOVregasimd none q d vd q m vm
 
 ### VMVN
 ###  - Vector Bitwise Not immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = vecimm VMVN none cmode q d vd (advsimdexpandimm 1 cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = vecimm VMVNimm none cmode q d vd (advsimdexpandimm 1 cmode (i^imm3^imm4))
 ###  - Vector Bitwise Not register
-val / ['1111 0011 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = vec2 VMVN none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = vec2 VMVNreg none size q d vd q m vm
 
 ### VORR
 ###  - Vector Bitwise OR immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode 0 /Q 01 /imm4'] = vecimm VORR none cmode q d vd (advsimdexpandimm 1 cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = vecimm VORRimm none cmode q d vd (advsimdexpandimm 1 cmode (i^imm3^imm4))
 ###  - Vector Bitwise OR register
-val / ['1111 0010 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VORR none q d vd q n vn q m vm
+val / ['1111 0010 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VORRreg none q d vd q n vn q m vm
 
 ### VORN
 ###  - Vector Bitwise OR NOT register
@@ -3947,27 +3992,27 @@ val / ['1111 0011 0 /D 1 1 /vn /vd 1110 /N /Q /M 1 /vm'] = vec3bit VACGT none se
 
 ### VCEQ
 ###  - Vector Compare Equal register (Encoding A1)
-val / ['1111 0011 0 /D /size /vn /vd 1000 /N /Q /M 1 /vm'] = vec3 VCEQ none size q d vd q n vn q m vm
+val / ['1111 0011 0 /D /size /vn /vd 1000 /N /Q /M 1 /vm'] = vec3 VCEQrega none size q d vd q n vn q m vm
 ###  - Vector Compare Equal register (Encoding A2)
-val / ['1111 0010 0 /D 0 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = vec3bit VCEQ none sz q d vd q n vn q m vm
+val / ['1111 0010 0 /D 0 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = vec3bit VCEQregb none sz q d vd q n vn q m vm
 ###  - Vector Compare Equal immediate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 010 /Q /M 0 /vm'] = vec2sig VCEQ none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 010 /Q /M 0 /vm'] = vec2sig VCEQimm none f size q d vd q m vm
 
 ### VCGE
 ###  - Vector Compare Greater Than or Equal register (Encoding A1)
-val / ['1111 001 /U 0 /D /size /vn /vd 0011 /N /Q /M 1 /vm'] = vec3sig VCGE none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0011 /N /Q /M 1 /vm'] = vec3sig VCGErega none u size q d vd q n vn q m vm
 ###  - Vector Compare Greater Than or Equal register (Encoding A2
-val / ['1111 0011 0 /D 0 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = vec3bit VCGE none sz q d vd q n vn q m vm 
+val / ['1111 0011 0 /D 0 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = vec3bit VCGEregb none sz q d vd q n vn q m vm 
 ###  - Vector Compare Greater Than or Equal immediate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 001 /Q /M 0 /vm'] = vec2sig VCGE none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 001 /Q /M 0 /vm'] = vec2sig VCGEimm none f size q d vd q m vm
 
 ### VCGT
 ###  - Vector Compare Greater Than register (Encoding A1)
-val / ['1111 001 /U 0 /D /size /vn /vd 0011 /N /Q /M 0 /vm'] = vec3sig VCGT none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0011 /N /Q /M 0 /vm'] = vec3sig VCGTrega none u size q d vd q n vn q m vm
 ###  - Vector Compare Greater Than register (Encoding A2)
-val / ['1111 0011 0 /D 1 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = vec3bit VCGT none sz q d vd q n vn q m vm
+val / ['1111 0011 0 /D 1 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = vec3bit VCGTregb none sz q d vd q n vn q m vm
 ###  - Vector Compare Greater Than immediate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 000 /Q /M 0 /vm'] = vec2sig VCGT none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 000 /Q /M 0 /vm'] = vec2sig VCGTimm none size q d vd q m vm
 
 ### VCLE
 ###  - Vector Compare Less Than or Equal immediate
@@ -3997,10 +4042,10 @@ val / ['1111 001 1 1 /D /imm6-not000 /vd 100 0 01 /M 1 /vm'] = vec2sigimm VQRSHR
 
 ### VQSHL
 ###  - Vector Saturating Shift Left register
-val / ['1111 001 1 /U 0 /D /size /vn /vd 0100 /N /Q /M 1 /vm'] = vec3sig VQSHL none u size q d vd q m vm q n vn
+val / ['1111 001 1 /U 0 /D /size /vn /vd 0100 /N /Q /M 1 /vm'] = vec3sig VQSHLreg none u size q d vd q m vm q n vn
 ###  - Vector Saturating Shift Left immediate
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 011 1 0 /Q /M 1 /vm'] = vec2sigimm VQSHL none u imm6 q d vd q m vm imm6
-val / ['1111 001 /U 1 /D /imm6 /vd 011 1 1 /Q /M 1 /vm'] = vec2sigimm VQSHL none u imm6 q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 011 1 0 /Q /M 1 /vm'] = vec2sigimm VQSHLimm none u imm6 q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6 /vd 011 1 1 /Q /M 1 /vm'] = vec2sigimm VQSHLimm none u imm6 q d vd q m vm imm6
 
 ### VQSHLU
 ###  - Vector Saturating Shift Left Unsigned immediate
@@ -4035,10 +4080,10 @@ val / ['1111 0010 1 /D /imm6-not000 /vd 1000 0 1 /M 1 /vm'] = vec2imm VRSHRN non
 
 ### VSHL
 ###  - Vector Shift Left immediate
-val / ['1111 0010 1 /D /imm6 /vd 0101 1 /Q /M 1 /vm'] = vec2imm VSHL none imm6 q d vd q m vm imm6
-val / ['1111 0010 1 /D /imm6-not000 /vd 0101 0 /Q /M 1 /vm'] = vec2imm VSHL none imm6 q d vd q m vm imm6
+val / ['1111 0010 1 /D /imm6 /vd 0101 1 /Q /M 1 /vm'] = vec2imm VSHLimm none imm6 q d vd q m vm imm6
+val / ['1111 0010 1 /D /imm6-not000 /vd 0101 0 /Q /M 1 /vm'] = vec2imm VSHLimm none imm6 q d vd q m vm imm6
 ###  - Vector Shift Left register
-val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 0 /vm'] = vec3sig VSHL none u size q d vd q m vm q n vn
+val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 0 /vm'] = vec3sig VSHLreg none u size q d vd q m vm q n vn
 
 ### VSHLL
 ###  - Vector Shift Left Long (Encoding A1)
@@ -4070,12 +4115,11 @@ val / ['1111 0011 1 /D /imm6-not000 /vd 0100 0 /Q /M 1 /vm'] = vec2imm VSRI none
 
 ### VMLA
 ###  - Vector Multiply Accumulate integer
-val / ['1111 001 0 0 /D /size /vn /vd 1001 /N /Q /M 0 /vm'] = vec3 VMLA none size q d vd q n vn q m vm
+val / ['1111 001 0 0 /D /size /vn /vd 1001 /N /Q /M 0 /vm'] = vec3 VMLAiasimd none size q d vd q n vn q m vm
 ###  - Vector Multiply Accumulate floating-point
-val / ['1111 0010 0 /D 0 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = vec3bit VMLA none sz q d vd q n vn q m vm
+val / ['1111 0010 0 /D 0 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = vec3bit VMLAfpasimd none sz q d vd q n vn q m vm
 ###  - Vector Multiply Accumulate by scalar
-val / ['1111 001 /Q 1 /D /size /vn /vd 0 0 0 /F /N 1 /M 0 /vm'] = vec3sig VMLA none f size q d vd q n vn q m vm
-val / ['1111 001 /Q 1 /D /size /vn /vd 0 0 0 /F /N 1 /M 0 /vm'] = vec3sig VMLA none f size q d vd q n vn q m vm
+val / ['1111 001 /Q 1 /D /size /vn /vd 0 0 0 /F /N 1 /M 0 /vm'] = vec3sig VMLAsasimd none f size q d vd q n vn q m vm
 
 ### VMLAL
 ###  - Vector Multiply Accumulate Long integer
@@ -4085,11 +4129,11 @@ val / ['1111 001 /U 1 /D /size /vn /vd 0 0 10 /N 1 /M 0 /vm'] = vec3sig VMLAL no
 
 ### VMLS
 ###  - Vector Multiply Subtract integer
-val / ['1111 001 1 0 /D /size /vn /vd 1001 /N /Q /M 0 /vm'] = vec3 VMLS none size q d vd q n vn q m vm
+val / ['1111 001 1 0 /D /size /vn /vd 1001 /N /Q /M 0 /vm'] = vec3 VMLSiasimd none size q d vd q n vn q m vm
 ###  - Vector Multiply Subtract floating-point
-val / ['1111 0010 0 /D 1 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = vec3bit VMLS none sz q d vd q n vn q m vm
+val / ['1111 0010 0 /D 1 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = vec3bit VMLSfpasimd none sz q d vd q n vn q m vm
 ###  - Vector Multiply Subtract by scalar
-val / ['1111 001 /Q 1 /D /size /vn /vd 0 1 0 /F /N 1 /M 0 /vm'] = vec3sig VMLS none f size q d vd q n vn q m vm
+val / ['1111 001 /Q 1 /D /size /vn /vd 0 1 0 /F /N 1 /M 0 /vm'] = vec3sig VMLSsasimd none f size q d vd q n vn q m vm
 
 ### VMLSL
 ###  - Vector Multiply Subtract Long integer
@@ -4099,19 +4143,19 @@ val / ['1111 001 /U 1 /D /size /vn /vd 0 1 10 /N 1 /M 0 /vm'] = vec3sig VMLSL no
 
 ### VMUL
 ###  - Vector Multiply integer and polynomial
-val / ['1111 001 1 0 /D 00 /vn /vd 1001 /N /Q /M 1 /vm'] = vec3sig VMUL none set1 set00 q d vd q n vn q m vm
-val / ['1111 001 0 0 /D /size /vn /vd 1001 /N /Q /M 1 /vm'] = vec3sig VMUL none set0 size qd vd q n vn q m vm
+val / ['1111 001 1 0 /D 00 /vn /vd 1001 /N /Q /M 1 /vm'] = vec3sig VMULipasimd none set1 set00 q d vd q n vn q m vm
+val / ['1111 001 0 0 /D /size /vn /vd 1001 /N /Q /M 1 /vm'] = vec3sig VMULipasimd none set0 size q d vd q n vn q m vm
 ###  - Vector Multiply floating-point
-val / ['1111 0011 0 /D 0 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = vec3bit VMUL none sz q d vd q n vn q m vm
+val / ['1111 0011 0 /D 0 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = vec3bit VMULfpasimd none sz q d vd q n vn q m vm
 ###  - Vector Multiply by scalar
-val / ['1111 001 /Q 1 /D /size /vn /vd 100 /F /N 1 /M 0 /vm'] = vec3sig VMUL none f size q d vd q n vn q m vm
+val / ['1111 001 /Q 1 /D /size /vn /vd 100 /F /N 1 /M 0 /vm'] = vec3sig VMULsasimd none f size q d vd q n vn q m vm
 
 ### VMULL
 ###  - Vector Multiply Long integer and polynomial
-val / ['1111 001 /U 1 /D /size /vn /vd 11 0 0 /N 0 /M 0 /vm'] = vec3sig2 VMULL none set0 u size set1 d vd set0 n vn set0 m vm
-val / ['1111 001 0 1 /D 00 /vn /vd 11 1 0 /N 0 /M 0 /vm'] = vec3sig2 VMULL none set1 set0 set00 set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 11 0 0 /N 0 /M 0 /vm'] = vec3sig2 VMULLipasimd none set0 u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 0 1 /D 00 /vn /vd 11 1 0 /N 0 /M 0 /vm'] = vec3sig2 VMULLipasimd none set1 set0 set00 set1 d vd set0 n vn set0 m vm
 ###  - Vector Multiply Long by scalar
-val / ['1111 001 /U 1 /D /size /vn /vd 1010 /N 1 /M 0 /vm'] = vec3sig VMULL none u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 1010 /N 1 /M 0 /vm'] = vec3sig VMULLsasimd none u size set1 d vd set0 n vn set0 m vm
 
 ### VFMA
 ###  - Vector Fused Multiply Accumulate
@@ -4163,26 +4207,26 @@ val / ['1111 001 /U 1 /D /size /vn /vd 0101 /N 0 /M 0 /vm'] = vec3sig VABAL none
 
 ### VABD
 ###  - Vector Absolute Difference integer
-val / ['1111 001 /U 0 /D /size /vn /vd 0111 /N /Q /M 0 /vm'] = vec3sig VABD none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0111 /N /Q /M 0 /vm'] = vec3sig VABDi none u size q d vd q n vn q m vm
 ###  - Vector Absolute Difference floating-point
-val / ['1111 0011 0 /D 1 /sz /vn /vd 1101 /N /Q /M 0 /vm'] = vec3bit VABD none sz q d vd q n vn q m vm
+val / ['1111 0011 0 /D 1 /sz /vn /vd 1101 /N /Q /M 0 /vm'] = vec3bit VABDfp none sz q d vd q n vn q m vm
 
 ### VABDL
 ###  - Vector Absolute Difference Long
 val / ['1111 001 /U 1 /D /size /vn /vd 0111 /N 0 /M 0 /vm'] = vec3sig VABDL none u size set1 d vd set0 n vn set0 m vm
 
 ### VABS
-val / ['1111 0011 1 /D 11 10 01 /vd 0 1 110 /Q /M 0 /vm'] = vec2sig VABS none set1 set10 q d vd q m vm
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 0 110 /Q /M 0 /vm'] = vec2sig VABS none set0 size q d vd qm vm
+val / ['1111 0011 1 /D 11 10 01 /vd 0 1 110 /Q /M 0 /vm'] = vec2sig VABSasimd none set1 set10 q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 0 110 /Q /M 0 /vm'] = vec2sig VABSasimd none set0 size q d vd q m vm
 
 ### VCVT
 ###  - Vector Convert between floating-point and integer
-val / ['1111 0011 1 /D 11 /vd 0 11 /size /Q /M 0 /vm'] = vec2 VCVT none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /vd 0 11 /size /Q /M 0 /vm'] = vec2 VCVTfpiasimd none size q d vd q m vm
 ###  - Vector Convert between floating-point and fixed-point
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 111 /op 0 /Q /M 1'] = vec2sigbitimm VCVT none u op q d vd q m vm
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 111 /op 0 /Q /M 1'] = vec2sigbitimm VCVTfpfpasimd none u op q d vd q m vm
 ###  - Vector Convert between half-precision and single-precision
-val / ['1111 0011 1 /D 11 /size 10 /vd 011 0 00 /M 0 /vm'] = vec2 VCVT none size set1 d vd set0 m vm
-val / ['1111 0011 1 /D 11 /size 10 /vd 011 1 00 /M 0 /vm'] = vec2 VCVT none size set0 d vd set1 m vm
+val / ['1111 0011 1 /D 11 /size 10 /vd 011 0 00 /M 0 /vm'] = vec2 VCVThpspasimd none size set1 d vd set0 m vm
+val / ['1111 0011 1 /D 11 /size 10 /vd 011 1 00 /M 0 /vm'] = vec2 VCVThpspasimd none size set0 d vd set1 m vm
 
 ### VCLS
 ###  - Vector Count Leading Sign Bits
@@ -4214,31 +4258,31 @@ val / ['1111 001 /U 1 /D /imm3 000 /vd 1010 0 0 /M 1 /vm'] = vec2 VMOVN none imm
 
 ### VMAX
 ###  - Vector Maximum integer
-val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 0 /vm'] = vec3sig VMAX none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 0 /vm'] = vec3sig VMAXi none u size q d vd q n vn q m vm
 ###  - Vector Maximum floating-point
-val / ['1111 0010 0 /D 0 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = vec3bit VMAX none sz q d vd q n dn q m vm
+val / ['1111 0010 0 /D 0 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = vec3bit VMAXfp none sz q d vd q n d n q m vm
 
 ### VMIN
 ###  - Vector Minimum integer
-val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 1 /vm'] = vec3sig VMIN none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 1 /vm'] = vec3sig VMINi none u size q d vd q n vn q m vm
 ###  - Vector Minimum floating-point
-val / ['1111 0010 0 /D 1 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = vec3bit VMIN none sz q d vd q n dn q m vm
+val / ['1111 0010 0 /D 1 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = vec3bit VMINfp none sz q d vd q n d n q m vm
 
 ### VNEG
 ###  - Vector Negate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 111 /Q /M 0 /vm'] = vec3sig VNEG none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 111 /Q /M 0 /vm'] = vec3sig VNEGasimd none f size q d vd q m vm
 
 ### VPMAX
 ###  - Vector Pairwise Maximum integer
-val / ['1111 001 /U 0 /D /size /vn /vd 1010 /N 0 /M 0 /vm'] = vec3sig VPMAX none u size set0 d vd set0 nvn set0 m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 1010 /N 0 /M 0 /vm'] = vec3sig VPMAXi none u size set0 d vd set0 n vn set0 m vm
 ###  - Vector Pairwise Maximum floating-point
-val / ['1111 0011 0 /D 0 /sz /vn /vd 1111 /N 0 /M 0 /vm'] = vec3bit VPMAX none sz set0 d vd set0 n vn set0 m vm
+val / ['1111 0011 0 /D 0 /sz /vn /vd 1111 /N 0 /M 0 /vm'] = vec3bit VPMAXfp none sz set0 d vd set0 n vn set0 m vm
 
 ### VPMIN
 ###  - Vector Pairwise Minimum integer
-val / ['1111 001 /U 0 /D /size /vn /vd 1010 /N 0 /M 1 /vm'] = vec3sig VPMIN none u size set0 d vd set0 nvn set0 m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 1010 /N 0 /M 1 /vm'] = vec3sig VPMINi none u size set0 d vd set0 n vn set0 m vm
 ###  - Vector Pairwise Minimum floating-point
-val / ['1111 0011 0 /D 1 /sz /vn /vd 1111 /N 0 /M 0 /vm'] = vec3bit VPMIN none sz set0 d vd set0 n vn set0 m vm
+val / ['1111 0011 0 /D 1 /sz /vn /vd 1111 /N 0 /M 0 /vm'] = vec3bit VPMINfp none sz set0 d vd set0 n vn set0 m vm
 
 ### VRECPE
 ###  - Vector Reciprocal Estimate
@@ -4312,8 +4356,8 @@ val / ['1111 0011 1 /D 11 /size 10 /vd 0001 1 /Q /M 0 /vm'] = vec2 VZIP none siz
 
 ### VABS
 ###  - Vector Absolute
-val / ['/cond 1110 1 /D 11 0000 /vd 101 0 11 /M 0 /vm'] = vec2bit VABS cond set0 set1 d vd set1 m vm
-val / ['/cond 1110 1 /D 11 0000 /vd 101 1 11 /M 0 /vm'] = vec2bit VABS cond set1 set0 d vd set0 m vm
+val / ['/cond 1110 1 /D 11 0000 /vd 101 0 11 /M 0 /vm'] = vec2bit VABSfp cond set0 set1 d vd set1 m vm
+val / ['/cond 1110 1 /D 11 0000 /vd 101 1 11 /M 0 /vm'] = vec2bit VABSfp cond set1 set0 d vd set0 m vm
 
 ### VADD
 ###  - Vector Add floating-point
@@ -4338,13 +4382,13 @@ val / ['/cond 1110 1 /D 11 0101 /vd 101 1 1 1 0 0 0000'] = vec2bit VCMPE cond se
 
 ### VCVT
 ###  - Vector Convert between floating-point and integer
-val / ['/cond 1110 1 /D 11 1 000 /vd 101 0 /op 1 /M 0 /vm'] = vec2bit2 VCVT cond op set0 set1 d vd set1 m vm
-val / ['/cond 1110 1 /D 11 1 000 /vd 101 1 /op 1 /M 0 /vm'] = vec2bit2 VCVT cond op set1 set0 d vd set0 m vm
+val / ['/cond 1110 1 /D 11 1 000 /vd 101 0 /op 1 /M 0 /vm'] = vec2bit2 VCVTfpifp cond op set0 set1 d vd set1 m vm
+val / ['/cond 1110 1 /D 11 1 000 /vd 101 1 /op 1 /M 0 /vm'] = vec2bit2 VCVTfpifp cond op set1 set0 d vd set0 m vm
 ###  - Vector Convert between floating-point and fixed-point
-val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 0 /sx 1 /i 0 /imm4'] = vecbit4imm VCVT cond op set0 u sx set1 d vd
-val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 1 /sx 1 /i 0 /imm4'] = vecbit4imm VCVT cond op set1 u sx set0 d vd
+val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set0 u sz1 set1 d vd
+val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set1 u sz1 set0 d vd
 ###  - Vector Convert between double-precision and single-precision
-val / ['/cond 1110 1 /D 11 0111 /vd 1010 0 /Q /M 0 /vm'] = vec2ns VCVT none q d vd q m vm
+val / ['/cond 1110 1 /D 11 0111 /vd 1010 0 /Q /M 0 /vm'] = vec2ns VCVTdpspfp none q d vd q m vm
 
 ### VCVTR
 ###  - Vector Convert Round between floating-point and integer
@@ -4366,19 +4410,19 @@ val / ['/cond 1110 1 /D 00 /vn /vd 101 0 /N 0 /M 0 /vm'] = vec3bit VDIV cond set
 
 ### VMLA
 ###  - Vector Multiply Accumulate floating-point
-val / ['/cond 11100 /D 00 /vn /vd 101 /sz /N 0 /M 0 /vm'] = vec3bit VMLA cond sz sz d vd sz n vn sz m vm
+val / ['/cond 11100 /D 00 /vn /vd 101 /sz /N 0 /M 0 /vm'] = vec3bit VMLAfpfp cond sz sz d vd sz n vn sz m vm
 
 ### VMLS
 ###  - Vector Multiply Subtract floating-point
-val / ['/cond 11100 /D 00 /vn /vd 101 /sz /N 1 /M 0 /vm'] = vec3bit VMLS cond sz sz d vd sz n vn sz m vm
+val / ['/cond 11100 /D 00 /vn /vd 101 /sz /N 1 /M 0 /vm'] = vec3bit VMLSfpfp cond sz sz d vd sz n vn sz m vm
 
 ### VMOV
 ###  - Vector Move immediate floating-point
-val / ['/cond 11101 /D 11 /imm4H /vd 101 0 0000 /imm4L'] = vecimm VMOV none set1010 set1 d vd combine-imm8
-val / ['/cond 11101 /D 11 /imm4H /vd 101 1 0000 /imm4L'] = vecimm VMOV none set1011 set0 d vd combine-imm8
+val / ['/cond 11101 /D 11 /imm4H /vd 101 0 0000 /imm4L'] = vecimm VMOVimmfp none set1010 set1 d vd combine-imm8
+val / ['/cond 11101 /D 11 /imm4H /vd 101 1 0000 /imm4L'] = vecimm VMOVimmfp none set1011 set0 d vd combine-imm8
 ###  - Vector Move register floating-point
-val / ['/cond 11101 /D 11 0000 /vd 101 0 01 /M 0 /vm'] = vec2bit VMOV none set0 set1 d vd set1 m vm
-val / ['/cond 11101 /D 11 0000 /vd 101 1 01 /M 0 /vm'] = vec2bit VMOV none set1 set0 d vd set0 m vm
+val / ['/cond 11101 /D 11 0000 /vd 101 0 01 /M 0 /vm'] = vec2bit VMOVregfp none set0 set1 d vd set1 m vm
+val / ['/cond 11101 /D 11 0000 /vd 101 1 01 /M 0 /vm'] = vec2bit VMOVregfp none set1 set0 d vd set0 m vm
 
 ### VFMA
 ###  - Vector Fused Multiply Accumulate
@@ -4392,13 +4436,13 @@ val / ['/cond 11101 /D 10 /vn /vd 101 1 /N 1 /M 0 /vm'] = vec3bit VFMS cond set1
 
 ### VMUL
 ###  - Vector Multiply floating-point
-val / ['/cond 11100 /D 10 /vn /vd 101 0 /N 0 /M 0 /vm'] = vec3bit VMUL cond set0 set1 d vd set1 n vn set1 m vm
-val / ['/cond 11100 /D 10 /vn /vd 101 1 /N 0 /M 0 /vm'] = vec3bit VMUL cond set1 set0 d vd set0 n vn set0 m vm 
+val / ['/cond 11100 /D 10 /vn /vd 101 0 /N 0 /M 0 /vm'] = vec3bit VMULfpfp cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 11100 /D 10 /vn /vd 101 1 /N 0 /M 0 /vm'] = vec3bit VMULfpfp cond set1 set0 d vd set0 n vn set0 m vm 
 
 ### VNEG
 ###  - Vector Negate
-val / ['/cond 11101 /D 11 0001 /vd 101 0 01 /M 0 /vm'] = vec2bit VNEG cond set0 set1 d vd set1 m vm
-val / ['/cond 11101 /D 11 0001 /vd 101 1 01 /M 0 /vm'] = vec2bit VNEG cond set1 set0 d vd set0 m vm
+val / ['/cond 11101 /D 11 0001 /vd 101 0 01 /M 0 /vm'] = vec2bit VNEGfp cond set0 set1 d vd set1 m vm
+val / ['/cond 11101 /D 11 0001 /vd 101 1 01 /M 0 /vm'] = vec2bit VNEGfp cond set1 set0 d vd set0 m vm
 
 ### VNMLA
 ###  - Vector Multiply Negate Add Negation
@@ -4432,5 +4476,5 @@ val / ['/cond 11101 /D 11 0001 /vd 101 0 11 /M 0 /vm'] = vec2bit VSQRT cond set0
 
 ### VSUB (floating-point)
 ###  - Vector Subtract floating-point (Encoding A2)
-val / ['/cond 1110 0 /D 11 /vn /vd 101 1 /N 1 /M 0 /vm'] = vec3bit VSUB cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 1110 0 /D 11 /vn /vd 101 0 /N 1 /M 0 /vm'] = vec3bit VSUB cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 1110 0 /D 11 /vn /vd 101 1 /N 1 /M 0 /vm'] = vec3bit VSUBfpfp cond set1 set0 d vd set0 n vn set0 m vm
+val / ['/cond 1110 0 /D 11 /vn /vd 101 0 /N 1 /M 0 /vm'] = vec3bit VSUBfpfp cond set0 set1 d vd set1 n vn set1 m vm
