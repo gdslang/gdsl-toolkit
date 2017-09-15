@@ -1252,7 +1252,7 @@ val divi cons cond rn rd rm = do
   return (cons {cond=cond, rn=rn, rd=rd, rm=rm})
 end
 
-val bf cons cond wsrc rd lsbit = do
+val bf cons cond wsrc rd lsbit rn = do
   cond <- cond;
   wsrc <- wsrc;
   rd <- rd;
