@@ -1359,7 +1359,7 @@ val subs cons cond opcode rn rm = do
   cond <- cond;
   opcode <- opcode;
   rn <- rn;
-  shfreg <- shfreg;
+  rm <- rm;
   return (cons {cond=cond, opcode=opcode, rn=rn, rm=rm})
 end
 
