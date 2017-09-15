@@ -265,7 +265,7 @@ type instruction =
   | PLD of pre
   | PLDW of pre
   | PLI of pre
-  | SETEND of unop
+  | SETEND of unopbit
   | SEV of nullop
   | SWP of swap
   | SWPB of swap
@@ -1074,6 +1074,13 @@ type unop = {
   opnd:operand
 }
 
+# Generic instruction with one bit
+type unopbit = {
+  cond:condition,
+  o:1
+}
+
+
 # Generic instruction with two operands
 type binop = {
   cond:condition,
@@ -1814,6 +1821,12 @@ val unop cons cond opnd = do
   cond <- cond;
   opnd <- opnd;
   return (cons {cond=cond, opnd=opnd})
+end
+
+val unopbit cons cond o = do
+  cond <- cond;
+  o <- o;
+  return (cons {cond=cond, o=o})
 end
 
 val binop cons cond opnd1 opnd2 = do
@@ -3608,7 +3621,7 @@ val / ['1111 011 0 /U 1 0 1 /rn 1111 /immshift /rm'] = pre PLI none rn u shfreg
 
 ### SETEND
 ###  - Set Endianess
-val / ['1111 000 1 0 0 0 0 000 1 000000 /E 0 0000 0000'] = unop SETEND none e
+val / ['1111 000 1 0 0 0 0 000 1 000000 /E 0 0000 0000'] = unopbit SETEND none e
 
 ### SEV
 ###  - Send Event
