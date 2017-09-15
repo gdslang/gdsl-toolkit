@@ -313,7 +313,7 @@ type instruction =
   | VST2 of vls
   | VST3 of vls
   | VST4 of vls
-  | VDUP of vec2
+  | VDUP of vec
   | VMOVacs of vec
   | VMOVsac of vecrev
   | VMOVacsp of vecns
@@ -424,6 +424,7 @@ type instruction =
   | VCLS of vec2
   | VCLZ of vec2
   | VCNT of vec2
+  | VDUP2 of vec2
   | VEXT of vec3nsimm
   | VMOVN of vec2
   | VMOVL of vec2
@@ -2065,7 +2066,7 @@ val armexpandimm modimm = (armexpandimm-c modimm 0).result
 ### AdvSIMDExpandImm [[A7.4.6]]
 val advsimdexpandimm-c op cmode imm8 =
   case cmode of
-      '0000': {result=('000000000000000000000000'^imm8^'000000000000000000000000'^imm8)}
+    '0000': {result=('000000000000000000000000'^imm8^'000000000000000000000000'^imm8)}
 	| '0001': {result=('000000000000000000000000'^imm8^'000000000000000000000000'^imm8)}
 	| '0010': {result=('0000000000000000'^imm8^'00000000'^'0000000000000000'^imm8^'00000000')}
 	| '0011': {result=('0000000000000000'^imm8^'00000000'^'0000000000000000'^imm8^'00000000')}
@@ -2081,15 +2082,15 @@ val advsimdexpandimm-c op cmode imm8 =
 	| '1101': {result=('00000000'^imm8^'1111111111111111'^'00000000'^imm8^'1111111111111111')}
 	| '1110': if op === 0 then
 	            {result=(imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8)}
-			  else
-			    (*TODO: replace with correct representation*)
-			    {result=(imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8)}
+            else
+            (*TODO: replace with correct representation*)
+              {result=(imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8)}
 	| '1111': if op === 0 then
-	            (*TODO: replace with correct representation*)
-			    {result=(imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8)}
-			  else
-			    (*TODO: throw UNDEFINED exception*)
-			    {result='0000000000000000000000000000000000000000000000000000000000000000'}
+              (*TODO: replace with correct representation*)
+              {result=(imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8)}
+            else
+              (*TODO: throw UNDEFINED exception*)
+              {result='0000000000000000000000000000000000000000000000000000000000000000'}
   end
 
 val advsimdexpandimm-bic cmode imm8 = (advsimdexpandimm-c 1 cmode imm8).result
@@ -2262,36 +2263,36 @@ end
 val set0 = return '0'
 val set1 = return '1'
 
-val set00 = return '00'
-val set01 = return '01'
-val set10 = return '10'
-val set11 = return '11'
+val set00 = return (immediate (IMM2 '00'))
+val set01 = return (immediate (IMM2 '01'))
+val set10 = return (immediate (IMM2 '10'))
+val set11 = return (immediate (IMM2 '11'))
 
-val set000 = return '000'
-val set001 = return '001'
-val set010 = return '010'
-val set011 = return '011'
-val set100 = return '100'
-val set101 = return '101'
-val set110 = return '110'
-val set111 = return '111'
+val set000 = return (immediate (IMM3 '000'))
+val set001 = return (immediate (IMM3 '001'))
+val set010 = return (immediate (IMM3 '010'))
+val set011 = return (immediate (IMM3 '011'))
+val set100 = return (immediate (IMM3 '100'))
+val set101 = return (immediate (IMM3 '101'))
+val set110 = return (immediate (IMM3 '110'))
+val set111 = return (immediate (IMM3 '111'))
 
-val set0000 = return '0000'
-val set0001 = return '0001'
-val set0010 = return '0010'
-val set0011 = return '0011'
-val set0100 = return '0100'
-val set0101 = return '0101'
-val set0110 = return '0110'
-val set0111 = return '0111'
-val set1000 = return '1000'
-val set1001 = return '1001'
-val set1010 = return '1010'
-val set1011 = return '1011'
-val set1100 = return '1100'
-val set1101 = return '1101'
-val set1110 = return '1110'
-val set1111 = return '1111'
+val set0000 = return (immediate (IMM4 '0000'))
+val set0001 = return (immediate (IMM4 '0001'))
+val set0010 = return (immediate (IMM4 '0010'))
+val set0011 = return (immediate (IMM4 '0011'))
+val set0100 = return (immediate (IMM4 '0100'))
+val set0101 = return (immediate (IMM4 '0101'))
+val set0110 = return (immediate (IMM4 '0110'))
+val set0111 = return (immediate (IMM4 '0111'))
+val set1000 = return (immediate (IMM4 '1000'))
+val set1001 = return (immediate (IMM4 '1001'))
+val set1010 = return (immediate (IMM4 '1010'))
+val set1011 = return (immediate (IMM4 '1011'))
+val set1100 = return (immediate (IMM4 '1100'))
+val set1101 = return (immediate (IMM4 '1101'))
+val set1110 = return (immediate (IMM4 '1110'))
+val set1111 = return (immediate (IMM4 '1111'))
 
 # --- immediate subdecoders --------------------------------------------
 
@@ -3885,11 +3886,13 @@ val / ['1111 0100 0 /D 00 /rn /vd /vls4_type /size /aligna /rm'] = vls VST4 none
 ###  - Vector Store 4-element structure from one lane
 val / ['1111 0100 1 /D 00 /rn /vd /size 11 /index_align /rm'] = vls VST4 none size set0 d vd rn index_align rm
 
-# --- Advanced SIMD and floating point register transfer instructions --
+val / ['cond 1110 1 B:1 /Q 0 /vd /rt 1011 /D 0 E:1 1 0000']
+
+# --- Advanced SIMD and floating-point register transfer instructions --
 
 ### VDUP
 ###  - Vector Duplicate Arm Core Register
-val / ['/cond 1110 1 B:1 /Q 0 /vd /rt 1011 /D 0 E:1 1 0000'] = vec VDUP cond imm4 q d vd rt
+val / ['cond 1110 1 B:1 /Q 0 /vd /rt 1011 /D 0 E:1 1 0000'] = vec VDUP cond imm4 q d vd rt
 
 ### VMOV
 ###  - Vector Move ARM core register to scalar
@@ -4307,7 +4310,7 @@ val / ['1111 0011 1 /D 11 /size 00 /vd 0 1010 /Q /M 0 /vm'] = vec2 VCNT none siz
 
 ### VDUP
 ###  - Vector Duplicate Scalar
-val / ['1111 0011 1 /D 11 /imm4 /vd 1100 0 /Q /M 0 /vm'] = vec2 VDUP none imm4 q d vd q m vm
+val / ['1111 0011 1 /D 11 /imm4 /vd 1100 0 /Q /M 0 /vm'] = vec2 VDUP2 none imm4 q d vd q m vm
 
 ### VEXT
 ###  - Vector Extract
