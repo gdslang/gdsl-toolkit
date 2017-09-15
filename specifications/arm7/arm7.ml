@@ -197,8 +197,8 @@ type instruction =
   | USUB8 of pas
   | UQSUB8 of pas
   | UHSUB8 of pas
-  | SDIV of div
-  | UDIV of div
+  | SDIV of divi
+  | UDIV of divi
   | BFC of bf
   | BFI of bf
   | CLZ of binop
@@ -316,10 +316,12 @@ type instruction =
   | VMOVspac of vecrevns
   | VMOVacsp2 of vecns2
   | VMOVspac2 of vecrevns2
+  | VMOVacdwe of vecns2half
+  | VMOVdweac of vecrevns2half
   | VMRS of unop
   | VMSR of unop
-  | VADD of vec3
-  | VADD of vec3bit
+  | VADDiasimd of vec3
+  | VADDfpasimd of vec3bit
   | VADDHN of vec3
   | VADDL of vec3sig
   | VADDW of vec3sig
@@ -391,14 +393,14 @@ type instruction =
   | VMLAsasimd of vec3sig
   | VMLAL of vec3sig
   | VMLSiasimd of vec3
-  | VMLpasimd of vec3bit
+  | VMLSfpasimd of vec3bit
   | VMLSsasimd of vec3sig
   | VMLSL of vec3sig
   | VMULipasimd of vec3sig
   | VMULfpasimd of vec3bit
   | VMULsasimd of vec3sig
   | VMULLipasimd of vec3sig2
-  | VMULLsasim of vec3sig
+  | VMULLsasimd of vec3sig
   | VFMA of vec3bit
   | VFMS of vec3bit
   | VQDMLAL of vec3
@@ -448,6 +450,7 @@ type instruction =
   | VUZP of vec2
   | VZIP of vec2
   | VABSfp of vec2bit
+  | VADDfpfp of vec3bit
   | VCMP of vec3bit
   | VCMPE of vec2bit
   | VCVTfpifp of vec2bit2
@@ -533,7 +536,7 @@ type pas = {
 }
 
 # Divide instructions
-type div = {
+type divi = {
   cond:condition,
   rn:operand,
   rd:operand,
@@ -1223,7 +1226,7 @@ val pas cons cond rn rd rm = do
   return (cons {cond=cond, rn=rn, rd=rd, rm=rm})
 end
 
-val div cons cond rn rd rm = do
+val divi cons cond rn rd rm = do
   cond <- cond;
   rn <- rn;
   rd <- rd;
@@ -3233,11 +3236,11 @@ val / ['/cond 011 0 0 1 1 1 /rn /rd 1111 1111 /rm'] = pas UHSUB8 rn rd rm
 
 ### SDIV
 ###  - Signed Divide
-val / ['/cond 011 1 0 0 0 1 /rd 1111 /rm 0001 /rn'] = div SDIV rn rd rm
+val / ['/cond 011 1 0 0 0 1 /rd 1111 /rm 0001 /rn'] = divi SDIV rn rd rm
 
 ### UDIV
 ###  - Unsigned Divide
-val / ['/cond 011 1 0 0 1 1 /rd 1111 /rm 0001 /rn'] = div UDIV rn rd rm
+val / ['/cond 011 1 0 0 1 1 /rd 1111 /rm 0001 /rn'] = divi UDIV rn rd rm
 
 # --- Miscellaneous data-processing instructions -----------------------
 
@@ -3853,9 +3856,9 @@ val / ['/cond 1110 1110 0001 /rt 1010 000 1 0000'] = unop VMSR cond rt
 
 ### VADD
 ###  - Vector Add integer
-val / ['1111 0010 0 /D /size2 /vn /vd 1000 /N /Q /M 0 /vm'] = vec3 VADD none size q d vd set1 vn q m vm
+val / ['1111 0010 0 /D /size2 /vn /vd 1000 /N /Q /M 0 /vm'] = vec3 VADDiasimd none size q d vd set1 vn q m vm
 ###  - Vector Add floating-point (Encoding A1)
-val / ['1111 0010 0 /D 0 0 /vn /vd 1101 /N /Q /M 0 /vm'] = vec3bit VADD none set0 q d vd q n vn q m vm
+val / ['1111 0010 0 /D 0 0 /vn /vd 1101 /N /Q /M 0 /vm'] = vec3bit VADDfpasimd none set0 q d vd q n vn q m vm
 
 ### VADDHN
 ###  - Vector Add and Narrow returning high half
@@ -4362,8 +4365,8 @@ val / ['/cond 1110 1 /D 11 0000 /vd 101 1 11 /M 0 /vm'] = vec2bit VABSfp cond se
 
 ### VADD
 ###  - Vector Add floating-point
-val / ['/cond 1110 0 /D 11 /vn /vd 101 0 /N 0 /M 0 /vm'] = vec3bit VADD cond set0 set1 d vd set1 n vn set1 m vm
-val / ['/cond 1110 0 /D 11 /vn /vd 101 1 /N 0 /M 0 /vm'] = vec3bit VADD cond set1 set0 d vd set0 n vn set0 m vm
+val / ['/cond 1110 0 /D 11 /vn /vd 101 0 /N 0 /M 0 /vm'] = vec3bit VADDfpfp cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 1110 0 /D 11 /vn /vd 101 1 /N 0 /M 0 /vm'] = vec3bit VADDfpfp cond set1 set0 d vd set0 n vn set0 m vm
 
 ### VCMP
 ###  - Vector Compare (Encoding A1)
