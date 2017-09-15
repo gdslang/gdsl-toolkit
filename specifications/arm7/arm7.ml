@@ -841,6 +841,24 @@ type vecrevns2 = {
   vd4:operand
 }
 
+type vecns2half = {
+  cond:condition,
+  q:1,
+  d:1,
+  vd:operand,
+  op2:operand,
+  op3:operand
+}
+
+type vecrevns2half cons cond op op2 q3 d3 vd3 = {
+  cond:condition,
+  op;operand,
+  op2:operand,
+  q3:1,
+  d3:1,
+  vd3:operand
+}
+
 type vec2 = {
   cond:condition,
   size:operand,
