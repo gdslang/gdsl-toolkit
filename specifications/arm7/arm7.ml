@@ -610,7 +610,7 @@ type pre {
 }
 
 # Swap instructions
-tape swap {
+type swap {
   cond:condition,
   rn:operand,
   rt:operand,
