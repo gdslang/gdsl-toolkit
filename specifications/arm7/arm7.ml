@@ -850,7 +850,7 @@ type vecns2half = {
   op3:operand
 }
 
-type vecrevns2half cons cond op op2 q3 d3 vd3 = {
+type vecrevns2half = {
   cond:condition,
   op:operand,
   op2:operand,
