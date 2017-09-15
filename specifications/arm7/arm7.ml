@@ -774,7 +774,7 @@ type vecimm = {
   q:1,
   d:1,
   vd:operand,
-  imm:operand,
+  imm:operand
 }
 
 type vecbit4imm = {
