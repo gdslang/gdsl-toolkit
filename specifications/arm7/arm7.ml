@@ -3406,19 +3406,19 @@ val / ['/cond 000 /P /U 0 /W 1 /rn /rt 0000 1111 /rm']
 
 ### LDREX
 ###  - Load Register Exclusive
-val / ['/cond 000 1 1 0 0 1 /rn /rt 1111 1001 1111'] = binop LDREX rt rn
+val / ['/cond 000 1 1 0 0 1 /rn /rt 1111 1001 1111'] = binop LDREX cond rt rn
 
 ### LDREXB
 ###  - Load Register Exclusive Byte
-val / ['/cond 000 1 1 1 0 1 /rn /rt 1111 1001 1111'] = binop LDREXB rt rn
+val / ['/cond 000 1 1 1 0 1 /rn /rt 1111 1001 1111'] = binop LDREXB condrt rn
 
 ### LDREXD
 ###  - Load Register Exclusive DWORD
-val / ['/cond 000 1 1 0 1 1 /rn /rt 1111 1001 1111'] = binop LDREXD rt rn
+val / ['/cond 000 1 1 0 1 1 /rn /rt 1111 1001 1111'] = binop LDREXD cond rt rn
 
 ### LDREXH
 ###  - Load Register Exclusive Halfword
-val / ['/cond 000 1 1 1 1 1 /rn /rt 1111 1001 1111'] = binop LDREXH rt rn
+val / ['/cond 000 1 1 1 1 1 /rn /rt 1111 1001 1111'] = binop LDREXH cond rt rn
 
 val str-is-push? s = (is-sp? s.rn) and (not s.u) and (s.imm12 == '000000000100')
 
