@@ -3327,7 +3327,7 @@ val / ['/cond 000 10 /r 10 /imm4 1111 001 /M 0000 /rn'] = brnr MSR cond r imm4 m
 
 ### CPS
 ###  - Change processor state
-val / ['1111 000 1 0 0 0 0 imod:2 M:1 0000 0000 /IFLAGS 0 /imm4'] = binop CPS none iflags imm4
+val / ['1111 000 1 0 0 0 0 imod:2 M:1 0000 000 /IFLAGS 0 /imm4'] = binop CPS none iflags imm4
 
 # --- Load/store instructions ------------------------------------------
 
