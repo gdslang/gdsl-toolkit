@@ -3026,11 +3026,11 @@ val / ['/cond 011 0 1 0 1 0 /imm4 /rd 1111 0011 /rn'] = sat SSAT16 cond imm4 rd 
 
 ### USAT
 ### - Unsigned Saturate
-val / ['/cond 011 0 1 1 1 imm5 /rd /shfreg'] = sat USAT cond imm5 rd shfreg
+val / ['/cond 011 0 1 1 1 /imm5 /rd /shfreg'] = sat USAT cond imm5 rd shfreg
 
 ### USAT16
 ### - Unsigned Saturate 16
-val / ['/cond 011 0 1 1 1 0 imm4 /rd 1111 0011 /rn'] = sat USAT16 cond imm4 rd rn
+val / ['/cond 011 0 1 1 1 0 /imm4 /rd 1111 0011 /rn'] = sat USAT16 cond imm4 rd rn
 
 # --- Saturating addition and substraction instructions ----------------
 
