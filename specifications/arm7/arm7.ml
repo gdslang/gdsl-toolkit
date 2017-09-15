@@ -575,7 +575,7 @@ type brdr = {
   r:operand,
   m1:operand,
   rd:operand,
-  m:operand
+  m:1
 }
 
 # Banked register and arm core register instructions
@@ -583,7 +583,7 @@ type brnr = {
   cond:condition,
   r:operand,
   m1:operand,
-  m:operand,
+  m:1,
   rn:operand
 }
 
