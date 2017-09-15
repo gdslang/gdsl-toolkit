@@ -572,7 +572,7 @@ type madp = {
 # Banked register and destination register instructions
 type brdr = {
   cond:condition,
-  r:operand,
+  r:1,
   m1:operand,
   rd:operand,
   m:1
@@ -581,7 +581,7 @@ type brdr = {
 # Banked register and arm core register instructions
 type brnr = {
   cond:condition,
-  r:operand,
+  r:1,
   m1:operand,
   m:1,
   rn:operand
