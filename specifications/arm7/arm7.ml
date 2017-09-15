@@ -2505,7 +2505,7 @@ end
 val combine-opc2 = do
   opc12 <- query $opc12;
   opc22 <- query $opc22;
-  return (opnd-from-int (zx (opc12^opc22)))
+  return (immediate (IMM4 (opc12^opc22))
 end
 
 # combine-u-opc2
@@ -2513,7 +2513,7 @@ val combine-u-opc2 = do
   u <- query $u;
   opc12 <- query $opc12;
   opc22 <- query $opc22;
-  return (opnd-from-int (zx (u^opc12^opc22)))
+  return (immediate (IMM5 (u^opc12^opc22)))
 end
 
 # opc13
