@@ -2505,7 +2505,7 @@ end
 val combine-opc2 = do
   opc12 <- query $opc12;
   opc22 <- query $opc22;
-  return (immediate (IMM4 (opc12^opc22))
+  return (immediate (IMM4 (opc12^opc22)))
 end
 
 # combine-u-opc2
