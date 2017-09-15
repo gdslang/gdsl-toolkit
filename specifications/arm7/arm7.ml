@@ -3410,7 +3410,7 @@ val / ['/cond 000 1 1 0 0 1 /rn /rt 1111 1001 1111'] = binop LDREX cond rt rn
 
 ### LDREXB
 ###  - Load Register Exclusive Byte
-val / ['/cond 000 1 1 1 0 1 /rn /rt 1111 1001 1111'] = binop LDREXB condrt rn
+val / ['/cond 000 1 1 1 0 1 /rn /rt 1111 1001 1111'] = binop LDREXB cond rt rn
 
 ### LDREXD
 ###  - Load Register Exclusive DWORD
