@@ -2065,38 +2065,38 @@ val armexpandimm-c modimm carry_in =
 val armexpandimm modimm = (armexpandimm-c modimm 0).result
 
 ### AdvSIMDExpandImm [[A7.4.6]]
-val advsimdexpandimm-c op cmode imm8 =
-  case cmode of
-    '0000': {result=('000000000000000000000000'^imm8^'000000000000000000000000'^imm8)}
-	| '0001': {result=('000000000000000000000000'^imm8^'000000000000000000000000'^imm8)}
-	| '0010': {result=('0000000000000000'^imm8^'00000000'^'0000000000000000'^imm8^'00000000')}
-	| '0011': {result=('0000000000000000'^imm8^'00000000'^'0000000000000000'^imm8^'00000000')}
-	| '0100': {result=('00000000'^imm8^'0000000000000000'^'00000000'^imm8^'0000000000000000')}
-	| '0101': {result=('00000000'^imm8^'0000000000000000'^'00000000'^imm8^'0000000000000000')}
-	| '0110': {result=(imm8^'000000000000000000000000'^imm8^'000000000000000000000000')}
-	| '0111': {result=(imm8^'000000000000000000000000'^imm8^'000000000000000000000000')}
-	| '1000': {result=('00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8)}
-	| '1001': {result=('00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8)}
-	| '1010': {result=(imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000')}
-	| '1011': {result=(imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000')}
-	| '1100': {result=('0000000000000000'^imm8^'11111111'^'0000000000000000'^imm8^'11111111')}
-	| '1101': {result=('00000000'^imm8^'1111111111111111'^'00000000'^imm8^'1111111111111111')}
-	| '1110': if op === 0 then
-	            {result=(imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8)}
-            else
-            (*TODO: replace with correct representation*)
-              {result=(imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8)}
-	| '1111': if op === 0 then
-              (*TODO: replace with correct representation*)
-              {result=(imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8)}
-            else
-              (*TODO: throw UNDEFINED exception*)
-              {result='0000000000000000000000000000000000000000000000000000000000000000'}
+val advsimdexpandimm-c oper cm imm8b =
+  case cm of
+    0: {result=('000000000000000000000000'^imm8b^'000000000000000000000000'^imm8b)}
+	| 1: {result=('000000000000000000000000'^imm8b^'000000000000000000000000'^imm8b)}
+	| 2: {result=('0000000000000000'^imm8b^'00000000'^'0000000000000000'^imm8b^'00000000')}
+	| 3: {result=('0000000000000000'^imm8b^'00000000'^'0000000000000000'^imm8^'00000000')}
+	| 4: {result=('00000000'^imm8b^'0000000000000000'^'00000000'^imm8b^'0000000000000000')}
+	| 5: {result=('00000000'^imm8b^'0000000000000000'^'00000000'^imm8b^'0000000000000000')}
+	| 6: {result=(imm8b^'000000000000000000000000'^imm8b^'000000000000000000000000')}
+	| 7: {result=(imm8b^'000000000000000000000000'^imm8b^'000000000000000000000000')}
+	| 8: {result=('00000000'^imm8b^'00000000'^imm8b^'00000000'^imm8b^'00000000'^imm8b)}
+	| 9: {result=('00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8)}
+	| 10: {result=(imm8b^'00000000'^imm8b^'00000000'^imm8b^'00000000'^imm8b^'00000000')}
+	| 11: {result=(imm8b^'00000000'^imm8b^'00000000'^imm8b^'00000000'^imm8b^'00000000')}
+	| 12: {result=('0000000000000000'^imm8b^'11111111'^'0000000000000000'^imm8b^'11111111')}
+	| 13: {result=('00000000'^imm8b^'1111111111111111'^'00000000'^imm8b^'1111111111111111')}
+	| 14: if oper === 0 then
+          {result=(imm8b^imm8b^imm8b^imm8b^imm8b^imm8b^imm8b^imm8b)}
+        else
+          (*TODO: replace with correct representation*)
+          {result=(imm8b^imm8b^imm8b^imm8b^imm8b^imm8b^imm8b^imm8b)}
+	| 15: if oper === 0 then
+          (*TODO: replace with correct representation*)
+          {result=(imm8b^imm8b^imm8b^imm8b^imm8b^imm8b^imm8b^imm8b)}
+        else
+          (*TODO: throw UNDEFINED exception*)
+          {result='0000000000000000000000000000000000000000000000000000000000000000'}
   end
 
-val advsimdexpandimm-bic cmode imm8 = (advsimdexpandimm-c 1 (cmode.cmode) (imm8.imm8)).result
+val advsimdexpandimm-bic cm imm8b = (advsimdexpandimm-c 1 (zx cm) imm8b).result
 
-val advsimdexpandimm op cmode imm8 = (advsimdexpandimm op (cmode.cmode) (imm8.imm8)).result 
+val advsimdexpandimm op cm imm8b = (advsimdexpandimm op (zx cm) imm8b).result 
 
 # ----------------------------------------------------------------------
 # Subdecoder
@@ -2470,11 +2470,11 @@ val combine-imm5 = do
   return (opnd-from-int (zx (imm4^i)))
 end
 
-val combine-imm8-2 = do
+val combine-imm8-2-bit = do
   i <- query $i;
   imm3 <- query $imm3;
   imm4 <- query $imm4;
-  return (opnd-from-int (zx (i^imm3^imm4)))
+  return (i^imm3^imm4)
 end
 
 # length
@@ -4009,7 +4009,7 @@ val / ['1111 0010 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VAND none q d v
 
 ### VBIC
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBICimm none cmode q d vd (advsimdexpandimm-bic cmode combine-imm8-2)
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBICimm none cmode q d vd (advsimdexpandimm-bic cmode combine-imm8-2-bit)
 ###  - Vector Bitwise Bit Clear register
 val / ['1111 0100 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBICreg none q d vd q n vn q m vm
 
@@ -4027,20 +4027,20 @@ val / ['1111 0011 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBIF none q d v
 
 ### VMOV
 ###  - Vector Move immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 0 cmode combine-imm8-2)
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 1 cmode combine-imm8-2)
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 0 cmode combine-imm8-2-bit)
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 1 cmode combine-imm8-2-bit)
 ###  - Vector Move register
 val / ['1111 0010 0 /D 10 /vm /vd 0001 0 /Q /M 1 /vm'] = vec2ns VMOVregasimd none q d vd q m vm
 
 ### VMVN
 ###  - Vector Bitwise Not immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = vecimm VMVNimm none cmode q d vd (advsimdexpandimm 1 cmode combine-imm8-2)
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = vecimm VMVNimm none cmode q d vd (advsimdexpandimm 1 cmode combine-imm8-2-bit)
 ###  - Vector Bitwise Not register
 val / ['1111 0011 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = vec2 VMVNreg none size q d vd q m vm
 
 ### VORR
 ###  - Vector Bitwise OR immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = vecimm VORRimm none cmode q d vd (advsimdexpandimm 1 cmode combine-imm8-2)
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = vecimm VORRimm none cmode q d vd (advsimdexpandimm 1 cmode combine-imm8-2-bit)
 ###  - Vector Bitwise OR register
 val / ['1111 0010 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VORRreg none q d vd q n vn q m vm
 
