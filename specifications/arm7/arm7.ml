@@ -433,7 +433,7 @@ type instruction =
   | VMAXfp of vec3bit
   | VMINi of vec3sig
   | VMINfp of vec3bit
-  | VNEGasimd of vec3sig
+  | VNEGasimd of vec2sig
   | VPMAXi of vec3sig
   | VPMAXfp of vec3bit
   | VPMINi of vec3sig
@@ -4310,7 +4310,7 @@ val / ['1111 0010 0 /D 1 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = vec3bit VMINfp none
 
 ### VNEG
 ###  - Vector Negate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 111 /Q /M 0 /vm'] = vec3sig VNEGasimd none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 111 /Q /M 0 /vm'] = vec2sig VNEGasimd none f size q d vd q m vm
 
 ### VPMAX
 ###  - Vector Pairwise Maximum integer
