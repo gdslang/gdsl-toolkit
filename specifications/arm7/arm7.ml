@@ -477,7 +477,7 @@ type instruction =
   | VNMUL of vec2bit
   | VFNMA of vec2bit
   | VFNMS of vec2bit
-  | VSQRT of vec3bit
+  | VSQRT of vec2bit
   | VSUBfpfp of vec3bit 
 
 # Standard data-processing instruction
