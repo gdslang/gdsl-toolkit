@@ -2170,7 +2170,7 @@ val /cmode-bic ['cmode@0111'] = update@{cmode=cmode}
 val /cmode-bic ['cmode@1001'] = update@{cmode=cmode}
 val /cmode-bic ['cmode@1011'] = update@{cmode=cmode}
 
-# cmode for VBIC instruction with op=0, cannot be 1001, 1011, 0101, 0111, 0001, or 0011
+# cmode for VMOV instruction with op=0, cannot be 1001, 1011, 0101, 0111, 0001, or 0011
 val /cmode-mov0 ['cmode@0000'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@0010'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@0100'] = update@{cmode=cmode}
@@ -2181,6 +2181,9 @@ val /cmode-mov0 ['cmode@1100'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@1101'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@1110'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@1111'] = update@{cmode=cmode}
+
+# cmode for VMOV instruction with op=01, can only be 1110
+val /cmode-mov1 ['cmode@1110'] = update@{cmode=cmode}
 
 # cmode for VMVN instruction, can only be 0000, 0010, 0100, 0110, 1000, 1010, 1100, or 1101
 val /cmode-mvn ['cmode@0000'] = update@{cmode=cmode}
