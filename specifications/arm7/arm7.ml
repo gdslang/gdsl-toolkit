@@ -4082,7 +4082,7 @@ val / ['1111 001 1 1 /D /imm6-not000 /vd 100 0 01 /M 1 /vm'] = vec2sigimm VQRSHR
 
 ### VQSHL
 ###  - Vector Saturating Shift Left register
-val / ['1111 001 1 /U 0 /D /size /vn /vd 0100 /N /Q /M 1 /vm'] = vec3sig VQSHLreg none u size q d vd q m vm q n vn
+val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 1 /vm'] = vec3sig VQSHLreg none u size q d vd q m vm q n vn
 ###  - Vector Saturating Shift Left immediate
 val / ['1111 001 /U 1 /D /imm6-not000 /vd 011 1 0 /Q /M 1 /vm'] = vec2sigimm VQSHLimm none u imm6 q d vd q m vm imm6
 val / ['1111 001 /U 1 /D /imm6 /vd 011 1 1 /Q /M 1 /vm'] = vec2sigimm VQSHLimm none u imm6 q d vd q m vm imm6
