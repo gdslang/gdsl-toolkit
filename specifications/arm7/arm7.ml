@@ -4261,7 +4261,7 @@ val / ['1111 0011 1 /D 11 /size 01 /vd 0 0 110 /Q /M 0 /vm'] = vec2sig VABSasimd
 
 ### VCVT
 ###  - Vector Convert between floating-point and integer
-val / ['1111 0011 1 /D 11 /vd 0 11 /size /Q /M 0 /vm'] = vec2 VCVTfpiasimd none size q d vd q m vm
+val / ['1111 0011 1 /D 11 10 11 /vd 0 11 /size2 /Q /M 0 /vm'] = vec2 VCVTfpiasimd none size q d vd q m vm
 ###  - Vector Convert between floating-point and fixed-point
 val / ['1111 001 /U 1 /D /imm6-not000 /vd 111 /op 0 /Q /M 1'] = vec2sigbitimm VCVTfpfpasimd none u op q d vd q m vm
 ###  - Vector Convert between half-precision and single-precision
