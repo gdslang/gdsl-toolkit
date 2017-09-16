@@ -3167,7 +3167,7 @@ val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 0111 /rm'] = pas SSUB16 cond rn rd rm
 
 ### SADD8
 ###  - Signed Add 8
-val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 1001 /rm'] = pas SADD8 cond n rd rm
+val / ['/cond 011 0 0 0 0 1 /rn /rd 1111 1001 /rm'] = pas SADD8 cond rn rd rm
 
 ### SSUB8
 ###  - Signed Subtract 8
@@ -4326,13 +4326,13 @@ val / ['1111 001 /U 1 /D /imm3 000 /vd 1010 0 0 /M 1 /vm'] = vec2 VMOVN none imm
 ###  - Vector Maximum integer
 val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 0 /vm'] = vec3sig VMAXi none u size q d vd q n vn q m vm
 ###  - Vector Maximum floating-point
-val / ['1111 0010 0 /D 0 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = vec3bit VMAXfp none sz q d vd q n d n q m vm
+val / ['1111 0010 0 /D 0 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = vec3bit VMAXfp none sz q d vd q n vn q m vm
 
 ### VMIN
 ###  - Vector Minimum integer
 val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 1 /vm'] = vec3sig VMINi none u size q d vd q n vn q m vm
 ###  - Vector Minimum floating-point
-val / ['1111 0010 0 /D 1 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = vec3bit VMINfp none sz q d vd q n d n q m vm
+val / ['1111 0010 0 /D 1 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = vec3bit VMINfp none sz q d vd q n vn q m vm
 
 ### VNEG
 ###  - Vector Negate
@@ -4476,11 +4476,13 @@ val / ['/cond 1110 1 /D 00 /vn /vd 101 0 /N 0 /M 0 /vm'] = vec3bit VDIV cond set
 
 ### VMLA
 ###  - Vector Multiply Accumulate floating-point
-val / ['/cond 11100 /D 00 /vn /vd 101 /sz /N 0 /M 0 /vm'] = vec3bit VMLAfpfp cond sz sz d vd sz n vn sz m vm
+val / ['/cond 11100 /D 00 /vn /vd 101 1 /N 0 /M 0 /vm'] = vec3bit VMLAfpfp cond set1 set0 d vd set0 n vn set0 m vm
+val / ['/cond 11100 /D 00 /vn /vd 101 0 /N 0 /M 0 /vm'] = vec3bit VMLAfpfp cond set0 set1 d vd set1 n vn set1 m vm
 
 ### VMLS
 ###  - Vector Multiply Subtract floating-point
-val / ['/cond 11100 /D 00 /vn /vd 101 /sz /N 1 /M 0 /vm'] = vec3bit VMLSfpfp cond sz sz d vd sz n vn sz m vm
+val / ['/cond 11100 /D 00 /vn /vd 101 1 /N 1 /M 0 /vm'] = vec3bit VMLSfpfp cond set1 set0 d vd set0 n vn set0 m vm
+val / ['/cond 11100 /D 00 /vn /vd 101 0 /N 1 /M 0 /vm'] = vec3bit VMLSfpfp cond set0 set1 d vd set1 n vn set1 m vm
 
 ### VMOV
 ###  - Vector Move immediate floating-point
