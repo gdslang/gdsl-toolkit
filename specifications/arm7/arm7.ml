@@ -3918,7 +3918,7 @@ val / ['/cond 1110 1110 0001 /rt 1010 000 1 0000'] = unop VMSR cond rt
 
 ### VADD
 ###  - Vector Add integer
-val / ['1111 0010 0 /D /size2 /vn /vd 1000 /N /Q /M 0 /vm'] = vec3 VADDiasimd none size q d vd set1 vn q m vm
+val / ['1111 0010 0 /D /size2 /vn /vd 1000 /N /Q /M 0 /vm'] = vec3 VADDiasimd none size q d vd q n vn q m vm
 ###  - Vector Add floating-point (Encoding A1)
 val / ['1111 0010 0 /D 0 0 /vn /vd 1101 /N /Q /M 0 /vm'] = vec3bit VADDfpasimd none set0 q d vd q n vn q m vm
 
