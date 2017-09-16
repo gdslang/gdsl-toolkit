@@ -457,7 +457,7 @@ type instruction =
   | VZIP of vec2
   | VABSfp of vec2bit
   | VADDfpfp of vec3bit
-  | VCMP of vec3bit
+  | VCMP of vec2bit
   | VCMPE of vec2bit
   | VCVTfpifp of vec2bit2
   | VCVTfpfpfp of vecbit4imm
