@@ -60,7 +60,7 @@ val reset = do
 	  opc12='00', opc22='00',
     opc13='000', opc23='000',
 	  opc14='0000', opc24='0000',
-    crd='0', crn='0000', crm='0000', coproc='0000',
+    crd='0000', crn='0000', crm='0000', coproc='0000',
     vd='0000', vn='0000', vm='0000',
 	  cmode='0000',
     index_align='0000', vdl_type='0000',
