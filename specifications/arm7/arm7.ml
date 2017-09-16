@@ -2182,9 +2182,6 @@ val /cmode-mov0 ['cmode@1101'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@1110'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@1111'] = update@{cmode=cmode}
 
-# cmode for VBIC instruction with op=1, can only be 1110
-val /cmode-mov1 ['cmode@1110'] = update@{cmode=cmode}
-
 # cmode for VMVN instruction, can only be 0000, 0010, 0100, 0110, 1000, 1010, 1100, or 1101
 val /cmode-mvn ['cmode@0000'] = update@{cmode=cmode}
 val /cmode-mvn ['cmode@0010'] = update@{cmode=cmode}
@@ -4002,7 +3999,7 @@ val / ['1111 0010 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VAND none q d v
 
 ### VBIC
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBICimm none cmode q d vd (advsimdexpandimm-bic cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBICimm none cmode q d vd (advsimdexpandimm-bic 1 cmode (i^imm3^imm4))
 ###  - Vector Bitwise Bit Clear register
 val / ['1111 0100 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBICreg none q d vd q n vn q m vm
 
@@ -4021,7 +4018,7 @@ val / ['1111 0011 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBIF none q d v
 ### VMOV
 ###  - Vector Move immediate
 val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 0 cmode (i^imm3^imm4))
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 0 cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 1 cmode (i^imm3^imm4))
 ###  - Vector Move register
 val / ['1111 0010 0 /D 10 /vm /vd 0001 0 /Q /M 1 /vm'] = vec2ns VMOVregasimd none q d vd q m vm
 
