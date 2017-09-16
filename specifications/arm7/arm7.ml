@@ -4009,7 +4009,7 @@ val / ['1111 0010 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VAND none q d v
 
 ### VBIC
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBICimm none cmode q d vd (advsimdexpandimm-bic 1 cmode combine-imm8-2)
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBICimm none cmode q d vd (advsimdexpandimm-bic cmode combine-imm8-2)
 ###  - Vector Bitwise Bit Clear register
 val / ['1111 0100 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBICreg none q d vd q n vn q m vm
 
