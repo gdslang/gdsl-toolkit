@@ -4056,11 +4056,11 @@ val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 000 /Q /M 0 /vm'] = vec2sig VCGTimm 
 
 ### VCLE
 ###  - Vector Compare Less Than or Equal immediate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 011 /Q /M 0 /vm'] = vec2sig VCLE none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 011 /Q /M 0 /vm'] = vec2sig VCLE none f size q d vd q m vm
 
 ### VCLT
 ###  - Vector Compare Less Than
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 100 /Q /M 0 /vm'] = vec2sig VCLT none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 100 /Q /M 0 /vm'] = vec2sig VCLT none f size q d vd q m vm
 
 ### VTST
 ###  - Vector Test Bits
