@@ -2094,9 +2094,9 @@ val advsimdexpandimm-c op cmode imm8 =
               {result='0000000000000000000000000000000000000000000000000000000000000000'}
   end
 
-val advsimdexpandimm-bic cmode imm8 = (advsimdexpandimm-c 1 (zx cmode) (zx imm8)).result
+val advsimdexpandimm-bic cmode imm8 = (advsimdexpandimm-c 1 (cmode.cmode) (imm8.imm8)).result
 
-val advsimdexpandimm op cmode imm8 = (advsimdexpandimm op (zx cmode) (zx imm8)).result 
+val advsimdexpandimm op cmode imm8 = (advsimdexpandimm op (cmode.cmode) (imm8.imm8)).result 
 
 # ----------------------------------------------------------------------
 # Subdecoder
