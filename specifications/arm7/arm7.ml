@@ -2470,6 +2470,13 @@ val combine-imm5 = do
   return (opnd-from-int (zx (imm4^i)))
 end
 
+val combine-imm8-2 = do
+  i <- query $i;
+  imm3 <- query $imm3;
+  imm4 <- query $imm4;
+  return (opnd-from-int (zx (i^imm3^imm4)))
+end
+
 # length
 val /len ['len:2'] = update@{len=len}
 
@@ -4002,7 +4009,7 @@ val / ['1111 0010 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VAND none q d v
 
 ### VBIC
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBICimm none cmode q d vd (advsimdexpandimm-bic 1 cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vecimm VBICimm none cmode q d vd (advsimdexpandimm-bic 1 cmode combine-imm8-2)
 ###  - Vector Bitwise Bit Clear register
 val / ['1111 0100 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBICreg none q d vd q n vn q m vm
 
@@ -4020,20 +4027,20 @@ val / ['1111 0011 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VBIF none q d v
 
 ### VMOV
 ###  - Vector Move immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 0 cmode (i^imm3^imm4))
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 1 cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 0 cmode combine-imm8-2)
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = vecimm VMOVimmasimd none cmode q d vd (advsimdexpandimm 1 cmode combine-imm8-2)
 ###  - Vector Move register
 val / ['1111 0010 0 /D 10 /vm /vd 0001 0 /Q /M 1 /vm'] = vec2ns VMOVregasimd none q d vd q m vm
 
 ### VMVN
 ###  - Vector Bitwise Not immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = vecimm VMVNimm none cmode q d vd (advsimdexpandimm 1 cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = vecimm VMVNimm none cmode q d vd (advsimdexpandimm 1 cmode combine-imm8-2)
 ###  - Vector Bitwise Not register
 val / ['1111 0011 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = vec2 VMVNreg none size q d vd q m vm
 
 ### VORR
 ###  - Vector Bitwise OR immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = vecimm VORRimm none cmode q d vd (advsimdexpandimm 1 cmode (i^imm3^imm4))
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = vecimm VORRimm none cmode q d vd (advsimdexpandimm 1 cmode combine-imm8-2)
 ###  - Vector Bitwise OR register
 val / ['1111 0010 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vec3ns VORRreg none q d vd q n vn q m vm
 
