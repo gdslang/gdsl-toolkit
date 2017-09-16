@@ -332,7 +332,8 @@ type instruction =
   | VHADD of vec3sig
   | VHSUB of vec3sig
   | VPADAL of vec2sig
-  | VPADD of vec3
+  | VPADDi of vec3
+  | VPADDfp of vec3bit
   | VPADDL of vec2sig
   | VRADDHN of vec3
   | VRHADD of vec3sig
@@ -3947,9 +3948,9 @@ val / ['1111 0011 1 /D 11 /size 00 /vd 0110 /op /Q /M 0 /vm'] = vec2sig VPADAL n
 
 ### VPADD
 ###  - Vector Pairwise Add integer
-val / ['1111 0010 0 /D /size /vn /vd 1011 /N 0 /M 1 /vm'] = vec3 VPADD none size set0 d vd set0 n vn set0 m vm
+val / ['1111 0010 0 /D /size /vn /vd 1011 /N 0 /M 1 /vm'] = vec3 VPADDi none size set0 d vd set0 n vn set0 m vm
 ###  - Vector Pairwise Add floating-point
-val / ['1111 0011 0 /D 0 0 /vn /vd 1101 /N 0 /M 0 /vm'] = vec3 VPADD none set0 set0 d vd set0 n vn set0 m vm 
+val / ['1111 0011 0 /D 0 0 /vn /vd 1101 /N 0 /M 0 /vm'] = vec3bit VPADDfp none set0 set0 d vd set0 n vn set0 m vm 
 
 ### VPADDL
 ###  - Vector Pairwise Add Long
