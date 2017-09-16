@@ -4052,7 +4052,7 @@ val / ['1111 001 /U 0 /D /size /vn /vd 0011 /N /Q /M 0 /vm'] = vec3sig VCGTrega 
 ###  - Vector Compare Greater Than register (Encoding A2)
 val / ['1111 0011 0 /D 1 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = vec3bit VCGTregb none sz q d vd q n vn q m vm
 ###  - Vector Compare Greater Than immediate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 000 /Q /M 0 /vm'] = vec2sig VCGTimm none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 000 /Q /M 0 /vm'] = vec2sig VCGTimm none f size q d vd q m vm
 
 ### VCLE
 ###  - Vector Compare Less Than or Equal immediate
