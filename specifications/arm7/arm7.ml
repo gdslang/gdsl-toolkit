@@ -811,9 +811,9 @@ type vecimm = {
 type vecbit4imm = {
   cond:condition,
   op:1,
-  sz1:1,
-  u:1,
   sz2:1,
+  u:1,
+  sz1:1,
   qd:1,
   d:1,
   vd:operand,
@@ -1539,12 +1539,12 @@ val vecimm cons cond dt q d vd imm = do
   return (cons {cond=cond, dt=dt, q=q, d=d, vd=vd, imm=imm})
 end
 
-val vecbit4imm cons cond op sz1 u sz2 qd d vd qm m vm imm = do
+val vecbit4imm cons cond op sz2 u sz1 qd d vd qm m vm imm = do
   cond <- cond;
   op <- op;
-  sz1 <- sz1;
-  u <- u;
   sz2 <- sz2;
+  u <- u;
+  sz1 <- sz1;
   qd <- qd;
   d <- d;
   vd <- vd;
@@ -1552,7 +1552,7 @@ val vecbit4imm cons cond op sz1 u sz2 qd d vd qm m vm imm = do
   m <- m;
   vm <- vm;
   imm <- imm;
-  return (cons {cond=cond, op=op, sz1=sz1, u=u, sz2=sz2, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
+  return (cons {cond=cond, op=op, sz2=sz2, u=u, sz1=sz1, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
 end
 
 val vecns cons cond q d vd op2 = do
@@ -4423,17 +4423,17 @@ val / ['/cond 1110 1 /D 11 0101 /vd 101 1 1 1 0 0 0000'] = vec2bit VCMPE cond se
 ### VCVT
 ###  - Vector Convert between floating-point and integer
 val / ['/cond 1110 1 /D 11 1 000 /vd 101 0 /op 1 /M 0 /vm'] = vec2bit2 VCVTfpifp cond op set0 set1 d vd set1 m vm
-val / ['/cond 1110 1 /D 11 1 000 /vd 101 1 /op 1 /M 0 /vm'] = vec2bit2 VCVTfpifp cond op set1 set0 d vd set0 m vm
+val / ['/cond 1110 1 /D 11 1 000 /vd 101 1 /op 1 /M 0 /vm'] = vec2bit2 VCVTfpifp cond op set1 set0 d vd set1 m vm
 ###  - Vector Convert between floating-point and fixed-point
-val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set0 u sz1 set1 d vd
-val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set1 u sz1 set0 d vd
+val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set0 u sz1 set1 d vd set1 d vd
+val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set1 u sz1 set0 d vd set0 d vd
 ###  - Vector Convert between double-precision and single-precision
 val / ['/cond 1110 1 /D 11 0111 /vd 1010 0 /Q /M 0 /vm'] = vec2ns VCVTdpspfp none q d vd q m vm
 
 ### VCVTR
 ###  - Vector Convert Round between floating-point and integer
 val / ['/cond 1110 1 /D 11 1 /opc2-vcvtr /vd 101 0 /op 1 /M 0 /vm'] = vec2opbit VCVTR cond opc23 set0 set1 d vd set1 m vm
-val / ['/cond 1110 1 /D 11 1 /opc2-vcvtr /vd 101 1 /op 1 /M 0 /vm'] = vec2opbit VCVTR cond opc23 set1 set0 d vd set0 m vm
+val / ['/cond 1110 1 /D 11 1 /opc2-vcvtr /vd 101 1 /op 1 /M 0 /vm'] = vec2opbit VCVTR cond opc23 set1 set1 d vd set0 m vm
 
 ### VCVTB
 ###  - Vector Convert Bottom
