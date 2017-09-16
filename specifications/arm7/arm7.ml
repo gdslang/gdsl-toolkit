@@ -4177,7 +4177,7 @@ val / ['1111 001 /Q 1 /D /size /vn /vd 0 1 0 /F /N 1 /M 0 /vm'] = vec3sig VMLSsa
 
 ### VMLSL
 ###  - Vector Multiply Subtract Long integer
-val / ['111 001 /U 1 /D /size /vn /vd 10 1 0 /N 0 /M 0 /vm'] = vec3sig VMLSL none u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 10 1 0 /N 0 /M 0 /vm'] = vec3sig VMLSL none u size set1 d vd set0 n vn set0 m vm
 ###  - Vector Multiply Subtract Long by scalar
 val / ['1111 001 /U 1 /D /size /vn /vd 0 1 10 /N 1 /M 0 /vm'] = vec3sig VMLSL none u size set1 d vd set0 n vn set0 m vm
 
