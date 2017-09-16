@@ -4425,8 +4425,8 @@ val / ['/cond 1110 1 /D 11 0101 /vd 101 1 1 1 0 0 0000'] = vec2bit VCMPE cond se
 val / ['/cond 1110 1 /D 11 1 000 /vd 101 0 /op 1 /M 0 /vm'] = vec2bit2 VCVTfpifp cond op set0 set1 d vd set1 m vm
 val / ['/cond 1110 1 /D 11 1 000 /vd 101 1 /op 1 /M 0 /vm'] = vec2bit2 VCVTfpifp cond op set1 set0 d vd set1 m vm
 ###  - Vector Convert between floating-point and fixed-point
-val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set0 u sz1 set1 d vd set1 d vd
-val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set1 u sz1 set0 d vd set0 d vd
+val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set0 u sz1 set1 d vd set1 d vd combine-imm5
+val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = vecbit4imm VCVTfpfpfp cond op set1 u sz1 set0 d vd set0 d vd combine-imm5
 ###  - Vector Convert between double-precision and single-precision
 val / ['/cond 1110 1 /D 11 0111 /vd 1010 0 /Q /M 0 /vm'] = vec2ns VCVTdpspfp none q d vd q m vm
 
