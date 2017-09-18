@@ -4354,7 +4354,7 @@ val / ['1111 0011 1 /D 11 /size 00 /vd 000 00 /Q /M 0 /vm'] = vc2 VREV64 none si
 
 ### VQABS
 ###  - Vector Saturating Absolute
-val / ['1111 0011 1 /D 11 /size 00 /vd 0111 1 /Q /M 0 /vm'] = vc2 VQABS none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 0111 0 /Q /M 0 /vm'] = vc2 VQABS none size q d vd q m vm
 
 ### VQMOVN
 ###  - Vector Saturating Move and Narrow
