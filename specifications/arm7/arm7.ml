@@ -313,172 +313,172 @@ type instruction =
   | VST2 of vls
   | VST3 of vls
   | VST4 of vls
-  | VDUP of vec
-  | VMOVacs of vec
-  | VMOVsac of vecrev
-  | VMOVacsp of vecns
-  | VMOVspac of vecrevns
-  | VMOVacsp2 of vecns2
-  | VMOVspac2 of vecrevns2
-  | VMOVacdwe of vecns2half
-  | VMOVdweac of vecrevns2half
+  | VDUP of vc
+  | VMOVacs of vc
+  | VMOVsac of vcrev
+  | VMOVacsp of vcns
+  | VMOVspac of vcrevns
+  | VMOVacsp2 of vcns2
+  | VMOVspac2 of vcrevns2
+  | VMOVacdwe of vcns2half
+  | VMOVdweac of vcrevns2half
   | VMRS of unop
   | VMSR of unop
-  | VADDiasimd of vec3
-  | VADDfpasimd of vec3bit
-  | VADDHN of vec3
-  | VADDL of vec3sig
-  | VADDW of vec3sig
-  | VHADD of vec3sig
-  | VHSUB of vec3sig
-  | VPADAL of vec2sig
-  | VPADDi of vec3
-  | VPADDfp of vec3bit
-  | VPADDL of vec2sig
-  | VRADDHN of vec3
-  | VRHADD of vec3sig
-  | VRSUBHN of vec3
-  | VQADD of vec3sig
-  | VQSUB of vec3sig
-  | VSUBiasimd of vec3
-  | VSUBfpasimd of vec3bit
-  | VSUBHN of vec3
-  | VSUBL of vec3sig
-  | VSUBW of vec3sig
-  | VAND of vec3ns
-  | VBICimm of vecimm
-  | VBICreg of vec3ns
-  | VEOR of vec3ns
-  | VBIF of vec3ns
-  | VBIT of vec3ns
-  | VBSL of vec3ns
-  | VMOVimmasimd of vecimm
-  | VMOVregasimd of vec2ns
-  | VMVNimm of vecimm
-  | VMVNreg of vec2
-  | VORRimm of vecimm
-  | VORRreg of vec3ns
-  | VORN of vec3ns
-  | VACGE of vec3bit
-  | VACGT of vec3bit
-  | VCEQrega of vec3
-  | VCEQregb of vec3bit
-  | VCEQimm of vec2sig
-  | VCGErega of vec3sig
-  | VCGEregb of vec3bit
-  | VCGEimm of vec2sig
-  | VCGTrega of vec3sig
-  | VCGTregb of vec3bit
-  | VCGTimm of vec2sig
-  | VCLE of vec2sig
-  | VCLT of vec2sig
-  | VTST of vec3
-  | VQRSHL of vec3sig
-  | VQRSHRN of vec2sigimm
-  | VQRSHRUN of vec2sigimm
-  | VQSHLreg of vec3sig
-  | VQSHLimm of vec2sigimm
-  | VQSHLU of vec2sigimm
-  | VQSHRN of vec2sigimm
-  | VQSHRUN of vec2sigimm
-  | VRSHL of vec3sig
-  | VRSHR of vec2sigimm
-  | VRSRA of vec2sigimm
-  | VRSHRN of vec2imm
-  | VSHLimm of vec2imm
-  | VSHLreg of vec3sig
-  | VSHLL of vec2sigimm
-  | VSHR of vec2sigimm
-  | VSHRN of vec2imm
-  | VSLI of vec2imm
-  | VSRA of vec2sigimm
-  | VSRI of vec2imm
-  | VMLAiasimd of vec3
-  | VMLAfpasimd of vec3bit
-  | VMLAsasimd of vec3sig
-  | VMLAL of vec3sig
-  | VMLSiasimd of vec3
-  | VMLSfpasimd of vec3bit
-  | VMLSsasimd of vec3sig
-  | VMLSL of vec3sig
-  | VMULipasimd of vec3sig
-  | VMULfpasimd of vec3bit
-  | VMULsasimd of vec3sig
-  | VMULLipasimd of vec3sig2
-  | VMULLsasimd of vec3sig
-  | VFMA of vec3bit
-  | VFMS of vec3bit
-  | VQDMLAL of vec3
-  | VQDMLSL of vec3
-  | VQDMULH of vec3
-  | VQRDMULH of vec3
-  | VQDMULL of vec3
-  | VABA of vec3sig
-  | VABAL of vec3sig
-  | VABDi of vec3sig
-  | VABDfp of vec3bit
-  | VABDL of vec3sig
-  | VABSasimd of vec2sig
-  | VCVTfpiasimd of vec2
-  | VCVTfpfpasimd of vec2sigbitimm
-  | VCVThpspasimd of vec2
-  | VCLS of vec2
-  | VCLZ of vec2
-  | VCNT of vec2
-  | VDUP2 of vec2
-  | VEXT of vec3nsimm
-  | VMOVN of vec2
-  | VMOVL of vec2
-  | VMAXi of vec3sig
-  | VMAXfp of vec3bit
-  | VMINi of vec3sig
-  | VMINfp of vec3bit
-  | VNEGasimd of vec2sig
-  | VPMAXi of vec3sig
-  | VPMAXfp of vec3bit
-  | VPMINi of vec3sig
-  | VPMINfp of vec3bit
-  | VRECPE of vec2sig
-  | VRECPS of vec3bit
-  | VRSQRTE of vec2sig
-  | VRSQRTS of vec3bit
-  | VREV16 of vec2
-  | VREV32 of vec2
-  | VREV64 of vec2
-  | VQABS of vec2
-  | VQMOVN of vec2sig
-  | VQMOVUN of vec2
-  | VQNEG of vec2
-  | VSWP of vec2
-  | VTBL of vec3nslist
-  | VTBX of vec3nslist
-  | VTRN of vec2
-  | VUZP of vec2
-  | VZIP of vec2
-  | VABSfp of vec2bit
-  | VADDfpfp of vec3bit
-  | VCMP of vec2bit
-  | VCMPE of vec2bit
-  | VCVTfpifp of vec2bit2
-  | VCVTfpfpfp of vecbit4imm
-  | VCVTdpspfp of vec2ns
-  | VCVTR of vec2opbit
-  | VCVTB of vec2bit
-  | VCVTT of vec2bit
-  | VDIV of vec2bit
-  | VMLAfpfp of vec3bit
-  | VMLSfpfp of vec3bit
-  | VMOVimmfp of vecimm
-  | VMOVregfp of vec2bit
-  | VMULfpfp of vec3bit
-  | VNEGfp of vec2bit
-  | VNMLA of vec2bit
-  | VNMLS of vec2bit
-  | VNMUL of vec2bit
-  | VFNMA of vec2bit
-  | VFNMS of vec2bit
-  | VSQRT of vec2bit
-  | VSUBfpfp of vec3bit 
+  | VADDiasimd of vc3
+  | VADDfpasimd of vc3bit
+  | VADDHN of vc3
+  | VADDL of vc3sig
+  | VADDW of vc3sig
+  | VHADD of vc3sig
+  | VHSUB of vc3sig
+  | VPADAL of vc2sig
+  | VPADDi of vc3
+  | VPADDfp of vc3bit
+  | VPADDL of vc2sig
+  | VRADDHN of vc3
+  | VRHADD of vc3sig
+  | VRSUBHN of vc3
+  | VQADD of vc3sig
+  | VQSUB of vc3sig
+  | VSUBiasimd of vc3
+  | VSUBfpasimd of vc3bit
+  | VSUBHN of vc3
+  | VSUBL of vc3sig
+  | VSUBW of vc3sig
+  | VAND of vc3ns
+  | VBICimm of vcimm
+  | VBICreg of vc3ns
+  | VEOR of vc3ns
+  | VBIF of vc3ns
+  | VBIT of vc3ns
+  | VBSL of vc3ns
+  | VMOVimmasimd of vcimm
+  | VMOVregasimd of vc2ns
+  | VMVNimm of vcimm
+  | VMVNreg of vc2
+  | VORRimm of vcimm
+  | VORRreg of vc3ns
+  | VORN of vc3ns
+  | VACGE of vc3bit
+  | VACGT of vc3bit
+  | VCEQrega of vc3
+  | VCEQregb of vc3bit
+  | VCEQimm of vc2sig
+  | VCGErega of vc3sig
+  | VCGEregb of vc3bit
+  | VCGEimm of vc2sig
+  | VCGTrega of vc3sig
+  | VCGTregb of vc3bit
+  | VCGTimm of vc2sig
+  | VCLE of vc2sig
+  | VCLT of vc2sig
+  | VTST of vc3
+  | VQRSHL of vc3sig
+  | VQRSHRN of vc2sigimm
+  | VQRSHRUN of vc2sigimm
+  | VQSHLreg of vc3sig
+  | VQSHLimm of vc2sigimm
+  | VQSHLU of vc2sigimm
+  | VQSHRN of vc2sigimm
+  | VQSHRUN of vc2sigimm
+  | VRSHL of vc3sig
+  | VRSHR of vc2sigimm
+  | VRSRA of vc2sigimm
+  | VRSHRN of vc2imm
+  | VSHLimm of vc2imm
+  | VSHLreg of vc3sig
+  | VSHLL of vc2sigimm
+  | VSHR of vc2sigimm
+  | VSHRN of vc2imm
+  | VSLI of vc2imm
+  | VSRA of vc2sigimm
+  | VSRI of vc2imm
+  | VMLAiasimd of vc3
+  | VMLAfpasimd of vc3bit
+  | VMLAsasimd of vc3sig
+  | VMLAL of vc3sig
+  | VMLSiasimd of vc3
+  | VMLSfpasimd of vc3bit
+  | VMLSsasimd of vc3sig
+  | VMLSL of vc3sig
+  | VMULipasimd of vc3sig
+  | VMULfpasimd of vc3bit
+  | VMULsasimd of vc3sig
+  | VMULLipasimd of vc3sig2
+  | VMULLsasimd of vc3sig
+  | VFMA of vc3bit
+  | VFMS of vc3bit
+  | VQDMLAL of vc3
+  | VQDMLSL of vc3
+  | VQDMULH of vc3
+  | VQRDMULH of vc3
+  | VQDMULL of vc3
+  | VABA of vc3sig
+  | VABAL of vc3sig
+  | VABDi of vc3sig
+  | VABDfp of vc3bit
+  | VABDL of vc3sig
+  | VABSasimd of vc2sig
+  | VCVTfpiasimd of vc2
+  | VCVTfpfpasimd of vc2sigbitimm
+  | VCVThpspasimd of vc2
+  | VCLS of vc2
+  | VCLZ of vc2
+  | VCNT of vc2
+  | VDUP2 of vc2
+  | VEXT of vc3nsimm
+  | VMOVN of vc2
+  | VMOVL of vc2
+  | VMAXi of vc3sig
+  | VMAXfp of vc3bit
+  | VMINi of vc3sig
+  | VMINfp of vc3bit
+  | VNEGasimd of vc2sig
+  | VPMAXi of vc3sig
+  | VPMAXfp of vc3bit
+  | VPMINi of vc3sig
+  | VPMINfp of vc3bit
+  | VRECPE of vc2sig
+  | VRECPS of vc3bit
+  | VRSQRTE of vc2sig
+  | VRSQRTS of vc3bit
+  | VREV16 of vc2
+  | VREV32 of vc2
+  | VREV64 of vc2
+  | VQABS of vc2
+  | VQMOVN of vc2sig
+  | VQMOVUN of vc2
+  | VQNEG of vc2
+  | VSWP of vc2
+  | VTBL of vc3nslist
+  | VTBX of vc3nslist
+  | VTRN of vc2
+  | VUZP of vc2
+  | VZIP of vc2
+  | VABSfp of vc2bit
+  | VADDfpfp of vc3bit
+  | VCMP of vc2bit
+  | VCMPE of vc2bit
+  | VCVTfpifp of vc2bit2
+  | VCVTfpfpfp of vcbit4imm
+  | VCVTdpspfp of vc2ns
+  | VCVTR of vc2opbit
+  | VCVTB of vc2bit
+  | VCVTT of vc2bit
+  | VDIV of vc2bit
+  | VMLAfpfp of vc3bit
+  | VMLSfpfp of vc3bit
+  | VMOVimmfp of vcimm
+  | VMOVregfp of vc2bit
+  | VMULfpfp of vc3bit
+  | VNEGfp of vc2bit
+  | VNMLA of vc2bit
+  | VNMLS of vc2bit
+  | VNMUL of vc2bit
+  | VFNMA of vc2bit
+  | VFNMS of vc2bit
+  | VSQRT of vc2bit
+  | VSUBfpfp of vc3bit 
 
 # Standard data-processing instruction
 type dp = {
@@ -781,7 +781,7 @@ type vlsbit = {
 }
 
 # Vector instructions
-type vec = {
+type vc = {
   cond:condition,
   size:operand,
   q:1,
@@ -790,7 +790,7 @@ type vec = {
   op2:operand
 }
 
-type vecrev = {
+type vcrev = {
   cond:condition,
   size:operand,
   op:operand,
@@ -799,7 +799,7 @@ type vecrev = {
   vn:operand
 }
 
-type vecimm = {
+type vcimm = {
   cond:condition,
   dt:operand,
   q:1,
@@ -808,7 +808,7 @@ type vecimm = {
   imm:operand
 }
 
-type vecbit4imm = {
+type vcbit4imm = {
   cond:condition,
   op:1,
   sz2:1,
@@ -820,14 +820,14 @@ type vecbit4imm = {
   imm:operand
 }
 
-type vecns = {
+type vcns = {
   cond:condition,
   d:1,
   vd:operand,
   op2:operand
 }
 
-type vecrevns = {
+type vcrevns = {
   cond:condition,
   op:operand,
   q:1,
@@ -835,7 +835,7 @@ type vecrevns = {
   vn:operand
 }
 
-type vecns2 = {
+type vcns2 = {
   cond:condition,
   q:1,
   d:1,
@@ -847,7 +847,7 @@ type vecns2 = {
   op4:operand
 }
 
-type vecrevns2 = {
+type vcrevns2 = {
   cond:condition,
   op:operand,
   op2:operand,
@@ -859,7 +859,7 @@ type vecrevns2 = {
   vd4:operand
 }
 
-type vecns2half = {
+type vcns2half = {
   cond:condition,
   q:1,
   d:1,
@@ -868,7 +868,7 @@ type vecns2half = {
   op3:operand
 }
 
-type vecrevns2half = {
+type vcrevns2half = {
   cond:condition,
   op:operand,
   op2:operand,
@@ -877,7 +877,7 @@ type vecrevns2half = {
   vd3:operand
 }
 
-type vec2 = {
+type vc2 = {
   cond:condition,
   size:operand,
   d:1,
@@ -886,7 +886,7 @@ type vec2 = {
   vm:operand
 }
 
-type vec2imm = {
+type vc2imm = {
   cond:condition,
   size:operand,
   qd:1,
@@ -898,7 +898,7 @@ type vec2imm = {
   imm:operand
 }
 
-type vec2bit = {
+type vc2bit = {
   cond:condition,
   sz:1,
   qd:1,
@@ -909,7 +909,7 @@ type vec2bit = {
   vm:operand
 }
 
-type vec2bit2 = {
+type vc2bit2 = {
   cond:condition,
   sz1:1,
   sz2:1,
@@ -921,7 +921,7 @@ type vec2bit2 = {
   vm:operand
 }
 
-type vec2opbit = {
+type vc2opbit = {
   cond:condition,
   op:operand,
   sz:1,
@@ -933,7 +933,7 @@ type vec2opbit = {
   vm:operand
 }
 
-type vec2sig = {
+type vc2sig = {
   cond:condition,
   u:1,
   size:operand,
@@ -945,7 +945,7 @@ type vec2sig = {
   vm:operand
 }
 
-type vec2sigimm = {
+type vc2sigimm = {
   cond:condition,
   u:1,
   size:operand,
@@ -958,7 +958,7 @@ type vec2sigimm = {
   imm:operand
 }
 
-type vec2sigbitimm = {
+type vc2sigbitimm = {
   cond:condition,
   u:1,
   op:1,
@@ -971,7 +971,7 @@ type vec2sigbitimm = {
   imm:operand
 }
 
-type vec2ns = {
+type vc2ns = {
   cond:condition,
   qd:1,
   d:1,
@@ -981,7 +981,7 @@ type vec2ns = {
   vm:operand
 }
 
-type vec3 = {
+type vc3 = {
   cond:condition,
   size:operand,
   qd:1,
@@ -995,7 +995,7 @@ type vec3 = {
   vm:operand
 }
 
-type vec3bit = {
+type vc3bit = {
   cond:condition,
   sz:1,
   qd:1,
@@ -1009,7 +1009,7 @@ type vec3bit = {
   vm:operand
 }
 
-type vec3sig = {
+type vc3sig = {
   cond:condition,
   u:1,
   size:operand,
@@ -1024,7 +1024,7 @@ type vec3sig = {
   vm:operand
 }
 
-type vec3sig2 = {
+type vc3sig2 = {
   cond:condition,
   op:1,
   u:1,
@@ -1040,7 +1040,7 @@ type vec3sig2 = {
   vm:operand
 }
 
-type vec3ns = {
+type vc3ns = {
   cond:condition,
   qd:1,
   d:1,
@@ -1053,7 +1053,7 @@ type vec3ns = {
   vm:operand
 }
 
-type vec3nslist = {
+type vc3nslist = {
   cond:condition,
   qd:1,
   d:1,
@@ -1067,7 +1067,7 @@ type vec3nslist = {
   vm:operand
 }
 
-type vec3nsimm = {
+type vc3nsimm = {
   cond:condition,
   qd:1,
   d:1,
@@ -1509,7 +1509,7 @@ val vlsbit cons cond size q d vd rn a rm = do
   return (cons {cond=cond, size=size, q=q, d=d, vd=vd, rn=rn, a=a, rm=rm})
 end
 
-val vec cons cond size q d vd op2 = do
+val vc cons cond size q d vd op2 = do
   cond <- cond;
   size <- size;
   q <- q;
@@ -1519,7 +1519,7 @@ val vec cons cond size q d vd op2 = do
   return (cons {cond=cond, size=size, q=q, d=d, vd=vd, op2=op2})
 end
 
-val vecrev cons cond size op q n vn = do
+val vcrev cons cond size op q n vn = do
   cond <- cond;
   size <- size;
   op <- op;
@@ -1529,7 +1529,7 @@ val vecrev cons cond size op q n vn = do
   return (cons {cond=cond, size=size, op=op, q=q, n=n, vn=vn})
 end
 
-val vecimm cons cond dt q d vd imm = do
+val vcimm cons cond dt q d vd imm = do
   cond <- cond;
   dt <- dt;
   q <- q;
@@ -1539,7 +1539,7 @@ val vecimm cons cond dt q d vd imm = do
   return (cons {cond=cond, dt=dt, q=q, d=d, vd=vd, imm=imm})
 end
 
-val vecbit4imm cons cond op sz2 u sz1 qd d vd qm m vm imm = do
+val vcbit4imm cons cond op sz2 u sz1 qd d vd qm m vm imm = do
   cond <- cond;
   op <- op;
   sz2 <- sz2;
@@ -1555,7 +1555,7 @@ val vecbit4imm cons cond op sz2 u sz1 qd d vd qm m vm imm = do
   return (cons {cond=cond, op=op, sz2=sz2, u=u, sz1=sz1, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
 end
 
-val vecns cons cond q d vd op2 = do
+val vcns cons cond q d vd op2 = do
   cond <- cond;
   q <- q;
   d <- d;
@@ -1564,7 +1564,7 @@ val vecns cons cond q d vd op2 = do
   return (cons {cond=cond, q=q, d=d, vd=vd, op2=op2})
 end
 
-val vecrevns cons cond op q n vn = do
+val vcrevns cons cond op q n vn = do
   cond <- cond;
   op <- op;
   q <- q;
@@ -1573,7 +1573,7 @@ val vecrevns cons cond op q n vn = do
   return (cons {cond=cond, op=op, q=q, n=n, vn=vn})
 end
 
-val vecns2 cons cond q d vd q2 d2 vd2 op3 op4 = do
+val vcns2 cons cond q d vd q2 d2 vd2 op3 op4 = do
   cond <- cond;
   q <- q;
   d <- d;
@@ -1586,7 +1586,7 @@ val vecns2 cons cond q d vd q2 d2 vd2 op3 op4 = do
   return (cons {cond=cond, q=q, d=d, vd=vd, q2=q2, d2=d2, vd2=vd2, op3=op3, op4=op4})
 end
 
-val vecrevns2 cons cond op op2 q3 d3 vd3 q4 d4 vd4 = do
+val vcrevns2 cons cond op op2 q3 d3 vd3 q4 d4 vd4 = do
   cond <- cond;
   op <- op;
   op2 <- op2;
@@ -1599,7 +1599,7 @@ val vecrevns2 cons cond op op2 q3 d3 vd3 q4 d4 vd4 = do
   return (cons {cond=cond, op=op, op2=op2, q3=q3, d3=d3, vd3=vd3, q4=q4, d4=d4, vd4=vd4})
 end
 
-val vecns2half cons cond q d vd op2 op3 = do
+val vcns2half cons cond q d vd op2 op3 = do
   cond <- cond;
   q <- q;
   d <- d;
@@ -1609,7 +1609,7 @@ val vecns2half cons cond q d vd op2 op3 = do
   return (cons {cond=cond, q=q, d=d, vd=vd, op2=op2, op3=op3})
 end
 
-val vecrevns2half cons cond op op2 q3 d3 vd3 = do
+val vcrevns2half cons cond op op2 q3 d3 vd3 = do
   cond <- cond;
   op <- op;
   op2 <- op2;
@@ -1619,7 +1619,7 @@ val vecrevns2half cons cond op op2 q3 d3 vd3 = do
   return (cons {cond=cond, op=op, op2=op2, q3=q3, d3=d3, vd3=vd3})
 end
 
-val vec2 cons cond size qd d vd qm m vm = do
+val vc2 cons cond size qd d vd qm m vm = do
   cond <- cond;
   size <- size;
   qd <- qd;
@@ -1631,7 +1631,7 @@ val vec2 cons cond size qd d vd qm m vm = do
   return (cons {cond=cond, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2imm cons cond size qd d vd qm m vm imm = do
+val vc2imm cons cond size qd d vd qm m vm imm = do
   cond <- cond;
   size <- size;
   qd <- qd;
@@ -1644,7 +1644,7 @@ val vec2imm cons cond size qd d vd qm m vm imm = do
   return (cons {cond=cond, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
 end
 
-val vec2bit cons cond sz qd d vd qm m vm = do
+val vc2bit cons cond sz qd d vd qm m vm = do
   cond <- cond;
   sz <- sz;
   qd <- qd;
@@ -1656,7 +1656,7 @@ val vec2bit cons cond sz qd d vd qm m vm = do
   return (cons {cond=cond, sz=sz, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2bit2 cons cond sz1 sz2 qd d vd qm m vm = do
+val vc2bit2 cons cond sz1 sz2 qd d vd qm m vm = do
   cond <- cond;
   sz1 <- sz1;
   sz2 <- sz2;
@@ -1669,7 +1669,7 @@ val vec2bit2 cons cond sz1 sz2 qd d vd qm m vm = do
   return (cons {cond=cond, sz1=sz1, sz2=sz2, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2opbit cons cond op sz qd d vd qm m vm = do
+val vc2opbit cons cond op sz qd d vd qm m vm = do
   cond <- cond;
   op <- op;
   sz <- sz;
@@ -1682,7 +1682,7 @@ val vec2opbit cons cond op sz qd d vd qm m vm = do
   return (cons {cond=cond, op=op, sz=sz, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2sig cons cond u size qd d vd qm m vm = do
+val vc2sig cons cond u size qd d vd qm m vm = do
   cond <- cond;
   u <- u;
   size <- size;
@@ -1695,7 +1695,7 @@ val vec2sig cons cond u size qd d vd qm m vm = do
   return (cons {cond=cond, u=u, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec2sigimm cons cond u size qd d vd qm m vm imm = do
+val vc2sigimm cons cond u size qd d vd qm m vm imm = do
   cond <- cond;
   u <- u;
   size <- size;
@@ -1709,7 +1709,7 @@ val vec2sigimm cons cond u size qd d vd qm m vm imm = do
   return (cons {cond=cond, u=u, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
 end
 
-val vec2sigbitimm cons cond u op qd d vd qm m vm imm = do
+val vc2sigbitimm cons cond u op qd d vd qm m vm imm = do
   cond <- cond;
   u <- u;
   op <- op;
@@ -1723,7 +1723,7 @@ val vec2sigbitimm cons cond u op qd d vd qm m vm imm = do
   return (cons {cond=cond, u=u, op=op, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
 end
 
-val vec2ns cons cond qd d vd qm m vm = do
+val vc2ns cons cond qd d vd qm m vm = do
   cond <- cond;
   qd <- qd;
   d <- d;
@@ -1734,7 +1734,7 @@ val vec2ns cons cond qd d vd qm m vm = do
   return (cons {cond=cond, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
 end
 
-val vec3 cons cond size qd d vd qn n vn qm m vm = do
+val vc3 cons cond size qd d vd qn n vn qm m vm = do
   cond <- cond;
   size <- size;
   qd <- qd;
@@ -1749,7 +1749,7 @@ val vec3 cons cond size qd d vd qn n vn qm m vm = do
   return (cons {cond=cond, size=size, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3bit cons cond sz qd d vd qn n vn qm m vm = do
+val vc3bit cons cond sz qd d vd qn n vn qm m vm = do
   cond <- cond;
   sz <- sz;
   qd <- qd;
@@ -1764,7 +1764,7 @@ val vec3bit cons cond sz qd d vd qn n vn qm m vm = do
   return (cons {cond=cond, sz=sz, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3sig cons cond u size qd d vd qn n vn qm m vm = do
+val vc3sig cons cond u size qd d vd qn n vn qm m vm = do
   cond <- cond;
   u <- u;
   size <- size;
@@ -1780,7 +1780,7 @@ val vec3sig cons cond u size qd d vd qn n vn qm m vm = do
   return (cons {cond=cond, u=u, size=size, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3sig2 cons cond op u size qd d vd qn n vn qm m vm = do
+val vc3sig2 cons cond op u size qd d vd qn n vn qm m vm = do
   cond <- cond;
   op <- op;
   u <- u;
@@ -1797,7 +1797,7 @@ val vec3sig2 cons cond op u size qd d vd qn n vn qm m vm = do
   return (cons {cond=cond, op=op, u=u, size=size, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3ns cons cond qd d vd qn n vn qm m vm = do
+val vc3ns cons cond qd d vd qn n vn qm m vm = do
   cond <- cond;
   qd <- qd;
   d <- d;
@@ -1812,7 +1812,7 @@ val vec3ns cons cond qd d vd qn n vn qm m vm = do
 end
 
 
-val vec3nslist cons cond qd d vd len qn n vn qm m vm = do
+val vc3nslist cons cond qd d vd len qn n vn qm m vm = do
   cond <- cond;
   qd <- qd;
   d <- d;
@@ -1827,7 +1827,7 @@ val vec3nslist cons cond qd d vd len qn n vn qm m vm = do
   return (cons {cond=cond, qd=qd, d=d, vd=vd, len=len, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
 end
 
-val vec3nsimm cons cond qd d vd qn n vn qm m vm imm = do
+val vc3nsimm cons cond qd d vd qn n vn qm m vm imm = do
   cond <- cond;
   qd <- qd;
   d <- d;
