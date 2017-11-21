@@ -616,7 +616,16 @@ val sem-div signedness x = do
        _if (/neq sz (var (at-offset quotient sz)) (imm 0)) _then
          throw SEM_DIVISION_OVERFLOW
    | Signed: do
-       _if (/or (/gts (sz + sz) (var quotient) (imm ((power 2 (sz - 1)) - 1))) (/lts (sz + sz) (var quotient) (imm (0 - (power 2 (sz - 1)))))) _then
+       limit_pos <- return (if sz === 64 then
+           int64-max
+         else
+           (power 2 (sz - 1)) - 1);
+       limit_neg <- return (if sz === 64 then
+           int64-min
+         else
+           0 - (power 2 (sz - 1)));
+       _if (/or (/gts (sz + sz) (var quotient) (imm limit_pos))
+         (/lts (sz + sz) (var quotient) (imm limit_neg))) _then
          throw SEM_DIVISION_OVERFLOW
      end
   end;
