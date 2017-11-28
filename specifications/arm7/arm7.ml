@@ -276,7 +276,7 @@ type instruction =
   | BKPT of unop
   | SMC of unop
   | RFE of exc
-  | SUBS of subs
+  | SUBS of binop
   | HVC of unop
   | ERET of nullop
   | LDMerur of ldm
@@ -643,14 +643,6 @@ type exc = {
   u:1,
   w:1,
   rn:operand
-}
-
-# SUBS instruction
-type subs = {
-  cond:condition,
-  opcode:operand,
-  rn:operand,
-  rm:operand
 }
 
 # LDM instruction
@@ -1371,14 +1363,6 @@ val exc cons cond p u w rn = do
   w <- w;
   rn <- rn;
   return (cons {cond=cond, p=p, u=u, w=w, rn=rn})  
-end
-
-val subs cons cond opcode rn rm = do
-  cond <- cond;
-  opcode <- opcode;
-  rn <- rn;
-  rm <- rm;
-  return (cons {cond=cond, opcode=opcode, rn=rn, rm=rm})
 end
 
 val ldm cons cond p u w rn reglst = do
@@ -2294,6 +2278,10 @@ end
 
 val /imm3 ['imm3:3'] = update@{imm3=imm3}
 
+val /imm3_124 ['imm3@001'] = update@{imm3=imm3}
+val /imm3_124 ['imm3@010'] = update@{imm3=imm3}
+val /imm3_124 ['imm3@100'] = update@{imm3=imm3}
+
 val imm3 = do
   imm3 <- query $imm3;
   return (immediate (IMM3 (imm3)))
@@ -2546,8 +2534,10 @@ val crm = do
   return (immediate (IMM4 (crm)))
 end
 
-# coproc
-val /coproc ['coproc:4'] = update@{coproc=coproc}
+# coproc (cannot be 1010 or 1011)
+val /coproc ['coproc@0...'] = update@{coproc=coproc}
+val /coproc ['coproc@11..'] = update@{coproc=coproc}
+val /coproc ['coproc@100.'] = update@{coproc=coproc}
 
 val coproc = do
   coproc <- query $coproc;
@@ -2724,6 +2714,18 @@ val r0 = return (register R0)
 
 val r15 = return (register R15)
 
+# --- special cases ----------------------------------------------------
+
+val /rn-not15 ['rn@0...'] = update@{rn=(decode-register rn)}
+val /rn-not15 ['rn@10..'] = update@{rn=(decode-register rn)}
+val /rn-not15 ['rn@110.'] = update@{rn=(decode-register rn)}
+val /rn-not15 ['rn@1110'] = update@{rn=(decode-register rn)}
+
+val /ra-not15 ['ra@0...'] = update@{ra=(decode-register ra)}
+val /ra-not15 ['ra@10..'] = update@{ra=(decode-register ra)}
+val /ra-not15 ['ra@110.'] = update@{ra=(decode-register ra)}
+val /ra-not15 ['ra@1110'] = update@{ra=(decode-register ra)}
+
 # ----------------------------------------------------------------------
 # Instruction Decoding
 # ----------------------------------------------------------------------
@@ -2762,7 +2764,7 @@ val / ['/cond 000 0 1 0 1 /S /rn /rd /shfreg'] = dp ADC cond s rn rd shfreg
 
 ### ADD
 ###  - Add (immediate)
-val / ['/cond 001 0 1 0 0 /S /rn /rd /modimm'] = dp ADD cond s rn rd modimm
+val / ['/cond 001 0 1 0 0 /S /rn-not15 /rd /modimm'] = dp ADD cond s rn rd modimm
 ###  - Add (shifted register)
 val / ['/cond 000 0 1 0 0 /S /rn /rd /shfreg'] = dp ADD cond s rn rd shfreg
 
@@ -2842,7 +2844,7 @@ val / ['/cond 000 0 1 1 0 /S /rn /rd /shfreg'] = dp SBC cond s rn rd shfreg
 
 ### SUB
 ###  - Subtract (immediate)
-val / ['/cond 001 0 0 1 0 /S /rn /rd /modimm'] = dp SUB cond s rn rd modimm
+val / ['/cond 001 0 0 1 0 /S /rn-not15 /rd /modimm'] = dp SUB cond s rn rd modimm
 ###  - Subtract (shifted register)
 val / ['/cond 000 0 0 1 0 /S /rn /rd /shfreg'] = dp SUB cond s rn rd shfreg
 
@@ -2894,11 +2896,11 @@ val / ['/cond 000 1 0 0 0 0 /rd /ra /rm 1110 /rn'] = ml SMLATT cond set0 rd ra r
 
 ### SMLAD
 ###  - Signed Multiply Accumulate Dual
-val / ['/cond 011 1 0 0 0 0 /rd /ra /rm 0001 /rn'] = ml SMLAD cond set0 rd ra rm rn
+val / ['/cond 011 1 0 0 0 0 /rd /ra-not15 /rm 0001 /rn'] = ml SMLAD cond set0 rd ra rm rn
 
 ### SMLADX
 ###  - Signed Multiply Accumulate Dual Exchange
-val / ['/cond 011 1 0 0 0 0 /rd /ra /rm 0011 /rn'] = ml SMLAD cond set0 rd ra rm rn
+val / ['/cond 011 1 0 0 0 0 /rd /ra-not15 /rm 0011 /rn'] = ml SMLADX cond set0 rd ra rm rn
 
 ### SMLAL
 ###  - Signed Multiply Accumulate Long
@@ -2938,11 +2940,11 @@ val / ['/cond 000 1 0 0 1 0 /rd /ra /rm 1100 /rn'] = ml SMLAWT cond set0 rd ra r
 
 ### SMLSD
 ###  - Signed Multiply Subtract Dual
-val / ['/cond 011 1 0 0 0 0 /rd /ra /rm 0101 /rn'] = ml SMLSD cond set0 rd ra rm rn
+val / ['/cond 011 1 0 0 0 0 /rd /ra-not15 /rm 0101 /rn'] = ml SMLSD cond set0 rd ra rm rn
 
 ### SMLSDX
 ###  - Signed Multiply Subtract Dual Exchange
-val / ['/cond 011 1 0 0 0 0 /rd /ra /rm 0111 /rn'] = ml SMLSDX cond set0 rd ra rm rn
+val / ['/cond 011 1 0 0 0 0 /rd /ra-not15 /rm 0111 /rn'] = ml SMLSDX cond set0 rd ra rm rn
 
 ### SMLSLD
 ###  - Signed Multiply Subtract Long Dual
@@ -2954,11 +2956,11 @@ val / ['/cond 011 1 0 1 0 0 /rdhi /rdlo /rm 0111 /rn'] = mull SMLSLDX cond set0 
 
 ### SMMLA
 ###  - Signed Most Significant Word Multiply Accumulate
-val / ['/cond 011 1 0 1 0 1 /rd /ra /rm 0001 /rn'] = ml SMMLA cond set1 rd ra rm rn
+val / ['/cond 011 1 0 1 0 1 /rd /ra-not15 /rm 0001 /rn'] = ml SMMLA cond set1 rd ra rm rn
 
 ### SMMLAR
 ###  - Signed Most Significant Word Multiply Accumulate Round
-val / ['/cond 011 1 0 1 0 1 /rd /ra /rm 0011 /rn'] = ml SMMLAR cond set1 rd ra rm rn
+val / ['/cond 011 1 0 1 0 1 /rd /ra-not15 /rm 0011 /rn'] = ml SMMLAR cond set1 rd ra rm rn
 
 ### SMMLS
 ###  - Signed Most Significant Word Multiply Subtract
@@ -3076,15 +3078,15 @@ val / ['/cond 011 0 1 0 0 0 /rn /rd /shfregshtp'] = pup PKH cond rn rd shfreg
 
 ### SXTAB
 ###  - Signed Extend and Add Byte
-val / ['/cond 011 0 1 0 1 0 /rn /rd /rotreg'] = pup SXTAB cond rn rd rotreg
+val / ['/cond 011 0 1 0 1 0 /rn-not15 /rd /rotreg'] = pup SXTAB cond rn rd rotreg
 
 ### SXTAB16
 ###  - Signed Extend and Add Byte 16
-val / ['/cond 011 0 1 0 0 0 /rn /rd /rotreg'] = pup SXTAB16 cond rn rd rotreg
+val / ['/cond 011 0 1 0 0 0 /rn-not15 /rd /rotreg'] = pup SXTAB16 cond rn rd rotreg
 
 ### SXTAH
 ###  - Signed Extend and Add Halfword
-val / ['/cond 011 0 1 0 1 1 /rn /rd /rotreg'] = pup SXTAH cond rn rd rotreg
+val / ['/cond 011 0 1 0 1 1 /rn-not15 /rd /rotreg'] = pup SXTAH cond rn rd rotreg
 
 ### SXTB
 ###  - Signed Extend Byte
@@ -3100,15 +3102,15 @@ val / ['/cond 011 0 1 0 1 1 1111 /rd /rotreg'] = pup SXTH cond r15 rd rotreg
 
 ### UXTAB
 ###  - Unsigned Extend and Add Byte
-val / ['/cond 011 0 1 1 1 0 /rn /rd /rotreg'] = pup UXTAB cond rn rd rotreg
+val / ['/cond 011 0 1 1 1 0 /rn-not15 /rd /rotreg'] = pup UXTAB cond rn rd rotreg
 
 ### UXTAB16
 ###  - Unsigned Extend and Add Byte 16
-val / ['/cond 011 0 1 1 0 0 /rn /rd /rotreg'] = pup UXTAB16 cond rn rd rotreg
+val / ['/cond 011 0 1 1 0 0 /rn-not15 /rd /rotreg'] = pup UXTAB16 cond rn rd rotreg
 
 ### UXTAH
 ###  - Unsigned Extend and Add Halfword
-val / ['/cond 011 0 1 1 1 1 /rn /rd /rotreg'] = pup UXTAH cond rn rd rotreg
+val / ['/cond 011 0 1 1 1 1 /rn-not15 /rd /rotreg'] = pup UXTAH cond rn rd rotreg
 
 ### UXTB
 ###  - Unsigned Extend Byte
@@ -3286,7 +3288,7 @@ val / ['/cond 011 1 1 1 0 /msbit /rd /lsbit 0 0 1 1111'] = bf BFC cond msbit rd 
 
 ### BFI
 ###  - Bit Field Insert
-val / ['/cond 011 1 1 1 0 /msbit /rd /lsbit 0 0 1 /rn'] = bf BFI cond msbit rd lsbit rn
+val / ['/cond 011 1 1 1 0 /msbit /rd /lsbit 0 0 1 /rn-not15'] = bf BFI cond msbit rd lsbit rn
 
 ### CLZ
 ###  - Count Leading Zeros
@@ -3330,7 +3332,7 @@ val / ['/cond 011 1 1 0 0 0 /rd 1111 /rm 0001 /rn'] = madp USAD8 cond rn rd rm r
 
 ### USADA8
 ###  - Unsigned Sum of Absolute Difference and Accumulate
-val / ['/cond 011 1 1 0 0 0 /rd /ra /rm 0001 /rn'] = madp USADA8 cond rn rd rm ra
+val / ['/cond 011 1 1 0 0 0 /rd /ra-not15 /rm 0001 /rn'] = madp USADA8 cond rn rd rm ra
 
 # --- Status register & banked register access instructions ------------
 
@@ -3672,9 +3674,9 @@ val / ['1111 100 /P /U 0 /W 1 /rn 0000 1010 00000000'] = exc RFE cond p u w rn
 
 ### SUBS
 ###  - Subtract (Exception Return) (Encoding A1)
-val / ['/cond 001 /imm4 1 /rn 1111 /imm12'] = subs SUBS cond imm4 rn imm12
+val / ['/cond 001 0010 1 /rn 1111 /imm12'] = binop SUBS cond rn imm12
 ###  - Subtract (Exception Return) (Encoding A2)
-val / ['/cond 000 /imm4 1 /rn 1111 /immshift /rm'] = subs SUBS cond imm4 rn shfreg
+val / ['/cond 000 0010 1 /rn 1111 /shfreg'] = binop SUBS cond rn shfreg
 
 ### HVC
 ###  - Hypervisor Call
@@ -3689,7 +3691,7 @@ val / ['/cond 000 1 0 1 1 0 000000000000 0110 1110'] = nullop ERET cond
 ###  - Load Multiple (Exception Return)
 val / ['/cond 100 /P /U 1 /W 1 /rn 1 /reglst15'] = ldm LDMerur cond p u w rn reglst
 ###  - Load Multiple (User registers)
-val / ['/cond 100 /P /U 1 0 1 /rn 1 /reglst15'] = ldm LDMerur cond p u set0 rn reglst
+val / ['/cond 100 /P /U 1 0 1 /rn 0 /reglst15'] = ldm LDMerur cond p u set0 rn reglst
 
 ### SRS
 ###  - Store Return State
@@ -3972,52 +3974,54 @@ val / ['1111 001 /U 1 /D /size /vn /vd 001 1 /N 0 /M 0 /vm'] = vc3sig VSUBW none
 
 ### VAND
 ###  - Vector And register
-val / ['1111 0010 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VAND none q d vd q n vn q m vm
+val / ['1111 001 0 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VAND none q d vd q n vn q m vm
 
 ### VBIC
 ###  - Vector Bitwise Bit Clear immediate
 val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = vcimm VBICimm none cmode q d vd combine-imm8-2
 ###  - Vector Bitwise Bit Clear register
-val / ['1111 0100 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VBICreg none q d vd q n vn q m vm
+val / ['1111 001 0 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VBICreg none q d vd q n vn q m vm
 
 ### VEOR
 ###  - Vector Bitwise Exclusive OR
-val / ['1111 0011 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VEOR none q d vd q n vn q m vm
+val / ['1111 001 1 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VEOR none q d vd q n vn q m vm
 
 ### VBIF
 ###  - Vector Bitwise Insert If False
-val / ['1111 0011 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VBIF none q d vd q n vn q m vm
+val / ['1111 001 1 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VBIF none q d vd q n vn q m vm
 
 ### VBIT
 ###  - Vector Bitwise Insert If True
-val / ['1111 0011 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VBIF none q d vd q n vn q m vm
+val / ['1111 001 1 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VBIF none q d vd q n vn q m vm
 
 ### VMOV
 ###  - Vector Move immediate
 val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = vcimm VMOVimmasimd none cmode q d vd combine-imm8-2
 val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = vcimm VMOVimmasimd none cmode q d vd combine-imm8-2
 ###  - Vector Move register
-val / ['1111 0010 0 /D 10 /vm /vd 0001 0 /Q /M 1 /vm'] = vc2ns VMOVregasimd none q d vd q m vm
+val / ['1111 001 0 0 /D 10 /vm /vd 0001 0 /Q 0 1 /vm'] = vc2ns VMOVregasimd none q d vd q set0 vm
+val / ['1111 001 0 0 /D 10 /vm /vd 0001 1 /Q 1 1 /vm'] = vc2ns VMOVregasimd none q d vd q set1 vm
 
 ### VMVN
 ###  - Vector Bitwise Not immediate
 val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = vcimm VMVNimm none cmode q d vd combine-imm8-2
 ###  - Vector Bitwise Not register
-val / ['1111 0011 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = vc2 VMVNreg none size q d vd q m vm
+val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = vc2 VMVNreg none size q d vd q m vm
 
 ### VORR
 ###  - Vector Bitwise OR immediate
 val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = vcimm VORRimm none cmode q d vd combine-imm8-2
 ###  - Vector Bitwise OR register
-val / ['1111 0010 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VORRreg none q d vd q n vn q m vm
+val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = vc3ns VORRreg none q d vd q set0 vn q set1 vm
+val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = vc3ns VORRreg none q d vd q set1 vn q set0 vm
 
 ### VORN
 ###  - Vector Bitwise OR NOT register
-val / ['1111 0010 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VORN none q d vd q n vn q m vm
+val / ['1111 001 0 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VORN none q d vd q n vn q m vm
 
 ### VBSL
 ###  - Vector Bitewise Select
-val / ['1111 0011 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VBIF none q d vd q n vn q m vm
+val / ['1111 001 1 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = vc3ns VBIF none q d vd q n vn q m vm
 
 # --- Advanced SIMD comparison instructions ----------------------------
 
@@ -4295,7 +4299,7 @@ val / ['1111 0011 1 /D 11 /size 10 /vd 0 0100 0 /M 0 /vm'] = vc2 VMOVN none size
 
 ### VMOVL
 ###  - Vector Move Long
-val / ['1111 001 /U 1 /D /imm3 000 /vd 1010 0 0 /M 1 /vm'] = vc2 VMOVN none imm3 set0 d vd set0 m vm
+val / ['1111 001 /U 1 /D /imm3_124 000 /vd 1010 0 0 /M 1 /vm'] = vc2 VMOVL none imm3 set0 d vd set0 m vm
 
 ### VMAX
 ###  - Vector Maximum integer
@@ -4426,10 +4430,10 @@ val / ['/cond 1110 1 /D 11 0101 /vd 101 1 1 1 0 0 0000'] = vc2bit VCMPE cond set
 val / ['/cond 1110 1 /D 11 1 000 /vd 101 0 /op 1 /M 0 /vm'] = vc2bit2 VCVTfpifp cond op set0 set1 d vd set1 m vm
 val / ['/cond 1110 1 /D 11 1 000 /vd 101 1 /op 1 /M 0 /vm'] = vc2bit2 VCVTfpifp cond op set1 set0 d vd set1 m vm
 ###  - Vector Convert between floating-point and fixed-point
-val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = vcbit4imm VCVTfpfpfp cond op set0 u sz1 set1 d vd set1 d vd combine-imm5
-val / ['/cond 1110 1 /D 111 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = vcbit4imm VCVTfpfpfp cond op set1 u sz1 set0 d vd set0 d vd combine-imm5
+val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = vcbit4imm VCVTfpfpfp cond op set0 u sz1 set1 d vd set1 d vd combine-imm5
+val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = vcbit4imm VCVTfpfpfp cond op set1 u sz1 set0 d vd set0 d vd combine-imm5
 ###  - Vector Convert between double-precision and single-precision
-val / ['/cond 1110 1 /D 11 0111 /vd 1010 0 /Q /M 0 /vm'] = vc2ns VCVTdpspfp none q d vd q m vm
+val / ['/cond 1110 1 /D 11 0 111 /vd 101 /sz1 11 /M 0 /vm'] = vc2ns VCVTdpspfp cond q d vd q m vm
 
 ### VCVTR
 ###  - Vector Convert Round between floating-point and integer
