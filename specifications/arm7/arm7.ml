@@ -2613,8 +2613,8 @@ end
 # --- shifted operand decoders -----------------------------------------
 
 val /shfreg ['/immshift /rm'] = (return 0)
+val /shfreg ['/immshiftshtp /rm'] = (return 0)
 val /shfreg ['/regshift /rm'] = (return 0)
-val /shfregshtp ['/immshiftshtp /rm'] = (return 0)
 val /rotreg ['/immrotate /rm'] = (return 0)
 
 # operand subdecoder: register + immediate shift
@@ -2623,16 +2623,15 @@ val /immshift ['imm5:5 stype:2 0'] = do
   update@{shift={amount=imm, shifttype=(decode-shifttype stype)}}
 end
 
+val /immshiftshtp ['imm5:5 shtp:1 01'] = do
+  imm <- return (immediate (IMM5 imm5));
+  update@{shift={amount=imm, shifttype=(decode-shifttype (shtp^'0'))}}
+end
+
 # operand subdecoder: register + register controlled shift
 val /regshift ['rs:4 0 stype:2 1'] = do
   reg <- return (register (decode-register rs));
   update@{shift={amount=reg, shifttype=(decode-shifttype stype)}}
-end
-
-# operand subdecoder: register + reduced options immediate shift
-val /immshiftshtp ['imm5:5 shtp:1 01'] = do
-  imm <- return (immediate (IMM5 imm5));
-  update@{shift={amount=imm, shifttype=(decode-shifttype (shtp^'0'))}}
 end
 
 # operand subdecoder: register + immediate rotate-r
@@ -3036,7 +3035,7 @@ val / ['/cond 000 0 1 0 0 /S /rdhi /rdlo /rm 1001 /rn'] = mull UMULL cond s rdhi
 
 ### SSAT
 ###  - Signed Saturate (* TODO: Maybe replace imm5 with correct #<imm5> representation. *)
-val / ['/cond 011 0 1 0 1 /imm5 /rd /shfregshtp'] = sat SSAT cond imm5 rd shfreg
+val / ['/cond 011 0 1 0 1 /imm5 /rd /shfreg'] = sat SSAT cond imm5 rd shfreg
 
 ### SSAT16
 ###  - Signed Saturate 16 (* TODO: Maybe replace imm4 with correct #<imm4> representation. *)
@@ -3044,7 +3043,7 @@ val / ['/cond 011 0 1 0 1 0 /imm4 /rd 1111 0011 /rn'] = sat SSAT16 cond imm4 rd 
 
 ### USAT
 ### - Unsigned Saturate
-val / ['/cond 011 0 1 1 1 /imm5 /rd /shfregshtp'] = sat USAT cond imm5 rd shfreg
+val / ['/cond 011 0 1 1 1 /imm5 /rd /shfreg'] = sat USAT cond imm5 rd shfreg
 
 ### USAT16
 ### - Unsigned Saturate 16
@@ -3070,9 +3069,9 @@ val / ['/cond 000 1 0 1 1 0 /rn /rd 0000 0101 /rm'] = satop QDSUB cond rn rd rm
 
 # --- Packing and unpacking instructions -------------------------------
 
-### PKH
+### PKH (*Todo: Update immshiftsthtb to support case differentiation.*)
 ###  - Pack Halfword
-val / ['/cond 011 0 1 0 0 0 /rn /rd /shfregshtb'] = pup PKH cond rn rd shfreg
+val / ['/cond 011 0 1 0 0 0 /rn /rd /shfreg'] = pup PKH cond rn rd shfreg
 
 ### SXTAB
 ###  - Signed Extend and Add Byte
@@ -3116,7 +3115,7 @@ val / ['/cond 011 0 1 1 1 0 1111 /rd /rotreg'] = pup UXTB cond r15 rd rotreg
 
 ### UXTB16
 ###  - Unsigned Extend Byte 16
-val / ['/cond 011 0 1 1 0 0 1111 /rd /rotreg'] = pup UXTB16 cond r15 rd rotreg
+val / ['/cond 011 0 1 1 0 0 1111 /rd /rotreg'] = pup UXTB16 cond r15 rd rotreg  
 
 ### UXTH
 ###  - Unsigned Extend Halfword
@@ -3330,7 +3329,7 @@ val / ['/cond 011 1 1 0 0 0 /rd 1111 /rm 0001 /rn'] = madp USAD8 cond rn rd rm r
 
 ### USADA8
 ###  - Unsigned Sum of Absolute Difference and Accumulate
-val / ['/cond 011 1 1 0 0 0 /rd 1111 /rm 0001 /rn'] = madp USAD8 cond rn rd rm r15
+val / ['/cond 011 1 1 0 0 0 /rd /ra /rm 0001 /rn'] = madp USADA8 cond rn rd rm ra
 
 # --- Status register & banked register access instructions ------------
 
