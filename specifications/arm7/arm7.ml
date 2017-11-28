@@ -2162,9 +2162,21 @@ end
 
 val /imm6 ['imm6:6'] = update@{imm6=imm6}
 
-val /imm6-not000 ['imm6@001...'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@01....'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@1.....'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@0011..'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@00101.'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@001001'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@011...'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@0101..'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@01001.'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@010001'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@11....'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@101...'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@1001..'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@10001.'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@100001'] = update@{imm6=imm6}
+
+
+
 
 val imm6 = do
   imm6 <- query $imm6;
@@ -3672,11 +3684,7 @@ val / ['/cond 000 1 0 1 1 0 000000000000 0111 /imm4'] = unop SMC cond imm4
 ###  - Return From Exception
 val / ['1111 100 /P /U 0 /W 1 /rn 0000 1010 00000000'] = exc RFE cond p u w rn
 
-### SUBS
-###  - Subtract (Exception Return) (Encoding A1)
-val / ['/cond 001 0010 1 /rn 1111 /imm12'] = binop SUBS cond rn imm12
-###  - Subtract (Exception Return) (Encoding A2)
-val / ['/cond 000 0010 1 /rn 1111 /shfreg'] = binop SUBS cond rn shfreg
+### SUBS (*Already implemented by SUB*)
 
 ### HVC
 ###  - Hypervisor Call
