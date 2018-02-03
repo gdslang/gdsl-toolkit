@@ -1,12 +1,17 @@
 # GDSL Toolkit
 
-This section describes how the GDSL toolkit is built and which dependencies are
-required.
+The GDSL toolkit is a software framework for specifying machine language
+language decoders. It is meant to allow a natural decoder specification that
+resembles the way the vendor manuals describe the instruction set. The
+toolkit comes with a set of decoders, semantics translators to the
+analysis-friendly intermediate reprensentation RReil, IR optimizations, and
+binding to other programming languages such as C++ and Java.
 
 ## Dependencies
 
-The GDSL compiler and core libraries require the following software to be on the
-current search PATH:
+This section describes how the GDSL toolkit is built and which dependencies
+are required. The GDSL compiler and core libraries require the following
+software to be on the current search PATH:
 
 * MLton
 * CMake
