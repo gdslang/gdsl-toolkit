@@ -25,6 +25,11 @@ class block {
  public:
   block(std::vector<instruction> instructions, rreil::statements_t statements);
 
+  block(const block&) = delete;
+  block(block&&) = default;
+  block& operator= (const block&) = delete;
+  block& operator= (block&&) = default;
+
   std::vector<instruction> const& get_instructions() const {
     return instructions;
   }

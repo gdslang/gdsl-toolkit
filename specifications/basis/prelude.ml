@@ -134,6 +134,11 @@ val io-binop binop a b =
 
 val int-max = 0x7fffffffffffffff
 
+val int64-max = int-max
+
+# We cannot write down negative constants; thus, we calculate int64-min from
+# int64-max.
+val int64-min = 0 - int64-max - 1
 
 # ##### logical operations #####
 

@@ -11,6 +11,9 @@
 #include "cppgdsl/rreil/flop.h"
 #include "cppgdsl/rreil/id/shared_id.h"
 #include "cppgdsl/rreil/visitor.h"
+#include <cppgdsl/rreil/variable_limited.h>
+#include <cppgdsl/rreil/address.h>
+#include <cppgdsl/rreil/statement/statement.h>
 extern "C" {
 #include "gdsl_generic.h"
 }
