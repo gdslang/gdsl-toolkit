@@ -964,7 +964,7 @@ val unbitBinopUnbit cons cond o1 opnd1 opnd2 o2 = do
   return (cons {cond=cond, o1=o1, opnd1=opnd1, opnd2=opnd2, o2=o2})
 end
 
-val BinopUnbitUnop cons cond opnd1 opnd2 o opnd3 = do
+val binopUnbitUnop cons cond opnd1 opnd2 o opnd3 = do
   cond <- cond;
   opnd1 <- opnd1;
   opnd2 <- opnd2;
@@ -973,7 +973,7 @@ val BinopUnbitUnop cons cond opnd1 opnd2 o opnd3 = do
   return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, o=o, opnd3=opnd3})
 end
 
-val TernopUnbitUnop cons cond opnd1 opnd2 opnd3 o opnd4 = do
+val ternopUnbitUnop cons cond opnd1 opnd2 opnd3 o opnd4 = do
   cond <- cond;
   opnd1 <- opnd1;
   opnd2 <- opnd2;
