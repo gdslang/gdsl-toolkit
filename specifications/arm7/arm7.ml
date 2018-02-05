@@ -812,6 +812,186 @@ val binop cons cond opnd1 opnd2 = do
   return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2})
 end
 
+val ternop cons cond opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
+end
+
+val quaternop cons cond opnd1 opnd2 opnd3 opnd4 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4})
+end
+
+val quinop cons cond opnd1 opnd2 opnd3 opnd4 opnd5 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  opnd5 <- opnd5;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4, opnd5=opnd5})
+end
+
+val senop cons cond opnd1 opnd2 opnd3 opnd4 opnd5 opnd6 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  opnd5 <- opnd5;
+  opnd6 <- opnd6;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4, opnd5=opnd5, opnd6=opnd6})
+end
+
+val unbitBinop cons cond o opnd1 opnd2 = do
+  cond <- cond;
+  o <- o;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o=o, opnd1=opnd1, opnd2=opnd2})
+end
+
+val unbitTernop cons cond o opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  o <- o;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, o=o, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
+end
+
+val unbitQuaternop cons cond o opnd1 opnd2 opnd3 opnd4 = do
+  cond <- cond;
+  o <- o;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  return (cons {cond=cond, o=o, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4})
+end
+
+val binbitBinop cons cond o1 o2 opnd1 opnd2 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o1=o1, o2=o2, opnd1=opnd1, opnd2=opnd2})
+end
+
+val binbitQuaternop cons cond o1 o2 opnd1 opnd2 opnd3 opnd4 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  return (cons {cond=cond, o1=o1, o2=o2, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4})
+end
+
+val ternbitUnop cons cond o1 o2 o3 opnd = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  opnd <- opnd;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, opnd=opnd})
+end
+
+val ternbitBinop cons cond o1 o2 o3 opnd1 opnd2 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, opnd1=opnd1, opnd2=opnd2})
+end
+
+val ternbitTernop cons cond o1 o2 o3 opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
+end
+
+val quaternbitBinop cons cond o1 o2 o3 o4 opnd1 opnd2 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  o4 <- o4;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, o4=o4, opnd1=opnd1, opnd2=opnd2})
+end
+
+val unopUnbitUnop cons cond opnd1 o opnd2 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  o <- o;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, opnd1=opnd1, o=o, opnd2=opnd2})
+end
+
+val unopUnbitBinop cons cond opnd1 o opnd2 opnd3 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  o <- o;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, opnd1=opnd1, o=o, opnd2=opnd2, opnd3=opnd3})
+end
+
+val unbitBinopUnbit cons cond o1 opnd1 opnd2 o2 = do
+  cond <- cond;
+  o1 <- o1;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  o2 <- o2;
+  return (cons {cond=cond, o1=o1, opnd1=opnd1, opnd2=opnd2, o2=o2})
+end
+
+val BinopUnbitUnop cons cond opnd1 opnd2 o opnd3 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  o <- o;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, o=o, opnd3=opnd3})
+end
+
+val TernopUnbitUnop cons cond opnd1 opnd2 opnd3 o opnd4 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  o <- o;
+  opnd4 <- opnd4;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, o=o, opnd4=opnd4})
+end
+
+val unbitUnopUnbitUnop cons cond o1 opnd1 o2 opnd2 = do
+  cond <- cond;
+  o1 <- o1;
+  opnd1 <- opnd1;
+  o2 <- o2;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o1=o1, opnd1=opnd1, o2=o2, opnd2=opnd2})
+end
+
 val register cons = REGISTER cons
 val immediate cons = IMMEDIATE cons
 val shiftedoperand cons = SHIFTED_OPERAND cons
