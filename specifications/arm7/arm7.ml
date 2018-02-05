@@ -1024,7 +1024,7 @@ type senop = {
   cond:condition,
   opnd1:operand,
   opnd2:operand,
-  opnd3:operand
+  opnd3:operand,
   opnd4:operand,
   opnd5:operand,
   opnd6:operand
@@ -1083,7 +1083,7 @@ type ternbitUnop = {
   o1:1,
   o2:1,
   o3:1,
-  opnd:operand,
+  opnd:operand
 }
 
 # Generic instruction with three bits followed by two operands
