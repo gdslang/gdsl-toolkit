@@ -626,7 +626,7 @@ type ternbitTernop = {
   o3:1,
   opnd1:operand,
   opnd2:operand,
-  opnd2:operand
+  opnd3:operand
 }
 
 # Generic instruction with four bits followed by two operands
