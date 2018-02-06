@@ -578,6 +578,16 @@ type binbitBinop = {
   opnd2:operand
 }
 
+# Generic instruction with two bits followed by three operands
+type binbitTernop = {
+  cond:condition,
+  o1:1,
+  o2:1,
+  opnd1:operand,
+  opnd2:operand,
+  opnd3:operand
+}
+
 # Generic instruction with two bits followed by four operands
 type binbitQuaternop = {
   cond:condition,
@@ -884,6 +894,16 @@ val binbitBinop cons cond o1 o2 opnd1 opnd2 = do
   opnd1 <- opnd1;
   opnd2 <- opnd2;
   return (cons {cond=cond, o1=o1, o2=o2, opnd1=opnd1, opnd2=opnd2})
+end
+
+val binbitTernop cons cond o1 o2 opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, o1=o1, o2=o2, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
 end
 
 val binbitQuaternop cons cond o1 o2 opnd1 opnd2 opnd3 opnd4 = do
