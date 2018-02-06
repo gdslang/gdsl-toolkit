@@ -26,12 +26,12 @@ end
 # The instruction types for pretty printing
 type instruction_class =
     NONE
-  | BR of unop    # branch/jump
-  | DP of dp      # standard data processing
-  | LSS of ls     # load/store single operands
-  | LSM of lsm    # load/store multiple operands
-  | ML of mul     # multiply
-  | MLL of mull   # mulitply long
+  | BR of unop             # branch/jump                   (redundant, might get removed)
+  | DP of unbitTernop      # standard data processing
+  | LSS of ternbitTernop   # load/store single operands
+  | LSM of unbitBinop      # load/store multiple operands
+  | ML of unbitQuaternop   # multiply
+  | MLL of unbitQuaternop  # mulitply long                 (redundant, might get removed)
   | NULLOP of nullop
   | UNOP of unop
   | BINOP of binop
@@ -238,4 +238,3 @@ val show/op/operandlist opndl =
         | _: ", "
       end) +++ show/op/operandlist l.tl
   end
-
