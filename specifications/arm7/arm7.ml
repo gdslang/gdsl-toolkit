@@ -297,10 +297,10 @@ type instruction =
   | STC2 of quinop
   | VLDMIA of unopUnbitBinop
   | VLDMDB of unopUnbitBinop
-  | VLDR of binopUnbitBinop
+  | VLDR of binopUnbitUnop
   | VSTMIA of unopUnbitBinop
   | VSTMDB of unopUnbitBinop
-  | VSTR of binopUnbitBinop
+  | VSTR of binopUnbitUnop
   | VLD1 of quinop
   | VLD1a of ternopUnbitUnop
   | VLD2 of quinop
@@ -666,7 +666,7 @@ type binopUnbitUnop = {
 }
 
 # Generic instruction with three operands followed by a bit and another operand
-type binopUnbitUnop = {
+type ternopUnbitUnop = {
   cond:condition,
   opnd1:operand,
   opnd2:operand,
@@ -2925,7 +2925,7 @@ val / ['/cond 110 10 /D 1 1 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VLDMDB cond
 
 ### VLDR
 ###  - Vector Load Register
-val / ['/cond 110 1 /U /D 01 /rn /vd 101 h:1 /imm8'] = binopUnbitBinop VLDR cond set0 d vd rn u imm8
+val / ['/cond 110 1 /U /D 01 /rn /vd 101 h:1 /imm8'] = binopUnbitUnop VLDR cond set0 d vd rn u imm8
 
 ### VSTMIA
 ###  - Vector Store Multiple Increment After
@@ -2937,7 +2937,7 @@ val / ['/cond 110 10 /D 1 0 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VSTMDB cond
 
 ### VSTR
 ###  - Vector Store Register
-val / ['/cond 110 1 /U /D 00 /rn /vd 101 h:1 /imm8'] = binopUnbitBinop VSTR cond set0 d vd rn u imm8
+val / ['/cond 110 1 /U /D 00 /rn /vd 101 h:1 /imm8'] = binopUnbitUnop VSTR cond set0 d vd rn u imm8
 
 # --- Element and structure load/store instructions --------------------
 
