@@ -139,7 +139,7 @@ val show/dp insn insn_type = case insn_type of
   | _: show/s insn +++ show/cond insn.cond +++ "\\t" +++ show/op insn.rd +++ "," -++ show/op insn.rn +++ "," -++ show/op insn.opnd2
 end
 
-val show/s insn = if insn.setflags then "S" else ""
+val show/s insn = if insn.o then "S" else ""
 
 # Show load/store (single) instructions
 val show/lss insn = show/cond insn.cond +++ "\\t" +++ show/op insn.rt +++ ", [" +++ show/op insn.rn +++ "," -++ show/sign insn +++ show/op insn.offset +++ "]"
