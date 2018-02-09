@@ -346,18 +346,15 @@ type instruction =
   | VSUBL of unbitQuaternop
   | VSUBW of unbitQuaternop
   | VAND of ternop
-  | VBICimm of ternop
-  | VBICreg of ternop
+  | VBIC of ternop
   | VEOR of ternop
   | VBIF of ternop
   | VBIT of ternop
   | VBSL of ternop
   | VMOVimmasimd of ternop
   | VMOVregasimd of binop
-  | VMVNimm of ternop
-  | VMVNreg of ternop
-  | VORRimm of ternop
-  | VORRreg of ternop
+  | VMVN of ternop
+  | VORR of ternop
   | VORN of ternop
   | VACGE of unbitTernop
   | VACGT of unbitTernop
@@ -376,8 +373,7 @@ type instruction =
   | VQRSHL of unbitQuaternop
   | VQRSHRN of unbitQuaternop
   | VQRSHRUN of unbitQuaternop
-  | VQSHLreg of unbitQuaternop
-  | VQSHLimm of unbitQuaternop
+  | VQSHL of unbitQuaternop
   | VQSHLU of unbitQuaternop
   | VQSHRN of unbitQuaternop
   | VQSHRUN of unbitQuaternop
@@ -3156,9 +3152,9 @@ val / ['1111 001 0 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VAND none q d 
 
 ### VBIC
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = ternop VBICimm none cmode q d vd combine-imm8-2
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = ternop VBIC none cmode q d vd combine-imm8-2
 ###  - Vector Bitwise Bit Clear register
-val / ['1111 001 0 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBICreg none q d vd q n vn q m vm
+val / ['1111 001 0 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIC none q d vd q n vn q m vm
 
 ### VEOR
 ###  - Vector Bitwise Exclusive OR
@@ -3182,16 +3178,16 @@ val / ['1111 001 0 0 /D 10 /vm /vd 0001 1 /Q 1 1 /vm'] = binop VMOVregasimd none
 
 ### VMVN
 ###  - Vector Bitwise Not immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = ternop VMVNimm none cmode q d vd combine-imm8-2
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = ternop VMVN none cmode q d vd combine-imm8-2
 ###  - Vector Bitwise Not register
-val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = ternop VMVNreg none size q d vd q m vm
+val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = ternop VMVN none size q d vd q m vm
 
 ### VORR
 ###  - Vector Bitwise OR immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = ternop VORRimm none cmode q d vd combine-imm8-2
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = ternop VORR none cmode q d vd combine-imm8-2
 ###  - Vector Bitwise OR register
-val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = ternop VORRreg none q d vd q set0 vn q set1 vm
-val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = ternop VORRreg none q d vd q set1 vn q set0 vm
+val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = ternop VORR none q d vd q set0 vn q set1 vm
+val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = ternop VORR none q d vd q set1 vn q set0 vm
 
 ### VORN
 ###  - Vector Bitwise OR NOT register
@@ -3265,10 +3261,10 @@ val / ['1111 001 1 1 /D /imm6-not000 /vd 100 0 01 /M 1 /vm'] = unbitQuaternop VQ
 
 ### VQSHL
 ###  - Vector Saturating Shift Left register
-val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 1 /vm'] = unbitQuaternop VQSHLreg none u size q d vd q m vm q n vn
+val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 1 /vm'] = unbitQuaternop VQSHL none u size q d vd q m vm q n vn
 ###  - Vector Saturating Shift Left immediate
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 011 1 0 /Q /M 1 /vm'] = unbitQuaternop VQSHLimm none u imm6 q d vd q m vm imm6
-val / ['1111 001 /U 1 /D /imm6 /vd 011 1 1 /Q /M 1 /vm'] = unbitQuaternop VQSHLimm none u imm6 q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 011 1 0 /Q /M 1 /vm'] = unbitQuaternop VQSHL none u imm6 q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6 /vd 011 1 1 /Q /M 1 /vm'] = unbitQuaternop VQSHL none u imm6 q d vd q m vm imm6
 
 ### VQSHLU
 ###  - Vector Saturating Shift Left Unsigned immediate
