@@ -658,7 +658,7 @@ val sem-mla x = do
   mul 32 result opnd1 opnd2;
   add 32 result (var result) addend;
 
-  emit-flags-nz (var result) x.setflags
+  emit-flags-nz (var result) x.o
 end
 
 val sem-mls x = do
