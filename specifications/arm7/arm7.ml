@@ -636,6 +636,18 @@ type quaternbitBinop = {
   opnd2:operand
 }
 
+# Generic instruction with four bits followed by three operands
+type quaternbitTernop = {
+  cond:condition,
+  o1:1,
+  o2:1,
+  o3:1,
+  o4:1,
+  opnd1:operand,
+  opnd2:operand,
+  opnd3:operand
+}
+
 # Generic instruction with one operand followed by a bit and another operand
 type unopUnbitUnop = {
   cond:condition,
@@ -952,6 +964,18 @@ val quaternbitBinop cons cond o1 o2 o3 o4 opnd1 opnd2 = do
   opnd1 <- opnd1;
   opnd2 <- opnd2;
   return (cons {cond=cond, o1=o1, o2=o2, o3=o3, o4=o4, opnd1=opnd1, opnd2=opnd2})
+end
+
+val quaternbitTernop cons cond o1 o2 o3 o4 opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  o4 <- o4;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, o4=o4, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
 end
 
 val unopUnbitUnop cons cond opnd1 o opnd2 = do
