@@ -289,8 +289,8 @@ type instruction =
   | MCRR2 of quinop
   | MRC of senop
   | MRC2 of senop
-  | MRRC of quaternop
-  | MRRC2 of quaternop
+  | MRRC of quinop
+  | MRRC2 of quinop
   | LDC of quinop
   | LDC2 of quinop
   | STC of quinop
@@ -2967,11 +2967,11 @@ val / ['1111 111 0 /opc13 1 /crn /rt /coproc /opc23 1 /crm'] = senop MRC2 none c
 
 ### MRRC
 ###  - Move to two from Coprocessor (Encoding A1)
-val / ['/cond 110 0 0 1 0 1 /rt2 /rt /coproc /opc14 /crm'] = quaternop MRRC cond coproc opc14 rt rt2 crm
+val / ['/cond 110 0 0 1 0 1 /rt2 /rt /coproc /opc14 /crm'] = quinop MRRC cond coproc opc14 rt rt2 crm
 
 ### MRRC2
 ###  - Move to two from Coprocessor (Encoding A2)
-val / ['1111 110 0 0 1 0 1 /rt2 /rt /coproc /opc14 /crm'] = quaternop MRRC2 none coproc opc14 rt rt2 crm
+val / ['1111 110 0 0 1 0 1 /rt2 /rt /coproc /opc14 /crm'] = quinop MRRC2 none coproc opc14 rt rt2 crm
 
 ### LDC (immediate/literal)
 ###  - Load Coprocessor (Encoding A1)
