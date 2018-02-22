@@ -456,7 +456,7 @@ type instruction =
   | VCMP of unbitBinop
   | VCMPE of unbitBinop
   | VCVTfpifp of binbitBinop
-  | VCVTfpfpfp of quaternbitBinop
+  | VCVTfpfpfp of quaternbitTernop
   | VCVTdpspfp of binop
   | VCVTR of unopUnbitBinop
   | VCVTB of unbitBinop
@@ -3672,8 +3672,8 @@ val / ['/cond 1110 1 /D 11 0101 /vd 101 1 1 1 0 0 0000'] = unbitBinop VCMPE cond
 val / ['/cond 1110 1 /D 11 1 000 /vd 101 0 /op 1 /M 0 /vm'] = binbitBinop VCVTfpifp cond op set0 vdq1 vmq1
 val / ['/cond 1110 1 /D 11 1 000 /vd 101 1 /op 1 /M 0 /vm'] = binbitBinop VCVTfpifp cond op set1 vdq0 vmq1
 ###  - Vector Convert between floating-point and fixed-point
-val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = quaternbitBinop VCVTfpfpfp cond op set0 u sz1 vdq1 vdq1 combine-imm5
-val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = quaternbitBinop VCVTfpfpfp cond op set1 u sz1 vdq0 vdq0 combine-imm5
+val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = quaternbitTernop VCVTfpfpfp cond op set0 u sz1 vdq1 vdq1 combine-imm5
+val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = quaternbitTernop VCVTfpfpfp cond op set1 u sz1 vdq0 vdq0 combine-imm5
 ###  - Vector Convert between double-precision and single-precision
 val / ['/cond 1110 1 /D 11 0 111 /vd 101 /sz1 11 /M 0 /vm'] = binop VCVTdpspfp cond vd vm
 
