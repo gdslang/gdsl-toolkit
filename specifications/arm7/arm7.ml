@@ -1537,11 +1537,6 @@ end
 # q-bit
 val /Q ['q:1'] = update@{q=q}
 
-val q = do
-  q <- query $q;
-  return q
-end
-
 # r-bit
 val /r ['r:1'] = update@{r=r}
 
