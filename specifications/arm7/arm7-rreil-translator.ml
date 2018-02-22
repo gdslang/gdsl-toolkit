@@ -516,8 +516,8 @@ val sem-cmn x = do
 end
 
 val sem-cmp x = do
-  rn <- rval x.rn;
-  opnd2 <- rval x.opnd2;
+  rn <- rval x.opnd1;
+  opnd2 <- rval x.opnd3;
   cmp_result <- mktemp;
 
   sub 32 cmp_result rn opnd2;
