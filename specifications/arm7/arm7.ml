@@ -709,7 +709,7 @@ type immediate =
   | IMM24 of 24
   | MODIMM of {byte:8, rot:4} # 8 bit immediate with 4 bit rotation
 
-type vector = {change:1, first:1, remainder:operand}
+type vector = {change:1, first:1, remainder:4}
 
 type operandlist =
     OPNDL_NIL
