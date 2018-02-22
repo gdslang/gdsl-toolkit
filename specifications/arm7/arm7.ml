@@ -1896,6 +1896,14 @@ val vmm1 = do
   return (vector {change=q, first='1', remainder=vm})
 end
 
+val vm000000 = do
+  return (vector {change='0', first='0', remainder='0000'})
+end
+
+val vm100000 = do
+  return (vector {change='1', first='0', remainder='0000'})
+end
+
 # --- register subdecoders ---------------------------------------------
 
 val /ra ['ra:4'] = update@{ra=(decode-register ra)}
@@ -3648,16 +3656,16 @@ val / ['/cond 1110 0 /D 11 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VADDfpfp 
 val / ['/cond 1110 1 /D 11 0100 /vd 101 0 0 1 /M 0 /vm'] = unbitBinop VCMP cond set0 vdq1 vmq1
 val / ['/cond 1110 1 /D 11 0100 /vd 101 1 0 1 /M 0 /vm'] = unbitBinop VCMP cond set1 vdq0 vmq0
 ###  - Vector Compare (Encoding A2)
-val / ['/cond 1110 1 /D 11 0101 /vd 101 0 0 1 0 0 0000'] = unbitBinop VCMP cond set0 vdq1 set1 set0 set0000
-val / ['/cond 1110 1 /D 11 0101 /vd 101 1 0 1 0 0 0000'] = unbitBinop VCMP cond set1 vdq0 set0 set0 set0000
+val / ['/cond 1110 1 /D 11 0101 /vd 101 0 0 1 0 0 0000'] = unbitBinop VCMP cond set0 vdq1 vm100000
+val / ['/cond 1110 1 /D 11 0101 /vd 101 1 0 1 0 0 0000'] = unbitBinop VCMP cond set1 vdq0 vm000000
 
 ### VCMPE
 ###  - Vector Compare Exception (Encoding A1)
 val / ['/cond 1110 1 /D 11 0100 /vd 101 0 1 1 /M 0 /vm'] = unbitBinop VCMPE cond set0 vdq1 vmq1
 val / ['/cond 1110 1 /D 11 0100 /vd 101 1 1 1 /M 0 /vm'] = unbitBinop VCMPE cond set1 vdq0 vmq0
 ###  - Vector Compare Exception (Encoding A2)
-val / ['/cond 1110 1 /D 11 0101 /vd 101 0 1 1 0 0 0000'] = unbitBinop VCMPE cond set0 vdq1 set1 set0 set0000
-val / ['/cond 1110 1 /D 11 0101 /vd 101 1 1 1 0 0 0000'] = unbitBinop VCMPE cond set1 vdq0 set0 set0 set0000
+val / ['/cond 1110 1 /D 11 0101 /vd 101 0 1 1 0 0 0000'] = unbitBinop VCMPE cond set0 vdq1 vm100000
+val / ['/cond 1110 1 /D 11 0101 /vd 101 1 1 1 0 0 0000'] = unbitBinop VCMPE cond set1 vdq0 vm000000
 
 ### VCVT
 ###  - Vector Convert between floating-point and integer
