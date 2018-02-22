@@ -3246,8 +3246,8 @@ val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = ternop VMVN none 
 ###  - Vector Bitwise OR immediate
 val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = ternop VORR none cmode vd combine-imm8-2
 ###  - Vector Bitwise OR register
-val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = ternop VORR none vd q set0 vn vmm1
-val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = ternop VORR none vd q set1 vn vmm0
+val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = ternop VORR none vd vnn1 vmm1
+val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = ternop VORR none vd vnn1 vmm0
 
 ### VORN
 ###  - Vector Bitwise OR NOT register
