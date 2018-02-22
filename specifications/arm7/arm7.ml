@@ -1537,6 +1537,11 @@ end
 # q-bit
 val /Q ['q:1'] = update@{q=q}
 
+val q = do
+  q <- query $q;
+  return q
+end
+
 # r-bit
 val /r ['r:1'] = update@{r=r}
 
@@ -1805,21 +1810,21 @@ end
 val /vd ['vd:4'] = update@{vd=vd}
 
 val vd = do
-  q <- query q;
-  d <- query d;
-  vd <- query vd;
+  q <- query $q;
+  d <- query $d;
+  vd <- query $vd;
   return (vector {change=q, first=d, remainder=vd})
 end
 
 val vdq0 = do
-  d <- query d;
-  vd <- query vd;
+  d <- query $d;
+  vd <- query $vd;
   return (vector {change='0', first=d, remainder=vd})
 end
 
 val vdq1 = do
-  d <- query d;
-  vd <- query vd;
+  d <- query $d;
+  vd <- query $vd;
   return (vector {change='1', first=d, remainder=vd})
 end
 
@@ -1827,33 +1832,33 @@ end
 val /vn ['vn:4'] = update@{vn=vn}
 
 val vn = do
-  q <- query q;
-  n <- query n;
-  vn <- query vn;
+  q <- query $q;
+  n <- query $n;
+  vn <- query $vn;
   return (vector {change=q, first=n, remainder=vn})
 end
 
 val vnq0 = do
-  n <- query n;
-  vn <- query vn;
+  n <- query $n;
+  vn <- query $vn;
   return (vector {change='0', first=n, remainder=vn})
 end
 
 val vnq1 = do
-  n <- query n;
-  vn <- query vn;
+  n <- query $n;
+  vn <- query $vn;
   return (vector {change='1', first=n, remainder=vn})
 end
 
 val vnn0 = do
-  q <- query q;
-  vn <- query vn;
+  q <- query $q;
+  vn <- query $vn;
   return (vector {change=q, first='0', remainder=vn})
 end
 
 val vnn1 = do
-  q <- query q;
-  vn <- query vn;
+  q <- query $q;
+  vn <- query $vn;
   return (vector {change=q, first='1', remainder=vn})
 end
 
@@ -1861,33 +1866,33 @@ end
 val /vm ['vm:4'] = update@{vm=vm}
 
 val vm = do
-  q <- query q;
-  m <- query m;
-  vm <- query vm;
+  q <- query $q;
+  m <- query $m;
+  vm <- query $vm;
   return (vector {change=q, first=m, remainder=vm})
 end
 
 val vmq0 = do
-  m <- query m;
-  vm <- query vm;
+  m <- query $m;
+  vm <- query $vm;
   return (vector {change='0', first=m, remainder=vm})
 end
 
 val vmq1 = do
-  m <- query m;
-  vm <- query vm;
+  m <- query $m;
+  vm <- query $vm;
   return (vector {change='1', first=m, remainder=vm})
 end
 
 val vmm0 = do
-  q <- query q;
-  vm <- query vm;
+  q <- query $q;
+  vm <- query $vm;
   return (vector {change=q, first='0', remainder=vm})
 end
 
 val vmm1 = do
-  q <- query q;
-  vm <- query vm;
+  q <- query $q;
+  vm <- query $vm;
   return (vector {change=q, first='1', remainder=vm})
 end
 
