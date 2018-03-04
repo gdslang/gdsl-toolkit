@@ -51,8 +51,15 @@ val rvals-c sign x setcarry = let
   val from-imm sn immediate setcarry =
     case immediate of
         IMMi i: return (imm i)
+      | IMM2 i: return (from-vec sn i)
+      | IMM3 i: return (from-vec sn i)
+      | IMM4 i: return (from-vec sn i)
       | IMM5 i: return (from-vec sn i)
+      | IMM6 i: return (from-vec sn i)
+      | IMM8 i: return (from-vec sn i)
       | IMM12 i: return (from-vec sn i)
+      | IMM16 i: return (from-vec sn i)
+      | IMM24 i: return (from-vec sn i)
       | MODIMM i: do
           expanded <- return (armexpandimm-c i 0);
           if setcarry then
