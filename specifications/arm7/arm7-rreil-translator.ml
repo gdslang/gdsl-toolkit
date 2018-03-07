@@ -37,6 +37,15 @@ type signedness =
     Signed
   | Unsigned
 
+type fpvtype =
+    doubleprecision
+  | singleprecision
+  | halfprecision
+
+type asimdvtype =
+    quadword
+  | doubleword
+
 val lval x =
   case x of
       REGISTER r: return (semantic-register-of r)
