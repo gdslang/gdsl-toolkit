@@ -38,13 +38,13 @@ type signedness =
   | Unsigned
 
 type fpvtype =
-    doubleprecision
-  | singleprecision
-  | halfprecision
+    Doubleprecision
+  | Singleprecision
+  | Halfprecision
 
 type asimdvtype =
-    quadword
-  | doubleword
+    Quadword
+  | Doubleword
 
 val lval x =
   case x of
