@@ -218,18 +218,18 @@ in
     # | UADD16 x: conditional sem-uadd16 x
     # | UQADD16 x: conditional sem-uqadd16 x
     # | UHADD16 x: conditional sem-uhadd16 x
-    # | SASX
-    # | QASX
-    # | SHASX
-    # | UASX
-    # | UQASX
-    # | UHASX
-    # | SSAX
-    # | QSAX
-    # | SHSAX
-    # | USAX
-    # | UQSAX
-    # | UHSAX
+    # | SASX x: conditional sem-sasx x
+    # | QASX x: conditional sem-qasx x
+    # | SHASX x: conditional sem-shasx x
+    # | UASX x: conditional sem-uasx x
+    # | UQASX x: conditional sem-uqasx x
+    # | UHASX x: conditional sem-uhasx x
+    # | SSAX x: conditional sem-ssax x
+    # | QSAX x: conditional sem-qsax x
+    # | SHSAX x: conditioal sem-shsax x
+    # | USAX x: conditional sem-usax x
+    # | UQSAX x: conditional sem-uqsax x
+    # | UHSAX x: conditional sem-uhsax x
     # | SSUB16 x: conditional sem-ssub16 x
     # | QSUB16 x: conditional sem-qsub16 x
     # | SHSUB16 x: conditional sem-shsub16 x
@@ -248,276 +248,276 @@ in
     # | USUB8 x: conditional sem-usub8 x
     # | UQSUB8 x: conditional sem-uqsub8 x
     # | UHSUB8 x: conditional sem-uhsub8 x
-    # | SDIV
-    # | UDIV
-    # | BFC
-    # | BFI
-    # | CLZ
-    # | MOVT
-    # | RBIT
-    # | REV
-    # | REV16
-    # | REVSH
-    # | SBFX
-    # | SEL
-    # | UBFX
-    # | USAD8
-    # | USADA8
-    # | MRS
-    # | MSR
-    # | CPS
+    # | SDIV x: conditional sem-sdiv x
+    # | UDIV x: conditional sem-udiv x
+    # | BFC x: conditional sem-bfc x
+    # | BFI x: conditional sem-bfi x 
+    # | CLZ x: conditional sem-clz x
+    # | MOVT x: conditional sem-movt x
+    # | RBIT x: conditional sem-rbit x
+    # | REV x: conditional sem-rev x
+    # | REV16 x: conditional sem-rev16 x
+    # | REVSH x: conditional sem-revsh x
+    # | SBFX x: conditional sem-sbfx x
+    # | SEL x: conditional sem-sel x
+    # | UBFX x: conditional sem-ubfx x
+    # | USAD8 x: conditional sem-usad8 x
+    # | USADA8 x: conditional sem-usada8 x
+    # | MRS x: conditional sem-mrs x
+    # | MSR x: conditional sem-msr x
+    # | CPS x: conditional sem-cps x
     | LDR x: conditional sem-ldr x
     # | LDRT x: conditional sem-ldrt x
     | LDRB x: conditional sem-ldrb x
-    # | LDRBT
-    # | LDRH
-    # | LDRHT
-    # | LDRSB
-    # | LDRSBT
-    # | LDRSH
-    # | LDRSHT
-    # | LDRD
-    # | LDREX
-    # | LDREXB
-    # | LDREXD
-    # | LDREXH
+    # | LDRBT x: conditional sem-ldrbt x
+    # | LDRH x: conditional sem-ldrh x
+    # | LDRHT x: conditional sem-ldrht x
+    # | LDRSB x: conditional sem-ldrsb x
+    # | LDRSBT x: conditional sem-ldrsbt x
+    # | LDRSH x: conditional sem-ldrsh x
+    # | LDRSHT x: conditional sem-ldrsht x
+    # | LDRD x: conditional sem-ldrd x
+    # | LDREX x: conditional sem-ldrex x
+    # | LDREXB x: conditional sem-ldrexb x
+    # | LDREXD x: conditional sem-ldrexd x
+    # | LDREXH x: conditional sem-ldrexh x
     | STR x: conditional sem-str x
     # | STRT x: conditional sem strt x
     | STRB x: conditional sem-strb x
-    # | STRBT
-    # | STRD
-    # | STRH
-    # | STRHT
-    # | STREX
-    # | STREXB
-    # | STREXD
+    # | STRBT x: conditional sem-strbt x
+    # | STRD x: conditional sem-strd x
+    # | STRH x: conditional sem-strh x
+    # | STRHT x: conditional sem-strht x
+    # | STREX x: conditional sem-strex x
+    # | STREXB x: conditional sem-strexb x
+    # | STREXD x: conditional sem-strexd x
     | LDM x: conditional sem-ldm x
-    # | LDMDA
-    # | LDMDB
-    # | LDMIB
+    # | LDMDA x: conditional sem-ldmda x
+    # | LDMDB x: conditional sem-ldmdb x
+    # | LDMIB x: conditional sem-ldmib x
     | POP x: conditional sem-ldm x
     | STM x: conditional sem-stm x
-    # | STMDA
-    # | STMDB
-    # | STMIB
+    # | STMDA x: conditional sem-stmda x
+    # | STMDB x: conditional sem-stmdb x
+    # | STMIB x: conditional sem-stmib x
     | PUSH x: conditional sem-stm x
     | B x: conditional sem-b x
     | BL x: conditional sem-bl x
     | BLX x: conditional sem-blx x
     | BX x: conditional sem-bx x
-    # | BXJ
-    # | CLREX
-    # | DBG
-    # | DMB
-    # | DSB
-    # | ISB
-    # | NOP
-    # | PLD
-    # | PLDW
-    # | PLI
-    # | SETEND
-    # | SEV
-    # | SWP
-    # | SWPB
-    # | WFE
-    # | WFI
-    # | YIELD
+    # | BXJ x: conditional sem-bxj x
+    # | CLREX x: conditional sem-clrex x
+    # | DBG x: conditional sem-dbg x
+    # | DMB x: conditonal sem-dwb x
+    # | DSB x: conditional sem-dsb x
+    # | ISB x: conditional sem-isb x
+    # | NOP x: conditional sem-nop x
+    # | PLD x: conditional sem-pld x
+    # | PLDW x: conditional sem-pldw x
+    # | PLI x: conditional sem-pli x
+    # | SETEND x: conditional sem-setend x
+    # | SEV x: conditional sem-sev x
+    # | SWP x: conditional sem-swp x
+    # | SWPB x: conditonal sem-swpb x
+    # | WFE x: conditional sem-wfe x
+    # | WFI x: conditional sem-wfi x
+    # | YIELD x: conditional sem-yield x
     | SVC x: conditional sem-svc x
-    # | BKPT
-    # | SMC
-    # | RFE
-    # | SUBS
-    # | HVC
-    # | ERET
-    # | LDMerur
-    # | SRS
-    # | CDP
-    # | CDP2
-    # | MCR
-    # | MCR2
-    # | MCRR
-    # | MCRR2
-    # | MRC
-    # | MRC2
-    # | MRRC
-    # | MRRC2
-    # | LDC
-    # | LDC2
-    # | STC
-    # | STC2
-    # | VLDMIA
-    # | VLDMDB
-    # | VLDR
-    # | VSTMIA
-    # | VSTMDB
-    # | VSTR
-    # | VLD1
-    # | VLD1a
-    # | VLD2
-    # | VLD2a
-    # | VLD3
-    # | VLD3a
-    # | VLD4
-    # | VLD4a
-    # | VST1
-    # | VST2
-    # | VST3
-    # | VST4
-    # | VDUP
-    # | VMOVacs
-    # | VMOVsac
-    # | VMOVacsp
-    # | VMOVspac
-    # | VMOVacsp2
-    # | VMOVspac2
-    # | VMOVacdwe
-    # | VMOVdweac
-    # | VMRS
-    # | VMSR
-    # | VADDiasimd
-    # | VADDfpasimd
-    # | VADDHN
-    # | VADDL
-    # | VADDW
-    # | VHADD
-    # | VHSUB
-    # | VPADAL
-    # | VPADDi
-    # | VPADDfp
-    # | VPADDL
-    # | VRADDHN
-    # | VRHADD
-    # | VRSUBHN
-    # | VQADD
-    # | VQSUB
-    # | VSUBiasimd
-    # | VSUBfpasimd
-    # | VSUBHN
-    # | VSUBL
-    # | VSUBW
-    # | VAND
-    # | VBIC
-    # | VEOR
-    # | VBIF
-    # | VBIT
-    # | VBSL
-    # | VMOVimmasimd
-    # | VMOVregasimd
-    # | VMVN
-    # | VORR
-    # | VORN
-    # | VACGE
-    # | VACGT
-    # | VCEQrega
-    # | VCEQregb
-    # | VCEQimm
-    # | VCGTrega
-    # | VCGTregb
-    # | VCGTimm
-    # | VCLE
-    # | VCLT
-    # | VTST
-    # | VQRSHL
-    # | VQRSHRN
-    # | YQRSHRUN
-    # | VRSHL
-    # | VRSHR
-    # | VRSRA
-    # | VRSHRN
-    # | VSHLimm
-    # | VSHLreg
-    # | VSHLL
-    # | VSHR
-    # | VSHRN
-    # | VSLI
-    # | VSRA
-    # | VSRI
-    # | VMLAiasimd
-    # | VMLAfpasimd
-    # | VMLAsasimd
-    # | VMLAL
-    # | VMLSiasimd
-    # | VMLSfpasimd
-    # | VMLSsasimd
-    # | VMLSL
-    # | VMULipasimd
-    # | VMULfpasimd
-    # | VMULsasimd
-    # | VMULLipasimd
-    # | VMULLsasimd
-    # | VFMA
-    # | VFMS
-    # | VQDMLAL
-    # | VQDMLSL
-    # | VQDMULH
-    # | VQRDMULH
-    # | VQDMULL
-    # | VABA
-    # | VABAL
-    # | VABDi
-    # | VABDfp
-    # | VABDL
-    # | VABSasimd
-    # | VCVTfpiasimd
-    # | VCVTfpfpasimd
-    # | VCVThpspasimd
-    # | VCLS
-    # | VCLZ
-    # | VCNT
-    # | VDUP2
-    # | VEXT
-    # | VMOVN
-    # | VMOVL
-    # | VMAXi
-    # | VMAXfp
-    # | VMINi
-    # | VMINfp
-    # | VNEGasimd
-    # | VPMAXi
-    # | VPMAXfp
-    # | VPMINi
-    # | VPMINfp
-    # | VRECPE
-    # | VRECPS
-    # | VRSQRTE
-    # | VRSQRTS
-    # | VREV16
-    # | VREV32
-    # | VREV64
-    # | VQABS
-    # | VQMOVN
-    # | VQMOVUN
-    # | VQNEG
-    # | VSWP
-    # | VTBL
-    # | VTBX
-    # | VTRN
-    # | VUZP
-    # | VZIP
-    # | VABSfp
-    # | VADDfpfp
-    # | VCMP
-    # | VCMPE
-    # | VCVTfpifp
-    # | VCVTfpfpfp
-    # | VCVTdpspfp
-    # | VCVTR
-    # | VCVTB
-    # | VCVTT
-    # | VDIV
-    # | VMLAfpfp
-    # | VMLSfpfp
-    # | VMOVimmfp
-    # | VMOVregfp
-    # | VMULfpfp
-    # | VNEGfp
-    # | VNMLA
-    # | VNMLS
-    # | VNMUL
-    # | VFNMA
-    # | VFNMS
-    # | VSQRT
-    # | VSUBfpfp
+    # | BKPT x: conditional sem-bkpt x
+    # | SMC x: conditional sem-smc x
+    # | RFE x: conditional sem-rfe x
+    # | SUBS x: conditional sem-subs x
+    # | HVC x: conditional sem-hvc x
+    # | ERET x: conditional sem-eret x
+    # | LDMerur x: conditional sem-ldmerur x
+    # | SRS x: conditional sem-srs x
+    # | CDP x: conditional sem cdp x
+    # | CDP2 x: conditional sem-cdp2 x
+    # | MCR x: conditional sem-mcr x
+    # | MCR2 x: conditional sem-mcr2 x
+    # | MCRR x: conditional sem-mcrr x
+    # | MCRR2 x: conditional sem-mcrr2 x
+    # | MRC x: conditional sem-mrc x
+    # | MRC2 x: conditional sem-mrc2 x
+    # | MRRC x: conditional sem-mrrc x
+    # | MRRC2 x: conditional sem-mrrc2 x
+    # | LDC x: conditional sem-ldc x
+    # | LDC2 x: conditional sem-ldc2 x
+    # | STC x: conditional sem-stc x
+    # | STC2 x: conditional sem-stc2 x
+    # | VLDMIA x: conditional sem-vldmia x
+    # | VLDMDB x: conditional sem-vldmdb x
+    # | VLDR x: conditional sem-vldr x
+    # | VSTMIA x: conditional sem-vstmia x
+    # | VSTMDB x: conditional sem-vstmdb x
+    # | VSTR x: conditional sem-vstr x
+    # | VLD1 x: conditional sem-vld1 x
+    # | VLD1a x: conditional sem-vld1a x
+    # | VLD2 x: conditional sem-vld2 x
+    # | VLD2a x: conditional sem vld2a x
+    # | VLD3 x: conditional sem-vld3 x
+    # | VLD3a x: conditional sem-vld3a x
+    # | VLD4 x: conditonal sem-vld4 x
+    # | VLD4a x: conditional sem-vld4a x
+    # | VST1 x: conditional sem-vst1 x
+    # | VST2 x: conditional sem-vst2 x
+    # | VST3 x: conditional sem-vst3 x
+    # | VST4 x: conditional sem-vst4 x
+    # | VDUP x: consitional sem-vdup x
+    # | VMOVacs x: conditional sem-vmovacs x
+    # | VMOVsac x: conditional sem-vmocsac x
+    # | VMOVacsp x: conditional sem-vmovacsp x
+    # | VMOVspac x: conditional sem-vmovspac x
+    # | VMOVacsp2 x: conditional sem-vmovacsp2 x
+    # | VMOVspac2 x: conditional sem-vmovspac2 x
+    # | VMOVacdwe x: conditional sem-vmovacdwe x
+    # | VMOVdweac x: conditional sem-vmovdweac x
+    # | VMRS x: conditional sem-vmrs x
+    # | VMSR x: conditional sem-vmsr x
+    # | VADDiasimd x: conditional sem-vaddiasimd x
+    # | VADDfpasimd x: conditional sem-vaddfpasimd x
+    # | VADDHN x: conditional sem-vaddhn x
+    # | VADDL x: conditional sem-vaddl x
+    # | VADDW x: conditional sem-vaddw x
+    # | VHADD x: conditional sem-vhadd x
+    # | VHSUB x: conditional sem-vhsub x
+    # | VPADAL x: conditional sem-vpadal x
+    # | VPADDi x: conditional sem vpaddi x
+    # | VPADDfp x: conditional sem-vpaddfp x
+    # | VPADDL x: conditional sem-vpaddl x
+    # | VRADDHN x: conditional sem-vraddhn x
+    # | VRHADD x: conditional sem-vrhadd x
+    # | VRSUBHN x: conditional sem-vrsubhn x
+    # | VQADD x: conditonal sem-vqadd x
+    # | VQSUB x: conditional sem-vqsub x
+    # | VSUBiasimd x: conditional sem-vsubiasimd x
+    # | VSUBfpasimd x: conditional sem-vsubfpasimd x
+    # | VSUBHN x: conditional sem-vsubhn x
+    # | VSUBL x: conditional sem-vsubl x
+    # | VSUBW x: conditional sem-vsubw x
+    # | VAND x: conditional sem-vand x
+    # | VBIC x: conditional sem-vbic x
+    # | VEOR x: conditional sem-veor x
+    # | VBIF x: conditional sem-vbif x
+    # | VBIT x: conditional sem-vbit x
+    # | VBSL x: conditional sem-vbsl x
+    # | VMOVimmasimd x: conditional sem-vmovimmasimd x
+    # | VMOVregasimd x: conditional sem-vmovregasimd x
+    # | VMVN x: conditional sem-vmvn x
+    # | VORR x: conditional sem-vorr x
+    # | VORN x: conditional sem-vorn x
+    # | VACGE x: conditional sem-vacge x
+    # | VACGT x: conditional sem-vacgt x
+    # | VCEQrega x: conditional sem-vceqrega x
+    # | VCEQregb x: conditional sem-vceqregb x
+    # | VCEQimm x: conditional sem-vceqimm x
+    # | VCGTrega x: conditional sem-vcgtrega x
+    # | VCGTregb x: conditional sem-vcgtregb x
+    # | VCGTimm x: conditional sem-vcgtimm x
+    # | VCLE x: conditional sem-vcle x
+    # | VCLT x: conditional sem-vclt x
+    # | VTST x: conditional sem-vtst x
+    # | VQRSHL x: conditional sem-vqrshl x
+    # | VQRSHRN x: conditional sem-vqshrn x
+    # | YQRSHRUN x: conditional sem-vqrshrun x
+    # | VRSHL x: conditional sem-vrshl x
+    # | VRSHR x: conditional sem-vrshr x
+    # | VRSRA x: conditional sem-vrsra x
+    # | VRSHRN x: conditional sem-vrshrn x
+    # | VSHLimm x: conditional sem-vshlimm x
+    # | VSHLreg x: conditional sem-vshlreg x
+    # | VSHLL x: conditional sem-vshll x
+    # | VSHR x: conditional sem-vshr x
+    # | VSHRN x: conditional sem-vshrn x
+    # | VSLI x: conditional sem-vsli x
+    # | VSRA x: conditional sem-vsra x
+    # | VSRI x: conditional sem-vsri x
+    # | VMLAiasimd x: conditional sem-vmlaiasimd x
+    # | VMLAfpasimd x: conditional sem-vmlafpasimd x
+    # | VMLAsasimd x: conditional sem-vmlasasimd x
+    # | VMLAL x: conditional sem-vmlal x
+    # | VMLSiasimd x: conditional sem-vmlsiasimd x
+    # | VMLSfpasimd x: conditional sem-vmlsfpasimd x
+    # | VMLSsasimd x: conditional sem-vmlssasimd x
+    # | VMLSL x: conditional sem-vmlsl x
+    # | VMULipasimd x: conditional sem-vmulipasimd x
+    # | VMULfpasimd x: conditional sem-vmulfpasimd x
+    # | VMULsasimd x: conditional sem-vmulsasimd x
+    # | VMULLipasimd x: conditional sem-vmullipasimd x
+    # | VMULLsasimd x: conditional sem-vmullsasimd x
+    # | VFMA x: conditional sem-vfma x
+    # | VFMS x: conditional sem-vfms x
+    # | VQDMLAL x: conditional sem-vqdmlal x
+    # | VQDMLSL x: conditional sem-vqmdlsl x
+    # | VQDMULH x: conditionla sem-vqdmulh x
+    # | VQRDMULH x: conditional sem-vqrdmulh x
+    # | VQDMULL x: conditional sem-vqdmull x
+    # | VABA x: conditional sem-vaba x
+    # | VABAL x: conditional sem-vabal x
+    # | VABDi x: conditional sem-vabdi x
+    # | VABDfp x: conditional sem-vabdfp x
+    # | VABDL x: conditional sem-vabdl x
+    # | VABSasimd x: conditional sem-vabsasimd x
+    # | VCVTfpiasimd x: conditional sem-vcvtfpiasimd x
+    # | VCVTfpfpasimd x: conditional sem-vcvtfpfpasimd x
+    # | VCVThpspasimd x: conditional sem-vcvthpspasimd x
+    # | VCLS x: conditional sem-vcls x 
+    # | VCLZ x: conditional sem-vclz x
+    # | VCNT x: conditional sem-vcnt x
+    # | VDUP2 x: conditional sem-vdup2 x
+    # | VEXT x: conditional sem-vext x
+    # | VMOVN x: conditional sem-vmovn x
+    # | VMOVL x: conditional sem-vmovl x
+    # | VMAXi x: conditional sem-vmaxi x
+    # | VMAXfp x: conditional sem-vmaxfp x
+    # | VMINi x: conditional sem-vmini x
+    # | VMINfp x: conditional sem-vminfp x
+    # | VNEGasimd x: conditional sem-vnegasimd x
+    # | VPMAXi x: conditional sem-vpmaxi x
+    # | VPMAXfp x: conditional sem-vpmaxfp x
+    # | VPMINi x: conditional sem-vpmini x
+    # | VPMINfp x: conditional sem-vpminfp x
+    # | VRECPE x: conditional sem-vrecpe x
+    # | VRECPS x: conditional sem-vrecps x
+    # | VRSQRTE x: conditional sem-vrsqrte x
+    # | VRSQRTS x: conditional sem-vrsqrts x
+    # | VREV16 x: conditional sem-vrev16 x
+    # | VREV32 x: conditional sem-vrev32 x
+    # | VREV64 x: conditional sem-vrev64 x
+    # | VQABS x: conditional sem-vqabs x
+    # | VQMOVN x: conditional sem-vqmovn x
+    # | VQMOVUN x: conditional sem-vqmovun x
+    # | VQNEG x: conditional sem-vqneg x
+    # | VSWP x: conditional sem-vswp x
+    # | VTBL x: conditional sem-vtbl x
+    # | VTBX x: conditional sem-vtbx x
+    # | VTRN x: conditional sem-vtrn x
+    # | VUZP x: conditional sem-vuzp x
+    # | VZIP x: conditional sem-vzip x
+    # | VABSfp x: conditional sem-vabsfp x
+    # | VADDfpfp x: conditional sem-vaddfpfp x
+    # | VCMP x: conditional sem-vcmp x
+    # | VCMPE x: conditional sem-vcmpe x
+    # | VCVTfpifp x: conditional sem-vvtfpifp x
+    # | VCVTfpfpfp x: conditional sem-vcvtfpfpfp x
+    # | VCVTdpspfp x: conditional sem-vcvtdpspfp x
+    # | VCVTR x: conditional sem-vcvtr x
+    # | VCVTB x: conditional sem-vcvtb x
+    # | VCVTT x: conditional sem-vcvtt x
+    # | VDIV x: conditional sem-vdiv x
+    # | VMLAfpfp x: conditional sem-vmlafpfp x
+    # | VMLSfpfp x: conditional sem-vmlsfpfp x
+    # | VMOVimmfp x: conditional sem-vmovimmfp x
+    # | VMOVregfp x: conditional sem-vmovregfp x
+    # | VMULfpfp x: conditional sem-vmulfpfp x
+    # | VNEGfp x: conditional sem-vnegfp x
+    # | VNMLA x: conditional sem-vnmla x
+    # | VNMLS x: conditional sem-vnmls x
+    # | VNMUL x: conditional sem-vnmul x
+    # | VFNMA x: conditional sem-vfnma x
+    # | VFNMS x: conditional sem-vfnms x
+    # | VSQRT x: conditional sem-vsqrt x
+    # | VSUBfpfp x: conditional sem-vsubfpfp x
     | _: sem-default insn.insn insn.ip
   end
 end
