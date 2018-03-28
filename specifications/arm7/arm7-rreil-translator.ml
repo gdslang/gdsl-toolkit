@@ -847,8 +847,8 @@ end
 
 val sem-adr x = do
     rn <- rval x.opnd1;
-    rd <- rval x.opnd2;
-    opnd2 <- lval x.opnd3;
+    rd <- lval x.opnd2;
+    opnd2 <- rval x.opnd3;
 
     if x.o then do
         add 32 rd rn opnd2
