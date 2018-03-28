@@ -856,7 +856,8 @@ val sem-adr x = do
         sub 32 rd rn opnd2;
 
     if is-sem-pc? rd then do
-        alu-write-pc rd;
+        alu-write-pc rd
+    end
 end
 
 val sem-and x = do
