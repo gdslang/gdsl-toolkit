@@ -2040,7 +2040,7 @@ val / ['/cond 000 0 1 0 0 /S /rn /rd /shfreg'] = unbitTernop ADD cond s rn rd sh
 
 ### ADR
 ###  - ADR (Encoding A1)
-val / ['/cond 001 0 1 0 0 0 1111 /rd /modimm'] = unbitTernop ADR cond set0 r15 rd modimm
+val / ['/cond 001 0 1 0 0 0 1111 /rd /modimm'] = unbitTernop ADR cond set1 r15 rd modimm
 ###  - ADR (Encoding A2)
 val / ['/cond 001 0 0 1 0 0 1111 /rd /modimm'] = unbitTernop ADR cond set0 r15 rd modimm
 

@@ -134,7 +134,7 @@ in
   case insn.insn of
       ADC x: conditional sem-adc x
     | ADD x: conditional sem-add x
-    # | ADR x: conditional sem-adr x
+    | ADR x: conditional sem-adr x
     | AND x: conditional sem-and x
     | BIC x: conditional sem-bic x
     | CMN x: conditional sem-cmn x
@@ -843,6 +843,21 @@ val sem-add x = do
     alu-write-pc rd
   end else
     emit-add-adc-flags 32 rd rn opnd2 x.o
+end
+
+val sem-adr x = do
+    rn <- rval x.opnd1;
+    rd <- rval x.opnd2;
+    opnd2 <- lval x.opnd3;
+
+    if x.o then do
+        add 32 rd rn opnd2
+    end else
+        sub 32 rd rn opnd2
+    end
+
+    if is-sem-pc? rd then do
+        alu-write-pc rd
 end
 
 val sem-and x = do
