@@ -857,7 +857,8 @@ val sem-adr x = do
 
     if is-sem-pc? rd then do
         alu-write-pc rd
-    end
+    end else
+        return void
 end
 
 val sem-and x = do
