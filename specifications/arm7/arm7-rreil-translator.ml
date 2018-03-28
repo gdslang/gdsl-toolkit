@@ -853,11 +853,10 @@ val sem-adr x = do
     if x.o then do
         add 32 rd rn opnd2
     end else
-        sub 32 rd rn opnd2
-    end
+        sub 32 rd rn opnd2;
 
     if is-sem-pc? rd then do
-        alu-write-pc rd
+        alu-write-pc rd;
 end
 
 val sem-and x = do
