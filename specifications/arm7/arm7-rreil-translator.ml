@@ -267,7 +267,7 @@ in
     # | MSR x: conditional sem-msr x
     # | CPS x: conditional sem-cps x
     | LDR x: conditional sem-ldr x
-    # | LDRT x: conditional sem-ldrt x
+    | LDRT x: conditional sem-ldrt x
     | LDRB x: conditional sem-ldrb x
     # | LDRBT x: conditional sem-ldrbt x
     # | LDRH x: conditional sem-ldrh x
@@ -1129,6 +1129,21 @@ val sem-ldr x = do
     load 32 rt 32 offset_addr
   else
     load 32 rt 32 (var rn)
+end
+
+val sem-ldrt x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2
+
+    cwrite 32 rn offset_addr instr-set-arm?;
+
+    if instr-set-arm? then
+        load 32 rt 32 (var rn)
+    else
+        load 32 rt 32 offset_addr 
 end
 
 val sem-ldrb x = do
