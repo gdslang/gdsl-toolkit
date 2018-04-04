@@ -272,10 +272,10 @@ in
     | LDRBT x: conditional sem-ldrbt x
     | LDRH x: conditional sem-ldrh x
     | LDRHT x: conditional sem-ldrht x
-    # | LDRSB x: conditional sem-ldrsb x
-    # | LDRSBT x: conditional sem-ldrsbt x
-    # | LDRSH x: conditional sem-ldrsh x
-    # | LDRSHT x: conditional sem-ldrsht x
+    | LDRSB x: conditional sem-ldrsb x
+    | LDRSBT x: conditional sem-ldrsbt x
+    | LDRSH x: conditional sem-ldrsh x
+    | LDRSHT x: conditional sem-ldrsht x
     # | LDRD x: conditional sem-ldrd x
     # | LDREX x: conditional sem-ldrex x
     # | LDREXB x: conditional sem-ldrexb x
@@ -1221,6 +1221,83 @@ val sem-ldrht x = do
     end;
 
     movzx 32 rt 16 (var halfword)
+end
+
+val sem-ldrsb x = do
+  rt <- lval x.opnd2;
+  rn <- lval x.opnd1;
+  offset <- rval x.opnd3;
+
+  offset_addr <- combine-vars (var rn) offset x.o2;
+
+  wback <- return (x.o3 or (not x.o1));
+  cwrite 32 rn offset_addr wback;
+
+  byte <- mktemp;
+
+  if x.o1 then
+    load 8 byte 32 offset_addr
+  else
+    load 8 byte 32 (var rn)
+  ;
+
+  movsx 32 rt 8 (var byte)
+end
+
+val sem-ldrsbt x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    byte <- mktemp;
+
+    _if (instr-set-arm?) _then do
+        cwrite 32 rn offset_addr '1';
+        load 8 rt 32 (var rn)
+    end _else do
+        load 8 rt 32 offset_addr 
+    end;
+
+    movsx 32 rt 8 (var byte)
+end
+
+val sem-ldrsh x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    halfword <- mktemp;
+
+    if x.o1 then
+        load 16 halfword 32 offset_addr
+    else
+        load 16 halfword 32 (var rn)
+    ;
+
+    movsx 32 rt 16 (var halfword)
+end
+
+val sem-ldrsht x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    halfword <- mktemp;
+
+    _if (instr-set-arm?) _then do
+        cwrite 32 rn offset_addr '1';
+        load 16 rt 32 (var rn)
+    end _else do
+        load 16 rt 32 offset_addr 
+    end;
+
+    movsx 32 rt 16 (var halfword)
 end
 
 val sem-stm x = do
