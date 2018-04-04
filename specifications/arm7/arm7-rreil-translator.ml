@@ -269,8 +269,8 @@ in
     | LDR x: conditional sem-ldr x
     | LDRT x: conditional sem-ldrt x
     | LDRB x: conditional sem-ldrb x
-    # | LDRBT x: conditional sem-ldrbt x
-    # | LDRH x: conditional sem-ldrh x
+    | LDRBT x: conditional sem-ldrbt x
+    | LDRH x: conditional sem-ldrh x
     # | LDRHT x: conditional sem-ldrht x
     # | LDRSB x: conditional sem-ldrsb x
     # | LDRSBT x: conditional sem-ldrsbt x
@@ -1184,6 +1184,24 @@ val sem-ldrbt x = do
     end;
 
     movzx 32 rt 8 (var byte)
+end
+
+val sem-ldrh x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    halfword <- mktemp;
+
+    if x.o1 then
+        load 16 halfword 32 offset_addr
+    else
+        load 16 halfword 32 (var rn)
+    ;
+
+    movzx 32 rt 16 (var halfword)
 end
 
 val sem-stm x = do
