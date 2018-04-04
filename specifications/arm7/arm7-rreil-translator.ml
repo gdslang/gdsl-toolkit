@@ -1179,7 +1179,7 @@ val sem-ldrbt x = do
         load 8 rt 32 (var rn)
     end _else do
         load 8 rt 32 offset_addr 
-    end
+    end;
 
     movzx 32 rt 8 (var byte)
 end
