@@ -1136,7 +1136,7 @@ val sem-ldrt x = do
     rn <- lval x.opnd1;
     offset <- rval x.opnd3;
 
-    offset_addr <- combine-vars (var rn) offset x.o2
+    offset_addr <- combine-vars (var rn) offset x.o2;
 
     cwrite 32 rn offset_addr instr-set-arm?;
 
