@@ -1167,6 +1167,23 @@ val sem-ldrb x = do
   movzx 32 rt 8 (var byte)
 end
 
+val sem-ldrbt x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    _if (instr-set-arm?) _then do
+        cwrite 32 rn offset_addr '1';
+        load 8 rt 32 (var rn)
+    end _else do
+        load 8 rt 32 offset_addr 
+    end
+
+    movzx 32 rt 8 (var byte)
+end
+
 val sem-stm x = do
   rn <- lval x.opnd1;
   store-operands 32 x.opnd2 32 rn;
