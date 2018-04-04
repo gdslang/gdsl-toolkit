@@ -1174,6 +1174,8 @@ val sem-ldrbt x = do
 
     offset_addr <- combine-vars (var rn) offset x.o2;
 
+    byte <- mktemp;
+
     _if (instr-set-arm?) _then do
         cwrite 32 rn offset_addr '1';
         load 8 rt 32 (var rn)
