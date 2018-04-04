@@ -1138,7 +1138,7 @@ val sem-ldrt x = do
 
     offset_addr <- combine-vars (var rn) offset x.o2;
 
-    _if (instr-set-arm?) _then
+    _if (instr-set-arm?) _then do
         cwrite 32 rn offset_addr 1;
         load 32 rt 32 (var rn)
     end _else do
