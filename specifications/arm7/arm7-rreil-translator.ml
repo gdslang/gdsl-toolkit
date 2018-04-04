@@ -1142,7 +1142,6 @@ val sem-ldrt x = do
         cwrite 32 rn offset_addr '1';
         load 32 rt 32 (var rn)
     end _else do
-        cwrite 32 rn offset_addr '0';
         load 32 rt 32 offset_addr 
     end       
 end
