@@ -1370,7 +1370,7 @@ val sem-strbt x = do
 
     offset_addr <- combine-vars (var rn) offset x.o2;
 
-    if (instr-set-arm?) _then do
+    _if (instr-set-arm?) _then do
         store 8 (address 32 (var rn)) rt;
         cwrite 32 rn offset_addr '1'
     end _else do
@@ -1398,7 +1398,7 @@ val sem-strht x = do
 
     offset_addr <- combine-vars (var rn) offset x.o2;
 
-    if (instr-set-arm?) _then do
+    _if (instr-set-arm?) _then do
         store 16 (address 32 (var rn)) rt;
         cwrite 32 rn offset_addr '1'
     end _else do
