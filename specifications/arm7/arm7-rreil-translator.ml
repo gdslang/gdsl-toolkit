@@ -282,12 +282,12 @@ in
     # | LDREXD x: conditional sem-ldrexd x
     # | LDREXH x: conditional sem-ldrexh x
     | STR x: conditional sem-str x
-    # | STRT x: conditional sem strt x
+    | STRT x: conditional sem strt x
     | STRB x: conditional sem-strb x
     # | STRBT x: conditional sem-strbt x
-    # | STRD x: conditional sem-strd x
     # | STRH x: conditional sem-strh x
     # | STRHT x: conditional sem-strht x
+    # | STRD x: conditional sem-strd x
     # | STREX x: conditional sem-strex x
     # | STREXB x: conditional sem-strexb x
     # | STREXD x: conditional sem-strexd x
@@ -1323,6 +1323,21 @@ val sem-str x = do
 
   wback <- return (x.o3 or (not x.o1));
   cwrite 32 rn offset_addr wback
+end
+
+val sem-strt x = do
+  rt <- rval x.opnd2;
+  rn <- lval x.opnd1;
+  offset <- rval x.opnd3;
+
+  offset_addr <- combine-vars (var rn) offset x.o2;
+
+  _if (instr-set-arm?) _then do
+        store 32 (address 32 (var rn)) rt;
+        cwrite 32 rn offset_addr '1'
+    end _else do
+        store 32 (address 32 offset_addr) rt;
+    end;
 end
 
 val sem-strb x = do
