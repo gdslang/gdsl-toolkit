@@ -293,7 +293,7 @@ in
     # | STREXD x: conditional sem-strexd x
     | LDM x: conditional sem-ldm x
     | LDMDA x: conditional sem-ldmda x
-    # | LDMDB x: conditional sem-ldmdb x
+    | LDMDB x: conditional sem-ldmdb x
     # | LDMIB x: conditional sem-ldmib x
     | POP x: conditional sem-ldm x
     | STM x: conditional sem-stm x
@@ -1118,7 +1118,27 @@ val sem-ldmda x = do
   load-operands 32 x.opnd2 32 rn;
 
   if x.o then
-    sub 32 rn (lin-sum (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm (4))) (imm (4 * num-opnds x.opnd2))
+    sub 32 rn (lin-sum (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm 4)) (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-ldmdb x = do
+  rn <- lval x.opnd1;
+  load-operands 32 x.opnd2 32 rn;
+
+  if x.o then
+    sub 32 rn (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-ldmib x = do
+  rn <- lval x.opnd1;
+  load-operands 32 x.opnd2 32 rn;
+
+  if x.o then
+    add 32 rn (lin-sum (var rn) (imm 4)) (imm (4 * num-opnds x.opnd2))
   else
     return void
 end
