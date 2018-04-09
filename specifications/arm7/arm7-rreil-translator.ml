@@ -1373,7 +1373,7 @@ val sem-stmib x = do
   op <- return (if is-sem-sp? rn then sub else add);
 
   if x.o then
-    op 32 rn (lin-sum (var rn) (imm4)) (imm (4 * num-opnds x.opnd2))
+    op 32 rn (lin-sum (var rn) (imm 4)) (imm (4 * num-opnds x.opnd2))
   else
     return void
 end
