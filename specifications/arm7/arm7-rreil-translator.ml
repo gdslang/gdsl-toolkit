@@ -282,7 +282,7 @@ in
     # | LDREXD x: conditional sem-ldrexd x
     # | LDREXH x: conditional sem-ldrexh x
     | STR x: conditional sem-str x
-    | STRT x: conditional sem strt x
+    | STRT x: conditional sem-strt x
     | STRB x: conditional sem-strb x
     # | STRBT x: conditional sem-strbt x
     # | STRH x: conditional sem-strh x
