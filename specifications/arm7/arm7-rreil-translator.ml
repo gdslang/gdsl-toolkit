@@ -284,9 +284,9 @@ in
     | STR x: conditional sem-str x
     | STRT x: conditional sem-strt x
     | STRB x: conditional sem-strb x
-    # | STRBT x: conditional sem-strbt x
-    # | STRH x: conditional sem-strh x
-    # | STRHT x: conditional sem-strht x
+    | STRBT x: conditional sem-strbt x
+    | STRH x: conditional sem-strh x
+    | STRHT x: conditional sem-strht x
     # | STRD x: conditional sem-strd x
     # | STREX x: conditional sem-strex x
     # | STREXB x: conditional sem-strexb x
@@ -331,7 +331,7 @@ in
     # | ERET x: conditional sem-eret x
     # | LDMerur x: conditional sem-ldmerur x
     # | SRS x: conditional sem-srs x
-    # | CDP x: conditional sem cdp x
+    # | CDP x: conditional sem-cdp x
     # | CDP2 x: conditional sem-cdp2 x
     # | MCR x: conditional sem-mcr x
     # | MCR2 x: conditional sem-mcr2 x
@@ -354,7 +354,7 @@ in
     # | VLD1 x: conditional sem-vld1 x
     # | VLD1a x: conditional sem-vld1a x
     # | VLD2 x: conditional sem-vld2 x
-    # | VLD2a x: conditional sem vld2a x
+    # | VLD2a x: conditional sem-vld2a x
     # | VLD3 x: conditional sem-vld3 x
     # | VLD3a x: conditional sem-vld3a x
     # | VLD4 x: conditonal sem-vld4 x
@@ -365,7 +365,7 @@ in
     # | VST4 x: conditional sem-vst4 x
     # | VDUP x: consitional sem-vdup x
     # | VMOVacs x: conditional sem-vmovacs x
-    # | VMOVsac x: conditional sem-vmocsac x
+    # | VMOVsac x: conditional sem-vmovsac x
     # | VMOVacsp x: conditional sem-vmovacsp x
     # | VMOVspac x: conditional sem-vmovspac x
     # | VMOVacsp2 x: conditional sem-vmovacsp2 x
@@ -382,7 +382,7 @@ in
     # | VHADD x: conditional sem-vhadd x
     # | VHSUB x: conditional sem-vhsub x
     # | VPADAL x: conditional sem-vpadal x
-    # | VPADDi x: conditional sem vpaddi x
+    # | VPADDi x: conditional sem-vpaddi x
     # | VPADDfp x: conditional sem-vpaddfp x
     # | VPADDL x: conditional sem-vpaddl x
     # | VRADDHN x: conditional sem-vraddhn x
@@ -1333,8 +1333,8 @@ val sem-strt x = do
     offset_addr <- combine-vars (var rn) offset x.o2;
 
     _if (instr-set-arm?) _then do
-        cwrite 32 rn offset_addr '1';
-        store 32 (address 32 (var rn)) rt
+        store 32 (address 32 (var rn)) rt;
+        cwrite 32 rn offset_addr '1'
     end _else do
         store 32 (address 32 offset_addr) rt
     end
@@ -1351,6 +1351,49 @@ val sem-strb x = do
 
   wback <- return (x.o3 or (not x.o1));
   cwrite 32 rn offset_addr wback
+end
+
+val sem-strbt x = do
+    rt <- rval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    if (instr-set-arm?) _then do
+        store 8 (address 32 (var rn)) rt;
+        cwrite 32 rn offset_addr '1'
+    end _else do
+        store 8 (address 32 offset_addr) rt
+    end
+end
+
+val sem-strh x = do
+    rt <- rval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    str 16 rt 32 offset_addr (var rn) x.o1;
+
+    wback <- return (x.o3 or (not x.o1));
+    cwrite 32 rn offset_addr wback
+end
+
+val sem-strht x = do
+    rt <- rval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    if (instr-set-arm?) _then do
+        store 16 (address 32 (var rn)) rt;
+        cwrite 32 rn offset_addr '1'
+    end _else do
+        store 16 (address 32 offset_addr) rt
+    end
 end
 
 val sem-svc x = prim-generic "SUPERVISOR CALL" varls-none varls-none
