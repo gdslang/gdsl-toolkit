@@ -2783,43 +2783,21 @@ val / ['/cond 100 0 1 0 /W 1 /rn /reglst']
 ###  - Load Multiple
   | otherwise = unbitBinop LDM cond (return '1') rn reglst
 
-(*Included in LDM*)
-(*TODO: adapt LDM to return included subversions correctly*)
-### LDMIA
-### LDMFD
-
 ### LDMDA
 ###  - Load Multiple Decrement After
 val / ['/cond 100 0 0 0 /W 1 /rn /reglst'] = unbitBinop LDMDA cond w rn reglst
-
-(*Included in LDMDA*)
-(*TODO: adapt LDMDA to return included subversion correctly*)
-### LDMFA
 
 ### LDMDB
 ###  - Load Multiple Decrement Before
 val / ['/cond 100 1 0 0 /W 1 /rn /reglst'] = unbitBinop LDMDB cond w rn reglst
 
-(*Included in LDMDB*)
-(*TODO: adapt LDMDB to return included subversion correctly*)
-### LDMEA
-
 ### LDMIB
 ###  - Load Multiple Increment Before
 val / ['/cond 100 1 1 0 /W 1 /rn /reglst'] = unbitBinop LDMIB cond w rn reglst
 
-(*Included in LDMIB*)
-(*TODO: adapt LDMIB to return included subversion correctly*)
-### LDMED
-
 ### STM
 ###  - Store Multiple
 val / ['/cond 100 0 1 0 /W 0 /rn /reglst'] = unbitBinop STM cond w rn reglst
-
-(*Included in STM*)
-(*TODO: adapt STM to return included subversions correctly*)
-### STMIA
-### STMEA
 
 val stmdb-is-push? s = (is-sp? s.rn) and s.w and (opndl-length s.operands) > 1
 
@@ -2830,25 +2808,13 @@ val / ['/cond 100 1 0 0 /W 0 /rn /reglst']
 ###  - Store Multiple Decrement Before
   | otherwise = unbitBinop STMDB cond w rn reglst
 
-(*Included in STMDB*)
-(*TODO: adapt STMDB to return included subversion correctly*)
-### STMFD
-
 ### STMDA
 ###  - Store Multiple Decrement After
 val / ['/cond 100 0 0 0 /W 0 /rn /reglst'] = unbitBinop STMDA cond w rn reglst
 
-(*Included in STMDA*)
-(*TODO: adapt STMDA to return included subversion correctly*)
-### STMED
-
 ### STMIB
 ###  - Store Multiple Increment Before
 val / ['/cond 100 1 1 0 /W 0 /rn /reglst'] = unbitBinop STMIB cond w rn reglst
-
-(*Included in STMIB*)
-(*TODO: adapt STMIB to return included subversion correctly*)
-### STMFA
 
 # --- Miscellaneous instructions ---------------------------------------
 
@@ -2952,7 +2918,6 @@ val / ['/cond 000 1 0 1 0 0 /imm12 0111 /imm4'] = unop HVC cond combine-imm16-re
 ###  - Exception Return
 val / ['/cond 000 1 0 1 1 0 000000000000 0110 1110'] = nullop ERET cond
 
-(*TODO: adjust to represent subversions as fullversions*)
 ### LDM
 ###  - Load Multiple (Exception Return)
 val / ['/cond 100 /P /U 1 /W 1 /rn 1 /reglst15'] = ternbitBinop LDMerur cond p u w rn reglst

@@ -104,6 +104,7 @@ val at-offset v o = @{offset=o} v
 val var x = SEM_LIN_VAR x
 val varl sz x = @{size=sz}x
 val lin-sum x y = SEM_LIN_ADD {opnd1=x, opnd2=y}
+val lin-dif x y = SEM_LIN_SUB {opnd1=x, opnd2=y}
 val address sz addr = {size=sz, address=addr}
 
 val varl-from-var sz v = @{size=sz}v
