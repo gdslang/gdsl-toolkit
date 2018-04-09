@@ -1118,7 +1118,7 @@ val sem-ldmda x = do
   load-operands 32 x.opnd2 32 rn;
 
   if x.o then
-    sub 32 rn (lin-sum (lin-dif rn (imm (4 * num-opnds x.opnd2))) (imm (4))) (imm (4 * num-opnds x.opnd2))
+    sub 32 rn (lin-sum (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm (4))) (imm (4 * num-opnds x.opnd2))
   else
     return void
 end
