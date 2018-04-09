@@ -294,12 +294,12 @@ in
     | LDM x: conditional sem-ldm x
     | LDMDA x: conditional sem-ldmda x
     | LDMDB x: conditional sem-ldmdb x
-    # | LDMIB x: conditional sem-ldmib x
+    | LDMIB x: conditional sem-ldmib x
     | POP x: conditional sem-ldm x
     | STM x: conditional sem-stm x
-    # | STMDA x: conditional sem-stmda x
-    # | STMDB x: conditional sem-stmdb x
-    # | STMIB x: conditional sem-stmib x
+    | STMDA x: conditional sem-stmda x
+    | STMDB x: conditional sem-stmdb x
+    | STMIB x: conditional sem-stmib x
     | PUSH x: conditional sem-stm x
     | B x: conditional sem-b x
     | BL x: conditional sem-bl x
@@ -1338,6 +1338,42 @@ val sem-stm x = do
 
   if x.o then
     op 32 rn (var rn) (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-stmda x = do
+  rn <- lval x.opnd1;
+  store-operands 32 x.opnd2 32 rn;
+
+  op <- return (if is-sem-sp? rn then sub else add);
+
+  if x.o then
+    op 32 rn (lin-sum (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm 4))  (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-stmdb x = do
+  rn <- lval x.opnd1;
+  store-operands 32 x.opnd2 32 rn;
+
+  op <- return (if is-sem-sp? rn then sub else add);
+
+  if x.o then
+    op 32 rn (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-stmib x = do
+  rn <- lval x.opnd1;
+  store-operands 32 x.opnd2 32 rn;
+
+  op <- return (if is-sem-sp? rn then sub else add);
+
+  if x.o then
+    op 32 rn (lin-sum (var rn) (imm4)) (imm (4 * num-opnds x.opnd2))
   else
     return void
 end
