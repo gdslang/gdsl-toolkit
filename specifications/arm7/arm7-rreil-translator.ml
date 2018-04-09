@@ -1333,10 +1333,10 @@ val sem-strt x = do
     offset_addr <- combine-vars (var rn) offset x.o2;
 
     _if (instr-set-arm?) _then do
-        store 32 (address 32 (var rn)) rt;
-        cwrite 32 rn offset_addr '1'
+        cwrite 32 rn offset_addr '1';
+        store 32 (address 32 (var rn)) rt
     end _else do
-        store 32 (address 32 offset_addr) rt;
+        store 32 (address 32 offset_addr) rt
     end
 end
 
