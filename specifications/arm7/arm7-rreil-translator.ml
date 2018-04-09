@@ -1326,18 +1326,18 @@ val sem-str x = do
 end
 
 val sem-strt x = do
-  rt <- rval x.opnd2;
-  rn <- lval x.opnd1;
-  offset <- rval x.opnd3;
+    rt <- rval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
 
-  offset_addr <- combine-vars (var rn) offset x.o2;
+    offset_addr <- combine-vars (var rn) offset x.o2;
 
-  _if (instr-set-arm?) _then do
+    _if (instr-set-arm?) _then do
         store 32 (address 32 (var rn)) rt;
         cwrite 32 rn offset_addr '1'
     end _else do
         store 32 (address 32 offset_addr) rt;
-    end;
+    end
 end
 
 val sem-strb x = do
