@@ -37,15 +37,6 @@ type signedness =
     Signed
   | Unsigned
 
-type fpvtype =
-    Doubleprecision
-  | Singleprecision
-  | Halfprecision
-
-type asimdvtype =
-    Quadword
-  | Doubleword
-
 val lval x =
   case x of
       REGISTER r: return (semantic-register-of r)
@@ -780,6 +771,13 @@ val store-operands opndsz opndlist addrsz target_addr = let
 in
   store-operand opndlist target_addr 0
 end
+
+# --- vector helper functions / type definitions -----------------------
+
+type vector-width =
+      Single
+    | Double
+    | Quad
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
