@@ -323,7 +323,7 @@ in
     # | WFI x: conditional sem-wfi x
     # | YIELD x: conditional sem-yield x
     | SVC x: conditional sem-svc x
-    # | BKPT x: conditional sem-bkpt x
+    | BKPT x: conditional sem-bkpt x
     # | SMC x: conditional sem-smc x
     # | RFE x: conditional sem-rfe x
     # | SUBS x: conditional sem-subs x
@@ -1463,6 +1463,12 @@ val sem-strht x = do
 end
 
 val sem-svc x = prim-generic "SUPERVISOR CALL" varls-none varls-none
+
+### We ignore the immediate according to [A8.8.24]
+val sem-bkpt x = case x.cond of
+          AL : prim-generic "BREAKPOINT" varls-none varls-none
+        | _  : return void
+end
 
 val sem-default insn ip =
   prim-generic ("TRANSLATOR MISSING:\\t" +++ show/instruction insn ip) varls-none varls-none
