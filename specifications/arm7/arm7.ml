@@ -1447,7 +1447,7 @@ val /imm12 ['imm12:12'] = update@{imm12=imm12}
 
 val imm12 = do
   imm12 <- query $imm12;
-  return (immediate (IMM12 (imm12)))
+  return (immediate (IMM12 imm12))
 end
 
 val /imm24 ['a:8 b:8 c:8'] = update@{imm24=(a^b^c)}
@@ -1479,42 +1479,42 @@ val /imm3_124 ['imm3@100'] = update@{imm3=imm3}
 
 val imm3 = do
   imm3 <- query $imm3;
-  return (immediate (IMM3 (imm3)))
+  return (immediate (IMM3 imm3))
 end
 
 val /imm4 ['imm4:4'] = update@{imm4=imm4}
 
 val imm4 = do
   imm4 <- query $imm4;
-  return (immediate (IMM4 (imm4)))
+  return (immediate (IMM4 imm4))
 end
 
 val /imm5 ['imm5:5'] = update@{imm5=imm5}
 
 val imm5 = do
   imm5 <- query $imm5;
-  return (immediate (IMM5 (imm5)))
+  return (immediate (IMM5 imm5))
 end
 
 val /imm8 ['imm8:8'] = update@{imm8=imm8}
 
 val imm8 = do
   imm8 <- query $imm8;
-  return (immediate (IMM8 (imm8)))
+  return (immediate (IMM8 imm8))
 end
 
 # concats the 4 bit and 12 bit immediates that were decoded most recently
 val combine-imm16 = do
   imm4 <- query $imm4;
   imm12 <- query $imm12;
-  return (opnd-from-int (zx (imm4^imm12)))
+  return (immediate (IMM16 (imm4^imm12)))
 end
 
 # concats the 12 bit and 4 bit immediates that were decoded most recently
 val combine-imm16-rev = do
   imm12 <- query $imm12;
   imm4 <- query $imm4;
-  return (opnd-from-int (zx (imm12^imm4)))
+  return (immediate (IMM16 (imm12^imm4)))
 end
 
 # modified 12 bit immediate (8 bit immediate with rotation)
@@ -1616,14 +1616,14 @@ end
 val combine-imm5 = do
   imm4 <- query $imm4;
   i <- query $i;
-  return (opnd-from-int (zx (imm4^i)))
+  return (immediate (IMM5 (imm4^i)))
 end
 
 val combine-imm8-2 = do
   i <- query $i;
   imm3 <- query $imm3;
   imm4 <- query $imm4;
-  return (opnd-from-int (zx (imm4^i)))
+  return (immediate (IMM8 (i^imm3^imm4)))
 end
 
 # length
@@ -1631,7 +1631,7 @@ val /len ['len:2'] = update@{len=len}
 
 val len = do
   len <- query $len;
-  return (immediate (IMM2 (len)))
+  return (immediate (IMM2 len))
 end
 
 # align
@@ -1639,7 +1639,7 @@ val /aligna ['aligna:2'] = update@{aligna=aligna}
 
 val aligna = do
   aligna <- query $aligna;
-  return (immediate (IMM2 (aligna)))
+  return (immediate (IMM2 aligna))
 end
 
 # opc12
@@ -1647,7 +1647,7 @@ val /opc12 ['opc12:2'] = update@{opc12=opc12}
 
 val opc12 = do
   opc12 <- query $opc12;
-  return (immediate (IMM2 (opc12)))
+  return (immediate (IMM2 opc12))
 end
 
 # opc22
@@ -1655,7 +1655,7 @@ val /opc22 ['opc22:2'] = update@{opc22=opc22}
 
 val opc22 = do
   opc22 <- query $opc22;
-  return (immediate (IMM2 (opc22)))
+  return (immediate (IMM2 opc22))
 end
 
 # combine-opc2
@@ -1670,7 +1670,7 @@ val combine-u-opc2 = do
   u <- query $u;
   opc12 <- query $opc12;
   opc22 <- query $opc22;
-  return (opnd-from-int (zx (u^opc12^opc22)))
+  return (immediate (IMM5 (u^opc12^opc22)))
 end
 
 # opc13
@@ -1678,7 +1678,7 @@ val /opc13 ['opc13:3'] = update@{opc13=opc13}
 
 val opc13 = do
   opc13 <- query $opc13;
-  return (immediate (IMM3 (opc13)))
+  return (immediate (IMM3 opc13))
 end
 
 # opc23
@@ -1686,7 +1686,7 @@ val /opc23 ['opc23:3'] = update@{opc23=opc23}
 
 val opc23 = do
   opc23 <- query $opc23;
-  return (immediate (IMM3 (opc23)))
+  return (immediate (IMM3 opc23))
 end
 
 # opc14
@@ -1694,7 +1694,7 @@ val /opc14 ['opc14:4'] = update@{opc14=opc14}
 
 val opc14 = do
   opc14 <- query $opc14;
-  return (immediate (IMM4 (opc14)))
+  return (immediate (IMM4 opc14))
 end
 
 # opc24
@@ -1702,7 +1702,7 @@ val /opc24 ['opc24:4'] = update@{opc24=opc24}
 
 val opc24 = do
   opc24 <- query $opc24;
-  return (immediate (IMM4 (opc24)))
+  return (immediate (IMM4 opc24))
 end
 
 # crd
@@ -1710,7 +1710,7 @@ val /crd ['crd:4'] = update@{crd=crd}
 
 val crd = do
   crd <- query $crd;
-  return (immediate (IMM4 (crd)))
+  return (immediate (IMM4 crd))
 end
 
 # crn
@@ -1718,7 +1718,7 @@ val /crn ['crn:4'] = update@{crn=crn}
 
 val crn = do
   crn <- query $crn;
-  return (immediate (IMM4 (crn)))
+  return (immediate (IMM4 crn))
 end
 
 # crm
@@ -1726,7 +1726,7 @@ val /crm ['crm:4'] = update@{crm=crm}
 
 val crm = do
   crm <- query $crm;
-  return (immediate (IMM4 (crm)))
+  return (immediate (IMM4 crm))
 end
 
 # coproc (cannot be 1010 or 1011)
@@ -1736,7 +1736,7 @@ val /coproc ['coproc@100.'] = update@{coproc=coproc}
 
 val coproc = do
   coproc <- query $coproc;
-  return (immediate (IMM4 (coproc)))
+  return (immediate (IMM4 coproc))
 end
 
 # index_align
@@ -1744,7 +1744,7 @@ val /index_align ['index_align:4'] = update@{index_align=index_align}
 
 val index_align = do
   index_align <- query $index_align;
-  return (immediate (IMM4 (index_align)))
+  return (immediate (IMM4 index_align))
 end
 
 # most significant bit
@@ -1752,7 +1752,7 @@ val /msbit ['msbit:5'] = update@{msbit=msbit}
 
 val msbit = do
   msbit <- query $msbit;
-  return (immediate (IMM5 (msbit)))
+  return (immediate (IMM5 msbit))
 end
 
 # least significant bit
@@ -1760,7 +1760,7 @@ val /lsbit ['lsbit:5'] = update@{lsbit=lsbit}
 
 val lsbit = do
   lsbit <- query $lsbit;
-  return (immediate (IMM5 (lsbit)))
+  return (immediate (IMM5 lsbit))
 end
 
 # imm5 representing width
@@ -1768,7 +1768,7 @@ val /widthm1 ['widthm1:5'] = update@{widthm1=widthm1}
 
 val widthm1 = do
   widthm1 <- query $widthm1;
-  return (immediate (IMM5 (widthm1)))
+  return (immediate (IMM5 widthm1))
 end
 
 # --- shifted operand decoders -----------------------------------------
