@@ -784,7 +784,10 @@ type ext-register-width =
 val decode-ext-register size x = case size of
       Single : single-ext-register-of-int (zx (x.remainder^x.first))
     | Double : double-ext-register-of-int (zx (x.first^x.remainder))
-    | Quad   : quad-ext-register-of-int ((zx (x.first^x.remainder)) / 2)
+    | Quad   : do
+        number <- zx (x.first^x.remainder);
+        quad-ext-register-of-int (number / 2)
+    end
 end
 
 val single-ext-register-of-int number = case number of
