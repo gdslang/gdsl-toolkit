@@ -902,13 +902,14 @@ type scalar-length =
     | Doubleword
 
 val semantic-scalar esize index size x =
-    let base = semantic-ext-register-of (decode-ext-register size x)
+    let val base = semantic-ext-register-of (decode-ext-register size x)
     in case esize of
           Byte       : {id=base.id, offset=(base.offset + 8 * index), size=8}
         | Halfword   : {id=base.id, offset=(base.offset + 16 * index), size=16}
         | Word       : {id=base.id, offset=(base.offset + 32 * index), size=32}
         | Doubleword : {id=base.id, offset=(base.offset + 64 * index), size=64}
     end
+end
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
