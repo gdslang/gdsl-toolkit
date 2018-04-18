@@ -784,10 +784,7 @@ type ext-register-width =
 val decode-ext-register size x = case size of
       Single : single-ext-register-of-int (zx (x.remainder^x.first))
     | Double : double-ext-register-of-int (zx (x.first^x.remainder))
-    | Quad   : do
-        number <- return (zx (x.first^x.remainder));
-        quad-ext-register-of-int (number / 2)
-    end
+    | Quad   : doquad-ext-register-of-int (zx (x.first^x.remainder))
 end
 
 val single-ext-register-of-int number = case number of
@@ -862,21 +859,38 @@ end
 
 val quad-ext-register-of-int number = case number of
       0  : Q0
-    | 1  : Q1
-    | 2  : Q2
-    | 3  : Q3
-    | 4  : Q4
-    | 5  : Q5
-    | 6  : Q6
-    | 7  : Q7
-    | 8  : Q8
-    | 9  : Q9
-    | 10 : Q10
-    | 11 : Q11
-    | 12 : Q12
-    | 13 : Q13
-    | 14 : Q14
-    | 15 : Q15
+    | 1  : Q0
+    | 2  : Q1
+    | 3  : Q1
+    | 4  : Q2
+    | 5  : Q2
+    | 6  : Q3
+    | 7  : Q3
+    | 8  : Q4
+    | 9  : Q4
+    | 10 : Q5
+    | 11 : Q5
+    | 12 : Q6
+    | 13 : Q6
+    | 14 : Q7
+    | 15 : Q7
+    | 16 : Q8
+    | 17 : Q8
+    | 18 : Q9
+    | 19 : Q9
+    | 20 : Q10
+    | 21 : Q10
+    | 22 : Q11
+    | 23 : Q11
+    | 24 : Q12
+    | 25 : Q12
+    | 26 : Q13
+    | 27 : Q13
+    | 28 : Q14
+    | 29 : Q14
+    | 30 : Q15
+    | 31 : Q15
+
 end
 
 # --- scalar helper functions / type definitions -----------------------
