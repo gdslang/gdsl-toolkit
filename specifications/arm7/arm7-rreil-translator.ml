@@ -785,7 +785,7 @@ val decode-ext-register size x = case size of
       Single : single-ext-register-of-int (zx (x.remainder^x.first))
     | Double : double-ext-register-of-int (zx (x.first^x.remainder))
     | Quad   : do
-        number <- zx (x.first^x.remainder);
+        number <- return (zx (x.first^x.remainder));
         quad-ext-register-of-int (number / 2)
     end
 end
