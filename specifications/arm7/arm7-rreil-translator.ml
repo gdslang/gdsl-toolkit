@@ -774,10 +774,131 @@ end
 
 # --- vector helper functions / type definitions -----------------------
 
-type vector-width =
+### [A7.2.4]
+type ext-register-width =
       Single
     | Double
     | Quad
+
+### [A7.3]
+val decode-ext-register size x = case size of
+      Single : single-ext-register-of-int (zx (v.remainder^v.first))
+    | Double : double-ext-register-of-int (zx (v.first^v.remainder))
+    | Quad   : quad-ext-register-of-int ((zx (v.first^v.remainder)) / 2)
+end
+
+val single-ext-register-of-int number = case number of
+      0  : S0
+    | 1  : S1
+    | 2  : S2
+    | 3  : S3
+    | 4  : S4
+    | 5  : S5
+    | 6  : S6
+    | 7  : S7
+    | 8  : S8
+    | 9  : S9
+    | 10 : S10
+    | 11 : S11
+    | 12 : S12
+    | 13 : S13
+    | 14 : S14
+    | 15 : S15
+    | 16 : S16
+    | 17 : S17
+    | 18 : S18
+    | 19 : S19
+    | 20 : S20
+    | 21 : S21
+    | 22 : S22
+    | 23 : S23
+    | 24 : S24
+    | 25 : S25
+    | 26 : S26
+    | 27 : S27
+    | 28 : S28
+    | 29 : S29
+    | 30 : S30
+    | 31 : S31
+
+val double-ext-register-of-int number = case number of
+      0  : D0
+    | 1  : D1
+    | 2  : D2
+    | 3  : D3
+    | 4  : D4
+    | 5  : D5
+    | 6  : D6
+    | 7  : D7
+    | 8  : D8
+    | 9  : D9
+    | 10 : D10
+    | 11 : D11
+    | 12 : D12
+    | 13 : D13
+    | 14 : D14
+    | 15 : D15
+    | 16 : D16
+    | 17 : D17
+    | 18 : D18
+    | 19 : D19
+    | 20 : D20
+    | 21 : D21
+    | 22 : D22
+    | 23 : D23
+    | 24 : D24
+    | 25 : D25
+    | 26 : D26
+    | 27 : D27
+    | 28 : D28
+    | 29 : D29
+    | 30 : D30
+    | 31 : D31
+
+val quad-ext-register-of-int number = case number of
+      0  : Q0
+    | 1  : Q1
+    | 2  : Q2
+    | 3  : Q3
+    | 4  : Q4
+    | 5  : Q5
+    | 6  : Q6
+    | 7  : Q7
+    | 8  : Q8
+    | 9  : Q9
+    | 10 : Q10
+    | 11 : Q11
+    | 12 : Q12
+    | 13 : Q13
+    | 14 : Q14
+    | 15 : Q15
+
+# --- scalar helper functions / type definitions -----------------------
+
+type scalar-length =
+      Byte
+    | Halfword
+    | Word
+    | Doubleword
+
+semantic-scalar esize index size x = case esize of
+      Byte       : do
+        base <- semantic-ext-register-of (decode-ext-register size x);
+        {id=base.id, offset=(base.offset + 8 * index), size=8}
+      end
+    | Halfword   : do
+        base <- semantic-ext-register-of (decode-ext-register size x);
+        {id=base.id, offset=(base.offset + 16 * index), size=16}
+    end
+    | Word       : do
+        base <- semantic-ext-register-of (decode-ext-register size x);
+        {id=base.id, offset=(base.offset + 32 * index), size=32}
+    end
+    | Doubleword : do
+        base <- semantic-ext-register-of (decode-ext-register size x);
+        {id=base.id, offset=(base.offset + 64 * index), size=64}
+    end
+end
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
@@ -1462,10 +1583,10 @@ end
 
 val sem-svc x = prim-generic "SUPERVISOR CALL" varls-none varls-none
 
-### We ignore the immediate according to [A8.8.24]
+# We ignore the immediate according to [A8.8.24]
 val sem-bkpt x = case x.cond of
-          AL : prim-generic "BREAKPOINT" varls-none varls-none
-        | _  : return void
+      AL : prim-generic "BREAKPOINT" varls-none varls-none
+    | _  : return void
 end
 
 val sem-default insn ip =
