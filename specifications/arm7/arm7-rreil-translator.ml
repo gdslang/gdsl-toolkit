@@ -884,7 +884,7 @@ type scalar-length =
     | Word
     | Doubleword
 
-semantic-scalar esize index size x = case esize of
+val semantic-scalar esize index size x = case esize of
       Byte       : do
         base <- semantic-ext-register-of (decode-ext-register size x);
         {id=base.id, offset=(base.offset + 8 * index), size=8}
