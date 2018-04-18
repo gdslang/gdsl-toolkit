@@ -904,19 +904,19 @@ type scalar-length =
 val semantic-scalar esize index size x = case esize of
       Byte       : do
         base <- semantic-ext-register-of (decode-ext-register size x);
-        {id=base.id, offset=(base.offset + 8 * index), size=8}
+        return ({id=base.id, offset=(base.offset + 8 * index), size=8})
       end
     | Halfword   : do
         base <- semantic-ext-register-of (decode-ext-register size x);
-        {id=base.id, offset=(base.offset + 16 * index), size=16}
+        return ({id=base.id, offset=(base.offset + 16 * index), size=16})
     end
     | Word       : do
         base <- semantic-ext-register-of (decode-ext-register size x);
-        {id=base.id, offset=(base.offset + 32 * index), size=32}
+        return ({id=base.id, offset=(base.offset + 32 * index), size=32})
     end
     | Doubleword : do
         base <- semantic-ext-register-of (decode-ext-register size x);
-        {id=base.id, offset=(base.offset + 64 * index), size=64}
+        return ({id=base.id, offset=(base.offset + 64 * index), size=64})
     end
 end
 
