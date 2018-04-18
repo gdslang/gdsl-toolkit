@@ -820,6 +820,7 @@ val single-ext-register-of-int number = case number of
     | 29 : S29
     | 30 : S30
     | 31 : S31
+end
 
 val double-ext-register-of-int number = case number of
       0  : D0
@@ -854,6 +855,7 @@ val double-ext-register-of-int number = case number of
     | 29 : D29
     | 30 : D30
     | 31 : D31
+end
 
 val quad-ext-register-of-int number = case number of
       0  : Q0
@@ -872,6 +874,7 @@ val quad-ext-register-of-int number = case number of
     | 13 : Q13
     | 14 : Q14
     | 15 : Q15
+end
 
 # --- scalar helper functions / type definitions -----------------------
 
