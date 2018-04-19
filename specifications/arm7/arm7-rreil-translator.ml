@@ -1611,9 +1611,9 @@ val esize ['0..1'] = return Halfword
 val esize ['0.00'] = return Word
 val esize ['0.10'] = return void
 
-val index ['1 H:3'] = zx H
-val index ['0 H:2 1'] = zx H
-val index ['0 H:1 00'] = zx H
+val index ['1 h:3'] = zx h
+val index ['0 h:2 1'] = zx h
+val index ['0 h:1 00'] = zx h
 
 val sem-vmovacs x = do
     esz <- esize x.opnd1;
