@@ -1628,11 +1628,11 @@ end
 val eindex k = case k of
       '0000' : 0
     | '0001' : 0
-    | '0010' : -1
+    | '0010' : 8
     | '0011' : 1
     | '0100' : 1
     | '0101' : 2
-    | '0110' : -1
+    | '0110' : 8
     | '0111' : 3
     | '1000' : 0
     | '1001' : 1
@@ -1654,7 +1654,7 @@ in
     case (esize imm4) of
           Byte       : do
             scalar <- sval Byte (eindex imm4) Double x.opnd2;
-                        rt <- rval x.opnd3;)
+            rt <- rval x.opnd3;
 
             mov 8 scalar rt
         end
