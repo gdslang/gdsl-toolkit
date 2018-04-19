@@ -1606,35 +1606,38 @@ val sem-bkpt x = case x.cond of
     | _  : return void
 end
 
-val esize ['1...'] = Byte
-val esize ['0..1'] = Halfword
-val esize ['0.00'] = Word
-val esize ['0.10'] = Doubleword
+val esize ['1...'] = return (Byte)
+val esize ['0..1'] = return (Halfword)
+val esize ['0.00'] = return (Word)
+val esize ['0.10'] = return (Doubleword)
 
 val scalar-index ['1 h:3'] = zx h
 val scalar-index ['0 h:2 1'] = zx h
 val scalar-index ['0 h:1 00'] = zx h
 
-val sem-vmovacs x = case (esize x.opnd1) of
-      Byte       : do
-        scalar <- sval Byte (scalar-index x.opnd1) Double x.opnd2;
-        rt <- rval x.opnd3;
+val sem-vmovacs x = do
+    esz <- esize x.opnd1;
+    case esz of
+          Byte       : do
+            scalar <- sval Byte (scalar-index x.opnd1) Double x.opnd2;
+            rt <- rval x.opnd3;
 
-        mov 8 scalar rt
-    end
-    | Halfword   : do
-        scalar <- sval Halfword (scalar-index x.opnd1) Double x.opnd2;
-        rt <- rval x.opnd3;
+            mov 8 scalar rt
+        end
+        | Halfword   : do
+            scalar <- sval Halfword (scalar-index x.opnd1) Double x.opnd2;
+            rt <- rval x.opnd3;
 
-        mov 16 scalar rt
-    end
-    | Word       : do
-        scalar <- sval Word (scalar-index x.opnd1) Double x.opnd2;
-        rt <- rval x.opnd3;
+            mov 16 scalar rt
+        end
+        | Word       : do
+            scalar <- sval Word (scalar-index x.opnd1) Double x.opnd2;
+            rt <- rval x.opnd3;
 
-        mov 32 scalar rt
+            mov 32 scalar rt
+        end
+        | Doubleword : return void
     end
-    | Doubleword : return void
 end
 
 val sem-default insn ip =
