@@ -355,7 +355,7 @@ in
     # | VST3 x: conditional sem-vst3 x
     # | VST4 x: conditional sem-vst4 x
     # | VDUP x: consitional sem-vdup x
-    # | VMOVacs x: conditional sem-vmovacs x
+    | VMOVacs x: conditional sem-vmovacs x
     # | VMOVsac x: conditional sem-vmovsac x
     # | VMOVacsp x: conditional sem-vmovacsp x
     # | VMOVspac x: conditional sem-vmovspac x
