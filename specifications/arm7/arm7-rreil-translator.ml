@@ -781,10 +781,12 @@ type ext-register-width =
     | Quad
 
 ### [A7.3]
-val decode-ext-register size x = case size of
-      Single : single-ext-register-of-int (zx (x.remainder^x.first))
-    | Double : double-ext-register-of-int (zx (x.first^x.remainder))
-    | Quad   : quad-ext-register-of-int (zx (x.first^x.remainder))
+val decode-ext-register size x = case x of
+    VECTOR v: case size of
+          Single : single-ext-register-of-int (zx (v.remainder^v.first))
+        | Double : double-ext-register-of-int (zx (v.first^v.remainder))
+        | Quad   : quad-ext-register-of-int (zx (v.first^v.remainder))
+    end
 end
 
 val single-ext-register-of-int number = case number of
@@ -907,7 +909,9 @@ type scalar-length =
     | Doubleword
 
 val semantic-scalar esize index size x = let
-    val base = semantic-ext-register-of (decode-ext-register size x)
+    val base = case x of
+        VECTOR v: semantic-ext-register-of (decode-ext-register size x)
+    end
 in
     case esize of
           Byte       : {id=base.id, offset=(base.offset + 8 * index), size=8}
@@ -918,7 +922,8 @@ in
 end
 
 val sval esize index size x = case x of
-    VECTOR v: return (semantic-scalar esize index size v)
+    VECTOR v: case v of
+        return (semantic-scalar esize index size v)
 end
 
 # ----------------------------------------------------------------------
