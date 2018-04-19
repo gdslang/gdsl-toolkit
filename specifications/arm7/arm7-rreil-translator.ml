@@ -1619,17 +1619,17 @@ val sem-vmovacs x = let
 in
     case imm4 of
           '1 h:3': do
-            scalar <- sval Byte (zx h) Double v;
+            scalar <- sval Byte (zx h) Double x;
             rt <- rval x.opnd3;
             mov 8 scalar rt
         end
         | '0 h:2 1': do
-            scalar <- sval Halfword (zx h) Double v;
+            scalar <- sval Halfword (zx h) Double x;
             rt <- rval x.opnd3;
             mov 16 scalar rt
         end
         | '0 h:1 00': do
-            scalar <- sval Word (zx h) Double v;
+            scalar <- sval Word (zx h) Double x;
             rt <- rval x.opnd3;
             mov 32 scalar rt
         end
