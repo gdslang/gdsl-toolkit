@@ -1647,22 +1647,24 @@ in
             scalar <- sval Byte (zx h) Double x.opnd3;
             rt <- rval x.opnd2;
             if u then
-                movsx 32 rt scalar
+                movsx 32 rt 8 scalar
             else
-                movzx 32 rt scalar
+                movzx 32 rt 8 scalar
         end
         | 'u:1 0 h:2 1': do
             scalar <- sval Halfword (zx h) Double x.opnd3;
             rt <- rval x.opnd2;
             if u then
-                movsx 32 rt scalar
+                movsx 32 rt 16 scalar
             else
-                movzx 32 rt scalar
+                movzx 32 rt 16 scalar
         end
         | '0 0 h:1 00': do
             scalar <- sval Word (zx h) Double x.opnd3;
             rt <- rval x.opnd2;
-            movzx 32 rt scalar
+
+            #movzx 32 rt 32 scalar would be an alias since the length of a Word is already 32 bits
+            mov 32 rt scalar
         end
         | '10.00': return void
         | '.0.10': return void
