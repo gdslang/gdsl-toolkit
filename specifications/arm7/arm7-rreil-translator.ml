@@ -1606,25 +1606,6 @@ val sem-bkpt x = case x.cond of
     | _  : return void
 end
 
-val eindex k = case k of
-      '0000' : 0
-    | '0001' : 0
-    | '0010' : 8
-    | '0011' : 1
-    | '0100' : 1
-    | '0101' : 2
-    | '0110' : 8
-    | '0111' : 3
-    | '1000' : 0
-    | '1001' : 1
-    | '1010' : 2
-    | '1011' : 3
-    | '1100' : 4
-    | '1101' : 5
-    | '1110' : 6
-    | '1111' : 7
-end
-
 val sem-vmovacs x = let
     val imm4 = case x.opnd1 of
         IMMEDIATE i: case i of
@@ -1633,20 +1614,20 @@ val sem-vmovacs x = let
     end
 in
     case imm4 of
-          '1...': do
-            scalar <- sval Byte (eindex imm4) Double x.opnd2;
+          '1 h:3': do
+            scalar <- sval Byte (zx h) Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 8 scalar rt
         end
-        | '0..1': do
-            scalar <- sval Halfword (eindex imm4) Double x.opnd2;
+        | '0 h:2 1': do
+            scalar <- sval Halfword (zx h) Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 16 scalar rt
         end
-        | '0.00': do
-            scalar <- sval Word (eindex imm4) Double x.opnd2;
+        | '0 h:1 00': do
+            scalar <- sval Word (zx h) Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 32 scalar rt
