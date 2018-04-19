@@ -1613,7 +1613,7 @@ val sem-vmovacs x = let
     val esize ['0.10'] = return void
     val index ['1 H:3'] = zx H
     val index ['0 H:2 1'] = zx H
-    val index ['0 H:1 00'] = zx H
+    val index ['0 H:1 00'] = zx Hdo
 in do
     esz <- esize x.opnd1;
     case esz of
@@ -1636,7 +1636,6 @@ in do
             mov 32 scalar rt
         end
         | _        : return void
-    end
 end
 
 val sem-default insn ip =
