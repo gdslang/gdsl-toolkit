@@ -1606,41 +1606,66 @@ val sem-bkpt x = case x.cond of
     | _  : return void
 end
 
-val esize ['1...'] = Byte
-val esize ['0..1'] = Halfword
-val esize ['0.00'] = Word
-val esize ['0.10'] = Doubleword
+val esize k = case k of
+      '0000' : Word
+    | '0001' : Halfword
+    | '0010' : Doubleword
+    | '0011' : Halfword
+    | '0100' : Word
+    | '0101' : Halfword
+    | '0110' : Doubleword
+    | '0111' : Halfword
+    | '1000' : Byte
+    | '1001' : Byte
+    | '1010' : Byte
+    | '1011' : Byte
+    | '1100' : Byte
+    | '1101' : Byte
+    | '1110' : Byte
+    | '1111' : Byte
+end
 
-val eindex ['1 h:3'] = return (zx h)
-val eindex ['0 h:2 1'] = return (zx h)
-val eindex ['0 h:1 00'] = return (zx h)
+val eindex k = case k of
+      '0000' : 0
+    | '0001' : 0
+    | '0010' : -1
+    | '0011' : 1
+    | '0100' : 1
+    | '0101' : 2
+    | '0110' : -1
+    | '0111' : 3
+    | '1000' : 0
+    | '1001' : 1
+    | '1010' : 2
+    | '1011' : 3
+    | '1100' : 4
+    | '1101' : 5
+    | '1110' : 6
+    | '1111' : 7
+end
 
-val sem-vmovacs x = do
-    scalar-size <- case x.opnd1 of
+val sem-vmovacs x = let
+    val imm4 = case x.opnd1 of
         IMMEDIATE i: case i of
-            IMM4 j: esize j
+            IMM4 j: j
         end
-    end;
-    scalar-index <- case x.opnd1 of
-        IMMEDIATE i: case i of
-            IMM4 j: eindex j
-        end
-    end;
-    case (scalar-size) of
+    end
+in
+    case (esize imm4) of
           Byte       : do
-            scalar <- sval Byte scalar-index Double x.opnd2;
-            rt <- rval x.opnd3;
+            scalar <- sval Byte (eindex imm4) Double x.opnd2;
+                        rt <- rval x.opnd3;)
 
             mov 8 scalar rt
         end
         | Halfword   : do
-            scalar <- sval Halfword scalar-index Double x.opnd2;
+            scalar <- sval Halfword (eindex imm4) Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 16 scalar rt
         end
         | Word       : do
-            scalar <- sval Word scalar-index Double x.opnd2;
+            scalar <- sval Word (eindex imm4) Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 32 scalar rt
