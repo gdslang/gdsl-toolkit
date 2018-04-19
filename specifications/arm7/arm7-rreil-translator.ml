@@ -1607,9 +1607,9 @@ val sem-bkpt x = case x.cond of
 end
 
 val sem-vmovacs x = let
-    val esize ['1...'] = return Byte
-    val esize ['0..1'] = return Halfword
-    val esize ['0.00'] = return Word
+    val esize ['1...'] = return (Byte)
+    val esize ['0..1'] = return (Halfword)
+    val esize ['0.00'] = return (Word)
     val esize ['0.10'] = return void
     val index ['1 H:3'] = zx H
     val index ['0 H:2 1'] = zx H
