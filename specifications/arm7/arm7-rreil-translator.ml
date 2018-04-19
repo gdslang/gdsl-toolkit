@@ -896,7 +896,8 @@ end
 
 val semantic-vector size x = semantic-ext-register-of (decode-ext-register size x)
 
-val vval size x = return (semantic-vector size x)
+val lvval size x = return (semantic-vector size x)
+val rvval size x = return (var (semantic-vector size x))
 
 # --- scalar helper functions / type definitions -----------------------
 
@@ -917,7 +918,8 @@ in
     end
 end
 
-val sval esize index size x = return (semantic-scalar esize index size x)
+val lsval esize index size x = return (semantic-scalar esize index size x)
+val rsval esize index size x = return (var (semantic-scalar esize index size x))
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
@@ -1617,17 +1619,17 @@ val sem-vmovacs x = let
 in
     case imm4 of
           '1 h:3': do
-            scalar <- sval Byte (zx h) Double x.opnd2;
+            scalar <- lsval Byte (zx h) Double x.opnd2;
             rt <- rval x.opnd3;
             mov 8 scalar rt
         end
         | '0 h:2 1': do
-            scalar <- sval Halfword (zx h) Double x.opnd2;
+            scalar <- lsval Halfword (zx h) Double x.opnd2;
             rt <- rval x.opnd3;
             mov 16 scalar rt
         end
         | '0 h:1 00': do
-            scalar <- sval Word (zx h) Double x.opnd2;
+            scalar <- lsval Word (zx h) Double x.opnd2;
             rt <- rval x.opnd3;
             mov 32 scalar rt
         end
@@ -1644,7 +1646,7 @@ val sem-vmovsac x = let
 in
     case imm5 of
           'u:1 1 h:3': do
-            scalar <- sval Byte (zx h) Double x.opnd3;
+            scalar <- rsval Byte (zx h) Double x.opnd3;
             rt <- lval x.opnd2;
             if u then
                 movsx 32 rt 8 scalar
@@ -1652,7 +1654,7 @@ in
                 movzx 32 rt 8 scalar
         end
         | 'u:1 0 h:2 1': do
-            scalar <- sval Halfword (zx h) Double x.opnd3;
+            scalar <- rsval Halfword (zx h) Double x.opnd3;
             rt <- lval x.opnd2;
             if u then
                 movsx 32 rt 16 scalar
@@ -1660,7 +1662,7 @@ in
                 movzx 32 rt 16 scalar
         end
         | '0 0 h:1 00': do
-            scalar <- sval Word (zx h) Double x.opnd3;
+            scalar <- rsval Word (zx h) Double x.opnd3;
             rt <- lval x.opnd2;
 
             #movzx 32 rt 32 scalar would be an alias since the length of a Word is already 32 bits
