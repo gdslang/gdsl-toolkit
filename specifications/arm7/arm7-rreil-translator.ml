@@ -1618,7 +1618,7 @@ val eindex ['0 h:1 00'] = return (zx h)
 val sem-vmovacs x = do
     scalar-size <- case x.opnd1 of
         IMMEDIATE i: case i of
-            IMM4 j: return (esize j)
+            IMM4 j: esize j
         end
     end;
     scalar-index <- case x.opnd1 of
