@@ -890,8 +890,11 @@ val quad-ext-register-of-int number = case number of
     | 29 : Q14
     | 30 : Q15
     | 31 : Q15
-
 end
+
+val semantic-vector size x = semantic-ext-register-of (decode-ext-register size x) 
+
+val vval size x = return (semantic-vector size x)
 
 # --- scalar helper functions / type definitions -----------------------
 
@@ -901,15 +904,18 @@ type scalar-length =
     | Word
     | Doubleword
 
-val semantic-scalar esize index size x =
-    let val base = semantic-ext-register-of (decode-ext-register size x)
-    in case esize of
+val semantic-scalar esize index size x = let
+    val base = semantic-ext-register-of (decode-ext-register size x)
+in
+    case esize of
           Byte       : {id=base.id, offset=(base.offset + 8 * index), size=8}
         | Halfword   : {id=base.id, offset=(base.offset + 16 * index), size=16}
         | Word       : {id=base.id, offset=(base.offset + 32 * index), size=32}
         | Doubleword : {id=base.id, offset=(base.offset + 64 * index), size=64}
     end
 end
+
+val sval esize index size x = return (semantic-scalar esize index size x)
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
@@ -1598,6 +1604,38 @@ val sem-svc x = prim-generic "SUPERVISOR CALL" varls-none varls-none
 val sem-bkpt x = case x.cond of
       AL : prim-generic "BREAKPOINT" varls-none varls-none
     | _  : return void
+end
+
+val sem-vmovacs x = let
+    val esize ['1...'] = return Byte
+    val esize ['0..1'] = return Halfword
+    val esize ['0.00'] = return Word
+    val esize ['0.10'] = return void
+    val index ['1 H:3'] = zx H
+    val index ['0 H:2 1'] = zx H
+    val index ['0 H:1 00'] = zx H
+in
+    case esize x.opnd1 of
+          Byte     : do
+            scalar <- sval Byte (index x.opnd1) Double x.opnd2;
+            rt <- rval x.opnd3;
+
+            mov 8 scalar rt
+          end
+        | Halfword : do
+            scalar <- sval Halfword (index x.opnd1) Double x.opnd2;
+            rt <- rval x.opnd3;
+
+            mov 16 scalar rt
+        end
+        | Word     : do
+            scalar <- sval Word (index x.opnd1) Double x.opnd2;
+            rt <- rval x.opnd3;
+
+            mov 32 scalar rt
+        end
+        | _        : return void
+    end
 end
 
 val sem-default insn ip =
