@@ -356,7 +356,7 @@ in
     # | VST4 x: conditional sem-vst4 x
     # | VDUP x: consitional sem-vdup x
     | VMOVacs x: conditional sem-vmovacs x
-    # | VMOVsac x: conditional sem-vmovsac x
+    | VMOVsac x: conditional sem-vmovsac x
     # | VMOVacsp x: conditional sem-vmovacsp x
     # | VMOVspac x: conditional sem-vmovspac x
     # | VMOVacsp2 x: conditional sem-vmovacsp2 x
@@ -1632,6 +1632,40 @@ in
             mov 32 scalar rt
         end
         | '0.10': return void
+    end
+end
+
+val sem-vmovsac x = let
+    val imm5 = case x.opnd1 of
+        IMMEDIATE i: case i of
+            IMM5 j: j
+        end
+    end
+in
+    case imm5 of
+          'u:1 1 h:3': do
+            scalar <- sval Byte (zx h) Double x.opnd3;
+            rt <- rval x.opnd2;
+            if u then
+                movsx 32 rt scalar
+            else
+                movzx 32 rt scalar
+        end
+        | 'u:1 0 h:2 1': do
+            scalar <- sval Halfword (zx h) Double x.opnd3;
+            rt <- rval x.opnd2;
+            if u then
+                movsx 32 rt scalar
+            else
+                movzx 32 rt scalar
+        end
+        | '0 0 h:1 00': do
+            scalar <- sval Word (zx h) Double x.opnd3;
+            rt <- rval x.opnd2;
+            movzx 32 rt scalar
+        end
+        | '10.00': return void
+        | '.0.10': return void
     end
 end
 
