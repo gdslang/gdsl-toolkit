@@ -1606,27 +1606,26 @@ val sem-bkpt x = case x.cond of
     | _  : return void
 end
 
-val esize ['1...'] = Byte
-val esize ['0..1'] = Halfword
-val esize ['0.00'] = Word
-val esize ['0.10'] = Doubleword
+val esize ['1...'] = return (Byte)
+val esize ['0..1'] = return (Halfword)
+val esize ['0.00'] = return (Word)
+val esize ['0.10'] = return (Doubleword)
 
-val eindex ['1 h:3'] = zx h
-val eindex ['0 h:2 1'] = zx h
-val eindex ['0 h:1 00'] = zx h
+val eindex ['1 h:3'] = return (zx h)
+val eindex ['0 h:2 1'] = return (zx h)
+val eindex ['0 h:1 00'] = return (zx h)
 
-val sem-vmovacs x = let
-    val scalar-size = case x.opnd1 of
+val sem-vmovacs x = do
+    scalar-size <- case x.opnd1 of
         IMMEDIATE i: case i of
             IMM4 j: esize j
         end
-    end
-    val scalar-index = case x.opnd1 of
+    end;
+    scalar-index <- case x.opnd1 of
         IMMEDIATE i: case i of
             IMM4 j: eindex j
         end
-    end
-in
+    end;
     case (scalar-size) of
           Byte       : do
             scalar <- sval Byte scalar-index Double x.opnd2;
