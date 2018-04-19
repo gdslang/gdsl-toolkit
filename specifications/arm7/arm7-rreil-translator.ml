@@ -894,7 +894,9 @@ end
 
 val semantic-vector size x = semantic-ext-register-of (decode-ext-register size x) 
 
-val vval size x = return (semantic-vector size x)
+val vval size x = case x of
+    VECTOR v: return (semantic-vector size v)
+end
 
 # --- scalar helper functions / type definitions -----------------------
 
@@ -915,7 +917,9 @@ in
     end
 end
 
-val sval esize index size x = return (semantic-scalar esize index size x)
+val sval esize index size x = case x of
+    VECTOR v: return (semantic-scalar esize index size v)
+end
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
@@ -1614,26 +1618,20 @@ val sem-vmovacs x = let
     end
 in
     case imm4 of
-          '1 h:3': case x.opnd2 of
-              VECTOR v: do
-                scalar <- sval Byte (zx h) Double x.opnd2;
-                rt <- rval x.opnd3;
-                mov 8 scalar rt
-            end
+          '1 h:3': do
+            scalar <- sval Byte (zx h) Double v;
+            rt <- rval x.opnd3;
+            mov 8 scalar rt
         end
-        | '0 h:2 1': case x.opnd2 of 
-              VECTOR v: do
-                scalar <- sval Halfword (zx h) Double x.opnd2;
-                rt <- rval x.opnd3;
-                mov 16 scalar rt
-            end
+        | '0 h:2 1': do
+            scalar <- sval Halfword (zx h) Double v;
+            rt <- rval x.opnd3;
+            mov 16 scalar rt
         end
-        | '0 h:1 00': case x.opnd2 of
-              VECTOR v: do
-                scalar <- sval Word (zx h) Double x.opnd2;
-                rt <- rval x.opnd3;
-                mov 32 scalar rt
-            end
+        | '0 h:1 00': do
+            scalar <- sval Word (zx h) Double v;
+            rt <- rval x.opnd3;
+            mov 32 scalar rt
         end
         | '0.10': return void
     end
