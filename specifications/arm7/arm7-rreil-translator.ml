@@ -1615,7 +1615,7 @@ val scalar-index ['1 h:3'] = zx h
 val scalar-index ['0 h:2 1'] = zx h
 val scalar-index ['0 h:1 00'] = zx h
 
-val sem-vmovacs x = case esize x.opnd1 of
+val sem-vmovacs x = case (esize x.opnd1) of
       Byte       : do
         scalar <- sval Byte (scalar-index x.opnd1) Double x.opnd2;
         rt <- rval x.opnd3;
