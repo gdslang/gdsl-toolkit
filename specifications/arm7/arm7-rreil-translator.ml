@@ -1611,9 +1611,9 @@ val esize ['0..1'] = Halfword
 val esize ['0.00'] = Word
 val esize ['0.10'] = Doubleword
 
-val scalar-index ['1 h:3'] = zx h
-val scalar-index ['0 h:2 1'] = zx h
-val scalar-index ['0 h:1 00'] = zx h
+val eindex ['1 h:3'] = zx h
+val eindex ['0 h:2 1'] = zx h
+val eindex ['0 h:1 00'] = zx h
 
 val sem-vmovacs x = let
     val scalar-size = case x.opnd1 of
@@ -1621,22 +1621,27 @@ val sem-vmovacs x = let
             IMM4 j: esize j
         end
     end
+    val scalar-index = case x.opnd1 of
+        IMMEDIATE i: case i of
+            IMM4 j: eindex j
+        end
+    end
 in
     case (scalar-size) of
           Byte       : do
-            scalar <- sval Byte (scalar-index j) Double x.opnd2;
+            scalar <- sval Byte scalar-index Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 8 scalar rt
         end
         | Halfword   : do
-            scalar <- sval Halfword (scalar-index j) Double x.opnd2;
+            scalar <- sval Halfword scalar-index Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 16 scalar rt
         end
         | Word       : do
-            scalar <- sval Word (scalar-index j) Double x.opnd2;
+            scalar <- sval Word scalar-index Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 32 scalar rt
