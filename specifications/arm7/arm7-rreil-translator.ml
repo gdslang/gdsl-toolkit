@@ -1607,7 +1607,7 @@ val sem-bkpt x = case x.cond of
 end
 
 val esize k = case k of
-    | '0.00' : Word
+      '0.00' : Word
     | '0.10' : Doubleword
     | '0..1' : Halfword
     | '1...' : Byte
