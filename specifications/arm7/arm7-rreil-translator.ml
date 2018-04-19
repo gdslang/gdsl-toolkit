@@ -1614,23 +1614,26 @@ val sem-vmovacs x = let
     end
 in
     case imm4 of
-          '1 h:3': do
-            scalar <- sval Byte (zx h) Double x.opnd2;
-            rt <- rval x.opnd3;
-
-            mov 8 scalar rt
+          '1 h:3': case x.opnd2 of
+              Vector v: do
+                scalar <- sval Byte (zx h) Double x.opnd2;
+                rt <- rval x.opnd3;
+                mov 8 scalar rt
+            end
         end
-        | '0 h:2 1': do
-            scalar <- sval Halfword (zx h) Double x.opnd2;
-            rt <- rval x.opnd3;
-
-            mov 16 scalar rt
+        | '0 h:2 1': case x.opnd2 of 
+              VECTOR v: do
+                scalar <- sval Halfword (zx h) Double x.opnd2;
+                rt <- rval x.opnd3;
+                mov 16 scalar rt
+            end
         end
-        | '0 h:1 00': do
-            scalar <- sval Word (zx h) Double x.opnd2;
-            rt <- rval x.opnd3;
-
-            mov 32 scalar rt
+        | '0 h:1 00': case x.opnd2 of
+              VECTOR v: do
+                scalar <- sval Word (zx h) Double x.opnd2;
+                rt <- rval x.opnd3;
+                mov 32 scalar rt
+            end
         end
         | '0.10': return void
     end
