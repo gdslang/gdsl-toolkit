@@ -1615,14 +1615,7 @@ val esize k = case k of
     | '0101' : Halfword
     | '0110' : Doubleword
     | '0111' : Halfword
-    | '1000' : Byte
-    | '1001' : Byte
-    | '1010' : Byte
-    | '1011' : Byte
-    | '1100' : Byte
-    | '1101' : Byte
-    | '1110' : Byte
-    | '1111' : Byte
+    | '1...' : Byte
 end
 
 val eindex k = case k of
