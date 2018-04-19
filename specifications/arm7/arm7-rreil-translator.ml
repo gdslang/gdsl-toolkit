@@ -1611,27 +1611,27 @@ val esize ['0..1'] = return Halfword
 val esize ['0.00'] = return Word
 val esize ['0.10'] = return void
 
-val index ['1 h:3'] = zx h
-val index ['0 h:2 1'] = zx h
-val index ['0 h:1 00'] = zx h
+val scalar-index ['1 h:3'] = zx h
+val scalar-index ['0 h:2 1'] = zx h
+val scalar-index ['0 h:1 00'] = zx h
 
 val sem-vmovacs x = do
     esz <- esize x.opnd1;
     case esz of
           Byte     : do
-            scalar <- sval Byte (index x.opnd1) Double x.opnd2;
+            scalar <- sval Byte (scalar-index x.opnd1) Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 8 scalar rt
           end
         | Halfword : do
-            scalar <- sval Halfword (index x.opnd1) Double x.opnd2;
+            scalar <- sval Halfword (scalar-index x.opnd1) Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 16 scalar rt
         end
         | Word     : do
-            scalar <- sval Word (index x.opnd1) Double x.opnd2;
+            scalar <- sval Word (scalar-index x.opnd1) Double x.opnd2;
             rt <- rval x.opnd3;
 
             mov 32 scalar rt
