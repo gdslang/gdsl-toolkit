@@ -1615,7 +1615,7 @@ val sem-vmovacs x = let
 in
     case imm4 of
           '1 h:3': case x.opnd2 of
-              Vector v: do
+              VECTOR v: do
                 scalar <- sval Byte (zx h) Double x.opnd2;
                 rt <- rval x.opnd3;
                 mov 8 scalar rt
