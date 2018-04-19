@@ -1616,26 +1616,28 @@ val scalar-index ['0 h:2 1'] = zx h
 val scalar-index ['0 h:1 00'] = zx h
 
 val sem-vmovacs x = case x.opnd1 of
-    immediate (IMM4 i) : case esize i of
-          Byte       : do
-            scalar <- sval Byte (scalar-index x.opnd1) Double x.opnd2;
-            rt <- rval x.opnd3;
+    immediate i : case i of
+        IMM4 j : case esize j of
+              Byte       : do
+                scalar <- sval Byte (scalar-index j) Double x.opnd2;
+                rt <- rval x.opnd3;
 
-            mov 8 scalar rt
-        end
-        | Halfword   : do
-            scalar <- sval Halfword (scalar-index x.opnd1) Double x.opnd2;
-            rt <- rval x.opnd3;
+                mov 8 scalar rt
+            end
+            | Halfword   : do
+                scalar <- sval Halfword (scalar-index j) Double x.opnd2;
+                rt <- rval x.opnd3;
 
-            mov 16 scalar rt
-        end
-        | Word       : do
-            scalar <- sval Word (scalar-index x.opnd1) Double x.opnd2;
-            rt <- rval x.opnd3;
+                mov 16 scalar rt
+            end
+            | Word       : do
+                scalar <- sval Word (scalar-index j) Double x.opnd2;
+                rt <- rval x.opnd3;
 
-            mov 32 scalar rt
+                mov 32 scalar rt
+            end
+            | Doubleword : return void
         end
-        | Doubleword : return void
     end
 end
 
