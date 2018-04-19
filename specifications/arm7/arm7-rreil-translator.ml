@@ -894,7 +894,9 @@ val quad-ext-register-of-int number = case number of
     | 31 : Q15
 end
 
-val semantic-vector size x = semantic-ext-register-of (decode-ext-register size x) 
+val semantic-vector size x = case x of
+    VECTOR v: semantic-ext-register-of (decode-ext-register size v)
+end 
 
 val vval size x = case x of
     VECTOR v: return (semantic-vector size v)
@@ -910,7 +912,7 @@ type scalar-length =
 
 val semantic-scalar esize index size x = let
     val base = case x of
-        VECTOR v: semantic-ext-register-of (decode-ext-register size x)
+        VECTOR v: semantic-ext-register-of (decode-ext-register size v)
     end
 in
     case esize of
@@ -922,8 +924,7 @@ in
 end
 
 val sval esize index size x = case x of
-    VECTOR v: case v of
-        return (semantic-scalar esize index size v)
+    VECTOR v: return (semantic-scalar esize index size v)
 end
 
 # ----------------------------------------------------------------------
