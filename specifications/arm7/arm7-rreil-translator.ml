@@ -894,9 +894,9 @@ val quad-ext-register-of-int number = case number of
     | 31 : Q15
 end
 
-val semantic-vector size x = semantic-ext-register-of (decode-ext-register size v)
+val semantic-vector size x = semantic-ext-register-of (decode-ext-register size x)
 
-val vval size x = return (semantic-vector size v)
+val vval size x = return (semantic-vector size x)
 
 # --- scalar helper functions / type definitions -----------------------
 
@@ -907,7 +907,7 @@ type scalar-length =
     | Doubleword
 
 val semantic-scalar esize index size x = let
-    val base = semantic-ext-register-of (decode-ext-register size v)
+    val base = semantic-ext-register-of (decode-ext-register size x)
 in
     case esize of
           Byte       : {id=base.id, offset=(base.offset + 8 * index), size=8}
@@ -917,7 +917,7 @@ in
     end
 end
 
-val sval esize index size x = return (semantic-scalar esize index size v)
+val sval esize index size x = return (semantic-scalar esize index size x)
 
 # ----------------------------------------------------------------------
 # Individual instruction translators
