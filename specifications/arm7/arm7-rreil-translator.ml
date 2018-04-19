@@ -1636,6 +1636,7 @@ in do
             mov 32 scalar rt
         end
         | _        : return void
+    end
 end
 
 val sem-default insn ip =
