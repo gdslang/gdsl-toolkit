@@ -357,8 +357,8 @@ in
     # | VDUP x: consitional sem-vdup x
     | VMOVacs x: conditional sem-vmovacs x
     | VMOVsac x: conditional sem-vmovsac x
-    # | VMOVacsp x: conditional sem-vmovacsp x
-    # | VMOVspac x: conditional sem-vmovspac x
+    | VMOVacsp x: conditional sem-vmovacsp x
+    | VMOVspac x: conditional sem-vmovspac x
     # | VMOVacsp2 x: conditional sem-vmovacsp2 x
     # | VMOVspac2 x: conditional sem-vmovspac2 x
     # | VMOVacdwe x: conditional sem-vmovacdwe x
@@ -896,6 +896,7 @@ end
 
 val semantic-vector size x = semantic-ext-register-of (decode-ext-register size x)
 
+#lval and rval for vectors
 val lvval size x = return (semantic-vector size x)
 val rvval size x = return (var (semantic-vector size x))
 
@@ -918,6 +919,7 @@ in
     end
 end
 
+#lval and rval for scalars
 val lsval esize index size x = return (semantic-scalar esize index size x)
 val rsval esize index size x = return (var (semantic-scalar esize index size x))
 
@@ -1671,6 +1673,20 @@ in
         | '10.00': return void
         | '.0.10': return void
     end
+end
+
+val sem-vmovacsp x = do
+    sn <- lvval Single x.opnd1;
+    rt <- rval x.opnd2;
+
+    mov 32 scalar rt
+end
+
+val sem-vmovspac x = do
+    sn <- rvval Single x.opnd1;
+    rt <- lval x.opnd2;
+
+    mov 32 rt scalar
 end
 
 val sem-default insn ip =
