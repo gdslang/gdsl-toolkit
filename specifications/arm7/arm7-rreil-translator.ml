@@ -1679,14 +1679,14 @@ val sem-vmovacsp x = do
     sn <- lvval Single x.opnd1;
     rt <- rval x.opnd2;
 
-    mov 32 scalar rt
+    mov 32 sn rt
 end
 
 val sem-vmovspac x = do
     sn <- rvval Single x.opnd1;
     rt <- lval x.opnd2;
 
-    mov 32 rt scalar
+    mov 32 rt sn
 end
 
 val sem-default insn ip =
