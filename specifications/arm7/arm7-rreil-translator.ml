@@ -360,7 +360,7 @@ in
     | VMOVacsp x: conditional sem-vmovacsp x
     | VMOVspac x: conditional sem-vmovspac x
     | VMOVacsp2 x: conditional sem-vmovacsp2 x
-    # | VMOVspac2 x: conditional sem-vmovspac2 x
+    | VMOVspac2 x: conditional sem-vmovspac2 x
     # | VMOVacdwe x: conditional sem-vmovacdwe x
     # | VMOVdweac x: conditional sem-vmovdweac x
     # | VMRS x: conditional sem-vmrs x
@@ -1871,10 +1871,10 @@ val sem-vmovspac2 x = case (decode-ext-register Single x.opnd3) of
     | D31 : return void
     | S31 : return void
     | _   : do
-        sn <- lvval Single x.opnd3;
-        sn2 <- lvnext Single x.opnd3;
-        rt <- rval x.opnd1;
-        rt2 <- rval x.opnd2;
+        sn <- rvval Single x.opnd3;
+        sn2 <- rvnext Single x.opnd3;
+        rt <- lval x.opnd1;
+        rt2 <- lval x.opnd2;
 
         mov 32 rt sn;
         mov 32 rt2 sn2
