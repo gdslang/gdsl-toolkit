@@ -1852,9 +1852,7 @@ end
 
 (* TODO: Maybe optimize the usage of decode-ext-register after implementation of every semantic translation *)
 val sem-vmovacsp2 x = case (decode-ext-register Single x.opnd1) of
-      Q15 : return void
-    | D31 : return void
-    | S31 : return void
+      S31 : return void
     | _   : do
         sn <- lvval Single x.opnd1;
         sn2 <- lvnext Single x.opnd1;
@@ -1867,9 +1865,7 @@ val sem-vmovacsp2 x = case (decode-ext-register Single x.opnd1) of
 end
 
 val sem-vmovspac2 x = case (decode-ext-register Single x.opnd3) of
-      Q15 : return void
-    | D31 : return void
-    | S31 : return void
+      S31 : return void
     | _   : do
         sn <- rvval Single x.opnd3;
         sn2 <- rvnext Single x.opnd3;
@@ -1880,6 +1876,26 @@ val sem-vmovspac2 x = case (decode-ext-register Single x.opnd3) of
         mov 32 rt2 sn2
     end
 end
+
+val sem-vmovacdwe x = do
+    scalar <- lsval Word 0 Double x.opnd1;
+    scalar2 <- lsval Word 1 Double x.opnd1;
+    rt <- rval x.opnd2;
+    rt2 <- rval x.opnd3;
+
+    mov 32 dn rt;
+    mov 32 dn2 rt2
+end
+
+val sem-vmovdweac x = do
+    rt <- lval x.opnd1;
+    rt2 <- lval x.opnd2;
+    scalar <- rsval Word 0 Double x.opnd3;
+    scalar2 <- rsval Word 1 Double x.opnd3;
+
+    mov 32 rt dn;
+    mov 32 rt2 dn2
+end    
 
 val sem-default insn ip =
   prim-generic ("TRANSLATOR MISSING:\\t" +++ show/instruction insn ip) varls-none varls-none
