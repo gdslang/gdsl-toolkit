@@ -1252,7 +1252,7 @@ val advsimdexpandimm op cmode imm8 = case cmode of
     end
     | '1111': case op of
         '0': case imm8 of
-          'a:1 b:1 c:6': a^(not b)^b^b^b^b^b^c^'00000000 00000000 000'^a^(not b)^b^b^b^b^b^c^'00000000 00000000 000'
+          'a:1 b:1 c:6': a^(not b)^b^b^b^b^b^c^'0000000000000000000'^a^(not b)^b^b^b^b^b^c^'0000000000000000000'
         end
     end
 end
