@@ -1857,8 +1857,9 @@ val sem-vmovacsp2 x = do
           Q15 : return void
         | D31 : return void
         | S31 : return void
-        | _   : sn2 <- lvnext sn
     end;
+
+    sn <- lvnext sn;
 
     rt <- rval x.opnd3;
     rt2 <- rval x.opnd4;
