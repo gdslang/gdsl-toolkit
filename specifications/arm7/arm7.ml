@@ -351,7 +351,7 @@ type instruction =
   | VBIF of ternop
   | VBIT of ternop
   | VBSL of ternop
-  | VMOVimmasimd of ternop
+  | VMOVimmasimd of binop
   | VMOVregasimd of binop
   | VMVN of ternop
   | VORR of ternop
