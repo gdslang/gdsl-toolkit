@@ -359,7 +359,7 @@ in
     | VMOVsac x: conditional sem-vmovsac x
     | VMOVacsp x: conditional sem-vmovacsp x
     | VMOVspac x: conditional sem-vmovspac x
-    # | VMOVacsp2 x: conditional sem-vmovacsp2 x
+    | VMOVacsp2 x: conditional sem-vmovacsp2 x
     # | VMOVspac2 x: conditional sem-vmovspac2 x
     # | VMOVacdwe x: conditional sem-vmovacdwe x
     # | VMOVdweac x: conditional sem-vmovdweac x
@@ -899,6 +899,173 @@ val semantic-vector size x = semantic-ext-register-of (decode-ext-register size 
 #lval and rval for vectors
 val lvval size x = return (semantic-vector size x)
 val rvval size x = return (var (semantic-vector size x))
+
+#successor of vectors
+val lvnext v = case v of
+    Q0  : return (semantic-ext-register-of Q1)
+  | Q1  : return (semantic-ext-register-of Q2)
+  | Q2  : return (semantic-ext-register-of Q3)
+  | Q3  : return (semantic-ext-register-of Q4)
+  | Q4  : return (semantic-ext-register-of Q5)
+  | Q5  : return (semantic-ext-register-of Q6)
+  | Q6  : return (semantic-ext-register-of Q7)
+  | Q7  : return (semantic-ext-register-of Q8)
+  | Q8  : return (semantic-ext-register-of Q9)
+  | Q9  : return (semantic-ext-register-of Q10)
+  | Q10 : return (semantic-ext-register-of Q11)
+  | Q11 : return (semantic-ext-register-of Q12)
+  | Q12 : return (semantic-ext-register-of Q13)
+  | Q13 : return (semantic-ext-register-of Q14)
+  | Q14 : return (semantic-ext-register-of Q15)
+  | Q15 : return void
+  | D0  : return (semantic-ext-register-of D1)
+  | D1  : return (semantic-ext-register-of D2)
+  | D2  : return (semantic-ext-register-of D3)
+  | D3  : return (semantic-ext-register-of D4)
+  | D4  : return (semantic-ext-register-of D5)
+  | D5  : return (semantic-ext-register-of D6)
+  | D6  : return (semantic-ext-register-of D7)
+  | D7  : return (semantic-ext-register-of D8)
+  | D8  : return (semantic-ext-register-of D9)
+  | D9  : return (semantic-ext-register-of D10)
+  | D10 : return (semantic-ext-register-of D11)
+  | D11 : return (semantic-ext-register-of D12)
+  | D12 : return (semantic-ext-register-of D13)
+  | D13 : return (semantic-ext-register-of D14)
+  | D14 : return (semantic-ext-register-of D15)
+  | D15 : return (semantic-ext-register-of D16)
+  | D16 : return (semantic-ext-register-of D17)
+  | D17 : return (semantic-ext-register-of D18)
+  | D18 : return (semantic-ext-register-of D19)
+  | D19 : return (semantic-ext-register-of D20)
+  | D20 : return (semantic-ext-register-of D21)
+  | D21 : return (semantic-ext-register-of D22)
+  | D22 : return (semantic-ext-register-of D23)
+  | D23 : return (semantic-ext-register-of D24)
+  | D24 : return (semantic-ext-register-of D25)
+  | D25 : return (semantic-ext-register-of D26)
+  | D26 : return (semantic-ext-register-of D27)
+  | D27 : return (semantic-ext-register-of D28)
+  | D28 : return (semantic-ext-register-of D29)
+  | D29 : return (semantic-ext-register-of D30)
+  | D30 : return (semantic-ext-register-of D31)
+  | D31 : return void
+  | S0  : return (semantic-ext-register-of S1)
+  | S1  : return (semantic-ext-register-of S2)
+  | S2  : return (semantic-ext-register-of S3)
+  | S3  : return (semantic-ext-register-of S4)
+  | S4  : return (semantic-ext-register-of S5)
+  | S5  : return (semantic-ext-register-of S6)
+  | S6  : return (semantic-ext-register-of S7)
+  | S7  : return (semantic-ext-register-of S8)
+  | S8  : return (semantic-ext-register-of S9)
+  | S9  : return (semantic-ext-register-of S10)
+  | S10 : return (semantic-ext-register-of S11)
+  | S11 : return (semantic-ext-register-of S12)
+  | S12 : return (semantic-ext-register-of S13)
+  | S13 : return (semantic-ext-register-of S14)
+  | S14 : return (semantic-ext-register-of S15)
+  | S15 : return (semantic-ext-register-of S16)
+  | S16 : return (semantic-ext-register-of S17)
+  | S17 : return (semantic-ext-register-of S18)
+  | S18 : return (semantic-ext-register-of S19)
+  | S19 : return (semantic-ext-register-of S20)
+  | S20 : return (semantic-ext-register-of S21)
+  | S21 : return (semantic-ext-register-of S22)
+  | S22 : return (semantic-ext-register-of S23)
+  | S23 : return (semantic-ext-register-of S24)
+  | S24 : return (semantic-ext-register-of S25)
+  | S25 : return (semantic-ext-register-of S26)
+  | S26 : return (semantic-ext-register-of S27)
+  | S27 : return (semantic-ext-register-of S28)
+  | S28 : return (semantic-ext-register-of S29)
+  | S29 : return (semantic-ext-register-of S30)
+  | S30 : return (semantic-ext-register-of S31)
+  | S31 : return void
+end
+
+val rvnext v = case v of
+    Q0  : return (var (semantic-ext-register-of Q1))
+  | Q1  : return (var (semantic-ext-register-of Q2))
+  | Q2  : return (var (semantic-ext-register-of Q3))
+  | Q3  : return (var (semantic-ext-register-of Q4))
+  | Q4  : return (var (semantic-ext-register-of Q5))
+  | Q5  : return (var (semantic-ext-register-of Q6))
+  | Q6  : return (var (semantic-ext-register-of Q7))
+  | Q7  : return (var (semantic-ext-register-of Q8))
+  | Q8  : return (var (semantic-ext-register-of Q9))
+  | Q9  : return (var (semantic-ext-register-of Q10))
+  | Q10 : return (var (semantic-ext-register-of Q11))
+  | Q11 : return (var (semantic-ext-register-of Q12))
+  | Q12 : return (var (semantic-ext-register-of Q13))
+  | Q13 : return (var (semantic-ext-register-of Q14))
+  | Q14 : return (var (semantic-ext-register-of Q15))
+  | Q15 : return void
+  | D0  : return (var (semantic-ext-register-of D1))
+  | D1  : return (var (semantic-ext-register-of D2))
+  | D2  : return (var (semantic-ext-register-of D3))
+  | D3  : return (var (semantic-ext-register-of D4))
+  | D4  : return (var (semantic-ext-register-of D5))
+  | D5  : return (var (semantic-ext-register-of D6))
+  | D6  : return (var (semantic-ext-register-of D7))
+  | D7  : return (var (semantic-ext-register-of D8))
+  | D8  : return (var (semantic-ext-register-of D9))
+  | D9  : return (var (semantic-ext-register-of D10))
+  | D10 : return (var (semantic-ext-register-of D11))
+  | D11 : return (var (semantic-ext-register-of D12))
+  | D12 : return (var (semantic-ext-register-of D13))
+  | D13 : return (var (semantic-ext-register-of D14))
+  | D14 : return (var (semantic-ext-register-of D15))
+  | D15 : return (var (semantic-ext-register-of D16))
+  | D16 : return (var (semantic-ext-register-of D17))
+  | D17 : return (var (semantic-ext-register-of D18))
+  | D18 : return (var (semantic-ext-register-of D19))
+  | D19 : return (var (semantic-ext-register-of D20))
+  | D20 : return (var (semantic-ext-register-of D21))
+  | D21 : return (var (semantic-ext-register-of D22))
+  | D22 : return (var (semantic-ext-register-of D23))
+  | D23 : return (var (semantic-ext-register-of D24))
+  | D24 : return (var (semantic-ext-register-of D25))
+  | D25 : return (var (semantic-ext-register-of D26))
+  | D26 : return (var (semantic-ext-register-of D27))
+  | D27 : return (var (semantic-ext-register-of D28))
+  | D28 : return (var (semantic-ext-register-of D29))
+  | D29 : return (var (semantic-ext-register-of D30))
+  | D30 : return (var (semantic-ext-register-of D31))
+  | D31 : return void
+  | S0  : return (var (semantic-ext-register-of S1))
+  | S1  : return (var (semantic-ext-register-of S2))
+  | S2  : return (var (semantic-ext-register-of S3))
+  | S3  : return (var (semantic-ext-register-of S4))
+  | S4  : return (var (semantic-ext-register-of S5))
+  | S5  : return (var (semantic-ext-register-of S6))
+  | S6  : return (var (semantic-ext-register-of S7))
+  | S7  : return (var (semantic-ext-register-of S8))
+  | S8  : return (var (semantic-ext-register-of S9))
+  | S9  : return (var (semantic-ext-register-of S10))
+  | S10 : return (var (semantic-ext-register-of S11))
+  | S11 : return (var (semantic-ext-register-of S12))
+  | S12 : return (var (semantic-ext-register-of S13))
+  | S13 : return (var (semantic-ext-register-of S14))
+  | S14 : return (var (semantic-ext-register-of S15))
+  | S15 : return (var (semantic-ext-register-of S16))
+  | S16 : return (var (semantic-ext-register-of S17))
+  | S17 : return (var (semantic-ext-register-of S18))
+  | S18 : return (var (semantic-ext-register-of S19))
+  | S19 : return (var (semantic-ext-register-of S20))
+  | S20 : return (var (semantic-ext-register-of S21))
+  | S21 : return (var (semantic-ext-register-of S22))
+  | S22 : return (var (semantic-ext-register-of S23))
+  | S23 : return (var (semantic-ext-register-of S24))
+  | S24 : return (var (semantic-ext-register-of S25))
+  | S25 : return (var (semantic-ext-register-of S26))
+  | S26 : return (var (semantic-ext-register-of S27))
+  | S27 : return (var (semantic-ext-register-of S28))
+  | S28 : return (var (semantic-ext-register-of S29))
+  | S29 : return (var (semantic-ext-register-of S30))
+  | S30 : return (var (semantic-ext-register-of S31))
+  | S31 : return void
+end
 
 # --- scalar helper functions / type definitions -----------------------
 
@@ -1687,6 +1854,16 @@ val sem-vmovspac x = do
     rt <- lval x.opnd2;
 
     mov 32 rt sn
+end
+
+val sem-vmovacsp2 x = do
+    sn <- lvval Single x.opnd1;
+    sn2 <- lvnext sn;
+    rt <- rval x.opnd3;
+    rt2 <- rval x.opnd4;
+
+    mov 32 sn rt;
+    mov 32 sn2 rt2
 end
 
 val sem-default insn ip =
