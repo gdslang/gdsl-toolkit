@@ -719,6 +719,7 @@ type immediate =
   | IMM12 of 12
   | IMM16 of 16
   | IMM24 of 24
+  | IMM64 of 64
   | MODIMM of {byte:8, rot:4} # 8 bit immediate with 4 bit rotation
 
 type vector = {change:1, first:1, remainder:4}
@@ -1051,6 +1052,7 @@ val imm-to-int imm =
     | IMM8 i: zx i
     | IMM12 i: zx i
     | IMM24 i: zx i
+    | IMM64 i: zx i
     | MODIMM i: armexpandimm i
   end
 
@@ -1231,6 +1233,30 @@ val armexpandimm-c modimm carry_in =
 ### ARMExpandImm [[A5.2.4]]
 val armexpandimm modimm = (armexpandimm-c modimm 0).result
 
+### AdvSIMDExpandImm [[A7.4.6]]
+(* TODO: adjust so that unpredictable parameters are recognized parameters are recognized *)
+val advsimdexpandimm op cmode imm8 = case cmode of
+      '000.': '00000000 00000000 00000000'^imm8^'00000000 00000000 00000000'^imm8
+    | '001.': '00000000 00000000'^imm8^'00000000 00000000 00000000'^imm8^'00000000'
+    | '010.': '00000000'^imm8^'00000000 00000000 00000000'^imm8^'00000000 00000000'
+    | '011.': imm8^'00000000 00000000 00000000'^imm8^'00000000 00000000 00000000'
+    | '100.': '00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8
+    | '101.': imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'
+    | '1100': '00000000 00000000'^imm8^'11111111'^'00000000 00000000'^imm8^'11111111'
+    | '1101': '00000000'^imm8^'11111111 11111111'^'00000000'^imm8^'11111111 11111111'
+    | '1110': case op of
+        '0': imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8
+      | '1': case imm8 of
+        'a:1 b:1 c:1 d:1 e:1 f:1 g:1 h:1': a^a^a^a^a^a^a^a^b^b^b^b^b^b^b^b^c^c^c^c^c^c^c^c^d^d^d^d^d^d^d^d^e^e^e^e^e^e^e^e^f^f^f^f^f^f^f^f^g^g^g^g^g^g^g^g^h^h^h^h^h^h^h^h
+      end
+    end
+    | '1111': case op of
+        '0': case imm8 of
+          'a:1 b:1 c:6': a^(not b)^b^b^b^b^b^c^'00000000 00000000 000'^a^(not b)^b^b^b^b^b^c^'00000000 00000000 000'
+        end
+    end
+end
+
 # ----------------------------------------------------------------------
 # Subdecoder
 # ----------------------------------------------------------------------
@@ -1315,7 +1341,7 @@ val /cmode-mov0 ['cmode@1101'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@1110'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@1111'] = update@{cmode=cmode}
 
-# cmode for VMOV instruction with op=01, can only be 1110
+# cmode for VMOV instruction with op=1, can only be 1110
 val /cmode-mov1 ['cmode@1110'] = update@{cmode=cmode}
 
 # cmode for VMVN instruction, can only be 0000, 0010, 0100, 0110, 1000, 1010, 1100, or 1101
@@ -1619,11 +1645,13 @@ val combine-imm5 = do
   return (immediate (IMM5 (imm4^i)))
 end
 
-val combine-imm8-2 = do
+val imm64 op = do
+  cmode <- query cmode;
   i <- query $i;
   imm3 <- query $imm3;
   imm4 <- query $imm4;
-  return (immediate (IMM8 (i^imm3^imm4)))
+
+  return (advsimdexpandimm op cmode i^imm3^imm4)
 end
 
 # length
@@ -3209,7 +3237,7 @@ val / ['1111 001 0 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VAND none vd v
 
 ### VBIC
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = ternop VBIC none cmode vd combine-imm8-2
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = ternop VBIC none cmode vd (imm64 1)
 ###  - Vector Bitwise Bit Clear register
 val / ['1111 001 0 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIC none vd vn vm
 
@@ -3227,21 +3255,21 @@ val / ['1111 001 1 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none vd v
 
 ### VMOV
 ###  - Vector Move immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = ternop VMOVimmasimd none cmode vd combine-imm8-2
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = ternop VMOVimmasimd none cmode vd combine-imm8-2
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = binop VMOVimmasimd none vd (imm64 0)
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = binop VMOVimmasimd none vd (imm64 1)
 ###  - Vector Move register
 val / ['1111 001 0 0 /D 10 /vm /vd 0001 0 /Q 0 1 /vm'] = binop VMOVregasimd none vd vmm0
 val / ['1111 001 0 0 /D 10 /vm /vd 0001 1 /Q 1 1 /vm'] = binop VMOVregasimd none vd vmm1
 
 ### VMVN
 ###  - Vector Bitwise Not immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = ternop VMVN none cmode vd combine-imm8-2
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = ternop VMVN none cmode vd (imm64 1)
 ###  - Vector Bitwise Not register
 val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = ternop VMVN none size vd vm
 
 ### VORR
 ###  - Vector Bitwise OR immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = ternop VORR none cmode vd combine-imm8-2
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = ternop VORR none cmode vd (imm64 0)
 ###  - Vector Bitwise OR register
 val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = ternop VORR none vd vnn1 vmm1
 val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = ternop VORR none vd vnn1 vmm0

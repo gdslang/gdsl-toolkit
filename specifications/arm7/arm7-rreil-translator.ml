@@ -60,6 +60,7 @@ val rvals-c sign x setcarry = let
       | IMM12 i: return (from-vec sn i)
       | IMM16 i: return (from-vec sn i)
       | IMM24 i: return (from-vec sn i)
+      | IMM64 i: return (from-vec sn i)
       | MODIMM i: do
           expanded <- return (armexpandimm-c i 0);
           if setcarry then
@@ -1895,7 +1896,7 @@ val sem-vmovdweac x = do
 
     mov 32 rt scalar;
     mov 32 rt2 scalar2
-end    
+end
 
 val sem-default insn ip =
   prim-generic ("TRANSLATOR MISSING:\\t" +++ show/instruction insn ip) varls-none varls-none

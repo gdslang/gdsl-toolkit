@@ -220,6 +220,7 @@ val show/op/immediate imm = "#" +++ (case imm of
   | IMM12 i: show-int (zx i)
   | IMM16 i: "0x" +++ show-hex (zx i)
   | IMM24 i: "0x" +++ show-hex (zx i)
+  | IMM64 i: "0x" +++ show-hex (zx i)
   | MODIMM i: show-int (armexpandimm i) +++ "\\t; #" +++ show-int (armexpandimm i) +++ " = imm: " +++ show-int (zx i.byte) +++ ", rotation: " +++ show-int (zx i.rot)
   | _: "???"
 end)
