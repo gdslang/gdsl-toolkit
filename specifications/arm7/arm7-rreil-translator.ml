@@ -900,8 +900,8 @@ val semantic-vector size x = semantic-ext-register-of (decode-ext-register size 
 val lvval size x = return (semantic-vector size x)
 val rvval size x = return (var (semantic-vector size x))
 
-#successor of vectors
-val lvnext v = case v of
+#lval and rval for successors of vectors
+val lvnext size x = case (decode-ext-register size x) of
     Q0  : return (semantic-ext-register-of Q1)
   | Q1  : return (semantic-ext-register-of Q2)
   | Q2  : return (semantic-ext-register-of Q3)
@@ -981,7 +981,7 @@ val lvnext v = case v of
   | S30 : return (semantic-ext-register-of S31)
 end
 
-val rvnext v = case v of
+val rvnext size x = case (decode-ext-register size x) of
     Q0  : return (var (semantic-ext-register-of Q1))
   | Q1  : return (var (semantic-ext-register-of Q2))
   | Q2  : return (var (semantic-ext-register-of Q3))
@@ -1850,22 +1850,20 @@ val sem-vmovspac x = do
     mov 32 rt sn
 end
 
-val sem-vmovacsp2 x = do
-    sn <- lvval Single x.opnd1;
+(* TODO: Maybe optimize the usage of decode-ext-register after implementation of every semantic translation *)
+val sem-vmovacsp2 x = case (decode-ext-register Single x.opnd2) of
+      Q15 : return void
+    | D31 : return void
+    | S31 : return void
+    | _   : do
+        sn <- lvval Single x.opnd1;
+        sn2 <- lvnext Single x.opnd1;
+        rt <- rval x.opnd2;
+        rt2 <- rval x.opnd3;
 
-    case sn of
-          Q15 : return void
-        | D31 : return void
-        | S31 : return void
-    end;
-
-    sn2 <- lvnext sn;
-
-    rt <- rval x.opnd3;
-    rt2 <- rval x.opnd4;
-
-    mov 32 sn rt;
-    mov 32 sn2 rt2
+        mov 32 sn rt;
+        mov 32 sn2 rt2
+    end
 end
 
 val sem-default insn ip =

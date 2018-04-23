@@ -318,8 +318,8 @@ type instruction =
   | VMOVsac of ternop
   | VMOVacsp of binop
   | VMOVspac of binop
-  | VMOVacsp2 of quaternop
-  | VMOVspac2 of quaternop
+  | VMOVacsp2 of ternop
+  | VMOVspac2 of ternop
   | VMOVacdwe of ternop
   | VMOVdweac of ternop
   | VMRS of unop
@@ -3110,8 +3110,8 @@ val / ['/cond 1110 0 00 0 /vn /rt 1010 /N 00 1 0000'] = binop VMOVacsp cond vnq0
 val / ['/cond 1110 0 00 1 /vn /rt 1010 /N 00 1 0000'] = binop VMOVspac cond rt vnq0
 (*TODO: Adjust second 'm vm' to represent next vector*)
 ###  - Vector Move between two ARM core and two single-precision registers
-val / ['/cond 1100 0 10 0 /rt2 /rt 1010 00 /M 1 /vm'] = quaternop VMOVacsp2 cond vmq0 vmq0 rt rt2
-val / ['/cond 1100 0 10 1 /rt2 /rt 1010 00 /M 1 /vm'] = quaternop VMOVspac2 cond rt rt2 vmq0 vmq0
+val / ['/cond 1100 0 10 0 /rt2 /rt 1010 00 /M 1 /vm'] = ternop VMOVacsp2 cond vmq0 rt rt2
+val / ['/cond 1100 0 10 1 /rt2 /rt 1010 00 /M 1 /vm'] = ternop VMOVspac2 cond rt rt2 vmq0
 ###  - Vector Move between two ARM core and doubleword extension register
 val / ['/cond 1100 0 10 0 /rt2 /rt 1011 00 /M 1 /vm'] = ternop VMOVacdwe cond vmq0 rt rt2
 val / ['/cond 1100 0 10 1 /rt2 /rt 1011 00 /M 1 /vm'] = ternop VMOVdweac cond rt rt2 vmq0
