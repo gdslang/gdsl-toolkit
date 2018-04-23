@@ -917,7 +917,6 @@ val lvnext v = case v of
   | Q12 : return (semantic-ext-register-of Q13)
   | Q13 : return (semantic-ext-register-of Q14)
   | Q14 : return (semantic-ext-register-of Q15)
-  | Q15 : return void
   | D0  : return (semantic-ext-register-of D1)
   | D1  : return (semantic-ext-register-of D2)
   | D2  : return (semantic-ext-register-of D3)
@@ -949,7 +948,6 @@ val lvnext v = case v of
   | D28 : return (semantic-ext-register-of D29)
   | D29 : return (semantic-ext-register-of D30)
   | D30 : return (semantic-ext-register-of D31)
-  | D31 : return void
   | S0  : return (semantic-ext-register-of S1)
   | S1  : return (semantic-ext-register-of S2)
   | S2  : return (semantic-ext-register-of S3)
@@ -981,7 +979,6 @@ val lvnext v = case v of
   | S28 : return (semantic-ext-register-of S29)
   | S29 : return (semantic-ext-register-of S30)
   | S30 : return (semantic-ext-register-of S31)
-  | S31 : return void
 end
 
 val rvnext v = case v of
@@ -1000,7 +997,6 @@ val rvnext v = case v of
   | Q12 : return (var (semantic-ext-register-of Q13))
   | Q13 : return (var (semantic-ext-register-of Q14))
   | Q14 : return (var (semantic-ext-register-of Q15))
-  | Q15 : return void
   | D0  : return (var (semantic-ext-register-of D1))
   | D1  : return (var (semantic-ext-register-of D2))
   | D2  : return (var (semantic-ext-register-of D3))
@@ -1032,7 +1028,6 @@ val rvnext v = case v of
   | D28 : return (var (semantic-ext-register-of D29))
   | D29 : return (var (semantic-ext-register-of D30))
   | D30 : return (var (semantic-ext-register-of D31))
-  | D31 : return void
   | S0  : return (var (semantic-ext-register-of S1))
   | S1  : return (var (semantic-ext-register-of S2))
   | S2  : return (var (semantic-ext-register-of S3))
@@ -1064,7 +1059,6 @@ val rvnext v = case v of
   | S28 : return (var (semantic-ext-register-of S29))
   | S29 : return (var (semantic-ext-register-of S30))
   | S30 : return (var (semantic-ext-register-of S31))
-  | S31 : return void
 end
 
 # --- scalar helper functions / type definitions -----------------------
@@ -1858,7 +1852,14 @@ end
 
 val sem-vmovacsp2 x = do
     sn <- lvval Single x.opnd1;
-    sn2 <- lvnext sn;
+
+    case sn of
+          Q15 : return void
+        | D31 : return void
+        | S31 : return void
+        | _   : sn2 <- lvnext sn
+    end;
+
     rt <- rval x.opnd3;
     rt2 <- rval x.opnd4;
 
