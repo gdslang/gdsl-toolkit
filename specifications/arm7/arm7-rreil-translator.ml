@@ -1851,7 +1851,7 @@ val sem-vmovspac x = do
 end
 
 (* TODO: Maybe optimize the usage of decode-ext-register after implementation of every semantic translation *)
-val sem-vmovacsp2 x = case (decode-ext-register Single x.opnd2) of
+val sem-vmovacsp2 x = case (decode-ext-register Single x.opnd1) of
       Q15 : return void
     | D31 : return void
     | S31 : return void
@@ -1863,6 +1863,21 @@ val sem-vmovacsp2 x = case (decode-ext-register Single x.opnd2) of
 
         mov 32 sn rt;
         mov 32 sn2 rt2
+    end
+end
+
+val sem-vmovspac2 x = case (decode-ext-register Single x.opnd3) of
+      Q15 : return void
+    | D31 : return void
+    | S31 : return void
+    | _   : do
+        sn <- lvval Single x.opnd3;
+        sn2 <- lvnext Single x.opnd3;
+        rt <- rval x.opnd1;
+        rt2 <- rval x.opnd2;
+
+        mov 32 rt sn;
+        mov 32 rt2 sn2
     end
 end
 
