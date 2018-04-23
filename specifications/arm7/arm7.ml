@@ -1236,14 +1236,14 @@ val armexpandimm modimm = (armexpandimm-c modimm 0).result
 ### AdvSIMDExpandImm [[A7.4.6]]
 (* TODO: adjust so that unpredictable parameters are recognized parameters are recognized *)
 val advsimdexpandimm op cmode imm8 = case cmode of
-      '000.': immediate (IMM64 ('000000000000000000000000'^imm8^'000000000000000000000000'^imm8)
-    | '001.': immediate (IMM64 ('0000000000000000'^imm8^'000000000000000000000000'^imm8^'00000000')
-    | '010.': immediate (IMM64 ('00000000'^imm8^'000000000000000000000000'^imm8^'0000000000000000')
-    | '011.': immediate (IMM64 (imm8^'00000000000000000000000'^imm8^'000000000000000000000000')
-    | '100.': immediate (IMM64 ('00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8)
-    | '101.': immediate (IMM64 (imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000')
-    | '1100': immediate (IMM64 ('0000000000000000'^imm8^'11111111'^'0000000000000000'^imm8^'11111111')
-    | '1101': immediate (IMM64 ('00000000'^imm8^'1111111111111111'^'00000000'^imm8^'1111111111111111')
+      '000.': immediate (IMM64 ('000000000000000000000000'^imm8^'000000000000000000000000'^imm8))
+    | '001.': immediate (IMM64 ('0000000000000000'^imm8^'000000000000000000000000'^imm8^'00000000'))
+    | '010.': immediate (IMM64 ('00000000'^imm8^'000000000000000000000000'^imm8^'0000000000000000'))
+    | '011.': immediate (IMM64 (imm8^'00000000000000000000000'^imm8^'000000000000000000000000'))
+    | '100.': immediate (IMM64 ('00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8))
+    | '101.': immediate (IMM64 (imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'))
+    | '1100': immediate (IMM64 ('0000000000000000'^imm8^'11111111'^'0000000000000000'^imm8^'11111111'))
+    | '1101': immediate (IMM64 ('00000000'^imm8^'1111111111111111'^'00000000'^imm8^'1111111111111111'))
     | '1110': case op of
         '0': immediate (IMM64 (imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8))
       | '1': case imm8 of
