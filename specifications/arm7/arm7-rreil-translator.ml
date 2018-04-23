@@ -361,8 +361,8 @@ in
     | VMOVspac x: conditional sem-vmovspac x
     | VMOVacsp2 x: conditional sem-vmovacsp2 x
     | VMOVspac2 x: conditional sem-vmovspac2 x
-    # | VMOVacdwe x: conditional sem-vmovacdwe x
-    # | VMOVdweac x: conditional sem-vmovdweac x
+    | VMOVacdwe x: conditional sem-vmovacdwe x
+    | VMOVdweac x: conditional sem-vmovdweac x
     # | VMRS x: conditional sem-vmrs x
     # | VMSR x: conditional sem-vmsr x
     # | VADDiasimd x: conditional sem-vaddiasimd x
@@ -1883,8 +1883,8 @@ val sem-vmovacdwe x = do
     rt <- rval x.opnd2;
     rt2 <- rval x.opnd3;
 
-    mov 32 dn rt;
-    mov 32 dn2 rt2
+    mov 32 scalar rt;
+    mov 32 scalar2 rt2
 end
 
 val sem-vmovdweac x = do
@@ -1893,8 +1893,8 @@ val sem-vmovdweac x = do
     scalar <- rsval Word 0 Double x.opnd3;
     scalar2 <- rsval Word 1 Double x.opnd3;
 
-    mov 32 rt dn;
-    mov 32 rt2 dn2
+    mov 32 rt scalar;
+    mov 32 rt2 scalar2
 end    
 
 val sem-default insn ip =
