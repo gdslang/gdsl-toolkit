@@ -1651,7 +1651,7 @@ val imm64 op = do
   imm3 <- query $imm3;
   imm4 <- query $imm4;
 
-  return (advsimdexpandimm op cmode i^imm3^imm4)
+  return (advsimdexpandimm op cmode (i^imm3^imm4))
 end
 
 # length
