@@ -1646,7 +1646,7 @@ val combine-imm5 = do
 end
 
 val imm64 op = do
-  cmode <- query cmode;
+  cmode <- query $cmode;
   i <- query $i;
   imm3 <- query $imm3;
   imm4 <- query $imm4;
