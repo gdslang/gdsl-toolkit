@@ -395,7 +395,7 @@ in
     # | VBIT x: conditional sem-vbit x
     # | VBSL x: conditional sem-vbsl x
     | VMOVimmasimd x: sem-vmovimmasimd x
-    # | VMOVregasimd x: conditional sem-vmovregasimd x
+    | VMOVregasimd x: conditional sem-vmovregasimd x
     # | VMVN x: conditional sem-vmvn x
     # | VORR x: conditional sem-vorr x
     # | VORN x: conditional sem-vorn x
@@ -501,7 +501,7 @@ in
     # | VMLAfpfp x: conditional sem-vmlafpfp x
     # | VMLSfpfp x: conditional sem-vmlsfpfp x
     | VMOVimmfp x: conditional sem-vmovimmfp x
-    # | VMOVregfp x: conditional sem-vmovregfp x
+    | VMOVregfp x: conditional sem-vmovregfp x
     # | VMULfpfp x: conditional sem-vmulfpfp x
     # | VNEGfp x: conditional sem-vnegfp x
     # | VNMLA x: conditional sem-vnmla x
