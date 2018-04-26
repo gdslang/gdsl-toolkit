@@ -1261,8 +1261,8 @@ end
 ### VFPExpandImm [[A7.5.1]]
 val vfpexpandimm imm8 n = case imm8 of
     'i7:1 i6:1 i50:6': case n of
-        32: return (immediate (IMM32 (i7^(not i6)^i6^i6^i6^i6^i6^i50^'0000000000000000000')))
-      | 64: return (immediate (IMM64 (i7^(not i6)^i6^i6^i6^i6^i6^i6^i6^i6^i50^'000000000000000000000000000000000000000000000000')))
+        32: immediate (IMM32 (i7^(not i6)^i6^i6^i6^i6^i6^i50^'0000000000000000000'))
+      | 64: immediate (IMM64 (i7^(not i6)^i6^i6^i6^i6^i6^i6^i6^i6^i50^'000000000000000000000000000000000000000000000000'))
     end
 end
 # ----------------------------------------------------------------------
