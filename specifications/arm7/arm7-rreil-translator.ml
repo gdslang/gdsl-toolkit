@@ -500,7 +500,7 @@ in
     # | VDIV x: conditional sem-vdiv x
     # | VMLAfpfp x: conditional sem-vmlafpfp x
     # | VMLSfpfp x: conditional sem-vmlsfpfp x
-    # | VMOVimmfp x: conditional sem-vmovimmfp x
+    | VMOVimmfp x: conditional sem-vmovimmfp x
     # | VMOVregfp x: conditional sem-vmovregfp x
     # | VMULfpfp x: conditional sem-vmulfpfp x
     # | VNEGfp x: conditional sem-vnegfp x
