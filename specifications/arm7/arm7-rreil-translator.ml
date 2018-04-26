@@ -393,7 +393,7 @@ in
     # | VBIF x: conditional sem-vbif x
     # | VBIT x: conditional sem-vbit x
     # | VBSL x: conditional sem-vbsl x
-    # | VMOVimmasimd x: conditional sem-vmovimmasimd x
+    | VMOVimmasimd x: sem-vmovimmasimd x
     # | VMOVregasimd x: conditional sem-vmovregasimd x
     # | VMVN x: conditional sem-vmvn x
     # | VORR x: conditional sem-vorr x
@@ -1897,6 +1897,33 @@ val sem-vmovdweac x = do
     mov 32 rt scalar;
     mov 32 rt2 scalar2
 end
+
+val sem-vmovimmasimd x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': Double
+        | '1': Quad
+in
+    do
+        imm <- rval x.opnd2;
+        case size of
+              Double : do
+                dvd <- lvval Double x.opnd1;
+                mov 64 dvd imm
+            end
+            | Quad   : do
+                scalar <- lsval Doubleword 0 Quad x.opnd1;
+                scalar2 <- lsval Doubleword 1 Quad x.opnd1;
+
+                mov 64 scalar imm;
+                mov 64 scalar2 imm
+            end
+        end
+    end
+end
+
+#val sem-vmovregasimd
+#val sem-vmovimmfp
+#val sem-vmovregfp
 
 val sem-default insn ip =
   prim-generic ("TRANSLATOR MISSING:\\t" +++ show/instruction insn ip) varls-none varls-none
