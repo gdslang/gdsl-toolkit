@@ -1898,10 +1898,13 @@ val sem-vmovdweac x = do
     mov 32 rt2 scalar2
 end
 
-val sem-vmovimmasimd x = case x.opnd1 of
-    VECTOR v: case v.change of
-          '0': Double
-        | '1': Quad
+val sem-vmovimmasimd x = let
+    val size = case x.opnd1 of
+        VECTOR v: case v.change of
+              '0': Double
+            | '1': Quad
+        end
+    end
 in
     do
         imm <- rval x.opnd2;
