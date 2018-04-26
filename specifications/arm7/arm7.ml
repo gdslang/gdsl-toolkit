@@ -464,7 +464,7 @@ type instruction =
   | VDIV of unbitBinop
   | VMLAfpfp of unbitTernop
   | VMLSfpfp of unbitTernop
-  | VMOVimmfp of ternop
+  | VMOVimmfp of binop
   | VMOVregfp of unbitBinop
   | VMULfpfp of unbitTernop
   | VNEGfp of unbitBinop
@@ -719,6 +719,7 @@ type immediate =
   | IMM12 of 12
   | IMM16 of 16
   | IMM24 of 24
+  | IMM32 of 32
   | IMM64 of 64
   | MODIMM of {byte:8, rot:4} # 8 bit immediate with 4 bit rotation
 
@@ -1257,6 +1258,16 @@ val advsimdexpandimm op cmode imm8 = case cmode of
     end
 end
 
+### VFPExpandImm [[A7.5.1]]
+val vfpexpandimm imm8 n = case imm8 of
+    immediate i: case i of
+      IMM8 j: case j of
+        'i7:1 i6:1 i50:6': case n of
+            32: return (immediate (IMM32 (i7^(not i6)^i6^i6^i6^i6^i6^i50^'0000000000000000000')))
+          | 64: return (immediate (IMM64 (i7^(not i6)^i6^i6^i6^i6^i6^i6^i6^i6^i50^'000000000000000000000000000000000000000000000000')))
+      end
+    end
+end
 # ----------------------------------------------------------------------
 # Subdecoder
 # ----------------------------------------------------------------------
@@ -1645,13 +1656,27 @@ val combine-imm5 = do
   return (immediate (IMM5 (imm4^i)))
 end
 
-val imm64 op = do
+val imm64-asimd op = do
   cmode <- query $cmode;
   i <- query $i;
   imm3 <- query $imm3;
   imm4 <- query $imm4;
 
   return (advsimdexpandimm op cmode (i^imm3^imm4))
+end
+
+val imm32-vfp = do
+  imm4L <- query $imm4L;
+  imm4H <- query $imm4H;
+
+  return (vfpexpandimm (imm4H^imm4L) 32)
+end
+
+val imm64-vfp = do
+  imm4L <- query $imm4L;
+  imm4H <- query $imm4H;
+
+  return (vfpexpandimm (imm4H^imm4L) 64)
 end
 
 # length
@@ -3237,7 +3262,7 @@ val / ['1111 001 0 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VAND none vd v
 
 ### VBIC
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = ternop VBIC none cmode vd (imm64 '1')
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = ternop VBIC none cmode vd (imm64-asimd '1')
 ###  - Vector Bitwise Bit Clear register
 val / ['1111 001 0 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIC none vd vn vm
 
@@ -3255,21 +3280,21 @@ val / ['1111 001 1 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none vd v
 
 ### VMOV
 ###  - Vector Move immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = binop VMOVimmasimd none vd (imm64 '0')
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = binop VMOVimmasimd none vd (imm64 '1')
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = binop VMOVimmasimd none vd (imm64-asimd '0')
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = binop VMOVimmasimd none vd (imm64-asimd '1')
 ###  - Vector Move register
 val / ['1111 001 0 0 /D 10 /vm /vd 0001 0 /Q 0 1 /vm'] = binop VMOVregasimd none vd vmm0
 val / ['1111 001 0 0 /D 10 /vm /vd 0001 1 /Q 1 1 /vm'] = binop VMOVregasimd none vd vmm1
 
 ### VMVN
 ###  - Vector Bitwise Not immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = ternop VMVN none cmode vd (imm64 '1')
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = ternop VMVN none cmode vd (imm64-asimd '1')
 ###  - Vector Bitwise Not register
 val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = ternop VMVN none size vd vm
 
 ### VORR
 ###  - Vector Bitwise OR immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = ternop VORR none cmode vd (imm64 '0')
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = ternop VORR none cmode vd (imm64-asimd '0')
 ###  - Vector Bitwise OR register
 val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = ternop VORR none vd vnn1 vmm1
 val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = ternop VORR none vd vnn1 vmm0
@@ -3724,8 +3749,8 @@ val / ['/cond 11100 /D 00 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VMLSfpfp c
 
 ### VMOV
 ###  - Vector Move immediate floating-point
-val / ['/cond 11101 /D 11 /imm4H /vd 101 0 0000 /imm4L'] = ternop VMOVimmfp none set1010 vdq1 combine-imm8
-val / ['/cond 11101 /D 11 /imm4H /vd 101 1 0000 /imm4L'] = ternop VMOVimmfp none set1011 vdq0 combine-imm8
+val / ['/cond 11101 /D 11 /imm4H /vd 101 0 0000 /imm4L'] = binop VMOVimmfp none vdq0 imm32-vfp
+val / ['/cond 11101 /D 11 /imm4H /vd 101 1 0000 /imm4L'] = binop VMOVimmfp none vdq1 imm64-vfp
 ###  - Vector Move register floating-point
 val / ['/cond 11101 /D 11 0000 /vd 101 0 01 /M 0 /vm'] = unbitBinop VMOVregfp none set0 vdq1 vmq1
 val / ['/cond 11101 /D 11 0000 /vd 101 1 01 /M 0 /vm'] = unbitBinop VMOVregfp none set1 vdq0 vmq0

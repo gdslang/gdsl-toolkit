@@ -60,6 +60,7 @@ val rvals-c sign x setcarry = let
       | IMM12 i: return (from-vec sn i)
       | IMM16 i: return (from-vec sn i)
       | IMM24 i: return (from-vec sn i)
+      | IMM32 i: return (from-vec sn i)
       | IMM64 i: return (from-vec sn i)
       | MODIMM i: do
           expanded <- return (armexpandimm-c i 0);
@@ -1924,8 +1925,32 @@ in
     end
 end
 
-#val sem-vmovregasimd
-#val sem-vmovimmfp
+#val sem-vmovregasimd x = do
+
+val sem-vmovimmfp x = let
+    val size = case x.opnd1 of
+        VECTOR v: case v.change of
+              '0': Single
+            | '1': Double
+        end
+    end
+in
+    case size of
+          Single: do
+            dvd <- lvval Single x.opnd1;
+            imm <- rval x.opnd2;
+
+            mov 32 dvd imm
+        end
+        | Double: do
+            dvd <- lvval Double x.opnd1;
+            imm <- rval x.opnd2;
+
+            mov 64 dvd imm
+        end
+    end
+end
+
 #val sem-vmovregfp
 
 val sem-default insn ip =
