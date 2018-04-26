@@ -1899,50 +1899,51 @@ val sem-vmovdweac x = do
     mov 32 rt2 scalar2
 end
 
-val sem-vmovimmasimd x = let
-    val size = case x.opnd1 of
-        VECTOR v: case v.change of
-              '0': Double
-            | '1': Quad
-        end
-    end
-in
-    do
-        imm <- rval x.opnd2;
-        case size of
-              Double : do
-                dvd <- lvval Double x.opnd1;
-                mov 64 dvd imm
-            end
-            | Quad   : do
-                scalar <- lsval Doubleword 0 Quad x.opnd1;
-                scalar2 <- lsval Doubleword 1 Quad x.opnd1;
+val sem-vmovimmasimd x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': do
+            dvd <- lvval Double x.opnd1;
+            imm <- rval x.opnd2;
 
-                mov 64 scalar imm;
-                mov 64 scalar2 imm
-            end
+            mov 64 dvd imm
+        end
+        | '1': do
+            scalar <- lsval Doubleword 0 Quad x.opnd1;
+            scalar2 <- lsval Doubleword 1 Quad x.opnd1;
+            imm <- rval x.opnd2;
+
+            mov 64 scalar imm;
+            mov 64 scalar2 imm
         end
     end
 end
 
-#val sem-vmovregasimd x = do
+val sem-vmovregasimd x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': do
+            dvd <- lvval Double x.opnd1;
+            nvn <- rvval Double x.opnd2;
 
-val sem-vmovimmfp x = let
-    val size = case x.opnd1 of
-        VECTOR v: case v.change of
-              '0': Single
-            | '1': Double
+            mov 64 dvd nvn
+        end
+        | '1': do
+            dvd <- lvval Quad x.opnd1;
+            nvn <- rvval Quad x.opnd2;
+
+            mov 128 dvd nvn
         end
     end
-in
-    case size of
-          Single: do
+end
+
+val sem-vmovimmfp x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': do
             dvd <- lvval Single x.opnd1;
             imm <- rval x.opnd2;
 
             mov 32 dvd imm
         end
-        | Double: do
+        | '1': do
             dvd <- lvval Double x.opnd1;
             imm <- rval x.opnd2;
 
@@ -1951,7 +1952,22 @@ in
     end
 end
 
-#val sem-vmovregfp
+val sem-vmovregfp x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': do
+            dvd <- lvval Single x.opnd1;
+            nvn <- rvval Single x.opnd2;
+
+            mov 32 dvd nvn
+        end
+        | '1': do
+            dvd <- lvval Double x.opnd1;
+            nvn <- rvval Double x.opnd2;
+
+            mov 64 dvd nvn
+        end
+    end
+end
 
 val sem-default insn ip =
   prim-generic ("TRANSLATOR MISSING:\\t" +++ show/instruction insn ip) varls-none varls-none

@@ -465,7 +465,7 @@ type instruction =
   | VMLAfpfp of unbitTernop
   | VMLSfpfp of unbitTernop
   | VMOVimmfp of binop
-  | VMOVregfp of unbitBinop
+  | VMOVregfp of binop
   | VMULfpfp of unbitTernop
   | VNEGfp of unbitBinop
   | VNMLA of unbitBinop
@@ -3749,8 +3749,7 @@ val / ['/cond 11100 /D 00 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VMLSfpfp c
 val / ['/cond 11101 /D 11 /imm4H /vd 101 0 0000 /imm4L'] = binop VMOVimmfp none vdq0 imm32-vfp
 val / ['/cond 11101 /D 11 /imm4H /vd 101 1 0000 /imm4L'] = binop VMOVimmfp none vdq1 imm64-vfp
 ###  - Vector Move register floating-point
-val / ['/cond 11101 /D 11 0000 /vd 101 0 01 /M 0 /vm'] = unbitBinop VMOVregfp none set0 vdq1 vmq1
-val / ['/cond 11101 /D 11 0000 /vd 101 1 01 /M 0 /vm'] = unbitBinop VMOVregfp none set1 vdq0 vmq0
+val / ['/cond 11101 /D 11 0000 /vd 101 /Q 01 /M 0 /vm'] = binop VMOVregfp none vd vm
 
 ### VFMA
 ###  - Vector Fused Multiply Accumulate
