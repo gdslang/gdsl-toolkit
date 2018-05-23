@@ -1926,14 +1926,12 @@ val sem-vmovimmasimd-undef x = case x.opnd1 of
     VECTOR v: case v.change of
           '0': do
             dvd <- lvval Double x.opnd1;
-            imm <- rval x.opnd2;
 
             undef 64 dvd
         end
         | '1': do
             scalar <- lsval Doubleword 0 Quad x.opnd1;
             scalar2 <- lsval Doubleword 1 Quad x.opnd1;
-            imm <- rval x.opnd2;
 
             undef 64 scalar;
             undef 64 scalar2
