@@ -3247,14 +3247,14 @@ val / ['1111 001 /U 1 /D /size /vn /vd 001 1 /N 0 /M 0 /vm'] = unbitQuaternop VS
 
 ### Advanced SIMD Expand Immediate is unpredictable
 val unpredictable? s = case s.cmode of
-	  '000.' = 0
-	| '001.' = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
-	| '010.' = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
-	| '011.' = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
-	| '100.' = 0
-	| '101.' = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
-	| '110.' = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
-	| '111.' = 0
+	  '000.': 0
+	| '001.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '010.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '011.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '100.': 0
+	| '101.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '110.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '111.': 0
 end
 
 ### VAND
@@ -3262,7 +3262,7 @@ end
 val / ['1111 001 0 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VAND none vd vn vm
 
 ### VBIC
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] =
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4']
 ### - Unpredictable
   | unpredictable? = unop VBICundef none vd
 ###  - Vector Bitwise Bit Clear immediate
@@ -3283,12 +3283,12 @@ val / ['1111 001 1 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none vd v
 val / ['1111 001 1 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none vd vn vm
 
 ### VMOV
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] =
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4']
 ### Unpredictable
 	| unpredictable? = unop VMOVimmasimdundef none vd
 ###  - Vector Move immediate
 	| otherwise = binop VMOVimmasimd none vd (imm64-asimd '0')
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] =
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4']
 ### Unpredictable
 	| unpredictable? = unop VMOVimmasimdundef none vd
 ###  - Vector Move immediate
@@ -3298,7 +3298,7 @@ val / ['1111 001 0 0 /D 10 /vm /vd 0001 0 /Q 0 1 /vm'] = binop VMOVregasimd none
 val / ['1111 001 0 0 /D 10 /vm /vd 0001 1 /Q 1 1 /vm'] = binop VMOVregasimd none vd vmm1
 
 ### VMVN
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] =
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4']
 ###  - Unpredictable
 	| unpredictable? = unop VMVNundef none vd
 ###  - Vector Bitwise Not immediate
@@ -3307,7 +3307,7 @@ val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] =
 val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = ternop VMVN none size vd vm
 
 ### VORR
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] =
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4']
 ###  - Unpredictable
 	| unpredictable? = unop VORRundef none vd
 ###  - Vector Bitwise OR immediate
