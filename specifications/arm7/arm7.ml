@@ -347,14 +347,18 @@ type instruction =
   | VSUBW of unbitQuaternop
   | VAND of ternop
   | VBIC of ternop
+  | VBICundef of unop
   | VEOR of ternop
   | VBIF of ternop
   | VBIT of ternop
   | VBSL of ternop
   | VMOVimmasimd of binop
+  | VMOVimmasimdundef of unop
   | VMOVregasimd of binop
   | VMVN of ternop
+  | VMVNundef of unop
   | VORR of ternop
+  | VORRundef of unop
   | VORN of ternop
   | VACGE of unbitTernop
   | VACGT of unbitTernop
