@@ -1388,17 +1388,17 @@ val /imm6-not000 ['imm6@01....'] = update@{imm6=imm6}
 val /imm6-not000 ['imm6@1.....'] = update@{imm6=imm6}
 
 val /imm6-not000-vshll ['imm6@001..1'] = update@{imm6=imm6}
-val /imm6-not000-vshll ['imm6@001.1.'] = update@{imm6=imm6}
-val /imm6-not000-vshll ['imm6@0011..'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@001.10'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@001100'] = update@{imm6=imm6}
 val /imm6-not000-vshll ['imm6@01...1'] = update@{imm6=imm6}
-val /imm6-not000-vshll ['imm6@01..1.'] = update@{imm6=imm6}
-val /imm6-not000-vshll ['imm6@01.1..'] = update@{imm6=imm6}
-val /imm6-not000-vshll ['imm6@011...'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@01..10'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@01.100'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@011000'] = update@{imm6=imm6}
 val /imm6-not000-vshll ['imm6@1....1'] = update@{imm6=imm6}
-val /imm6-not000-vshll ['imm6@1...1.'] = update@{imm6=imm6}
-val /imm6-not000-vshll ['imm6@1..1..'] = update@{imm6=imm6}
-val /imm6-not000-vshll ['imm6@1.1...'] = update@{imm6=imm6}
-val /imm6-not000-vshll ['imm6@11....'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1...10'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1..100'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1.1000'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@110000'] = update@{imm6=imm6}
 
 val imm6 = do
   imm6 <- query $imm6;
