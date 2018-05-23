@@ -3447,7 +3447,7 @@ val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 0 /vm'] = unbitQuaternop VS
 
 ### VSHLL
 ###  - Vector Shift Left Long (Encoding A1)
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 1010 00 /M 1 /vm'] = unbitQuaternop VSHLL none u imm6 vdq0 vmq1 imm6
+val / ['1111 001 /U 1 /D /imm6-not000-vshll /vd 1010 00 /M 1 /vm'] = unbitQuaternop VSHLL none u imm6 vdq0 vmq1 imm6
 ###  - Vector Shift Left Long (Encoding A2)
 val / ['1111 0011 1 /D 11 /size 10 /vd 0011 00 /M 0 /vm'] = unbitQuaternop VSHLL none set1 size vdq0 vmq0 size
 
