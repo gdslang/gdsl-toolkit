@@ -1387,6 +1387,19 @@ val /imm6-not000 ['imm6@001...'] = update@{imm6=imm6}
 val /imm6-not000 ['imm6@01....'] = update@{imm6=imm6}
 val /imm6-not000 ['imm6@1.....'] = update@{imm6=imm6}
 
+val /imm6-not000-vshll ['imm6@001..1'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@001.1.'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@0011..'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@01...1'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@01..1.'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@01.1..'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@011...'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1....1'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1...1.'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1..1..'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1.1...'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@11....'] = update@{imm6=imm6}
+
 val imm6 = do
   imm6 <- query $imm6;
   return (immediate (IMM6 (imm6)))
