@@ -3247,14 +3247,14 @@ val / ['1111 001 /U 1 /D /size /vn /vd 001 1 /N 0 /M 0 /vm'] = unbitQuaternop VS
 
 ### Advanced SIMD Expand Immediate is unpredictable
 val unpredictable? s = case s.cmode of
-	  '000.': 0
+	  '000.': '0'
 	| '001.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
 	| '010.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
 	| '011.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
-	| '100.': 0
+	| '100.': '0'
 	| '101.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
 	| '110.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
-	| '111.': 0
+	| '111.': '0'
 end
 
 ### VAND
