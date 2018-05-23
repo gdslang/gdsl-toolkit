@@ -389,15 +389,19 @@ in
     # | VSUBL x: conditional sem-vsubl x
     # | VSUBW x: conditional sem-vsubw x
     # | VAND x: conditional sem-vand x
-    # | VBIC x: conditional sem-vbic x
+    # | VBIC x: sem-vbic x
+    # | VBICundef x: sem-vbic-undef x
     # | VEOR x: conditional sem-veor x
     # | VBIF x: conditional sem-vbif x
     # | VBIT x: conditional sem-vbit x
     # | VBSL x: conditional sem-vbsl x
     | VMOVimmasimd x: sem-vmovimmasimd x
+    | VMOVimmasimdundef x: sem-vmovimmasimd-undef x
     | VMOVregasimd x: conditional sem-vmovregasimd x
-    # | VMVN x: conditional sem-vmvn x
-    # | VORR x: conditional sem-vorr x
+    # | VMVN x: sem-vmvn x
+    # | VMVNundef x: sem-vmvn-undef x
+    # | VORR x: sem-vorr x
+    # | VORRundef x: sem-vorr-undef x
     # | VORN x: conditional sem-vorn x
     # | VACGE x: conditional sem-vacge x
     # | VACGT x: conditional sem-vacgt x
@@ -1914,6 +1918,25 @@ val sem-vmovimmasimd x = case x.opnd1 of
 
             mov 64 scalar imm;
             mov 64 scalar2 imm
+        end
+    end
+end
+
+val sem-vmovimmasimd-undef x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': do
+            dvd <- lvval Double x.opnd1;
+            imm <- rval x.opnd2;
+
+            undef 64 dvd
+        end
+        | '1': do
+            scalar <- lsval Doubleword 0 Quad x.opnd1;
+            scalar2 <- lsval Doubleword 1 Quad x.opnd1;
+            imm <- rval x.opnd2;
+
+            undef 64 scalar;
+            undef 64 scalar2
         end
     end
 end

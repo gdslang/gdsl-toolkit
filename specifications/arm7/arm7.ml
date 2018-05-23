@@ -1379,21 +1379,9 @@ end
 
 val /imm6 ['imm6:6'] = update@{imm6=imm6}
 
-val /imm6-not000 ['imm6@0011..'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@00101.'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@001001'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@011...'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@0101..'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@01001.'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@010001'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@11....'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@101...'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@1001..'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@10001.'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@100001'] = update@{imm6=imm6}
-
-
-
+val /imm6-not000 ['imm6@001...'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@01....'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@1.....'] = update@{imm6=imm6}
 
 val imm6 = do
   imm6 <- query $imm6;
@@ -3253,13 +3241,28 @@ val / ['1111 001 /U 1 /D /size /vn /vd 001 1 /N 0 /M 0 /vm'] = unbitQuaternop VS
 
 # --- Bitwise Advanced SIMD data-processing instructions ---------------
 
+### Advanced SIMD Expand Immediate is unpredictable
+val unpredictable? s = case s.cmode of
+	  ['000.'] = 0
+	| ['001.'] = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| ['010.'] = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| ['011.'] = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| ['100.'] = 0
+	| ['101.'] = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| ['110.'] = (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| ['111.'] = 0
+end
+
 ### VAND
 ###  - Vector And register
 val / ['1111 001 0 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VAND none vd vn vm
 
 ### VBIC
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] =
+### - Unpredictable
+  | unpredictable? = unop VBICundef none vd
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = ternop VBIC none cmode vd (imm64-asimd '1')
+  | otherwise = ternop VBIC none cmode vd (imm64-asimd '1')
 ###  - Vector Bitwise Bit Clear register
 val / ['1111 001 0 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIC none vd vn vm
 
@@ -3276,22 +3279,36 @@ val / ['1111 001 1 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none vd v
 val / ['1111 001 1 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none vd vn vm
 
 ### VMOV
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] =
+### Unpredictable
+	| unpredictable? = unop VMOVimmasimdundef none vd
 ###  - Vector Move immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = binop VMOVimmasimd none vd (imm64-asimd '0')
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = binop VMOVimmasimd none vd (imm64-asimd '1')
+	| otherwise = binop VMOVimmasimd none vd (imm64-asimd '0')
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] =
+### Unpredictable
+	| unpredictable? = unop VMOVimmasimdundef none vd
+###  - Vector Move immediate
+	| otherwise = binop VMOVimmasimd none vd (imm64-asimd '1')
 ###  - Vector Move register
 val / ['1111 001 0 0 /D 10 /vm /vd 0001 0 /Q 0 1 /vm'] = binop VMOVregasimd none vd vmm0
 val / ['1111 001 0 0 /D 10 /vm /vd 0001 1 /Q 1 1 /vm'] = binop VMOVregasimd none vd vmm1
 
 ### VMVN
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] =
+###  - Unpredictable
+	| unpredictable? = unop VMVNundef none vd
 ###  - Vector Bitwise Not immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = ternop VMVN none cmode vd (imm64-asimd '1')
+	| otherwise = ternop VMVN none cmode vd (imm64-asimd '1')
 ###  - Vector Bitwise Not register
 val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = ternop VMVN none size vd vm
 
 ### VORR
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] =
+###  - Unpredictable
+	| unpredictable? = unop VORRundef none vd
 ###  - Vector Bitwise OR immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = ternop VORR none cmode vd (imm64-asimd '0')
+###  - Vector Bitwise OR immediate
+	| otherwise = ternop VORR none cmode vd (imm64-asimd '0')
 ###  - Vector Bitwise OR register
 val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = ternop VORR none vd vnn1 vmm1
 val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = ternop VORR none vd vnn1 vmm0
