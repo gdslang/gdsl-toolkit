@@ -38,7 +38,7 @@ val fuse-bodies-stmt-list stmts = case stmts of
 			return (SEM_CONS {hd=head, tl=continued})
 		  end
 		| _		  : do
-			continued <- return (fuse-ite-stmt-list s.tl);
+			continued <- return (fuse-bodies-stmt-list s.tl);
 			return (SEM_CONS {hd=s.hd, tl=continued})
 		end
 	  end
