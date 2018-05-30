@@ -88,22 +88,23 @@ val equal a b = case a of
 	  	  SEM_LIN_VAR v : case b of
 		  	  SEM_SEXPR_LIN ll : case ll of
 				  SEM_LIN_VAR vv : case v.id of
-					  ### add additional sem_ids here
-					  FLOATING_FLAGS : case idid of
-						  FLOATING_FLAGS : (off == offoff)
-						| _				 : '0'
-					  end
-					| VIRT_T vt	   : case idid of
-						  VIRT_T vtvt : if vt == vtvt then (off == offoff) else '0'
+					  VIRT_T vt	   : case vv.id of
+						  VIRT_T vtvt : if vt == vtvt then (v.offset == vv.offset) else '0'
 						| _			  : '0'
 					  end
-					| VIRT_O vo	   : case idid of
-						  VIRT_O vovo : if vo == vovo then (off == offoff) else '0'
+					| VIRT_O vo	   : case vv.id of
+						  VIRT_O vovo : if vo == vovo then (v.offset == vv.offset) else '0'
 						| _			  : '0'
+					  end
+					| _			   : case vv.id of
+						  VIRT_T vtvt : '0'
+						| VIRT_O vovo : '0'
+						| _			  : if v.id == vv.id then (v.offset == vv.offset) else '0'
 					  end
 				  end
 				| _				 : '0'
 			  end
+		  end
 		| SEM_LIN_IMM i : case b of
 			  SEM_SEXPR_LIN ll : case ll of
 			  	  SEM_LIN_IMM ii : (i.const == ii.const)
