@@ -89,17 +89,17 @@ val equal a b = case a of
 		  	  SEM_SEXPR_LIN ll : case ll of
 				  SEM_LIN_VAR vv : case v.id of
 					  VIRT_T vt	   : case vv.id of
-						  VIRT_T vtvt : if vt == vtvt then v.offset == vv.offset else '0'
+						  VIRT_T vtvt : if vt === vtvt then v.offset === vv.offset else '0'
 						| _			  : '0'
 					  end
 					| VIRT_O vo	   : case vv.id of
-						  VIRT_O vovo : if vo == vovo then v.offset == vv.offset else '0'
+						  VIRT_O vovo : if vo === vovo then v.offset === vv.offset else '0'
 						| _			  : '0'
 					  end
 					| _			   : case vv.id of
 						  VIRT_T vtvt : '0'
 						| VIRT_O vovo : '0'
-						| _			  : if v.id == vv.id then v.offset == vv.offset else '0'
+						| _			  : if v.id == vv.id then v.offset === vv.offset else '0'
 					  end
 				  end
 				| _				 : '0'
@@ -107,14 +107,14 @@ val equal a b = case a of
 		  end
 		| SEM_LIN_IMM i : case b of
 			  SEM_SEXPR_LIN ll : case ll of
-			  	  SEM_LIN_IMM ii : i.const == ii.const
+			  	  SEM_LIN_IMM ii : i.const === ii.const
 				| _			   : '0'
 			  end
 			| _				   : '0'
 		  end
 	  end
 	| SEM_SEXPR_CMP cm : case b of
-		  SEM_SEXPR_CMP cmcm : (cm.size == cmcm.size) and (cm.cmp == cmcm.cmp) 
+		  SEM_SEXPR_CMP cmcm : (cm.size === cmcm.size) and (cm.cmp == cmcm.cmp) 
 		| _					 : '0'
 	  end
 	| SEM_SEXPR_ARB    : case b of
