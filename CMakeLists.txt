@@ -92,6 +92,7 @@ set(FRONTEND_SRCS_COMMON
   ${GDSL_DIR}/rreil/forward-subst/forward-subst/substitute.ml
   ${GDSL_DIR}/rreil/forward-subst/forward-subst/substmap.ml
   ${GDSL_DIR}/rreil/forward-subst/forward-subst/simplify-expressions.ml
+  ${GDSL_DIR}/rreil/forward-subst/fusion/fusion.ml
   ${GDSL_DIR}/rreil/rreil-cleanup.ml
   ${GDSL_DIR}/asm/asm.ml
   ${GDSL_DIR}/asm/asm-pretty.ml
