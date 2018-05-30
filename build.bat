@@ -160,6 +160,7 @@ set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/forward-subst/inline.ml
 set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/forward-subst/substitute.ml
 set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/forward-subst/substmap.ml
 set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/forward-subst/simplify-expressions.ml
+set GDSL_RREIL=%GDSL_RREIL% specifications/rreil/fusion/fusion.ml
 
 set GDSL_ARM7=
 set GDSL_ARM7=%GDSL_ARM7% specifications/arm7/arm7.ml
