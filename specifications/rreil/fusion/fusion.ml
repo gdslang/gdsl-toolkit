@@ -99,7 +99,7 @@ val equal a b = case a of
 					| _			   : case vv.id of
 						  VIRT_T vtvt : '0'
 						| VIRT_O vovo : '0'
-						| _			  : if v.id == vv.id then v.offset === vv.offset else '0'
+						| _			  : if v.id === vv.id then v.offset === vv.offset else '0'
 					  end
 				  end
 				| _				 : '0'
@@ -114,7 +114,7 @@ val equal a b = case a of
 		  end
 	  end
 	| SEM_SEXPR_CMP cm : case b of
-		  SEM_SEXPR_CMP cmcm : (cm.size === cmcm.size) and (cm.cmp == cmcm.cmp) 
+		  SEM_SEXPR_CMP cmcm : (cm.size === cmcm.size) and (cm.cmp === cmcm.cmp) 
 		| _					 : '0'
 	  end
 	| SEM_SEXPR_ARB    : case b of
