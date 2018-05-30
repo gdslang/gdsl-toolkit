@@ -1,5 +1,5 @@
 #
-# procedure pfuse-bodies takes a sem_stmt_list and returns a sem_stmt_list
+# procedure fuse-bodies takes a sem_stmt_list and returns a sem_stmt_list
 # with fused bodies of conditions.
 #
 # most simple implementation
@@ -12,6 +12,15 @@
 #   if a then d else e;
 #
 #   --> if a then do b; d; end else do c; e; end
+#
+
+# do a fusion of ITEs on a list of statements
+#
+# Parameter:
+#    list of statements
+# 
+# Returns:
+#    list of statements with inlined right hand sides
 #
 export fuse-bodies : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
 val fuse-bodies stmts = fuse-bodies-stmt-list-initial stmts
