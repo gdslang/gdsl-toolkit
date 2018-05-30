@@ -37,7 +37,7 @@ type sem_preservation =
  | SEM_PRESERVATION_BLOCK
  | SEM_PRESERVATION_CONTEXT
 
-val decode-translate-block-optimized-preserve config limit pres do-delayed-fsubst do-fsubst lv = case pres of
+val decode-translate-block-optimized-preserve config limit pres do-delayed-fsubst do-fsubst do-fusion lv = case pres of
    SEM_PRESERVATION_EVERYWHERE: do
      translated <- decode-translate-block config limit;
      clean <- cleanup translated;
@@ -46,7 +46,7 @@ val decode-translate-block-optimized-preserve config limit pres do-delayed-fsubs
    end
  | SEM_PRESERVATION_BLOCK: do
      translated <- decode-translate-block config limit;
-     translated <- propagate do-delayed-fsubst do-fsubst translated;
+     translated <- propagate do-delayed-fsubst do-fsubst do-fusion translated;
      translated <- if lv then do
        lv-result <- liveness translated;
        query $live
@@ -58,7 +58,7 @@ val decode-translate-block-optimized-preserve config limit pres do-delayed-fsubs
    end
  | SEM_PRESERVATION_CONTEXT: do
      translated <- decode-translate-super-block config limit;
-     translated <- propagate-contextful do-delayed-fsubst do-fsubst translated;
+     translated <- propagate-contextful do-delayed-fsubst do-fsubst do-fusion translated;
      translated <- if lv then do
        lv-result <- liveness_super translated;
        query $live
@@ -70,19 +70,27 @@ val decode-translate-block-optimized-preserve config limit pres do-delayed-fsubs
    end
 end
 
-val propagate-contextful do-delayed-fsubst do-fsubst translated =
+val propagate-contextful do-delayed-fsubst do-fsubst do-fusion translated =
  do
-    insns-p <- propagate do-delayed-fsubst do-fsubst translated.insns;
+    insns-p <- propagate do-delayed-fsubst do-fsubst do-fusion translated.insns;
     return {insns=insns-p, succ_a=translated.succ_a, succ_b=translated.succ_b}
  end
 
-val propagate do-delayed-fsubst do-fsubst translated =
+val propagate do-delayed-fsubst do-fsubst do-fusion translated =
  do
     optimized <- forward-subsitution do-fsubst translated;
     optimized <- delayed-forward-subsitution do-delayed-fsubst optimized;
+	optimized <- fusion do-fusion optimized;
     forward-subsitution do-fsubst optimized
  end
 
+val fusion do-fusion translated = case do-fusion of
+	  '1' : do
+	  	p <- fuse-bodies translated;
+		return p
+	  end
+	| '0' : return translated
+end
 
 val delayed-forward-subsitution do-delayed-fsubst translated =
  case do-delayed-fsubst of 
@@ -123,9 +131,9 @@ val decode-translate-block-optimized config limit opt-config = do
   update @{insns=INSNS_NIL};
   rreil <- case opt-config of
      'dfs:1 fs:1 lv:1 000': decode-translate-block config limit
-   | 'dfs:1 fs:1 lv:1 001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE dfs fs lv
-   | 'dfs:1 fs:1 lv:1 01.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK dfs fs lv
-   | 'dfs:1 fs:1 lv:1 1..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT dfs fs lv
+   | 'dfs:1 fs:1 lv:1 001': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_EVERYWHERE dfs fs '1' lv
+   | 'dfs:1 fs:1 lv:1 01.': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_BLOCK dfs fs '1' lv
+   | 'dfs:1 fs:1 lv:1 1..': decode-translate-block-optimized-preserve config limit SEM_PRESERVATION_CONTEXT dfs fs '1' lv
   end;
   insns <- query $insns;
   return {rreil=rreil, insns=insns}
