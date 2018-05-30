@@ -41,6 +41,7 @@ val fuse-bodies-stmt-list stmts = case stmts of
 			continued <- return (fuse-ite-stmt-list s.tl);
 			return (SEM_CONS {hd=s.hd, tl=continued})
 		end
+	  end
 	| SEM_NIL    : return SEM_NIL
 end
 
@@ -84,38 +85,31 @@ end
 
 val equal a b = case a of
 	  SEM_SEXPR_LIN l  : case l of
-	  	  SEM_LIN_VAR v : case v of
-		  	{id, off}: case b of
-				  SEM_SEXPR_LIN ll : case ll of
-				  	  SEM_LIN_VAR vv : case vv of
-					  	{idid, offoff} : case id of
-							  ### add additional sem_ids here
-							    FLOATING_FLAGS : case idid of
-									  FLOATING_FLAGS : (off == offoff)
-									| _				 : '0'
-								end
-							  | VIRT_T vt	   : case idid of
-							  		  VIRT_T vtvt : if vt == vtvt then (off == offoff) else '0'
-									| _			  : '0'
-							    end
-							  | VIRT_O vo	   : case idid of
-							  		  VIRT_O vovo : if vo == vovo then (off == offoff) else '0'
-									| _			  : '0'
-							    end
-						end
+	  	  SEM_LIN_VAR v : case b of
+		  	  SEM_SEXPR_LIN ll : case ll of
+				  SEM_LIN_VAR vv : case v.id of
+					  ### add additional sem_ids here
+					  FLOATING_FLAGS : case idid of
+						  FLOATING_FLAGS : (off == offoff)
+						| _				 : '0'
 					  end
-					| _				 : '0'
+					| VIRT_T vt	   : case idid of
+						  VIRT_T vtvt : if vt == vtvt then (off == offoff) else '0'
+						| _			  : '0'
+					  end
+					| VIRT_O vo	   : case idid of
+						  VIRT_O vovo : if vo == vovo then (off == offoff) else '0'
+						| _			  : '0'
+					  end
 				  end
-				| _				   : '0'
-			end
-		  end
-		| SEM_LIN_IMM i : case i of
-			{con} : case b of
-				  SEM_LIN_IMM ii : case ii of
-					{concon} : (con == concon)
-				  end
+				| _				 : '0'
+			  end
+		| SEM_LIN_IMM i : case b of
+			  SEM_SEXPR_LIN ll : case ll of
+			  	  SEM_LIN_IMM ii : (i.const == ii.const)
 				| _			   : '0'
-			end
+			  end
+			| _				   : '0'
 		  end
 	  end
 	| SEM_SEXPR_CMP cm : case cm of
