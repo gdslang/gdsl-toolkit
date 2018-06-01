@@ -99,7 +99,7 @@ val equal a b = case a of
 					| _			   : case vv.id of
 						  VIRT_T vtvt : '0'
 						| VIRT_O vovo : '0'
-						| _			  : if v.id === vv.id then v.offset === vv.offset else '0'
+						| _			  : if (index v.id) === (index vv.id) then v.offset === vv.offset else '0'
 					  end
 				  end
 				| _				 : '0'
