@@ -84,41 +84,66 @@ val append a b = case a of
 end
 
 val equal a b = case a of
-	  SEM_SEXPR_LIN l  : case l of
-	  	  SEM_LIN_VAR v : case b of
-		  	  SEM_SEXPR_LIN ll : case ll of
-				  SEM_LIN_VAR vv : case v.id of
-					  VIRT_T vt	   : case vv.id of
-						  VIRT_T vtvt : if vt === vtvt then v.offset === vv.offset else '0'
-						| _			  : '0'
-					  end
-					| VIRT_O vo	   : case vv.id of
-						  VIRT_O vovo : if vo === vovo then v.offset === vv.offset else '0'
-						| _			  : '0'
-					  end
-					| _			   : case vv.id of
-						  VIRT_T vtvt : '0'
-						| VIRT_O vovo : '0'
-						| _			  : if (index v.id) === (index vv.id) then v.offset === vv.offset else '0'
-					  end
-				  end
-				| _				 : '0'
-			  end
-		  end
-		| SEM_LIN_IMM i : case b of
-			  SEM_SEXPR_LIN ll : case ll of
-			  	  SEM_LIN_IMM ii : i.const === ii.const
-				| _			   : '0'
-			  end
-			| _				   : '0'
-		  end
+	  SEM_SEXPR_LIN l  : case b of
+	  	  SEM_SEXPR_LIN ll : lin-eq? l ll
+		| _				   : '0'
 	  end
 	| SEM_SEXPR_CMP cm : case b of
-		  SEM_SEXPR_CMP cmcm : (cm.size === cmcm.size) and (cm.cmp === cmcm.cmp) 
+		  SEM_SEXPR_CMP cmcm : if cmp-eq? cm.cmp cmcm.cmp then cm.size === cmcm.size else '0'
 		| _					 : '0'
 	  end
 	| SEM_SEXPR_ARB    : case b of
 		  SEM_SEXPR_ARB : '1'
 		| _				: '0'
 	  end
+end
+
+val cmp-eq? cmp1 cmp2 = case cmp1 of
+	  SEM_CMPEQ a  : case cmp2 of
+	  	  SEM_CMPEQ b : if lin-eq? a.opnd1 b.opnd1 then lin-eq? a.opnd2 b.opnd2 else '0' 
+		| _			  : '0'
+	  end
+	| SEM_CMPNEQ a : case cmp2 of
+	  	  SEM_CMPNEQ b : if lin-eq? a.opnd1 b.opnd1 then lin-eq? a.opnd2 b.opnd2 else '0'
+		| _			   : '0'
+	  end
+	| SEM_CMPLES a : case cmp2 of
+	  	  SEM_CMPLES b : if lin-eq? a.opnd1 b.opnd1 then lin-eq? a.opnd2 b.opnd2 else '0'
+		| _			   : '0'
+	  end
+	| SEM_CMPLEU a : case cmp2 of
+	  	  SEM_CMPLEU b : if lin-eq? a.opnd1 b.opnd1 then lin-eq? a.opnd2 b.opnd2 else '0'
+		| _			   : '0'
+	  end
+	| SEM_CMPLTS a : case cmp2 of
+	  	  SEM_CMPLTS b : if lin-eq? a.opnd1 b.opnd1 then lin-eq? a.opnd2 b.opnd2 else '0'
+		| _			   : '0'
+	  end
+	| SEM_CMPLTU a :case cmp2 of
+	  	  SEM_CMPLTU b : if lin-eq? a.opnd1 b.opnd1 then lin-eq? a.opnd2 b.opnd2 else '0'
+		| _			   : '0'
+	  end
+end
+
+val lin-eq? lin1 lin2 = case lin1 of
+	  SEM_LIN_VAR v : case lin2 of
+	  	  SEM_LIN_VAR vv : if id-eq? v.id vv.id then v.offset === vv.offset else '0'
+		| _				 : '0'
+	  end
+	| SEM_LIN_IMM i : case lin2 of
+	  	  SEM_LIN_IMM ii : i.const === ii.const
+		| _				 : '0'
+	  end
+end
+
+val id-eq? id1 id2 = case id1 of
+	  VIRT_T v1 : case id2 of
+		  VIRT_T v2 : v1 === v2
+        | _	        : '0'
+	  end
+	| VIRT_O v1 : case id2 of
+  		  VIRT_O v2 : v1 === v2
+		| _			: '0'
+	  end
+	| _				: index id1 === index id2
 end
