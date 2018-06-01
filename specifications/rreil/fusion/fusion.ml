@@ -136,14 +136,14 @@ val lin-eq? lin1 lin2 = case lin1 of
 	  end
 end
 
-val id-eq? id1 id2 = case id1 of
-	  VIRT_T v1 : case id2 of
-		  VIRT_T v2 : v1 === v2
-        | _	        : '0'
-	  end
-	| VIRT_O v1 : case id2 of
-  		  VIRT_O v2 : v1 === v2
-		| _			: '0'
-	  end
-	| _				: index id1 === index id2
-end
+#val id-eq? id1 id2 = case id1 of
+#	  VIRT_T v1 : case id2 of
+#		  VIRT_T v2 : v1 === v2
+#	     | _	        : '0'
+#	  end
+#	| VIRT_O v1 : case id2 of
+# 		  VIRT_O v2 : v1 === v2
+#		| _			: '0'
+#	  end
+#	| _				: index id1 === index id2
+#end
