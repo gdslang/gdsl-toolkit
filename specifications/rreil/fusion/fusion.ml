@@ -40,7 +40,7 @@ val fuse-bodies-stmt-list stmts = case stmts of
 		| _		  : do
 			continued <- return (fuse-bodies-stmt-list s.tl);
 			return (SEM_CONS {hd=s.hd, tl=continued})
-		end
+		  end
 	  end
 	| SEM_NIL    : return SEM_NIL
 end
@@ -135,15 +135,3 @@ val lin-eq? lin1 lin2 = case lin1 of
 		| _				 : '0'
 	  end
 end
-
-#val id-eq? id1 id2 = case id1 of
-#	  VIRT_T v1 : case id2 of
-#		  VIRT_T v2 : v1 === v2
-#	     | _	        : '0'
-#	  end
-#	| VIRT_O v1 : case id2 of
-# 		  VIRT_O v2 : v1 === v2
-#		| _			: '0'
-#	  end
-#	| _				: index id1 === index id2
-#end
