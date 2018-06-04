@@ -23,11 +23,7 @@
 #    list of statements with inlined right hand sides
 #
 export fuse-bodies : (sem_stmt_list)-> S sem_stmt_list <{} => {}>
-val fuse-bodies stmts = fuse-bodies-stmt-list-initial stmts
-
-val fuse-bodies-stmt-list-initial stmts = fuse-bodies-stmt-list stmts
-
-val fuse-bodies-stmt-list stmts = case stmts of
+val fuse-bodies stmts = case stmts of
 	  SEM_CONS s : case s.hd of
 	  	  SEM_ITE t : do
 			fusable <- return (SEM_CONS {hd=s.hd, tl=SEM_NIL});
