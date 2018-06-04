@@ -76,7 +76,7 @@ val append a b = case a of
 	  SEM_CONS s : case b of
 	  	  SEM_CONS t : case s.tl of
 		  	  SEM_CONS u : SEM_CONS {hd=s.hd, tl=(append s.tl b)}
-			| SEM_NIL	 : SEM_CONS {hd=s.hd, tl=t}
+			| SEM_NIL	 : SEM_CONS {hd=s.hd, tl=b}
 		  end
 		| SEM_NIL	 : a
 	  end
