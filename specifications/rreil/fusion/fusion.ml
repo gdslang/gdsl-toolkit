@@ -32,7 +32,7 @@ val fuse-bodies-stmt-list stmts = case stmts of
 	  	  SEM_ITE t : do
 			fusable <- return (SEM_CONS {hd=s.hd, tl=SEM_NIL});
 			fusable <- return (get-fusable t.cond fusable stmts);
-			head <- return (fuse-bodies-ite-list t fusable);
+			head <- return (fuse-bodies-ite-list s.hd fusable);
 			tail <- return (get-remainder fusable stmts);
 			continued <- return (fuse-bodies-stmt-list tail);
 			return (SEM_CONS {hd=head, tl=continued})
