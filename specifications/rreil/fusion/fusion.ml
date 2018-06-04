@@ -75,8 +75,8 @@ end
 val append a b = case a of
 	  SEM_CONS s : case b of
 	  	  SEM_CONS t : case s.tl of
-		  	  SEM_CONS u : sem_stmt_list (SEM_CONS {hd=s.hd, tl=(append s.tl b)})
-			| SEM_NIL	 : sem_stmt_list (SEM_CONS {hd=s.hd, tl=b})
+		  	  SEM_CONS u : SEM_CONS {hd=s.hd, tl=(append s.tl b)}
+			| SEM_NIL	 : SEM_CONS {hd=s.hd, tl=t}
 		  end
 		| SEM_NIL	 : a
 	  end
