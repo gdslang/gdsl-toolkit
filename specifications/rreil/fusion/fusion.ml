@@ -28,13 +28,13 @@ val fuse-bodies stmts = case stmts of
 	  	  SEM_ITE t : do
 			fusable <- return (SEM_CONS {hd=s.hd, tl=SEM_NIL});
 			fusable <- return (get-fusable t.cond fusable stmts);
-			head <- return (fuse-bodies-ite-list s.hd fusable);
+			head <- return (fuse-ite-list s.hd fusable);
 			tail <- return (get-remainder fusable stmts);
-			continued <- fuse-bodies-stmt-list tail;
+			continued <- fuse-bodies tail;
 			return (SEM_CONS {hd=head, tl=continued})
 		  end
 		| _		  : do
-			continued <- fuse-bodies-stmt-list s.tl;
+			continued <- fuse-bodies s.tl;
 			return (SEM_CONS {hd=s.hd, tl=continued})
 		  end
 	  end
@@ -49,10 +49,10 @@ val get-fusable c fusable stmts = case stmts of
 	| SEM_NIL    : fusable
 end
 
-val fuse-bodies-ite-list head tail = case tail of
+val fuse-ite-list head tail = case tail of
 	  SEM_CONS tt : case tt.hd of
 		SEM_ITE t : case head of
-			SEM_ITE h : fuse-bodies-ite-list (SEM_ITE {cond=h.cond,
+			SEM_ITE h : fuse-ite-list (SEM_ITE {cond=h.cond,
 													   then_branch=(append h.then_branch t.then_branch),
 													   else_branch=(append h.else_branch t.else_branch)}) tt.tl
 		end
