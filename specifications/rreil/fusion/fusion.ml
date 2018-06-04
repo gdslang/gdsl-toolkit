@@ -47,7 +47,7 @@ end
 
 val get-fusable c fusable stmts = case stmts of
 	  SEM_CONS s : case s.hd of
-	  	  SEM_ITE t : if (equal t.cond c) then get-fusable c (append fusable t) s.tl else fusable
+	  	  SEM_ITE t : if (equal t.cond c) then get-fusable c (append fusable (SEM_CONS {hd=s.hd, tl=SEM_NIL})) s.tl else fusable
 		| _			: fusable
 	  end
 	| SEM_NIL    : fusable
