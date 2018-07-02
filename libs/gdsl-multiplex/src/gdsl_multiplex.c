@@ -156,6 +156,22 @@ int gdsl_multiplex_frontend_get_by_desc(struct frontend *frontend, struct fronte
   return gdsl_multiplex_frontend_get(frontend, dl);
 }
 
+int gdsl_multiplex_frontend_get_by_path_name_with_base(
+    struct frontend *frontend, char const *base, char const *name) {
+  char *lib;
+  size_t lib_length;
+  FILE *libf = open_memstream(&lib, &lib_length);
+  fprintf(libf, "%s/libgdsl-%s.so", base, name);
+  fputc(0, libf);
+  fclose(libf);
+
+  void *dl = dlopen(lib, RTLD_LAZY);
+  free(lib);
+  if (!dl) return GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN;
+
+  return gdsl_multiplex_frontend_get(frontend, dl);
+}
+
 int gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char const *name) {
   char *lib;
   size_t lib_length;
