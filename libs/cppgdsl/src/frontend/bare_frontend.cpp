@@ -7,6 +7,9 @@ namespace gdsl {
 bare_frontend::bare_frontend(std::string const& name) {
   char err = gdsl_multiplex_frontend_get_by_lib_name(&frontend, name.c_str());
   if (err != GDSL_MULTIPLEX_ERROR_NONE)
+    err = gdsl_multiplex_frontend_get_by_path_name_with_base(&frontend, ".",
+                                                             name.c_str());
+  if (err != GDSL_MULTIPLEX_ERROR_NONE)
     throw std::runtime_error("Unable to open frontend");
   initialized = true;
 }
