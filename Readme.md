@@ -49,3 +49,11 @@ tools can be specified.
 
 The GDSL toolkit contains a number of demo applications and libraries. The tools
 and libraries are presented in wiki (http://code.google.com/p/gdsl-toolkit/).
+
+# Roadmap
+
+* Architectures
+  * Full support for ARMv7 and ARMv8
+* Testing
+  * Support testing of all our architectures (reusing common parts of the tester)
+  * Testing of the decoder by reacting to / expecting illegal instruction exceptions
