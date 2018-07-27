@@ -42,13 +42,10 @@ val fuse-bodies stmts = case stmts of
 end
 
 val get-fusable c fusable stmts = case stmts of
-	  SEM_CONS ss : case ss.tl of
-	  	  SEM_CONS s : case s.hd of
+	  SEM_CONS s : case s.hd of
 		  	  SEM_ITE t : if (equal t.cond c) then get-fusable c (append fusable (SEM_CONS {hd=s.hd, tl=SEM_NIL})) s.tl else fusable
 			| _			: fusable
 		  end
-		| SEM_NIL	 : fusable
-	  end
 	| SEM_NIL    : fusable
 end
 
@@ -69,10 +66,7 @@ end
 
 val get-remainder fusable stmts = case fusable of
 	  SEM_CONS f : case stmts of
-	  	  SEM_CONS ss : case ss.tl of
-	  	  	  SEM_CONS s : get-remainder f.tl s.tl
-	  	  	| SEM_NIL	 : stmts
-	  	  end
+	  	  SEM_CONS s : get-remainder f.tl s.tl
 		| SEM_NIL    : stmts
 	  end
 	| SEM_NIL	 : stmts

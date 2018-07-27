@@ -3,7 +3,7 @@ export traverse-insn-list: (insn_list, insn_list_obj, (insn_list_obj, insndata) 
 export optimization-config : configuration[vec=optimization-configuration]
 
 #for optimization-sweep
-export propagate-contextful: (|1|, |1|, |1|, {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option}) ->  S {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option} <{} => {}>
+export propagate-contextful: (|1|, |1|, {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option}) ->  S {insns:sem_stmt_list, succ_a:stmts_option, succ_b:stmts_option} <{} => {}>
 
 type optimization-configuration = |6|
 
@@ -46,41 +46,42 @@ val decode-translate-block-optimized-preserve config limit pres do-delayed-fsubs
    end
  | SEM_PRESERVATION_BLOCK: do
      translated <- decode-translate-block config limit;
-     translated <- propagate do-delayed-fsubst do-fsubst do-fusion translated;
+     translated <- propagate do-delayed-fsubst do-fsubst translated;
      translated <- if lv then do
        lv-result <- liveness translated;
        query $live
      end else
        return translated
      ;
+     translated <- fusion do-fusion translated;
      clean <- cleanup translated;
      return clean
    end
  | SEM_PRESERVATION_CONTEXT: do
      translated <- decode-translate-super-block config limit;
-     translated <- propagate-contextful do-delayed-fsubst do-fsubst do-fusion translated;
+     translated <- propagate-contextful do-delayed-fsubst do-fsubst translated;
      translated <- if lv then do
        lv-result <- liveness_super translated;
        query $live
      end else
        return ($insns translated)
      ;
+     translated <- fusion do-fusion translated;
      clean <- cleanup translated;
      return clean
    end
 end
 
-val propagate-contextful do-delayed-fsubst do-fsubst do-fusion translated =
+val propagate-contextful do-delayed-fsubst do-fsubst translated =
  do
-    insns-p <- propagate do-delayed-fsubst do-fsubst do-fusion translated.insns;
+    insns-p <- propagate do-delayed-fsubst do-fsubst translated.insns;
     return {insns=insns-p, succ_a=translated.succ_a, succ_b=translated.succ_b}
  end
 
-val propagate do-delayed-fsubst do-fsubst do-fusion translated =
+val propagate do-delayed-fsubst do-fsubst translated =
  do
     optimized <- forward-subsitution do-fsubst translated;
     optimized <- delayed-forward-subsitution do-delayed-fsubst optimized;
-	optimized <- fusion do-fusion optimized;
     forward-subsitution do-fsubst optimized
  end
 
