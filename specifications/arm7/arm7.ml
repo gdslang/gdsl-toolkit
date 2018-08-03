@@ -56,7 +56,7 @@ val reset = do
     a='0',
     sz='0', sz1='0', op='0',
     i='0',
-    size='00', aligna='00',
+    size='00', aligna='00', mask='00',
     opc12='00', opc22='00',
     opc13='000', opc23='000',
     opc14='0000', opc24='0000',
@@ -213,7 +213,8 @@ type instruction =
   | USAD8 of quaternop
   | USADA8 of quaternop
   | MRS of unbitBinopUnbit
-  | MSR of unbitUnopUnbitUnop
+  | MSRimm of binop
+  | MSRreg of unbitUnopUnbitUnop
   | CPS of binop
   | LDR of ternbitTernop
   | LDRT of ternbitTernop
@@ -1299,6 +1300,15 @@ val /size2 ['size:2'] = update@{size=size}
 val size = do
   size <- query $size;
   return (immediate (IMM2 (size)))
+end
+
+# 2 bit mask, cannot be 00 (related encodings)
+val /mask ['mask@01'] = update@{mask=mask}
+val /mask ['mask@1.'] = update@{mask=mask}
+
+val mask = do
+  mask <- query $mask;
+  return (immediate (IMM2 (mask)))
 end
 
 # 3 bit VCVTR opc2, can only be 100 or 101
@@ -2666,9 +2676,10 @@ val / ['/cond 011 1 1 0 0 0 /rd /ra-not15 /rm 0001 /rn'] = quaternop USADA8 cond
 val / ['/cond 000 10 /r 00 /imm4 /rd 001 /M 0000 0000'] = unbitBinopUnbit MRS cond r imm4 rd m
 
 ### MSR (immediate) //add later on
+val / ['/cond 001 10 0 10 /mask 00 1111 /modimm'] = binop MSRimm cond mask modimm
 ### MSR (banked register)
 ###  - Move to Banked or Special register from ARM core register
-val / ['/cond 000 10 /r 10 /imm4 1111 001 /M 0000 /rn'] = unbitUnopUnbitUnop MSR cond r imm4 m rn
+val / ['/cond 000 10 /r 10 /imm4 1111 001 /M 0000 /rn'] = unbitUnopUnbitUnop MSRreg cond r imm4 m rn
 
 ### CPS
 ###  - Change processor state

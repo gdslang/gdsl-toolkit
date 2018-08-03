@@ -257,7 +257,8 @@ in
     # | USAD8 x: conditional sem-usad8 x
     # | USADA8 x: conditional sem-usada8 x
     # | MRS x: conditional sem-mrs x
-    # | MSR x: conditional sem-msr x
+    # | MSRimm x: conditional sem-msrimm x
+    # | MSRreg x: conditional sem-msrreg x
     # | CPS x: conditional sem-cps x
     | LDR x: conditional sem-ldr x
     | LDRT x: conditional sem-ldrt x
