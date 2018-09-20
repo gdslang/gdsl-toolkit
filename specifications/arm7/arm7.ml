@@ -50,23 +50,23 @@ val reset = do
   update@{
     cond='0000',
     b='0', p='0', w='0', s='0', d='0', q='0',
-	  iflags='000',
-	  e='0',
-	  m='0', n='0', f='0', u='0', r='0',
+    iflags='000',
+    e='0',
+    m='0', n='0', f='0', u='0', r='0',
     a='0',
-	  sz='0', sz1='0', op='0',
-	  i='0',
-    size='00', aligna='00',
-	  opc12='00', opc22='00',
+    sz='0', sz1='0', op='0',
+    i='0',
+    size='00', aligna='00', mask='00',
+    opc12='00', opc22='00',
     opc13='000', opc23='000',
-	  opc14='0000', opc24='0000',
+    opc14='0000', opc24='0000',
     crd='0000', crn='0000', crm='0000', coproc='0000',
     vd='0000', vn='0000', vm='0000',
-	  cmode='0000',
+    cmode='0000',
     index_align='0000', vdl_type='0000',
-	  imm3='000',
+    imm3='000',
     imm4='0000', imm4H='0000', imm4L='0000',
-	  imm5='00000',
+    imm5='00000',
     msbit='00000', lsbit='00000', widthm1='00000',
     imm8='00000000',
     imm12='000000000000',
@@ -213,7 +213,8 @@ type instruction =
   | USAD8 of quaternop
   | USADA8 of quaternop
   | MRS of unbitBinopUnbit
-  | MSR of unbitUnopUnbitUnop
+  | MSRimm of binop
+  | MSRreg of unbitUnopUnbitUnop
   | CPS of binop
   | LDR of ternbitTernop
   | LDRT of ternbitTernop
@@ -289,18 +290,18 @@ type instruction =
   | MCRR2 of quinop
   | MRC of senop
   | MRC2 of senop
-  | MRRC of quaternop
-  | MRRC2 of quaternop
+  | MRRC of quinop
+  | MRRC2 of quinop
   | LDC of quinop
   | LDC2 of quinop
   | STC of quinop
   | STC2 of quinop
   | VLDMIA of unopUnbitBinop
   | VLDMDB of unopUnbitBinop
-  | VLDR of binopUnbitBinop
+  | VLDR of binopUnbitUnop
   | VSTMIA of unopUnbitBinop
   | VSTMDB of unopUnbitBinop
-  | VSTR of binopUnbitBinop
+  | VSTR of binopUnbitUnop
   | VLD1 of quinop
   | VLD1a of ternopUnbitUnop
   | VLD2 of quinop
@@ -318,8 +319,8 @@ type instruction =
   | VMOVsac of ternop
   | VMOVacsp of binop
   | VMOVspac of binop
-  | VMOVacsp2 of quaternop
-  | VMOVspac2 of quaternop
+  | VMOVacsp2 of ternop
+  | VMOVspac2 of ternop
   | VMOVacdwe of ternop
   | VMOVdweac of ternop
   | VMRS of unop
@@ -346,18 +347,19 @@ type instruction =
   | VSUBL of unbitQuaternop
   | VSUBW of unbitQuaternop
   | VAND of ternop
-  | VBICimm of ternop
-  | VBICreg of ternop
+  | VBIC of ternop
+  | VBICundef of unop
   | VEOR of ternop
   | VBIF of ternop
   | VBIT of ternop
   | VBSL of ternop
-  | VMOVimmasimd of ternop
+  | VMOVimmasimd of binop
+  | VMOVimmasimdundef of unop
   | VMOVregasimd of binop
-  | VMVNimm of ternop
-  | VMVNreg of ternop
-  | VORRimm of ternop
-  | VORRreg of ternop
+  | VMVN of ternop
+  | VMVNundef of unop
+  | VORR of ternop
+  | VORRundef of unop
   | VORN of ternop
   | VACGE of unbitTernop
   | VACGT of unbitTernop
@@ -376,8 +378,7 @@ type instruction =
   | VQRSHL of unbitQuaternop
   | VQRSHRN of unbitQuaternop
   | VQRSHRUN of unbitQuaternop
-  | VQSHLreg of unbitQuaternop
-  | VQSHLimm of unbitQuaternop
+  | VQSHL of unbitQuaternop
   | VQSHLU of unbitQuaternop
   | VQSHRN of unbitQuaternop
   | VQSHRUN of unbitQuaternop
@@ -460,7 +461,7 @@ type instruction =
   | VCMP of unbitBinop
   | VCMPE of unbitBinop
   | VCVTfpifp of binbitBinop
-  | VCVTfpfpfp of quaternbitBinop
+  | VCVTfpfpfp of quaternbitTernop
   | VCVTdpspfp of binop
   | VCVTR of unopUnbitBinop
   | VCVTB of unbitBinop
@@ -468,8 +469,8 @@ type instruction =
   | VDIV of unbitBinop
   | VMLAfpfp of unbitTernop
   | VMLSfpfp of unbitTernop
-  | VMOVimmfp of ternop
-  | VMOVregfp of unbitBinop
+  | VMOVimmfp of binop
+  | VMOVregfp of binop
   | VMULfpfp of unbitTernop
   | VNEGfp of unbitBinop
   | VNMLA of unbitBinop
@@ -478,495 +479,7 @@ type instruction =
   | VFNMA of unbitBinop
   | VFNMS of unbitBinop
   | VSQRT of unbitBinop
-  | VSUBfpfp of unbitTernop 
-
-(*
-# Standard data-processing instruction
-type dp = {
-  cond:condition, # condition code
-  setflags:1,     # whether the APSR status flags should be set
-  rn:operand,     # first operand register
-  rd:operand,     # destination register
-  opnd2:operand   # second operand (immediate or register)
-}
-
-# Standard multiplication instructions
-type mul = {
-  cond:condition,
-  setflags:1,
-  rd:operand,
-  ra:operand,
-  rm:operand,
-  rn:operand
-}
-
-# Long mulitplication instructions
-type mull = {
-  cond:condition,
-  setflags:1,
-  rdhi:operand,
-  rdlo:operand,
-  rn:operand,
-  rm:operand
-}
-
-# Saturating instructions
-type sat = {
-  cond:condition,
-  sat_imm:operand,
-  rd:operand,
-  rn:operand
-}
-
-# Saturating addition and Subtraction instructions
-type satop = {
-  cond:condition,
-  rn:operand,
-  rd:operand,
-  rm:operand
-}
-
-# Packing and unpacking instructions
-type pup = {
-  cond:condition,
-  rn:operand,
-  rd:operand,
-  rm:operand
-}
-
-# Parallel addition and Subtraction instructions
-type pas = {
-  cond:condition,
-  rn:operand,
-  rd:operand,
-  rm:operand
-}
-
-# Divide instructions
-type divi = {
-  cond:condition,
-  rn:operand,
-  rd:operand,
-  rm:operand
-}
-
-# Bit field instructions
-type bf = {
-  cond:condition,
-  wsrc:operand,
-  rd:operand,
-  lsbit:operand,
-  rn:operand
-}
-
-# Miscellaneous three register data-processing instructions
-type mdp = {
-  cond:condition,
-  rn:operand,
-  rd:operand,
-  rm:operand
-}
-
-# Miscellaneous four register data-processing instructions
-type madp = {
-  cond:condition,
-  rn:operand,
-  rd:operand,
-  rm:operand,
-  ra:operand
-}
-
-# Banked register and destination register instructions
-type brdr = {
-  cond:condition,
-  r:1,
-  m1:operand,
-  rd:operand,
-  m:1
-}
-
-# Banked register and arm core register instructions
-type brnr = {
-  cond:condition,
-  r:1,
-  m1:operand,
-  m:1,
-  rn:operand
-}
-
-# Load/store instructions
-type ls = {
-  cond:condition,
-  p:1,
-  u:1,
-  w:1,
-  rn:operand,
-  rt:operand,
-  offset:operand
-}
-
-# Load/store multiple instructions
-type lsm = {
-  cond:condition,
-  w:1,
-  rn:operand,
-  registers:operand
-}
-
-# Load/store three registers instructions
-type lstr = {
-  cond:condition,
-  rn:operand,
-  rd:operand,
-  rt:operand
-}
-
-# Preload instructions
-type pre = {
-  cond:condition,
-  rn:operand,
-  u:1,
-  op:operand
-}
-
-# Swap instructions
-type swap = {
-  cond:condition,
-  rn:operand,
-  rt:operand,
-  rt2:operand
-}
-
-# Exception related instructions
-type exc = {
-  cond:condition,
-  p:1,
-  u:1,
-  w:1,
-  rn:operand
-}
-
-# LDM instruction
-type ldm = {
-  cond:condition,
-  p:1,
-  u:1,
-  w:1,
-  rn:operand,
-  reglst:operand
-}
-
-# SRS instruction
-type srs = {
-  cond:condition,
-  p:1,
-  u:1,
-  w:1,
-  mode:operand
-}
-
-# CDP/CDP2 instructions
-type cdp = {
-  cond:condition,
-  coproc:operand,
-  opc1:operand,
-  crd:operand,
-  crn:operand,
-  crm:operand,
-  opc2:operand
-}
-
-# MCR/MCR2 instructions
-type mcr = {
-  cond:condition,
-  coproc:operand,
-  opc1:operand,
-  rt:operand,
-  crn:operand,
-  crm:operand,
-  opc2:operand
-}
-
-# MCRR/MCRR2 instructions
-type mcrr = {
-  cond:condition,
-  coproc:operand,
-  opc1:operand,
-  rt:operand,
-  rt2:operand,
-  crm:operand
-}
-
-# MRC/MRC2 instructions
-type mrc = {
-  cond:condition,
-  coproc:operand,
-  opc1:operand,
-  rt:operand,
-  crn:operand,
-  crm:operand,
-  opc2:operand
-}
-
-# MRRC/MRRC2 instructions
-type mrrc = {
-  cond:condition,
-  opc:operand,
-  rt:operand,
-  rt2:operand,
-  crm:operand
-}
-
-# LDC/LDC2/STC/STC2 instructions
-type cop = {
-  cond:condition,
-  coproc:operand,
-  crd:operand,
-  rn:operand,
-  pudw:operand,
-  option:operand
-}
-
-# Vector Load/Store Multiple instructions
-type vlsm = {
-  cond:condition,
-  rn:operand,
-  w:1,
-  vd:operand,
-  op:operand
-}
-
-# Vector Load/Store Register instructions
-type vlsr = {
-  cond:condition,
-  vd:operand,
-  rn:operand,
-  u:1,
-  op:operand
-}
-
-# Vector Load/Store instructions
-type vls = {
-  cond:condition,
-  size:operand,
-  vd:operand,
-  rn:operand,
-  align:operand,
-  rm:operand
-}
-
-# Vector Load/Store align as bit instructions
-type vlsbit = {
-  cond:condition,
-  size:operand,
-  vd:operand,
-  rn:operand,
-  a:1,
-  rm:operand
-}
-
-# Vector instructions
-type vc = {
-  cond:condition,
-  size:operand,
-  vd:operand,
-  op2:operand
-}
-
-type vcrev = {
-  cond:condition,
-  size:operand,
-  op:operand,
-  vn:operand
-}
-
-type vcimm = {
-  cond:condition,
-  dt:operand,
-  vd:operand,
-  imm:operand
-}
-
-type vcbit4imm = {
-  cond:condition,
-  op:1,
-  sz2:1,
-  u:1,
-  sz1:1,
-  vd:operand,
-  imm:operand
-}
-
-type vcns = {
-  cond:condition,
-  vd:operand,
-  op2:operand
-}
-
-type vcrevns = {
-  cond:condition,
-  op:operand,
-  vn:operand
-}
-
-type vcns2 = {
-  cond:condition,
-  vd:operand,
-  vd2:operand,
-  op3:operand,
-  op4:operand
-}
-
-type vcrevns2 = {
-  cond:condition,
-  op:operand,
-  op2:operand,
-  vd3:operand,
-  vd4:operand
-}
-
-type vcns2half = {
-  cond:condition,
-  vd:operand,
-  op2:operand,
-  op3:operand
-}
-
-type vcrevns2half = {
-  cond:condition,
-  op:operand,
-  op2:operand,
-  vd3:operand
-}
-
-type vc2 = {
-  cond:condition,
-  size:operand,
-  vd:operand,
-  vm:operand
-}
-
-type vc2imm = {
-  cond:condition,
-  size:operand,
-  vd:operand,
-  vm:operand,
-  imm:operand
-}
-
-type vc2bit = {
-  cond:condition,
-  sz:1,
-  vd:operand,
-  vm:operand
-}
-
-type vc2bit2 = {
-  cond:condition,
-  sz1:1,
-  sz2:1,
-  vd:operand,
-  vm:operand
-}
-
-type vc2opbit = {
-  cond:condition,
-  op:operand,
-  sz:1,
-  vd:operand,
-  vm:operand
-}
-
-type vc2sig = {
-  cond:condition,
-  u:1,
-  size:operand,
-  vd:operand,
-  vm:operand
-}
-
-type vc2sigimm = {
-  cond:condition,
-  u:1,
-  size:operand,
-  vd:operand,
-  vm:operand,
-  imm:operand
-}
-
-type vc2sigbitimm = {
-  cond:condition,
-  u:1,
-  op:1,
-  vd:operand,
-  vm:operand,
-  imm:operand
-}
-
-type vc2ns = {
-  cond:condition,
-  vd:operand,
-  vm:operand
-}
-
-type vc3 = {
-  cond:condition,
-  size:operand,
-  vd:operand,
-  vn:operand,
-  vm:operand
-}
-
-type vc3bit = {
-  cond:condition,
-  sz:1,
-  vd:operand,
-  vn:operand,
-  vm:operand
-}
-
-type vc3sig = {
-  cond:condition,
-  u:1,
-  size:operand,
-  vd:operand,
-  vn:operand,
-  vm:operand
-}
-
-type vc3sig2 = {
-  cond:condition,
-  op:1,
-  u:1,
-  size:operand,
-  vd:operand,
-  vn:operand,
-  vm:operand
-}
-
-type vc3ns = {
-  cond:condition,
-  vd:operand,
-  vn:operand,
-  vm:operand
-}
-
-type vc3nslist = {
-  cond:condition,
-  vd:operand,
-  len:operand,
-  vn:operand,
-  vm:operand
-}
-
-type vc3nsimm = {
-  cond:condition,
-  vd:operand,
-  vn:operand,
-  vm:operand,
-  imm:operand
-}
-*)
+  | VSUBfpfp of unbitTernop
 
 # Generic instruction without any operands
 type nullop = {
@@ -1066,6 +579,16 @@ type binbitBinop = {
   opnd2:operand
 }
 
+# Generic instruction with two bits followed by three operands
+type binbitTernop = {
+  cond:condition,
+  o1:1,
+  o2:1,
+  opnd1:operand,
+  opnd2:operand,
+  opnd3:operand
+}
+
 # Generic instruction with two bits followed by four operands
 type binbitQuaternop = {
   cond:condition,
@@ -1104,7 +627,7 @@ type ternbitTernop = {
   o3:1,
   opnd1:operand,
   opnd2:operand,
-  opnd2:operand
+  opnd3:operand
 }
 
 # Generic instruction with four bits followed by two operands
@@ -1116,6 +639,18 @@ type quaternbitBinop = {
   o4:1,
   opnd1:operand,
   opnd2:operand
+}
+
+# Generic instruction with four bits followed by three operands
+type quaternbitTernop = {
+  cond:condition,
+  o1:1,
+  o2:1,
+  o3:1,
+  o4:1,
+  opnd1:operand,
+  opnd2:operand,
+  opnd3:operand
 }
 
 # Generic instruction with one operand followed by a bit and another operand
@@ -1154,7 +689,7 @@ type binopUnbitUnop = {
 }
 
 # Generic instruction with three operands followed by a bit and another operand
-type binopUnbitUnop = {
+type ternopUnbitUnop = {
   cond:condition,
   opnd1:operand,
   opnd2:operand,
@@ -1189,9 +724,11 @@ type immediate =
   | IMM12 of 12
   | IMM16 of 16
   | IMM24 of 24
+  | IMM32 of 32
+  | IMM64 of 64
   | MODIMM of {byte:8, rot:4} # 8 bit immediate with 4 bit rotation
 
-type vector = {change:1, first:1, remainder:operand}
+type vector = {change:1, first:1, remainder:4}
 
 type operandlist =
     OPNDL_NIL
@@ -1276,634 +813,6 @@ type condition =
 # Utility Functions
 # ----------------------------------------------------------------------
 
-(*
-val dp cons cond s rn rd opnd2 = do
-  cond <- cond;
-  s <- s;
-  rn <- rn;
-  rd <- rd;
-  opnd2 <- opnd2;
-  return (cons {cond=cond, setflags=s, rn=rn, rd=rd, opnd2=opnd2})
-end
-
-val mul cons cond s rd ra rm rn = do
-  cond <- cond;
-  s <- s;
-  rd <- rd;
-  ra <- ra;
-  rm <- rm;
-  rn <- rn;
-  return (cons {cond=cond, setflags=s, rd=rd, ra=ra, rm=rm, rn=rn})
-end
-
-val mull cons cond s rdhi rdlo rm rn = do
-  cond <- cond;
-  s <- s;
-  rdhi <- rdhi;
-  rdlo <- rdlo;
-  rm <- rm;
-  rn <- rn;
-  return (cons {cond=cond, setflags=s, rdhi=rdhi, rdlo=rdlo, rn=rn, rm=rm})
-end
-
-val sat cons cond sat_imm rd rn = do
-  cond <- cond;
-  sat_imm <- sat_imm;
-  rd <- rd;
-  rn <- rn;
-  return (cons {cond=cond, sat_imm=sat_imm, rd=rd, rn=rn})
-end
-
-val satop cons cond rn rd rm = do
-  cond <- cond;
-  rn <- rn;
-  rd <- rd;
-  rm <- rm;
-  return (cons {cond=cond, rn=rn, rd=rd, rm=rm})
-end
-
-val pup cons cond rn rd rm = do
-  cond <- cond;
-  rn <- rn;
-  rd <- rd;
-  rm <- rm;
-  return (cons {cond=cond, rn=rn, rd=rd, rm=rm})
-end
-
-val pas cons cond rn rd rm = do
-  cond <- cond;
-  rn <- rn;
-  rd <- rd;
-  rm <- rm;
-  return (cons {cond=cond, rn=rn, rd=rd, rm=rm})
-end
-
-val divi cons cond rn rd rm = do
-  cond <- cond;
-  rn <- rn;
-  rd <- rd;
-  rm <- rm;
-  return (cons {cond=cond, rn=rn, rd=rd, rm=rm})
-end
-
-val bf cons cond wsrc rd lsbit rn = do
-  cond <- cond;
-  wsrc <- wsrc;
-  rd <- rd;
-  lsbit <- lsbit;
-  rn <- rn;
-  return (cons {cond=cond, wsrc=wsrc, rd=rd, lsbit=lsbit, rn=rn})
-end
-
-val mdp cons cond rn rd rm = do
-  cond <- cond;
-  rn <- rn;
-  rd <- rd;
-  rm <- rm;
-  return (cons {cond=cond, rn=rn, rd=rd, rm=rm})
-end
-
-val madp cons cond rn rd rm ra = do
-  cond <- cond;
-  rn <- rn;
-  rd <- rd;
-  rm <- rm;
-  ra <- ra;
-  return (cons {cond=cond, rn=rn, rd=rd, rm=rm, ra=ra})
-end
-
-val brdr cons cond r m1 rd m = do
-  cond <- cond;
-  r <- r;
-  m1 <- m1;
-  rd <- rd;
-  m <- m;
-  return (cons {cond=cond, r=r, m1=m1, rd=rd, m=m})
-end
-
-val brnr cons cond r m1 m rn = do
-  cond <- cond;
-  r <- r;
-  m1 <- m1;
-  m <- m;
-  rn <- rn;
-  return (cons {cond=cond, r=r, m1=m1, m=m, rn=rn})
-end
-
-val ls cons cond p u w rn rd offset = do
-  cond <- cond;
-  p <- p;
-  u <- u;
-  w <- w;
-  rn <- rn;
-  rt <- rt;
-  offset <- offset;
-  return (cons {cond=cond, p=p, u=u, w=w, rn=rn, rt=rt, offset=offset})
-end
-
-val lsm cons cond w rn registers = do
-  cond <- cond;
-  w <- w;
-  rn <- rn;
-  registers <- registers;
-  return (cons {cond=cond, w=w, rn=rn, registers=registers})
-end
-
-val lstr cons cond rn rd rt = do
-  cond <- cond;
-  rn <- rn;
-  rd <- rd;
-  rt <- rt;
-  return (cons {cond=cond, rn=rn, rd=rd, rt=rt})
-end
-
-val pre cons cond rn u op = do
-  cond <- cond;
-  rn <- rn;
-  u <- u;
-  op <- op;
-  return (cons {cond=cond, rn=rn, u=u, op=op})
-end
-
-val swap cons cond rn rt rt2 = do
-  cond <- cond;
-  rn <- rn;
-  rt <- rt;
-  rt2 <- rt2;
-  return (cons {cond=cond, rn=rn, rt=rt, rt2=rt2})
-end
-
-val exc cons cond p u w rn = do
-  cond <- cond;
-  p <- p;
-  u <- u;
-  w <- w;
-  rn <- rn;
-  return (cons {cond=cond, p=p, u=u, w=w, rn=rn})  
-end
-
-val ldm cons cond p u w rn reglst = do
-  cond <- cond;
-  p <- p;
-  u <- u;
-  w <- w;
-  rn <- rn;
-  reglst <- reglst;
-  return (cons {cond=cond, p=p, u=u, w=w, rn=rn, reglst=reglst})
-end
-
-val srs cons cond p u w mode = do
-  cond <- cond;
-  p <- p;
-  u <- u;
-  w <- w;
-  mode <- mode;
-  return (cons {cond=cond, p=p, u=u, w=w, mode=mode})
-end
-
-val cdp cons cond coproc opc1 crd crn crm opc2 = do
-  cond <- cond;
-  coproc <- coproc;
-  opc1 <- opc1;
-  crd <- crd;
-  crn <- crn;
-  crm <- crm;
-  opc2 <- opc2;
-  return (cons {cond=cond, coproc=coproc, opc1=opc1, crd=crd, crn=crn, crm=crm, opc2=opc2})
-end
-
-val mcr cons cond coproc opc1 rt crn crm opc2 = do
-  cond <- cond;
-  coproc <- coproc;
-  opc1 <- opc1;
-  rt <- rt;
-  crn <- crn;
-  crm <- crm;
-  opc2 <- opc2;
-  return (cons {cond=cond, coproc=coproc, opc1=opc1, rt=rt, crn=crn, crm=crm, opc2=opc2})
-end
-
-val mcrr cons cond coproc opc1 rt rt2 crm = do
-  cond <- cond;
-  coproc <- coproc;
-  opc1 <- opc1;
-  rt <- rt;
-  rt2 <- rt2;
-  crm <- crm;
-  return (cons {cond=cond, coproc=coproc, opc1=opc1, rt=rt, rt2=rt2, crm=crm})
-end
-
-val mrc cons cond coproc opc1 rt crn crm opc2 = do
-  cond <- cond;
-  coproc <- coproc;
-  opc1 <- opc1;
-  rt <- rt;
-  crn <- crn;
-  crm <- crm;
-  opc2 <- opc2;
-  return (cons {cond=cond, coproc=coproc, opc1=opc1, rt=rt, crn=crn, crm=crm, opc2=opc2})
-end
-
-val mrrc cons cond coproc opc rt rt2 crm = do
-  cond <- cond;
-  coproc <- coproc;
-  opc <- opc;
-  rt <- rt;
-  rt2 <- rt2;
-  crm <- crm;
-  return (cons {cond=cond, coproc=coproc, opc=opc, rt=rt, rt2=rt2, crm=crm})
-end
-
-val cop cons cond coproc crd rn pudw option = do
-  cond <- cond;
-  coproc <- coproc;
-  crd <- crd;
-  rn <- rn;
-  pudw <- pudw;
-  option <- option;
-  return (cons {cond=cond, coproc=coproc, crd=crd, rn=rn, pudw=pudw, option=option})
-end
-
-val vlsm cons cond rn w q d vd op = do
-  cond <- cond;
-  rn <- rn;
-  w <- w;
-  q <- q;
-  d <- d;
-  vd <- vd;
-  op <- op;
-  return (cons {cond=cond, rn=rn, w=w, q=q, d=d, vd=vd, op=op})
-end
-
-val vlsr cons cond q d vd rn u op = do
-  cond <- cond;
-  q <- q;
-  d <- d;
-  vd <- vd;
-  rn <- rn;
-  u <- u;
-  op <- op;
-  return (cons {cond=cond, q=q, d=d, vd=vd, rn=rn, u=u, op=op})
-end
-
-val vls cons cond size q d vd rn align rm = do
-  cond <- cond;
-  size <- size;
-  q <- q;
-  d <- d;
-  vd <- vd;
-  rn <- rn;
-  align <- align;
-  rm <- rm;
-  return (cons {cond=cond, size=size, q=q, d=d, vd=vd, rn=rn, align=align, rm=rm})
-end
-
-val vlsbit cons cond size q d vd rn a rm = do
-  cond <- cond;
-  size <- size;
-  q <- q;
-  d <- d;
-  vd <- vd;
-  rn <- rn;
-  a <- a;
-  rm <- rm;
-  return (cons {cond=cond, size=size, q=q, d=d, vd=vd, rn=rn, a=a, rm=rm})
-end
-
-val vc cons cond size q d vd op2 = do
-  cond <- cond;
-  size <- size;
-  q <- q;
-  d <- d;
-  vd <- vd;
-  op2 <- op2;
-  return (cons {cond=cond, size=size, q=q, d=d, vd=vd, op2=op2})
-end
-
-val vcrev cons cond size op q n vn = do
-  cond <- cond;
-  size <- size;
-  op <- op;
-  q <- q;
-  n <- n;
-  vn <- vn;
-  return (cons {cond=cond, size=size, op=op, q=q, n=n, vn=vn})
-end
-
-val vcimm cons cond dt q d vd imm = do
-  cond <- cond;
-  dt <- dt;
-  q <- q;
-  d <- d;
-  vd <- vd;
-  imm <- imm;
-  return (cons {cond=cond, dt=dt, q=q, d=d, vd=vd, imm=imm})
-end
-
-val vcbit4imm cons cond op sz2 u sz1 qd d vd qm m vm imm = do
-  cond <- cond;
-  op <- op;
-  sz2 <- sz2;
-  u <- u;
-  sz1 <- sz1;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  imm <- imm;
-  return (cons {cond=cond, op=op, sz2=sz2, u=u, sz1=sz1, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
-end
-
-val vcns cons cond q d vd op2 = do
-  cond <- cond;
-  q <- q;
-  d <- d;
-  vd <- vd;
-  op2 <- op2;
-  return (cons {cond=cond, q=q, d=d, vd=vd, op2=op2})
-end
-
-val vcrevns cons cond op q n vn = do
-  cond <- cond;
-  op <- op;
-  q <- q;
-  n <- n;
-  vn <- vn;
-  return (cons {cond=cond, op=op, q=q, n=n, vn=vn})
-end
-
-val vcns2 cons cond q d vd q2 d2 vd2 op3 op4 = do
-  cond <- cond;
-  q <- q;
-  d <- d;
-  vd <- vd;
-  q2 <- q2;
-  d2 <- d2;
-  vd2 <- vd2;
-  op3 <- op3;
-  op4 <- op4;
-  return (cons {cond=cond, q=q, d=d, vd=vd, q2=q2, d2=d2, vd2=vd2, op3=op3, op4=op4})
-end
-
-val vcrevns2 cons cond op op2 q3 d3 vd3 q4 d4 vd4 = do
-  cond <- cond;
-  op <- op;
-  op2 <- op2;
-  q3 <- q3;
-  d3 <- d3;
-  vd3 <- vd3;
-  q4 <- q4;
-  d4 <- d4;
-  vd4 <- vd4;
-  return (cons {cond=cond, op=op, op2=op2, q3=q3, d3=d3, vd3=vd3, q4=q4, d4=d4, vd4=vd4})
-end
-
-val vcns2half cons cond q d vd op2 op3 = do
-  cond <- cond;
-  q <- q;
-  d <- d;
-  vd <- vd;
-  op2 <- op2;
-  op3 <- op3;
-  return (cons {cond=cond, q=q, d=d, vd=vd, op2=op2, op3=op3})
-end
-
-val vcrevns2half cons cond op op2 q3 d3 vd3 = do
-  cond <- cond;
-  op <- op;
-  op2 <- op2;
-  q3 <- q3;
-  d3 <- d3;
-  vd3 <- vd3;
-  return (cons {cond=cond, op=op, op2=op2, q3=q3, d3=d3, vd3=vd3})
-end
-
-val vc2 cons cond size qd d vd qm m vm = do
-  cond <- cond;
-  size <- size;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
-end
-
-val vc2imm cons cond size qd d vd qm m vm imm = do
-  cond <- cond;
-  size <- size;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  imm <- imm;
-  return (cons {cond=cond, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
-end
-
-val vc2bit cons cond sz qd d vd qm m vm = do
-  cond <- cond;
-  sz <- sz;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, sz=sz, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
-end
-
-val vc2bit2 cons cond sz1 sz2 qd d vd qm m vm = do
-  cond <- cond;
-  sz1 <- sz1;
-  sz2 <- sz2;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, sz1=sz1, sz2=sz2, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
-end
-
-val vc2opbit cons cond op sz qd d vd qm m vm = do
-  cond <- cond;
-  op <- op;
-  sz <- sz;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, op=op, sz=sz, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
-end
-
-val vc2sig cons cond u size qd d vd qm m vm = do
-  cond <- cond;
-  u <- u;
-  size <- size;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, u=u, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
-end
-
-val vc2sigimm cons cond u size qd d vd qm m vm imm = do
-  cond <- cond;
-  u <- u;
-  size <- size;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  imm <- imm;
-  return (cons {cond=cond, u=u, size=size, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
-end
-
-val vc2sigbitimm cons cond u op qd d vd qm m vm imm = do
-  cond <- cond;
-  u <- u;
-  op <- op;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  imm <- imm;
-  return (cons {cond=cond, u=u, op=op, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm, imm=imm})
-end
-
-val vc2ns cons cond qd d vd qm m vm = do
-  cond <- cond;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, qd=qd, d=d, vd=vd, qm=qm, m=m, vm=vm})
-end
-
-val vc3 cons cond size qd d vd qn n vn qm m vm = do
-  cond <- cond;
-  size <- size;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qn <- qn;
-  n <- n;
-  vn <- vn;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, size=size, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
-end
-
-val vc3bit cons cond sz qd d vd qn n vn qm m vm = do
-  cond <- cond;
-  sz <- sz;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qn <- qn;
-  n <- n;
-  vn <- vn;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, sz=sz, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
-end
-
-val vc3sig cons cond u size qd d vd qn n vn qm m vm = do
-  cond <- cond;
-  u <- u;
-  size <- size;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qn <- qn;
-  n <- n;
-  vn <- vn;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, u=u, size=size, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
-end
-
-val vc3sig2 cons cond op u size qd d vd qn n vn qm m vm = do
-  cond <- cond;
-  op <- op;
-  u <- u;
-  size <- size;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qn <- qn;
-  n <- n;
-  vn <- vn;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, op=op, u=u, size=size, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
-end
-
-val vc3ns cons cond qd d vd qn n vn qm m vm = do
-  cond <- cond;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qn <- qn;
-  n <- n;
-  vn <- vn;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
-end
-
-
-val vc3nslist cons cond qd d vd len qn n vn qm m vm = do
-  cond <- cond;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  len <- len;
-  qn <- qn;
-  n <- n;
-  vn <- vn;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  return (cons {cond=cond, qd=qd, d=d, vd=vd, len=len, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm})
-end
-
-val vc3nsimm cons cond qd d vd qn n vn qm m vm imm = do
-  cond <- cond;
-  qd <- qd;
-  d <- d;
-  vd <- vd;
-  qn <- qn;
-  n <- n;
-  vn <- vn;
-  qm <- qm;
-  m <- m;
-  vm <- vm;
-  imm <- imm;
-  return (cons {cond=cond, qd=qd, d=d, vd=vd, qn=qn, n=n, vn=vn, qm=qm, m=m, vm=vm, imm=imm})
-end
-*)
-
 val nullop cons cond = do
   cond <- cond;
   return (cons {cond=cond})
@@ -1928,6 +837,208 @@ val binop cons cond opnd1 opnd2 = do
   return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2})
 end
 
+val ternop cons cond opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
+end
+
+val quaternop cons cond opnd1 opnd2 opnd3 opnd4 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4})
+end
+
+val quinop cons cond opnd1 opnd2 opnd3 opnd4 opnd5 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  opnd5 <- opnd5;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4, opnd5=opnd5})
+end
+
+val senop cons cond opnd1 opnd2 opnd3 opnd4 opnd5 opnd6 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  opnd5 <- opnd5;
+  opnd6 <- opnd6;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4, opnd5=opnd5, opnd6=opnd6})
+end
+
+val unbitBinop cons cond o opnd1 opnd2 = do
+  cond <- cond;
+  o <- o;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o=o, opnd1=opnd1, opnd2=opnd2})
+end
+
+val unbitTernop cons cond o opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  o <- o;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, o=o, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
+end
+
+val unbitQuaternop cons cond o opnd1 opnd2 opnd3 opnd4 = do
+  cond <- cond;
+  o <- o;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  return (cons {cond=cond, o=o, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4})
+end
+
+val binbitBinop cons cond o1 o2 opnd1 opnd2 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o1=o1, o2=o2, opnd1=opnd1, opnd2=opnd2})
+end
+
+val binbitTernop cons cond o1 o2 opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, o1=o1, o2=o2, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
+end
+
+val binbitQuaternop cons cond o1 o2 opnd1 opnd2 opnd3 opnd4 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  opnd4 <- opnd4;
+  return (cons {cond=cond, o1=o1, o2=o2, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, opnd4=opnd4})
+end
+
+val ternbitUnop cons cond o1 o2 o3 opnd = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  opnd <- opnd;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, opnd=opnd})
+end
+
+val ternbitBinop cons cond o1 o2 o3 opnd1 opnd2 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, opnd1=opnd1, opnd2=opnd2})
+end
+
+val ternbitTernop cons cond o1 o2 o3 opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
+end
+
+val quaternbitBinop cons cond o1 o2 o3 o4 opnd1 opnd2 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  o4 <- o4;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, o4=o4, opnd1=opnd1, opnd2=opnd2})
+end
+
+val quaternbitTernop cons cond o1 o2 o3 o4 opnd1 opnd2 opnd3 = do
+  cond <- cond;
+  o1 <- o1;
+  o2 <- o2;
+  o3 <- o3;
+  o4 <- o4;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, o1=o1, o2=o2, o3=o3, o4=o4, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3})
+end
+
+val unopUnbitUnop cons cond opnd1 o opnd2 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  o <- o;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, opnd1=opnd1, o=o, opnd2=opnd2})
+end
+
+val unopUnbitBinop cons cond opnd1 o opnd2 opnd3 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  o <- o;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, opnd1=opnd1, o=o, opnd2=opnd2, opnd3=opnd3})
+end
+
+val unbitBinopUnbit cons cond o1 opnd1 opnd2 o2 = do
+  cond <- cond;
+  o1 <- o1;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  o2 <- o2;
+  return (cons {cond=cond, o1=o1, opnd1=opnd1, opnd2=opnd2, o2=o2})
+end
+
+val binopUnbitUnop cons cond opnd1 opnd2 o opnd3 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  o <- o;
+  opnd3 <- opnd3;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, o=o, opnd3=opnd3})
+end
+
+val ternopUnbitUnop cons cond opnd1 opnd2 opnd3 o opnd4 = do
+  cond <- cond;
+  opnd1 <- opnd1;
+  opnd2 <- opnd2;
+  opnd3 <- opnd3;
+  o <- o;
+  opnd4 <- opnd4;
+  return (cons {cond=cond, opnd1=opnd1, opnd2=opnd2, opnd3=opnd3, o=o, opnd4=opnd4})
+end
+
+val unbitUnopUnbitUnop cons cond o1 opnd1 o2 opnd2 = do
+  cond <- cond;
+  o1 <- o1;
+  opnd1 <- opnd1;
+  o2 <- o2;
+  opnd2 <- opnd2;
+  return (cons {cond=cond, o1=o1, opnd1=opnd1, o2=o2, opnd2=opnd2})
+end
+
 val register cons = REGISTER cons
 val immediate cons = IMMEDIATE cons
 val shiftedoperand cons = SHIFTED_OPERAND cons
@@ -1947,6 +1058,7 @@ val imm-to-int imm =
     | IMM8 i: zx i
     | IMM12 i: zx i
     | IMM24 i: zx i
+    | IMM64 i: zx i
     | MODIMM i: armexpandimm i
   end
 
@@ -2127,6 +1239,37 @@ val armexpandimm-c modimm carry_in =
 ### ARMExpandImm [[A5.2.4]]
 val armexpandimm modimm = (armexpandimm-c modimm 0).result
 
+### AdvSIMDExpandImm [[A7.4.6]]
+(* TODO: adjust so that unpredictable parameters are recognized parameters are recognized *)
+val advsimdexpandimm op cmode imm8 = case cmode of
+      '000.': immediate (IMM64 ('000000000000000000000000'^imm8^'000000000000000000000000'^imm8))
+    | '001.': immediate (IMM64 ('0000000000000000'^imm8^'000000000000000000000000'^imm8^'00000000'))
+    | '010.': immediate (IMM64 ('00000000'^imm8^'000000000000000000000000'^imm8^'0000000000000000'))
+    | '011.': immediate (IMM64 (imm8^'000000000000000000000000'^imm8^'000000000000000000000000'))
+    | '100.': immediate (IMM64 ('00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8))
+    | '101.': immediate (IMM64 (imm8^'00000000'^imm8^'00000000'^imm8^'00000000'^imm8^'00000000'))
+    | '1100': immediate (IMM64 ('0000000000000000'^imm8^'11111111'^'0000000000000000'^imm8^'11111111'))
+    | '1101': immediate (IMM64 ('00000000'^imm8^'1111111111111111'^'00000000'^imm8^'1111111111111111'))
+    | '1110': case op of
+        '0': immediate (IMM64 (imm8^imm8^imm8^imm8^imm8^imm8^imm8^imm8))
+      | '1': case imm8 of
+        'a:1 b:1 c:1 d:1 e:1 f:1 g:1 h:1': immediate (IMM64 (a^a^a^a^a^a^a^a^b^b^b^b^b^b^b^b^c^c^c^c^c^c^c^c^d^d^d^d^d^d^d^d^e^e^e^e^e^e^e^e^f^f^f^f^f^f^f^f^g^g^g^g^g^g^g^g^h^h^h^h^h^h^h^h))
+      end
+    end
+    | '1111': case op of
+        '0': case imm8 of
+          'a:1 b:1 c:6': immediate (IMM64 (a^(not b)^b^b^b^b^b^c^'0000000000000000000'^a^(not b)^b^b^b^b^b^c^'0000000000000000000'))
+        end
+    end
+end
+
+### VFPExpandImm [[A7.5.1]]
+val vfpexpandimm imm8 n = case imm8 of
+    'i7:1 i6:1 i50:6': case n of
+        32: immediate (IMM32 (i7^(not i6)^i6^i6^i6^i6^i6^i50^'0000000000000000000'))
+      | 64: immediate (IMM64 (i7^(not i6)^i6^i6^i6^i6^i6^i6^i6^i6^i50^'000000000000000000000000000000000000000000000000'))
+    end
+end
 # ----------------------------------------------------------------------
 # Subdecoder
 # ----------------------------------------------------------------------
@@ -2157,6 +1300,15 @@ val /size2 ['size:2'] = update@{size=size}
 val size = do
   size <- query $size;
   return (immediate (IMM2 (size)))
+end
+
+# 2 bit mask, cannot be 00 (related encodings)
+val /mask ['mask@01'] = update@{mask=mask}
+val /mask ['mask@1.'] = update@{mask=mask}
+
+val mask = do
+  mask <- query $mask;
+  return (immediate (IMM2 (mask)))
 end
 
 # 3 bit VCVTR opc2, can only be 100 or 101
@@ -2211,7 +1363,7 @@ val /cmode-mov0 ['cmode@1101'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@1110'] = update@{cmode=cmode}
 val /cmode-mov0 ['cmode@1111'] = update@{cmode=cmode}
 
-# cmode for VMOV instruction with op=01, can only be 1110
+# cmode for VMOV instruction with op=1, can only be 1110
 val /cmode-mov1 ['cmode@1110'] = update@{cmode=cmode}
 
 # cmode for VMVN instruction, can only be 0000, 0010, 0100, 0110, 1000, 1010, 1100, or 1101
@@ -2241,21 +1393,22 @@ end
 
 val /imm6 ['imm6:6'] = update@{imm6=imm6}
 
-val /imm6-not000 ['imm6@0011..'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@00101.'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@001001'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@011...'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@0101..'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@01001.'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@010001'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@11....'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@101...'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@1001..'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@10001.'] = update@{imm6=imm6}
-val /imm6-not000 ['imm6@100001'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@001...'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@01....'] = update@{imm6=imm6}
+val /imm6-not000 ['imm6@1.....'] = update@{imm6=imm6}
 
-
-
+val /imm6-not000-vshll ['imm6@001..1'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@001.10'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@001100'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@01...1'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@01..10'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@01.100'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@011000'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1....1'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1...10'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1..100'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@1.1000'] = update@{imm6=imm6}
+val /imm6-not000-vshll ['imm6@110000'] = update@{imm6=imm6}
 
 val imm6 = do
   imm6 <- query $imm6;
@@ -2343,7 +1496,7 @@ val /imm12 ['imm12:12'] = update@{imm12=imm12}
 
 val imm12 = do
   imm12 <- query $imm12;
-  return (immediate (IMM12 (imm12)))
+  return (immediate (IMM12 imm12))
 end
 
 val /imm24 ['a:8 b:8 c:8'] = update@{imm24=(a^b^c)}
@@ -2375,42 +1528,42 @@ val /imm3_124 ['imm3@100'] = update@{imm3=imm3}
 
 val imm3 = do
   imm3 <- query $imm3;
-  return (immediate (IMM3 (imm3)))
+  return (immediate (IMM3 imm3))
 end
 
 val /imm4 ['imm4:4'] = update@{imm4=imm4}
 
 val imm4 = do
   imm4 <- query $imm4;
-  return (immediate (IMM4 (imm4)))
+  return (immediate (IMM4 imm4))
 end
 
 val /imm5 ['imm5:5'] = update@{imm5=imm5}
 
 val imm5 = do
   imm5 <- query $imm5;
-  return (immediate (IMM5 (imm5)))
+  return (immediate (IMM5 imm5))
 end
 
 val /imm8 ['imm8:8'] = update@{imm8=imm8}
 
 val imm8 = do
   imm8 <- query $imm8;
-  return (immediate (IMM8 (imm8)))
+  return (immediate (IMM8 imm8))
 end
 
 # concats the 4 bit and 12 bit immediates that were decoded most recently
 val combine-imm16 = do
   imm4 <- query $imm4;
   imm12 <- query $imm12;
-  return (opnd-from-int (zx (imm4^imm12)))
+  return (immediate (IMM16 (imm4^imm12)))
 end
 
 # concats the 12 bit and 4 bit immediates that were decoded most recently
 val combine-imm16-rev = do
   imm12 <- query $imm12;
   imm4 <- query $imm4;
-  return (opnd-from-int (zx (imm12^imm4)))
+  return (immediate (IMM16 (imm12^imm4)))
 end
 
 # modified 12 bit immediate (8 bit immediate with rotation)
@@ -2512,14 +1665,30 @@ end
 val combine-imm5 = do
   imm4 <- query $imm4;
   i <- query $i;
-  return (opnd-from-int (zx (imm4^i)))
+  return (immediate (IMM5 (imm4^i)))
 end
 
-val combine-imm8-2 = do
+val imm64-asimd op = do
+  cmode <- query $cmode;
   i <- query $i;
   imm3 <- query $imm3;
   imm4 <- query $imm4;
-  return (opnd-from-int (zx (imm4^i)))
+
+  return (advsimdexpandimm op cmode (i^imm3^imm4))
+end
+
+val imm32-vfp = do
+  imm4L <- query $imm4L;
+  imm4H <- query $imm4H;
+
+  return (vfpexpandimm (imm4H^imm4L) 32)
+end
+
+val imm64-vfp = do
+  imm4L <- query $imm4L;
+  imm4H <- query $imm4H;
+
+  return (vfpexpandimm (imm4H^imm4L) 64)
 end
 
 # length
@@ -2527,7 +1696,7 @@ val /len ['len:2'] = update@{len=len}
 
 val len = do
   len <- query $len;
-  return (immediate (IMM2 (len)))
+  return (immediate (IMM2 len))
 end
 
 # align
@@ -2535,7 +1704,7 @@ val /aligna ['aligna:2'] = update@{aligna=aligna}
 
 val aligna = do
   aligna <- query $aligna;
-  return (immediate (IMM2 (aligna)))
+  return (immediate (IMM2 aligna))
 end
 
 # opc12
@@ -2543,7 +1712,7 @@ val /opc12 ['opc12:2'] = update@{opc12=opc12}
 
 val opc12 = do
   opc12 <- query $opc12;
-  return (immediate (IMM2 (opc12)))
+  return (immediate (IMM2 opc12))
 end
 
 # opc22
@@ -2551,14 +1720,14 @@ val /opc22 ['opc22:2'] = update@{opc22=opc22}
 
 val opc22 = do
   opc22 <- query $opc22;
-  return (immediate (IMM2 (opc22)))
+  return (immediate (IMM2 opc22))
 end
 
 # combine-opc2
 val combine-opc2 = do
   opc12 <- query $opc12;
   opc22 <- query $opc22;
-  return (opnd-from-int (zx (opc12^opc22)))
+  return (immediate (IMM4 (opc12^opc22)))
 end
 
 # combine-u-opc2
@@ -2566,7 +1735,7 @@ val combine-u-opc2 = do
   u <- query $u;
   opc12 <- query $opc12;
   opc22 <- query $opc22;
-  return (opnd-from-int (zx (u^opc12^opc22)))
+  return (immediate (IMM5 (u^opc12^opc22)))
 end
 
 # opc13
@@ -2574,7 +1743,7 @@ val /opc13 ['opc13:3'] = update@{opc13=opc13}
 
 val opc13 = do
   opc13 <- query $opc13;
-  return (immediate (IMM3 (opc13)))
+  return (immediate (IMM3 opc13))
 end
 
 # opc23
@@ -2582,7 +1751,7 @@ val /opc23 ['opc23:3'] = update@{opc23=opc23}
 
 val opc23 = do
   opc23 <- query $opc23;
-  return (immediate (IMM3 (opc23)))
+  return (immediate (IMM3 opc23))
 end
 
 # opc14
@@ -2590,7 +1759,7 @@ val /opc14 ['opc14:4'] = update@{opc14=opc14}
 
 val opc14 = do
   opc14 <- query $opc14;
-  return (immediate (IMM4 (opc14)))
+  return (immediate (IMM4 opc14))
 end
 
 # opc24
@@ -2598,7 +1767,7 @@ val /opc24 ['opc24:4'] = update@{opc24=opc24}
 
 val opc24 = do
   opc24 <- query $opc24;
-  return (immediate (IMM4 (opc24)))
+  return (immediate (IMM4 opc24))
 end
 
 # crd
@@ -2606,7 +1775,7 @@ val /crd ['crd:4'] = update@{crd=crd}
 
 val crd = do
   crd <- query $crd;
-  return (immediate (IMM4 (crd)))
+  return (immediate (IMM4 crd))
 end
 
 # crn
@@ -2614,7 +1783,7 @@ val /crn ['crn:4'] = update@{crn=crn}
 
 val crn = do
   crn <- query $crn;
-  return (immediate (IMM4 (crn)))
+  return (immediate (IMM4 crn))
 end
 
 # crm
@@ -2622,7 +1791,7 @@ val /crm ['crm:4'] = update@{crm=crm}
 
 val crm = do
   crm <- query $crm;
-  return (immediate (IMM4 (crm)))
+  return (immediate (IMM4 crm))
 end
 
 # coproc (cannot be 1010 or 1011)
@@ -2632,7 +1801,7 @@ val /coproc ['coproc@100.'] = update@{coproc=coproc}
 
 val coproc = do
   coproc <- query $coproc;
-  return (immediate (IMM4 (coproc)))
+  return (immediate (IMM4 coproc))
 end
 
 # index_align
@@ -2640,7 +1809,7 @@ val /index_align ['index_align:4'] = update@{index_align=index_align}
 
 val index_align = do
   index_align <- query $index_align;
-  return (immediate (IMM4 (index_align)))
+  return (immediate (IMM4 index_align))
 end
 
 # most significant bit
@@ -2648,7 +1817,7 @@ val /msbit ['msbit:5'] = update@{msbit=msbit}
 
 val msbit = do
   msbit <- query $msbit;
-  return (immediate (IMM5 (msbit)))
+  return (immediate (IMM5 msbit))
 end
 
 # least significant bit
@@ -2656,7 +1825,7 @@ val /lsbit ['lsbit:5'] = update@{lsbit=lsbit}
 
 val lsbit = do
   lsbit <- query $lsbit;
-  return (immediate (IMM5 (lsbit)))
+  return (immediate (IMM5 lsbit))
 end
 
 # imm5 representing width
@@ -2664,7 +1833,7 @@ val /widthm1 ['widthm1:5'] = update@{widthm1=widthm1}
 
 val widthm1 = do
   widthm1 <- query $widthm1;
-  return (immediate (IMM5 (widthm1)))
+  return (immediate (IMM5 widthm1))
 end
 
 # --- shifted operand decoders -----------------------------------------
@@ -2730,30 +1899,98 @@ end
 val /vd ['vd:4'] = update@{vd=vd}
 
 val vd = do
-  q <- query q;
-  d <- query d;
-  vd <- query vd;
+  q <- query $q;
+  d <- query $d;
+  vd <- query $vd;
   return (vector {change=q, first=d, remainder=vd})
+end
+
+val vdq0 = do
+  d <- query $d;
+  vd <- query $vd;
+  return (vector {change='0', first=d, remainder=vd})
+end
+
+val vdq1 = do
+  d <- query $d;
+  vd <- query $vd;
+  return (vector {change='1', first=d, remainder=vd})
 end
 
 # vn
 val /vn ['vn:4'] = update@{vn=vn}
 
 val vn = do
-  q <- query q;
-  n <- query n;
-  vn <- query vn;
+  q <- query $q;
+  n <- query $n;
+  vn <- query $vn;
   return (vector {change=q, first=n, remainder=vn})
+end
+
+val vnq0 = do
+  n <- query $n;
+  vn <- query $vn;
+  return (vector {change='0', first=n, remainder=vn})
+end
+
+val vnq1 = do
+  n <- query $n;
+  vn <- query $vn;
+  return (vector {change='1', first=n, remainder=vn})
+end
+
+val vnn0 = do
+  q <- query $q;
+  vn <- query $vn;
+  return (vector {change=q, first='0', remainder=vn})
+end
+
+val vnn1 = do
+  q <- query $q;
+  vn <- query $vn;
+  return (vector {change=q, first='1', remainder=vn})
 end
 
 # vm
 val /vm ['vm:4'] = update@{vm=vm}
 
 val vm = do
-  q <- query q;
-  m <- query m;
-  vm <- query vm;
+  q <- query $q;
+  m <- query $m;
+  vm <- query $vm;
   return (vector {change=q, first=m, remainder=vm})
+end
+
+val vmq0 = do
+  m <- query $m;
+  vm <- query $vm;
+  return (vector {change='0', first=m, remainder=vm})
+end
+
+val vmq1 = do
+  m <- query $m;
+  vm <- query $vm;
+  return (vector {change='1', first=m, remainder=vm})
+end
+
+val vmm0 = do
+  q <- query $q;
+  vm <- query $vm;
+  return (vector {change=q, first='0', remainder=vm})
+end
+
+val vmm1 = do
+  q <- query $q;
+  vm <- query $vm;
+  return (vector {change=q, first='1', remainder=vm})
+end
+
+val vm000000 = do
+  return (vector {change='0', first='0', remainder='0000'})
+end
+
+val vm100000 = do
+  return (vector {change='1', first='0', remainder='0000'})
 end
 
 # --- register subdecoders ---------------------------------------------
@@ -2868,7 +2105,7 @@ val / ['/cond 000 0 1 0 0 /S /rn /rd /shfreg'] = unbitTernop ADD cond s rn rd sh
 
 ### ADR
 ###  - ADR (Encoding A1)
-val / ['/cond 001 0 1 0 0 0 1111 /rd /modimm'] = unbitTernop ADR cond set0 r15 rd modimm
+val / ['/cond 001 0 1 0 0 0 1111 /rd /modimm'] = unbitTernop ADR cond set1 r15 rd modimm
 ###  - ADR (Encoding A2)
 val / ['/cond 001 0 0 1 0 0 1111 /rd /modimm'] = unbitTernop ADR cond set0 r15 rd modimm
 
@@ -3439,9 +2676,10 @@ val / ['/cond 011 1 1 0 0 0 /rd /ra-not15 /rm 0001 /rn'] = quaternop USADA8 cond
 val / ['/cond 000 10 /r 00 /imm4 /rd 001 /M 0000 0000'] = unbitBinopUnbit MRS cond r imm4 rd m
 
 ### MSR (immediate) //add later on
+val / ['/cond 001 10 0 10 /mask 00 1111 /modimm'] = binop MSRimm cond mask modimm
 ### MSR (banked register)
 ###  - Move to Banked or Special register from ARM core register
-val / ['/cond 000 10 /r 10 /imm4 1111 001 /M 0000 /rn'] = unbitUnopUnbitUnop MSR cond r imm4 m rn
+val / ['/cond 000 10 /r 10 /imm4 1111 001 /M 0000 /rn'] = unbitUnopUnbitUnop MSRreg cond r imm4 m rn
 
 ### CPS
 ###  - Change processor state
@@ -3611,43 +2849,21 @@ val / ['/cond 100 0 1 0 /W 1 /rn /reglst']
 ###  - Load Multiple
   | otherwise = unbitBinop LDM cond (return '1') rn reglst
 
-(*Included in LDM*)
-(*TODO: adapt LDM to return included subversions correctly*)
-### LDMIA
-### LDMFD
-
 ### LDMDA
 ###  - Load Multiple Decrement After
 val / ['/cond 100 0 0 0 /W 1 /rn /reglst'] = unbitBinop LDMDA cond w rn reglst
-
-(*Included in LDMDA*)
-(*TODO: adapt LDMDA to return included subversion correctly*)
-### LDMFA
 
 ### LDMDB
 ###  - Load Multiple Decrement Before
 val / ['/cond 100 1 0 0 /W 1 /rn /reglst'] = unbitBinop LDMDB cond w rn reglst
 
-(*Included in LDMDB*)
-(*TODO: adapt LDMDB to return included subversion correctly*)
-### LDMEA
-
 ### LDMIB
 ###  - Load Multiple Increment Before
 val / ['/cond 100 1 1 0 /W 1 /rn /reglst'] = unbitBinop LDMIB cond w rn reglst
 
-(*Included in LDMIB*)
-(*TODO: adapt LDMIB to return included subversion correctly*)
-### LDMED
-
 ### STM
 ###  - Store Multiple
 val / ['/cond 100 0 1 0 /W 0 /rn /reglst'] = unbitBinop STM cond w rn reglst
-
-(*Included in STM*)
-(*TODO: adapt STM to return included subversions correctly*)
-### STMIA
-### STMEA
 
 val stmdb-is-push? s = (is-sp? s.rn) and s.w and (opndl-length s.operands) > 1
 
@@ -3658,25 +2874,13 @@ val / ['/cond 100 1 0 0 /W 0 /rn /reglst']
 ###  - Store Multiple Decrement Before
   | otherwise = unbitBinop STMDB cond w rn reglst
 
-(*Included in STMDB*)
-(*TODO: adapt STMDB to return included subversion correctly*)
-### STMFD
-
 ### STMDA
 ###  - Store Multiple Decrement After
 val / ['/cond 100 0 0 0 /W 0 /rn /reglst'] = unbitBinop STMDA cond w rn reglst
 
-(*Included in STMDA*)
-(*TODO: adapt STMDA to return included subversion correctly*)
-### STMED
-
 ### STMIB
 ###  - Store Multiple Increment Before
 val / ['/cond 100 1 1 0 /W 0 /rn /reglst'] = unbitBinop STMIB cond w rn reglst
-
-(*Included in STMIB*)
-(*TODO: adapt STMIB to return included subversion correctly*)
-### STMFA
 
 # --- Miscellaneous instructions ---------------------------------------
 
@@ -3780,7 +2984,6 @@ val / ['/cond 000 1 0 1 0 0 /imm12 0111 /imm4'] = unop HVC cond combine-imm16-re
 ###  - Exception Return
 val / ['/cond 000 1 0 1 1 0 000000000000 0110 1110'] = nullop ERET cond
 
-(*TODO: adjust to represent subversions as fullversions*)
 ### LDM
 ###  - Load Multiple (Exception Return)
 val / ['/cond 100 /P /U 1 /W 1 /rn 1 /reglst15'] = ternbitBinop LDMerur cond p u w rn reglst
@@ -3827,11 +3030,11 @@ val / ['1111 111 0 /opc13 1 /crn /rt /coproc /opc23 1 /crm'] = senop MRC2 none c
 
 ### MRRC
 ###  - Move to two from Coprocessor (Encoding A1)
-val / ['/cond 110 0 0 1 0 1 /rt2 /rt /coproc /opc14 /crm'] = quaternop MRRC cond coproc opc14 rt rt2 crm
+val / ['/cond 110 0 0 1 0 1 /rt2 /rt /coproc /opc14 /crm'] = quinop MRRC cond coproc opc14 rt rt2 crm
 
 ### MRRC2
 ###  - Move to two from Coprocessor (Encoding A2)
-val / ['1111 110 0 0 1 0 1 /rt2 /rt /coproc /opc14 /crm'] = quaternop MRRC2 none coproc opc14 rt rt2 crm
+val / ['1111 110 0 0 1 0 1 /rt2 /rt /coproc /opc14 /crm'] = quinop MRRC2 none coproc opc14 rt rt2 crm
 
 ### LDC (immediate/literal)
 ###  - Load Coprocessor (Encoding A1)
@@ -3853,131 +3056,131 @@ val / ['1111 110 /PUDW 0 /rn /crd /coproc /imm8'] = quinop STC2 none coproc crd 
 
 ### VLDMIA
 ###  - Vector Load Multiple Increment After
-val / ['/cond 110 01 /D /W 1 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VLDMIA cond rn w set0 d vd imm8
+val / ['/cond 110 01 /D /W 1 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VLDMIA cond rn w vdq0 imm8
 
 ### VLDMDB
 ###  - Vector Load Multiple Decrement Before
-val / ['/cond 110 10 /D 1 1 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VLDMDB cond rn set1 set0 d vd imm8
+val / ['/cond 110 10 /D 1 1 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VLDMDB cond rn set1 vdq0 imm8
 
 ### VLDR
 ###  - Vector Load Register
-val / ['/cond 110 1 /U /D 01 /rn /vd 101 h:1 /imm8'] = binopUnbitBinop VLDR cond set0 d vd rn u imm8
+val / ['/cond 110 1 /U /D 01 /rn /vd 101 h:1 /imm8'] = binopUnbitUnop VLDR cond vdq0 rn u imm8
 
 ### VSTMIA
 ###  - Vector Store Multiple Increment After
-val / ['/cond 110 01 /D /W 0 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VSTMIA cond rn w set0 d vd imm8
+val / ['/cond 110 01 /D /W 0 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VSTMIA cond rn w vdq0 imm8
 
 ### VSTMDB
 ###  - Vector Store Multiple Decrement Before
-val / ['/cond 110 10 /D 1 0 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VSTMDB cond rn set1 set0 d vd imm8
+val / ['/cond 110 10 /D 1 0 /rn /vd 101 h:1 /imm8'] = unopUnbitBinop VSTMDB cond rn set1 vdq0 imm8
 
 ### VSTR
 ###  - Vector Store Register
-val / ['/cond 110 1 /U /D 00 /rn /vd 101 h:1 /imm8'] = binopUnbitBinop VSTR cond set0 d vd rn u imm8
+val / ['/cond 110 1 /U /D 00 /rn /vd 101 h:1 /imm8'] = binopUnbitUnop VSTR cond vdq0 rn u imm8
 
 # --- Element and structure load/store instructions --------------------
 
 ### VLD1 (multiple single elements)
 ###  - Vector Load multiple single elements
-val / ['1111 0100 0 /D 10 /rn /vd /vls1_type /size /aligna /rm'] = quinop VLD1 none size set0 d vd rn aligna rm
+val / ['1111 0100 0 /D 10 /rn /vd /vls1_type /size /aligna /rm'] = quinop VLD1 none size vdq0 rn aligna rm
 
 ### VLD1 (one lane)
 ###  - Vector Load single element to one lane
-val / ['1111 0100 1 /D 10 /rn /vd /size 00 /index_align /rm'] = quinop VLD1 none size set0 d vd rn index_align rm
+val / ['1111 0100 1 /D 10 /rn /vd /size 00 /index_align /rm'] = quinop VLD1 none size vdq0 rn index_align rm
 
 ### VLD1 (all lanes)
 ###  - Vector Load single element to all lanes
-val / ['1111 0100 1 /D 10 /rn /vd 11 00 /size T:1 /a /rm'] = ternopUnbitUnop VLD1a none size set0 d vd rn a rm
+val / ['1111 0100 1 /D 10 /rn /vd 11 00 /size T:1 /a /rm'] = ternopUnbitUnop VLD1a none size vdq0 rn a rm
 
 ### VLD2 (multiple structures)
 ###  - Vector Load multiple 2-element structures
-val / ['1111 0100 0 /D 10 /rn /vd /vls2_type /size /aligna /rm'] = quinop VLD2 none size set0 d vd rn aligna rm
+val / ['1111 0100 0 /D 10 /rn /vd /vls2_type /size /aligna /rm'] = quinop VLD2 none size vdq0 rn aligna rm
 
 ### VLD2 (one lane)
 ###  - Vector Load 2-element structure to one lane
-val / ['1111 0100 1 /D 10 /rn /vd /size 01 /index_align /rm'] = quinop VLD2 none size set0 d vd rn index_align rm
+val / ['1111 0100 1 /D 10 /rn /vd /size 01 /index_align /rm'] = quinop VLD2 none size vdq0 rn index_align rm
 
 ### VLD2 (all lanes)
 ###  - Vector Load 2-element structure to all lanes
-val / ['1111 0100 1 /D 10 /rn /vd 11 01 /size T:1 /a /rm'] = ternopUnbitUnop VLD2a none size set0 d vd rn a rm
+val / ['1111 0100 1 /D 10 /rn /vd 11 01 /size T:1 /a /rm'] = ternopUnbitUnop VLD2a none size vdq0 rn a rm
 
 ### VLD3 (multiple structures)
 ###  - Vector Load multiple 3-element structures
-val / ['1111 0100 0 /D 10 /rn /vd /vls3_type /size /aligna /rm'] = quinop VLD3 none size set0 d vd rn aligna rm
+val / ['1111 0100 0 /D 10 /rn /vd /vls3_type /size /aligna /rm'] = quinop VLD3 none size vdq0 rn aligna rm
 
 ### VLD3 (one lane)
 ###  - Vector Load 3-element structure to one lane
-val / ['1111 0100 1 /D 10 /rn /vd /size 10 /index_align /rm'] = quinop VLD3 none size set0 d vd rn index_align rm
+val / ['1111 0100 1 /D 10 /rn /vd /size 10 /index_align /rm'] = quinop VLD3 none size vdq0 rn index_align rm
 
 ### VLD3 (all lanes)
 ###  - Vector Load 3-element structure to all lanes
-val / ['1111 0100 1 /D 10 /rn /vd 11 10 /size T:1 /a /rm'] = ternopUnbitUnop VLD3a none size set0 d vd rn a rm
+val / ['1111 0100 1 /D 10 /rn /vd 11 10 /size T:1 /a /rm'] = ternopUnbitUnop VLD3a none size vdq0 rn a rm
 
 ### VLD4 (multiple structures)
 ###  - Vector Load multiple 4-element structures
-val / ['1111 0100 0 /D 10 /rn /vd /vls4_type /size /aligna /rm'] = quinop VLD4 none size set0 d vd rn aligna rm
+val / ['1111 0100 0 /D 10 /rn /vd /vls4_type /size /aligna /rm'] = quinop VLD4 none size vdq0 rn aligna rm
 
 ### VLD4 (one lane)
 ###  - Vector Load 4-element structure to one lane
-val / ['1111 0100 1 /D 10 /rn /vd /size 11 /index_align /rm'] = quinop VLD4 none size set0 d vd rn index_align rm
+val / ['1111 0100 1 /D 10 /rn /vd /size 11 /index_align /rm'] = quinop VLD4 none size vdq0 rn index_align rm
 
 ### VLD4 (all lanes)
 ###  - Vector Load 4-element structure to all lanes
-val / ['1111 0100 1 /D 10 /rn /vd 11 11 /size T:1 /a /rm'] = ternopUnbitUnop VLD4a none size set0 d vd rn a rm
+val / ['1111 0100 1 /D 10 /rn /vd 11 11 /size T:1 /a /rm'] = ternopUnbitUnop VLD4a none size vdq0 rn a rm
 
 ### VST1 (multiple elments)
 ###  - Vector Store multiple single elements
-val / ['1111 0100 0 /D 00 /rn /vd /vls1_type /size /aligna /rm'] = quinop VST1 none size set0 d vd rn aligna rm
+val / ['1111 0100 0 /D 00 /rn /vd /vls1_type /size /aligna /rm'] = quinop VST1 none size vdq0 rn aligna rm
 
 ### VST1 (one lane)
 ###  - Vector Store single element from one lane
-val / ['1111 0100 1 /D 00 /rn /vd /size 00 /index_align /rm'] = quinop VST1 none size set0 d vd rn index_align rm
+val / ['1111 0100 1 /D 00 /rn /vd /size 00 /index_align /rm'] = quinop VST1 none size vdq0 rn index_align rm
 
 ### VST2 (multiple structures)
 ###  - Vector Store multiple 2-element structures
-val / ['1111 0100 0 /D 00 /rn /vd /vls2_type /size /aligna /rm'] = quinop VST2 none size set0 d vd rn aligna rm
+val / ['1111 0100 0 /D 00 /rn /vd /vls2_type /size /aligna /rm'] = quinop VST2 none size vdq0 rn aligna rm
 
 ### VST2 (one lane)
 ###  - Vector Store 2-element structure from one lane
-val / ['1111 0100 1 /D 00 /rn /vd /size 01 /index_align /rm'] = quinop VST2 none size set0 d vd rn index_align rm
+val / ['1111 0100 1 /D 00 /rn /vd /size 01 /index_align /rm'] = quinop VST2 none size vdq0 rn index_align rm
 
 ### VST3 (multiple structures)
 ###  - Vector Store multiple 3-element structures
-val / ['1111 0100 0 /D 00 /rn /vd /vls3_type /size /aligna /rm'] = quinop VST3 none size set0 d vd rn aligna rm
+val / ['1111 0100 0 /D 00 /rn /vd /vls3_type /size /aligna /rm'] = quinop VST3 none size vdq0 rn aligna rm
 
 ### VST3 (one lane)
 ###  - Vector Store 3-element structure from one lane
-val / ['1111 0100 1 /D 00 /rn /vd /size 10 /index_align /rm'] = quinop VST3 none size set0 d vd rn index_align rm
+val / ['1111 0100 1 /D 00 /rn /vd /size 10 /index_align /rm'] = quinop VST3 none size vdq0 rn index_align rm
 
 ### VST4 (multiple structures)
 ###  - Vector Store multiple 4-element structures
-val / ['1111 0100 0 /D 00 /rn /vd /vls4_type /size /aligna /rm'] = quinop VST4 none size set0 d vd rn aligna rm
+val / ['1111 0100 0 /D 00 /rn /vd /vls4_type /size /aligna /rm'] = quinop VST4 none size vdq0 rn aligna rm
 
 ### VST4 (one lane)
 ###  - Vector Store 4-element structure from one lane
-val / ['1111 0100 1 /D 00 /rn /vd /size 11 /index_align /rm'] = quinop VST4 none size set0 d vd rn index_align rm
+val / ['1111 0100 1 /D 00 /rn /vd /size 11 /index_align /rm'] = quinop VST4 none size vdq0 rn index_align rm
 
 # --- Advanced SIMD and floating-point register transfer instructions --
 
 ### VDUP
 ###  - Vector Duplicate Arm Core Register
-val / ['/cond 1110 1 B:1 /Q 0 /vd /rt 1011 /D 0 E:1 1 0000'] = ternop VDUP cond imm4 q d vd rt
+val / ['/cond 1110 1 B:1 /Q 0 /vd /rt 1011 /D 0 E:1 1 0000'] = ternop VDUP cond imm4 vd rt
 
 ### VMOV
 ###  - Vector Move ARM core register to scalar
-val / ['/cond 1110 0 /opc12 0 /vd /rt 1011 /D /opc22 1 0000'] = ternop VMOVacs cond combine-opc2 set0 d vd rt
+val / ['/cond 1110 0 /opc12 0 /vd /rt 1011 /D /opc22 1 0000'] = ternop VMOVacs cond combine-opc2 vdq0 rt
 ###  - Vector Move scalar to ARM core register
-val / ['/cond 1110 /U /opc12 1 /vn /rt 1011 /N /opc22 1 0000'] = ternop VMOVsac cond combine-u-opc2 rt set0 n vn
+val / ['/cond 1110 /U /opc12 1 /vn /rt 1011 /N /opc22 1 0000'] = ternop VMOVsac cond combine-u-opc2 rt vnq0
 ###  - Vector Move between ARM core register and single-precision register
-val / ['/cond 1110 0 00 0 /vn /rt 1010 /N 00 1 0000'] = binop VMOVacsp cond set0 n vn rt
-val / ['/cond 1110 0 00 1 /vn /rt 1010 /N 00 1 0000'] = binop VMOVspac cond rt set0 n vn
+val / ['/cond 1110 0 00 0 /vn /rt 1010 /N 00 1 0000'] = binop VMOVacsp cond vnq0 rt
+val / ['/cond 1110 0 00 1 /vn /rt 1010 /N 00 1 0000'] = binop VMOVspac cond rt vnq0
 (*TODO: Adjust second 'm vm' to represent next vector*)
 ###  - Vector Move between two ARM core and two single-precision registers
-val / ['/cond 1100 0 10 0 /rt2 /rt 1010 00 /M 1 /vm'] = quaternop VMOVacsp2 cond set0 m vm set0 m vm rt rt2
-val / ['/cond 1100 0 10 1 /rt2 /rt 1010 00 /M 1 /vm'] = quaternop VMOVspac2 cond rt rt2 set0 m vm set0 m vm
+val / ['/cond 1100 0 10 0 /rt2 /rt 1010 00 /M 1 /vm'] = ternop VMOVacsp2 cond vmq0 rt rt2
+val / ['/cond 1100 0 10 1 /rt2 /rt 1010 00 /M 1 /vm'] = ternop VMOVspac2 cond rt rt2 vmq0
 ###  - Vector Move between two ARM core and doubleword extension register
-val / ['/cond 1100 0 10 0 /rt2 /rt 1011 00 /M 1 /vm'] = ternop VMOVacdwe cond set0 m vm rt rt2
-val / ['/cond 1100 0 10 1 /rt2 /rt 1011 00 /M 1 /vm'] = ternop VMOVdweac cond rt rt2 set0 m vm
+val / ['/cond 1100 0 10 0 /rt2 /rt 1011 00 /M 1 /vm'] = ternop VMOVacdwe cond vmq0 rt rt2
+val / ['/cond 1100 0 10 1 /rt2 /rt 1011 00 /M 1 /vm'] = ternop VMOVdweac cond rt rt2 vmq0
 
 ### VMRS
 val / ['/cond 1110 1111 0001 /rt 1010 000 1 0000'] = unop VMRS cond rt
@@ -3989,633 +3192,661 @@ val / ['/cond 1110 1110 0001 /rt 1010 000 1 0000'] = unop VMSR cond rt
 
 ### VADD
 ###  - Vector Add integer
-val / ['1111 0010 0 /D /size2 /vn /vd 1000 /N /Q /M 0 /vm'] = quaternop VADDiasimd none size q d vd q n vn q m vm
+val / ['1111 0010 0 /D /size2 /vn /vd 1000 /N /Q /M 0 /vm'] = quaternop VADDiasimd none size vd vn vm
 ###  - Vector Add floating-point (Encoding A1)
-val / ['1111 0010 0 /D 0 0 /vn /vd 1101 /N /Q /M 0 /vm'] = unbitTernop VADDfpasimd none set0 q d vd q n vn q m vm
+val / ['1111 0010 0 /D 0 0 /vn /vd 1101 /N /Q /M 0 /vm'] = unbitTernop VADDfpasimd none set0 vd vn vm
 
 ### VADDHN
 ###  - Vector Add and Narrow returning high half
-val / ['1111 0010 1 /D /size /vn /vd 0100 /N 0 /M 0 /vm'] = quaternop VADDHN none size set0 d vd set0 n vn set0 m vm
+val / ['1111 0010 1 /D /size /vn /vd 0100 /N 0 /M 0 /vm'] = quaternop VADDHN none size vdq0 vnq0 vmq0
 
 ### VADDL
 ###  - Vector Add Long
-val / ['1111 001 /U 1 /D /size /vn /vd 0000 /N 0 /M 0 /vm'] = unbitQuaternop VADDL none u size set0 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 0000 /N 0 /M 0 /vm'] = unbitQuaternop VADDL none u size vdq0 vnq0 vmq0
 
 ### VADDW
 ###  - Vector Add Wide
-val / ['1111 001 /U 1 /D /size /vn /vd 0001 /N 0 /M 0 /vm'] = unbitQuaternop VADDW none u size set0 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 0001 /N 0 /M 0 /vm'] = unbitQuaternop VADDW none u size vdq0 vnq0 vmq0
 
 ### VHADD
 ###  - Vector Halving Add
-val / ['1111 001 /U 0 /D /size /vn /vd 0000 /N /Q /M 0 /vm'] = unbitQuaternop VHADD none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0000 /N /Q /M 0 /vm'] = unbitQuaternop VHADD none u size vd vn vm
 
 ### VHSUB
 ###  - Vector Halving Sub
-val / ['1111 001 /U 0 /D /size /vn /vd 0010 /N /Q /M 0 /vm'] = unbitQuaternop VHSUB none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0010 /N /Q /M 0 /vm'] = unbitQuaternop VHSUB none u size vd vn vm
 
 ### VPADAL
-val / ['1111 0011 1 /D 11 /size 00 /vd 0110 /op /Q /M 0 /vm'] = unbitTernop VPADAL none op size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 0110 /op /Q /M 0 /vm'] = unbitTernop VPADAL none op size vd vm
 
 ### VPADD
 ###  - Vector Pairwise Add integer
-val / ['1111 0010 0 /D /size /vn /vd 1011 /N 0 /M 1 /vm'] = quaternop VPADDi none size set0 d vd set0 n vn set0 m vm
+val / ['1111 0010 0 /D /size /vn /vd 1011 /N 0 /M 1 /vm'] = quaternop VPADDi none size vdq0 vnq0 vmq0
 ###  - Vector Pairwise Add floating-point
-val / ['1111 0011 0 /D 0 0 /vn /vd 1101 /N 0 /M 0 /vm'] = unbitTernop VPADDfp none set0 set0 d vd set0 n vn set0 m vm 
+val / ['1111 0011 0 /D 0 0 /vn /vd 1101 /N 0 /M 0 /vm'] = unbitTernop VPADDfp none set0 vdq0 vnq0 vmq0 
 
 ### VPADDL
 ###  - Vector Pairwise Add Long
-val / ['1111 0011 1 /D 11 /size 00 /vd 0010 /op /Q /M 0 /vm'] = unbitTernop VPADDL none op size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 0010 /op /Q /M 0 /vm'] = unbitTernop VPADDL none op size vd vm
 
 ### VRADDHN
 ###  - Vector Rounding Add and Narrow high half
-val / ['1111 0011 1 /D /size /vn /vd 0100 /N 0 /M 0 /vm'] = quaternop VRADDHN none size set0 d vd set1 n vn set1 m vm 
+val / ['1111 0011 1 /D /size /vn /vd 0100 /N 0 /M 0 /vm'] = quaternop VRADDHN none size vdq0 vnq1 vmq1 
 
 ### VRHADD
 ###  - Vector Rounding Halving Add
-val / ['1111 001 /U 0 /D /size /vn /vd 0001 /N /Q /M 0 /vm'] = unbitQuaternop VRHADD none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0001 /N /Q /M 0 /vm'] = unbitQuaternop VRHADD none u size vd vn vm
 
 ### VRSUBHN
 ###  - Vector Rounding Subtract and Narrow high half
-val / ['1111 0011 1 /D /size /vn /vd 0110 /N 0 /M 0 /vm'] = quaternop VRSUBHN none size set0 d vd set1 n vn set1 m vm
+val / ['1111 0011 1 /D /size /vn /vd 0110 /N 0 /M 0 /vm'] = quaternop VRSUBHN none size vdq0 vnq1 vmq1
 
 ### VQADD
 ###  - Vector Saturating Add
-val / ['1111 001 /U 0 /D /size /vn /vd 0000 /N /Q /M 1 /vm'] = unbitQuaternop VQADD none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0000 /N /Q /M 1 /vm'] = unbitQuaternop VQADD none u size vd vn vm
 
 ### VQSUB
 ###  - Vector Saturating Subtract
-val / ['1111 001 /U 0 /D /size /vn /vd 0010 /N /Q /M 1 /vm'] = unbitQuaternop VQSUB none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0010 /N /Q /M 1 /vm'] = unbitQuaternop VQSUB none u size vd vn vm
 
 ### VSUB
 ###  - Vector Subtract integer
-val / ['1111 0011 0 /D /size /vn /vd 1000 /N /Q /M 0 /vm'] = quaternop VSUBiasimd none size q d vd q n vn q m vm
+val / ['1111 0011 0 /D /size /vn /vd 1000 /N /Q /M 0 /vm'] = quaternop VSUBiasimd none size vd vn vm
 ###  - Vector Subtract floating-point (Encoding A1)
-val / ['1111 0010 0 /D 1 0 /vn /vd 1101 /N /Q /M 0 /vm'] = unbitTernop VSUBfpasimd none set0 q d vd q n vn q m vm
+val / ['1111 0010 0 /D 1 0 /vn /vd 1101 /N /Q /M 0 /vm'] = unbitTernop VSUBfpasimd none set0 vd vn vm
 
 ### VSUBHN
 ###  - Vector Subtract and Narrow high half
-val / ['1111 0010 1 /D /size /vn /vd 0110 /N 0 /M 0 /vm'] = quaternop VSUBHN none size set0 d vd set0 n vn set0 m vm
+val / ['1111 0010 1 /D /size /vn /vd 0110 /N 0 /M 0 /vm'] = quaternop VSUBHN none size vdq0 vnq0 vmq0
 
 ### VSUBL
 ###  - Vector Subtract Long
-val / ['1111 001 /U 1 /D /size /vn /vd 001 0 /N 0 /M 0 /vm'] = unbitQuaternop VSUBL none u size set0 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 001 0 /N 0 /M 0 /vm'] = unbitQuaternop VSUBL none u size vdq0 vnq0 vmq0
 
 ### VSUBW
 ###  - Vector Subtract Wide
-val / ['1111 001 /U 1 /D /size /vn /vd 001 1 /N 0 /M 0 /vm'] = unbitQuaternop VSUBW none u size set0 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 001 1 /N 0 /M 0 /vm'] = unbitQuaternop VSUBW none u size vdq0 vnq0 vmq0
 
 # --- Bitwise Advanced SIMD data-processing instructions ---------------
 
+### Advanced SIMD Expand Immediate is unpredictable
+val unpredictable? s = case s.cmode of
+	  '000.': '0'
+	| '001.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '010.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '011.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '100.': '0'
+	| '101.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '110.': (not s.i) and (s.imm3 == '000') and (s.imm4 == '0000')
+	| '111.': '0'
+end
+
 ### VAND
 ###  - Vector And register
-val / ['1111 001 0 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VAND none q d vd q n vn q m vm
+val / ['1111 001 0 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VAND none vd vn vm
 
 ### VBIC
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4']
+### - Unpredictable
+  | unpredictable? = unop VBICundef none vd
 ###  - Vector Bitwise Bit Clear immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-bic 0 /Q 11 /imm4'] = ternop VBICimm none cmode q d vd combine-imm8-2
+  | otherwise = ternop VBIC none cmode vd (imm64-asimd '1')
 ###  - Vector Bitwise Bit Clear register
-val / ['1111 001 0 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBICreg none q d vd q n vn q m vm
+val / ['1111 001 0 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIC none vd vn vm
 
 ### VEOR
 ###  - Vector Bitwise Exclusive OR
-val / ['1111 001 1 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VEOR none q d vd q n vn q m vm
+val / ['1111 001 1 0 /D 00 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VEOR none vd vn vm
 
 ### VBIF
 ###  - Vector Bitwise Insert If False
-val / ['1111 001 1 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none q d vd q n vn q m vm
+val / ['1111 001 1 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none vd vn vm
 
 ### VBIT
 ###  - Vector Bitwise Insert If True
-val / ['1111 001 1 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none q d vd q n vn q m vm
+val / ['1111 001 1 0 /D 10 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none vd vn vm
 
 ### VMOV
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4']
+### Unpredictable
+	| unpredictable? = unop VMOVimmasimdundef none vd
 ###  - Vector Move immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov0 0 /Q 0 1 /imm4'] = ternop VMOVimmasimd none cmode q d vd combine-imm8-2
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4'] = ternop VMOVimmasimd none cmode q d vd combine-imm8-2
+	| otherwise = binop VMOVimmasimd none vd (imm64-asimd '0')
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mov1 0 /Q 1 1 /imm4']
+### Unpredictable
+	| unpredictable? = unop VMOVimmasimdundef none vd
+###  - Vector Move immediate
+	| otherwise = binop VMOVimmasimd none vd (imm64-asimd '1')
 ###  - Vector Move register
-val / ['1111 001 0 0 /D 10 /vm /vd 0001 0 /Q 0 1 /vm'] = binop VMOVregasimd none q d vd q set0 vm
-val / ['1111 001 0 0 /D 10 /vm /vd 0001 1 /Q 1 1 /vm'] = binop VMOVregasimd none q d vd q set1 vm
+val / ['1111 001 0 0 /D 10 /vm /vd 0001 0 /Q 0 1 /vm'] = binop VMOVregasimd none vd vmm0
+val / ['1111 001 0 0 /D 10 /vm /vd 0001 1 /Q 1 1 /vm'] = binop VMOVregasimd none vd vmm1
 
 ### VMVN
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4']
+###  - Unpredictable
+	| unpredictable? = unop VMVNundef none vd
 ###  - Vector Bitwise Not immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-mvn 0 /Q 11 /imm4'] = ternop VMVNimm none cmode q d vd combine-imm8-2
+	| otherwise = ternop VMVN none cmode vd (imm64-asimd '1')
 ###  - Vector Bitwise Not register
-val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = ternop VMVNreg none size q d vd q m vm
+val / ['1111 001 1 1 /D 11 /size 00 /vd 0 1011 /Q /M 0 /vm'] = ternop VMVN none size vd vm
 
 ### VORR
+val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4']
+###  - Unpredictable
+	| unpredictable? = unop VORRundef none vd
 ###  - Vector Bitwise OR immediate
-val / ['1111 001 /i 1 /D 000 /imm3 /vd /cmode-vorr 0 /Q 01 /imm4'] = ternop VORRimm none cmode q d vd combine-imm8-2
+###  - Vector Bitwise OR immediate
+	| otherwise = ternop VORR none cmode vd (imm64-asimd '0')
 ###  - Vector Bitwise OR register
-val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = ternop VORRreg none q d vd q set0 vn q set1 vm
-val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = ternop VORRreg none q d vd q set1 vn q set0 vm
+val / ['1111 001 0 0 /D 10 /vn /vd 0001 0 /Q 1 1 /vm'] = ternop VORR none vd vnn1 vmm1
+val / ['1111 001 0 0 /D 10 /vn /vd 0001 1 /Q 0 1 /vm'] = ternop VORR none vd vnn1 vmm0
 
 ### VORN
 ###  - Vector Bitwise OR NOT register
-val / ['1111 001 0 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VORN none q d vd q n vn q m vm
+val / ['1111 001 0 0 /D 11 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VORN none vd vn vm
 
 ### VBSL
 ###  - Vector Bitewise Select
-val / ['1111 001 1 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none q d vd q n vn q m vm
+val / ['1111 001 1 0 /D 01 /vn /vd 0001 /N /Q /M 1 /vm'] = ternop VBIF none vd vn vm
 
 # --- Advanced SIMD comparison instructions ----------------------------
 
 ### VACGE (LT)
 ###  - Vector Absolute Compare Greater Than or Equal (Vector Absolute Compare Lower Than)
-val / ['1111 0011 0 /D 0 0 /vn /vd 1110 /N /Q /M 1 /vm'] = unbitTernop VACGE none set0 q d vd q n vn q m vm
-val / ['1111 0011 0 /D 0 1 /vn /vd 1110 /N /Q /M 1 /vm'] = unbitTernop VACGE none set1 q d vd q n vn q m vm
+val / ['1111 0011 0 /D 0 0 /vn /vd 1110 /N /Q /M 1 /vm'] = unbitTernop VACGE none set0 vd vn vm
+val / ['1111 0011 0 /D 0 1 /vn /vd 1110 /N /Q /M 1 /vm'] = unbitTernop VACGE none set1 vd vn vm
 
 ### VACGT (LE)
 ###  - Vector Absolute Compare Greater Than (Vector Absolute Compare Lower Than or Equal)
-val / ['1111 0011 0 /D 1 0 /vn /vd 1110 /N /Q /M 1 /vm'] = unbitTernop VACGT none set0 q d vd q n vn q m vm
-val / ['1111 0011 0 /D 1 1 /vn /vd 1110 /N /Q /M 1 /vm'] = unbitTernop VACGT none set1 q d vd q n vn q m vm
+val / ['1111 0011 0 /D 1 0 /vn /vd 1110 /N /Q /M 1 /vm'] = unbitTernop VACGT none set0 vd vn vm
+val / ['1111 0011 0 /D 1 1 /vn /vd 1110 /N /Q /M 1 /vm'] = unbitTernop VACGT none set1 vd vn vm
 
 ### VCEQ
 ###  - Vector Compare Equal register (Encoding A1)
-val / ['1111 0011 0 /D /size /vn /vd 1000 /N /Q /M 1 /vm'] = quaternop VCEQrega none size q d vd q n vn q m vm
+val / ['1111 0011 0 /D /size /vn /vd 1000 /N /Q /M 1 /vm'] = quaternop VCEQrega none size vd vn vm
 ###  - Vector Compare Equal register (Encoding A2)
-val / ['1111 0010 0 /D 0 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = unbitTernop VCEQregb none sz q d vd q n vn q m vm
+val / ['1111 0010 0 /D 0 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = unbitTernop VCEQregb none sz vd vn vm
 ###  - Vector Compare Equal immediate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 010 /Q /M 0 /vm'] = unbitTernop VCEQimm none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 010 /Q /M 0 /vm'] = unbitTernop VCEQimm none f size vd vm
 
 ### VCGE
 ###  - Vector Compare Greater Than or Equal register (Encoding A1)
-val / ['1111 001 /U 0 /D /size /vn /vd 0011 /N /Q /M 1 /vm'] = unbitQuaternop VCGErega none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0011 /N /Q /M 1 /vm'] = unbitQuaternop VCGErega none u size vd vn vm
 ###  - Vector Compare Greater Than or Equal register (Encoding A2)
-val / ['1111 0011 0 /D 0 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = unbitTernop VCGEregb none sz q d vd q n vn q m vm 
+val / ['1111 0011 0 /D 0 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = unbitTernop VCGEregb none sz vd vn vm 
 ###  - Vector Compare Greater Than or Equal immediate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 001 /Q /M 0 /vm'] = unbitTernop VCGEimm none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 001 /Q /M 0 /vm'] = unbitTernop VCGEimm none f size vd vm
 
 ### VCGT
 ###  - Vector Compare Greater Than register (Encoding A1)
-val / ['1111 001 /U 0 /D /size /vn /vd 0011 /N /Q /M 0 /vm'] = unbitQuaternop VCGTrega none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0011 /N /Q /M 0 /vm'] = unbitQuaternop VCGTrega none u size vd vn vm
 ###  - Vector Compare Greater Than register (Encoding A2)
-val / ['1111 0011 0 /D 1 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = unbitTernop VCGTregb none sz q d vd q n vn q m vm
+val / ['1111 0011 0 /D 1 /sz /vn /vd 1110 /N /Q /M 0 /vm'] = unbitTernop VCGTregb none sz vd vn vm
 ###  - Vector Compare Greater Than immediate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 000 /Q /M 0 /vm'] = unbitTernop VCGTimm none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 000 /Q /M 0 /vm'] = unbitTernop VCGTimm none f size vd vm
 
 ### VCLE
 ###  - Vector Compare Less Than or Equal immediate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 011 /Q /M 0 /vm'] = unbitTernop VCLE none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 011 /Q /M 0 /vm'] = unbitTernop VCLE none f size vd vm
 
 ### VCLT
 ###  - Vector Compare Less Than
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 100 /Q /M 0 /vm'] = unbitTernop VCLT none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 100 /Q /M 0 /vm'] = unbitTernop VCLT none f size vd vm
 
 ### VTST
 ###  - Vector Test Bits
-val / ['1111 0010 0 /D /size /vn /vd 1000 /N /Q /M 1 /vm'] = quaternop VTST none size q d vd q n vn q m vm
+val / ['1111 0010 0 /D /size /vn /vd 1000 /N /Q /M 1 /vm'] = quaternop VTST none size vd vn vm
 
 # --- Advanced SIMD shift instructions ---------------------------------
 
 ### VQRSHL
 ###  - Vector Saturating Rounding Shift Left
-val / ['1111 001 /U 0 /D /size /vn /vd 0101 /N /Q /M 1 /vm'] = unbitQuaternop VQRSHL none u size q d vd q m vm q n vn
+val / ['1111 001 /U 0 /D /size /vn /vd 0101 /N /Q /M 1 /vm'] = unbitQuaternop VQRSHL none u size vd vm vn
 
 ### VQRSHRN
 ###  - Vector Saturating Rounding Shift Right Narrow
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 100 1 01 /M 1 /vm'] = unbitQuaternop VQRSHRN none u imm6 set0 d vd set1 m vm imm6 
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 100 1 01 /M 1 /vm'] = unbitQuaternop VQRSHRN none u imm6 vdq0 vmq1 imm6 
 
 ### VQRSHRUN
 ###  - Vector Saturating Rounding Shift Right UnsignedNarrow
-val / ['1111 001 1 1 /D /imm6-not000 /vd 100 0 01 /M 1 /vm'] = unbitQuaternop VQRSHRUN none set1 imm6 set0 d vd set1 m vm imm6
+val / ['1111 001 1 1 /D /imm6-not000 /vd 100 0 01 /M 1 /vm'] = unbitQuaternop VQRSHRUN none set1 imm6 vdq0 vmq1 imm6
 
 ### VQSHL
 ###  - Vector Saturating Shift Left register
-val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 1 /vm'] = unbitQuaternop VQSHLreg none u size q d vd q m vm q n vn
+val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 1 /vm'] = unbitQuaternop VQSHL none u size vd vm vn
 ###  - Vector Saturating Shift Left immediate
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 011 1 0 /Q /M 1 /vm'] = unbitQuaternop VQSHLimm none u imm6 q d vd q m vm imm6
-val / ['1111 001 /U 1 /D /imm6 /vd 011 1 1 /Q /M 1 /vm'] = unbitQuaternop VQSHLimm none u imm6 q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 011 1 0 /Q /M 1 /vm'] = unbitQuaternop VQSHL none u imm6 vd vm imm6
+val / ['1111 001 /U 1 /D /imm6 /vd 011 1 1 /Q /M 1 /vm'] = unbitQuaternop VQSHL none u imm6 vd vm imm6
 
 ### VQSHLU
 ###  - Vector Saturating Shift Left Unsigned immediate
-val / ['1111 001 1 1 /D /imm6-not000 /vd 011 0 0 /Q /M 1 /vm'] = unbitQuaternop VQSHLU none set1 imm6 q d vd q m vm imm6
-val / ['1111 001 1 1 /D /imm6 /vd 011 0 1 /Q /M 1 /vm'] = unbitQuaternop VQSHLU none set1 imm6 q d vd q m vm imm6
+val / ['1111 001 1 1 /D /imm6-not000 /vd 011 0 0 /Q /M 1 /vm'] = unbitQuaternop VQSHLU none set1 imm6 vd vm imm6
+val / ['1111 001 1 1 /D /imm6 /vd 011 0 1 /Q /M 1 /vm'] = unbitQuaternop VQSHLU none set1 imm6 vd vm imm6
 
 ### VQSHRN
 ###  - Vector Saturating Shift Right Narrow
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 100 1 00 /M 1 /vm'] = unbitQuaternop VQSHRN none u imm6 set0 d vd set1 m vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 100 1 00 /M 1 /vm'] = unbitQuaternop VQSHRN none u imm6 vdq0 vmq1 imm6
 
 ### VQSHRUN
 ###  - Vector Saturating Shift Right Unsigned Narrow
-val / ['1111 001 1 1 /D /imm6-not000 /vd 100 0 00 /M 1 /vm'] = unbitQuaternop VQSHRUN none set1 imm6 set0 d vd set1 m vm imm6
+val / ['1111 001 1 1 /D /imm6-not000 /vd 100 0 00 /M 1 /vm'] = unbitQuaternop VQSHRUN none set1 imm6 vdq0 vmq1 imm6
 
 ### VRSHL
 ###  - Vector Rounding Shift Left
-val / ['1111 001 /U 0 /D /size /vn /vd 0101 /N /Q /M 0 /vm'] = unbitQuaternop VRSHL none u size q d vd q m vm q n vn
+val / ['1111 001 /U 0 /D /size /vn /vd 0101 /N /Q /M 0 /vm'] = unbitQuaternop VRSHL none u size vd vm vn
 
 ### VRSHR
 ###  - Vector Rounding Shift Right
-val / ['1111 001 /U 1 /D /imm6 /vd 0010 1 /Q /M 1 /vm'] = unbitQuaternop VRSHR none u imm6 q d vd q m vm imm6
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 0010 0 /Q /M 1 /vm'] = unbitQuaternop VRSHR none u imm6 q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6 /vd 0010 1 /Q /M 1 /vm'] = unbitQuaternop VRSHR none u imm6 vd vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 0010 0 /Q /M 1 /vm'] = unbitQuaternop VRSHR none u imm6 vd vm imm6
 
 ### VRSRA
 ###  - Vector ROunding Shift Right and Accumulate
-val / ['1111 001 /U 1 /D /imm6 /vd 0011 1 /Q /M 1 /vm'] = unbitQuaternop VRSHR none u imm6 q d vd q m vm imm6
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 0011 0 /Q /M 1 /vm'] = unbitQuaternop VRSHR none u imm6 q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6 /vd 0011 1 /Q /M 1 /vm'] = unbitQuaternop VRSHR none u imm6 vd vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 0011 0 /Q /M 1 /vm'] = unbitQuaternop VRSHR none u imm6 vd vm imm6
 
 ### VRSHRN
 ###  - Vector Rounding Shift Right and Narrow
-val / ['1111 0010 1 /D /imm6-not000 /vd 1000 0 1 /M 1 /vm'] = quaternop VRSHRN none imm6 set0 d vd set1 m vm imm6
+val / ['1111 0010 1 /D /imm6-not000 /vd 1000 0 1 /M 1 /vm'] = quaternop VRSHRN none imm6 vdq0 vmq1 imm6
 
 ### VSHL
 ###  - Vector Shift Left immediate
-val / ['1111 0010 1 /D /imm6 /vd 0101 1 /Q /M 1 /vm'] = quaternop VSHLimm none imm6 q d vd q m vm imm6
-val / ['1111 0010 1 /D /imm6-not000 /vd 0101 0 /Q /M 1 /vm'] = quaternop VSHLimm none imm6 q d vd q m vm imm6
+val / ['1111 0010 1 /D /imm6 /vd 0101 1 /Q /M 1 /vm'] = quaternop VSHLimm none imm6 vd vm imm6
+val / ['1111 0010 1 /D /imm6-not000 /vd 0101 0 /Q /M 1 /vm'] = quaternop VSHLimm none imm6 vd vm imm6
 ###  - Vector Shift Left register
-val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 0 /vm'] = unbitQuaternop VSHLreg none u size q d vd q m vm q n vn
+val / ['1111 001 /U 0 /D /size /vn /vd 0100 /N /Q /M 0 /vm'] = unbitQuaternop VSHLreg none u size vd vm vn
 
 ### VSHLL
 ###  - Vector Shift Left Long (Encoding A1)
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 1010 00 /M 1 /vm'] = unbitQuaternop VSHLL none u imm6 set0 d vd set1 m vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000-vshll /vd 1010 00 /M 1 /vm'] = unbitQuaternop VSHLL none u imm6 vdq0 vmq1 imm6
 ###  - Vector Shift Left Long (Encoding A2)
-val / ['1111 0011 1 /D 11 /size 10 /vd 0011 00 /M 0 /vm'] = unbitQuaternop VSHLL none set1 size set0 d vd set0 m vm size
+val / ['1111 0011 1 /D 11 /size 10 /vd 0011 00 /M 0 /vm'] = unbitQuaternop VSHLL none set1 size vdq0 vmq0 size
 
 ### VSHR
 ###  - Vector Shift Right
-val / ['1111 001 /U 1 /D /imm6 /vd 0000 1 /Q /M 1 /vm'] = unbitQuaternop VSHR none u imm6 q d vd q m vm imm6
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 0000 0 /Q /M 1 /vm'] = unbitQuaternop VSHR none u imm6 q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6 /vd 0000 1 /Q /M 1 /vm'] = unbitQuaternop VSHR none u imm6 vd vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 0000 0 /Q /M 1 /vm'] = unbitQuaternop VSHR none u imm6 vd vm imm6
 
 ### VSHRN
-val / ['1111 0010 1 /D /imm6-not000 /vd 1000 00 /M 1 /vm'] = quaternop VSHRN none imm6 set0 d vd set1 m vm imm6 
+val / ['1111 0010 1 /D /imm6-not000 /vd 1000 00 /M 1 /vm'] = quaternop VSHRN none imm6 vdq0 vmq1 imm6 
 
 ### VSLI
-val / ['1111 0011 1 /D /imm6 /vd 0101 1 /Q /M 1 /vm'] = quaternop VSLI none imm6 q d vd q m vm imm6
-val / ['1111 0011 1 /D /imm6-not000 /vd 0101 0 /Q /M 1 /vm'] = quaternop VSLI none imm6 q d vd q m vm imm6
+val / ['1111 0011 1 /D /imm6 /vd 0101 1 /Q /M 1 /vm'] = quaternop VSLI none imm6 vd vm imm6
+val / ['1111 0011 1 /D /imm6-not000 /vd 0101 0 /Q /M 1 /vm'] = quaternop VSLI none imm6 vd vm imm6
 
 ### VSRA
-val / ['1111 001 /U 1 /D /imm6 /vd 0001 1 /Q /M 1 /vm'] = unbitQuaternop VSRA none u imm6 q d vd q m vm imm6
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 0001 0 /Q /M 1 /vm'] = unbitQuaternop VSRA none u imm6 q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6 /vd 0001 1 /Q /M 1 /vm'] = unbitQuaternop VSRA none u imm6 vd vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 0001 0 /Q /M 1 /vm'] = unbitQuaternop VSRA none u imm6 vd vm imm6
 
 ### VSRI
-val / ['1111 0011 1 /D /imm6 /vd 0100 1 /Q /M 1 /vm'] = quaternop VSRI none imm6 q d vd q m vm imm6
-val / ['1111 0011 1 /D /imm6-not000 /vd 0100 0 /Q /M 1 /vm'] = quaternop VSRI none imm6 q d vd q m vm imm6
+val / ['1111 0011 1 /D /imm6 /vd 0100 1 /Q /M 1 /vm'] = quaternop VSRI none imm6 vd vm imm6
+val / ['1111 0011 1 /D /imm6-not000 /vd 0100 0 /Q /M 1 /vm'] = quaternop VSRI none imm6 vd vm imm6
 
 # --- Advanced SIMD multiply instructions ------------------------------
 
 ### VMLA
 ###  - Vector Multiply Accumulate integer
-val / ['1111 001 0 0 /D /size /vn /vd 1001 /N /Q /M 0 /vm'] = quaternop VMLAiasimd none size q d vd q n vn q m vm
+val / ['1111 001 0 0 /D /size /vn /vd 1001 /N /Q /M 0 /vm'] = quaternop VMLAiasimd none size vd vn vm
 ###  - Vector Multiply Accumulate floating-point
-val / ['1111 0010 0 /D 0 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = unbitTernop VMLAfpasimd none sz q d vd q n vn q m vm
+val / ['1111 0010 0 /D 0 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = unbitTernop VMLAfpasimd none sz vd vn vm
 ###  - Vector Multiply Accumulate by scalar
-val / ['1111 001 /Q 1 /D /size /vn /vd 0 0 0 /F /N 1 /M 0 /vm'] = unbitQuaternop VMLAsasimd none f size q d vd q n vn q m vm
+val / ['1111 001 /Q 1 /D /size /vn /vd 0 0 0 /F /N 1 /M 0 /vm'] = unbitQuaternop VMLAsasimd none f size vd vn vm
 
 ### VMLAL
 ###  - Vector Multiply Accumulate Long integer
-val / ['1111 001 /U 1 /D /size /vn /vd 10 0 0 /N 0 /M 0 /vm'] = unbitQuaternop VMLAL none u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 10 0 0 /N 0 /M 0 /vm'] = unbitQuaternop VMLAL none u size vdq1 vnq0 vmq0
 ###  - Vector Multiply Accumulate Long by scalar
-val / ['1111 001 /U 1 /D /size /vn /vd 0 0 10 /N 1 /M 0 /vm'] = unbitQuaternop VMLAL none u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 0 0 10 /N 1 /M 0 /vm'] = unbitQuaternop VMLAL none u size vdq1 vnq0 vmq0
 
 ### VMLS
 ###  - Vector Multiply Subtract integer
-val / ['1111 001 1 0 /D /size /vn /vd 1001 /N /Q /M 0 /vm'] = quaternop VMLSiasimd none size q d vd q n vn q m vm
+val / ['1111 001 1 0 /D /size /vn /vd 1001 /N /Q /M 0 /vm'] = quaternop VMLSiasimd none size vd vn vm
 ###  - Vector Multiply Subtract floating-point
-val / ['1111 0010 0 /D 1 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = unbitTernop VMLSfpasimd none sz q d vd q n vn q m vm
+val / ['1111 0010 0 /D 1 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = unbitTernop VMLSfpasimd none sz vd vn vm
 ###  - Vector Multiply Subtract by scalar
-val / ['1111 001 /Q 1 /D /size /vn /vd 0 1 0 /F /N 1 /M 0 /vm'] = unbitQuaternop VMLSsasimd none f size q d vd q n vn q m vm
+val / ['1111 001 /Q 1 /D /size /vn /vd 0 1 0 /F /N 1 /M 0 /vm'] = unbitQuaternop VMLSsasimd none f size vd vn vm
 
 ### VMLSL
 ###  - Vector Multiply Subtract Long integer
-val / ['1111 001 /U 1 /D /size /vn /vd 10 1 0 /N 0 /M 0 /vm'] = unbitQuaternop VMLSL none u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 10 1 0 /N 0 /M 0 /vm'] = unbitQuaternop VMLSL none u size vdq1 vnq0 vmq0
 ###  - Vector Multiply Subtract Long by scalar
-val / ['1111 001 /U 1 /D /size /vn /vd 0 1 10 /N 1 /M 0 /vm'] = unbitQuaternop VMLSL none u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 0 1 10 /N 1 /M 0 /vm'] = unbitQuaternop VMLSL none u size vdq1 vnq0 vmq0
 
 ### VMUL
 ###  - Vector Multiply integer and polynomial
-val / ['1111 001 1 0 /D 00 /vn /vd 1001 /N /Q /M 1 /vm'] = unbitQuaternop VMULipasimd none set1 set00 q d vd q n vn q m vm
-val / ['1111 001 0 0 /D /size /vn /vd 1001 /N /Q /M 1 /vm'] = unbitQuaternop VMULipasimd none set0 size q d vd q n vn q m vm
+val / ['1111 001 1 0 /D 00 /vn /vd 1001 /N /Q /M 1 /vm'] = unbitQuaternop VMULipasimd none set1 set00 vd vn vm
+val / ['1111 001 0 0 /D /size /vn /vd 1001 /N /Q /M 1 /vm'] = unbitQuaternop VMULipasimd none set0 size vd vn vm
 ###  - Vector Multiply floating-point
-val / ['1111 0011 0 /D 0 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = unbitTernop VMULfpasimd none sz q d vd q n vn q m vm
+val / ['1111 0011 0 /D 0 /sz /vn /vd 1101 /N /Q /M 1 /vm'] = unbitTernop VMULfpasimd none sz vd vn vm
 ###  - Vector Multiply by scalar
-val / ['1111 001 /Q 1 /D /size /vn /vd 100 /F /N 1 /M 0 /vm'] = unbitQuaternop VMULsasimd none f size q d vd q n vn q m vm
+val / ['1111 001 /Q 1 /D /size /vn /vd 100 /F /N 1 /M 0 /vm'] = unbitQuaternop VMULsasimd none f size vd vn vm
 
 ### VMULL
 ###  - Vector Multiply Long integer and polynomial
-val / ['1111 001 /U 1 /D /size /vn /vd 11 0 0 /N 0 /M 0 /vm'] = binbitQuaternop VMULLipasimd none set0 u size set1 d vd set0 n vn set0 m vm
-val / ['1111 001 0 1 /D 00 /vn /vd 11 1 0 /N 0 /M 0 /vm'] = binbitQuaternop VMULLipasimd none set1 set0 set00 set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 11 0 0 /N 0 /M 0 /vm'] = binbitQuaternop VMULLipasimd none set0 u size vdq1 vnq0 vmq0
+val / ['1111 001 0 1 /D 00 /vn /vd 11 1 0 /N 0 /M 0 /vm'] = binbitQuaternop VMULLipasimd none set1 set0 set00 vdq1 vnq0 vmq0
 ###  - Vector Multiply Long by scalar
-val / ['1111 001 /U 1 /D /size /vn /vd 1010 /N 1 /M 0 /vm'] = unbitQuaternop VMULLsasimd none u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 1010 /N 1 /M 0 /vm'] = unbitQuaternop VMULLsasimd none u size vdq1 vnq0 vmq0
 
 ### VFMA
 ###  - Vector Fused Multiply Accumulate
-val / ['1111 00100 /D 0 /sz /vn /vd 1100 /N /Q /M 1 /vm'] = unbitTernop VFMA none sz q d vd q n vn q m vm
+val / ['1111 00100 /D 0 /sz /vn /vd 1100 /N /Q /M 1 /vm'] = unbitTernop VFMA none sz vd vn vm
 
 ### VFMS
 ###  - Vector Fused Multiply Subtract
-val / ['1111 00100 /D 1 /sz /vn /vd 1100 /N /Q /M 1 /vm'] = unbitTernop VFMS none sz q d vd q n vn q m vm
+val / ['1111 00100 /D 1 /sz /vn /vd 1100 /N /Q /M 1 /vm'] = unbitTernop VFMS none sz vd vn vm
 
 ### VQDMLAL
 ###  - Vector Saturating Doubling Multiply Accumulate Long (Encoding A1)
-val / ['1111 0010 1 /D /size /vn /vd 10 0 1 /N 0 /M 0 /vm'] = quaternop VQDMLAL none size set1 d vd set0 n vn set0 m vm
+val / ['1111 0010 1 /D /size /vn /vd 10 0 1 /N 0 /M 0 /vm'] = quaternop VQDMLAL none size vdq1 vnq0 vmq0
 ###  - Vector Saturating Doubling Multiply Accumulate Long (Encoding A2)
-val / ['1111 0010 1 /D /size /vn /vd 0 0 11 /N 1 /M 0 /vm'] = quaternop VQDMLAL none size set1 d vd set0 n vn set0 m vm
+val / ['1111 0010 1 /D /size /vn /vd 0 0 11 /N 1 /M 0 /vm'] = quaternop VQDMLAL none size vdq1 vnq0 vmq0
 
 ### VQDMLSL
 ###  - Vector Saturating Doubling Multiply Subtract Long (Encoding A1)
-val / ['1111 0010 1 /D /size /vn /vd 10 1 1 /N 0 /M 0 /vm'] = quaternop VQDMLSL none size set1 d vd set0 n vn set0 m vm
+val / ['1111 0010 1 /D /size /vn /vd 10 1 1 /N 0 /M 0 /vm'] = quaternop VQDMLSL none size vdq1 vnq0 vmq0
 ###  - Vector Saturating Doubling Multiply Subtract Long (Encoding A2)
-val / ['1111 0010 1 /D /size /vn /vd 0 1 11 /N 1 /M 0 /vm'] = quaternop VQDMLSL none size set1 d vd set0 n vn set0 m vm
+val / ['1111 0010 1 /D /size /vn /vd 0 1 11 /N 1 /M 0 /vm'] = quaternop VQDMLSL none size vdq1 vnq0 vmq0
 
 ### VQDMULH
 ###  - Vector Saturating Doubling Multiply Returning High Half (Encoding A1)
-val / ['1111 0010 0 /D /size /vn /vd 1011 /N /Q /M 0 /vm'] = quaternop VQDMULH none size q d vd q n vn q m vm
+val / ['1111 0010 0 /D /size /vn /vd 1011 /N /Q /M 0 /vm'] = quaternop VQDMULH none size vd vn vm
 ###  - Vector Saturating Doubling Multiply Returning High Half (Encoding A2)
-val / ['1111 001 /Q 1 /D /size /vn /vd 1100 /N 1 /M 0 /vm'] = quaternop VQDMULH none size q d vd q n vn q m vm
+val / ['1111 001 /Q 1 /D /size /vn /vd 1100 /N 1 /M 0 /vm'] = quaternop VQDMULH none size vd vn vm
 
 ### VQRDMULH
 ###  - Vector Saturating Rounding Doubling Multiply Returning High Half (Encoding A1)
-val / ['1111 0011 0 /D /size /vn /vd 1011 /N /Q /M 0 /vm'] = quaternop VQRDMULH none size q d vd q n vn q m vm
+val / ['1111 0011 0 /D /size /vn /vd 1011 /N /Q /M 0 /vm'] = quaternop VQRDMULH none size vd vn vm
 ###  - Vector Saturating Rounding Doubling Multiply Returning High Half (Encoding A2)
-val / ['1111 001 /Q 1 /D /size /vn /vd 1101 /N 1 /M 0 /vm'] = quaternop VQRDMULH none size q d vd q n vn q m vm
+val / ['1111 001 /Q 1 /D /size /vn /vd 1101 /N 1 /M 0 /vm'] = quaternop VQRDMULH none size vd vn vm
 
 ### VQDMULL
 ###  - Vector Saturating Doubling Multiply Long (Encoding A1)
-val / ['1111 0010 1 /D /size /vn /vd 1101 /N 0 /M 0 /vm'] = quaternop VQDMULL none size set1 d vd set0 n vn set0 m vm
+val / ['1111 0010 1 /D /size /vn /vd 1101 /N 0 /M 0 /vm'] = quaternop VQDMULL none size vdq1 vnq0 vmq0
 ###  - Vector Saturating Doubling Multiply Long (Encoding A2)
-val / ['1111 0010 1 /D /size /vn /vd 1011 /N 1 /M 0 /vm'] = quaternop VQDMULL none size set1 d vd set0 n vn set0 m vm
+val / ['1111 0010 1 /D /size /vn /vd 1011 /N 1 /M 0 /vm'] = quaternop VQDMULL none size vdq1 vnq0 vmq0
 
 # --- Miscellanous Advanced SIMD data-processing instructions ----------
 
 ### VABA
 ###  - Vector Absolute Difference and Accumulate
-val / ['1111 001 /U 0 /D /size /vn /vd 0111 /N /Q /M 1 /vm'] = unbitQuaternop VABA none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0111 /N /Q /M 1 /vm'] = unbitQuaternop VABA none u size vd vn vm
 
 ### VABAL
 ###  - Vector Absolute Difference and Accumulate Long
-val / ['1111 001 /U 1 /D /size /vn /vd 0101 /N 0 /M 0 /vm'] = unbitQuaternop VABAL none u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 0101 /N 0 /M 0 /vm'] = unbitQuaternop VABAL none u size vdq1 vnq0 vmq0
 
 ### VABD
 ###  - Vector Absolute Difference integer
-val / ['1111 001 /U 0 /D /size /vn /vd 0111 /N /Q /M 0 /vm'] = unbitQuaternop VABDi none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0111 /N /Q /M 0 /vm'] = unbitQuaternop VABDi none u size vd vn vm
 ###  - Vector Absolute Difference floating-point
-val / ['1111 0011 0 /D 1 /sz /vn /vd 1101 /N /Q /M 0 /vm'] = unbitTernop VABDfp none sz q d vd q n vn q m vm
+val / ['1111 0011 0 /D 1 /sz /vn /vd 1101 /N /Q /M 0 /vm'] = unbitTernop VABDfp none sz vd vn vm
 
 ### VABDL
 ###  - Vector Absolute Difference Long
-val / ['1111 001 /U 1 /D /size /vn /vd 0111 /N 0 /M 0 /vm'] = unbitQuaternop VABDL none u size set1 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 1 /D /size /vn /vd 0111 /N 0 /M 0 /vm'] = unbitQuaternop VABDL none u size vdq1 vnq0 vmq0
 
 ### VABS
-val / ['1111 0011 1 /D 11 10 01 /vd 0 1 110 /Q /M 0 /vm'] = unbitTernop VABSasimd none set1 set10 q d vd q m vm
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 0 110 /Q /M 0 /vm'] = unbitTernop VABSasimd none set0 size q d vd q m vm
+val / ['1111 0011 1 /D 11 10 01 /vd 0 1 110 /Q /M 0 /vm'] = unbitTernop VABSasimd none set1 set10 vd vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 0 110 /Q /M 0 /vm'] = unbitTernop VABSasimd none set0 size vd vm
 
 ### VCVT
 ###  - Vector Convert between floating-point and integer
-val / ['1111 0011 1 /D 11 10 11 /vd 0 11 /size2 /Q /M 0 /vm'] = ternop VCVTfpiasimd none size q d vd q m vm
+val / ['1111 0011 1 /D 11 10 11 /vd 0 11 /size2 /Q /M 0 /vm'] = ternop VCVTfpiasimd none size vd vm
 ###  - Vector Convert between floating-point and fixed-point
-val / ['1111 001 /U 1 /D /imm6-not000 /vd 111 /op 0 /Q /M 1 /vm'] = binbitTernop VCVTfpfpasimd none u op q d vd q m vm imm6
+val / ['1111 001 /U 1 /D /imm6-not000 /vd 111 /op 0 /Q /M 1 /vm'] = binbitTernop VCVTfpfpasimd none u op vd vm imm6
 ###  - Vector Convert between half-precision and single-precision
-val / ['1111 0011 1 /D 11 /size 10 /vd 011 0 00 /M 0 /vm'] = ternop VCVThpspasimd none size set1 d vd set0 m vm
-val / ['1111 0011 1 /D 11 /size 10 /vd 011 1 00 /M 0 /vm'] = ternop VCVThpspasimd none size set0 d vd set1 m vm
+val / ['1111 0011 1 /D 11 /size 10 /vd 011 0 00 /M 0 /vm'] = ternop VCVThpspasimd none size vdq1 vmq0
+val / ['1111 0011 1 /D 11 /size 10 /vd 011 1 00 /M 0 /vm'] = ternop VCVThpspasimd none size vdq0 vmq1
 
 ### VCLS
 ###  - Vector Count Leading Sign Bits
-val / ['1111 0011 1 /D 11 /size 00 /vd 0 1000 /Q /M 0 /vm'] = ternop VCLS none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 0 1000 /Q /M 0 /vm'] = ternop VCLS none size vd vm
 
 ### VCLZ
 ###  - Vector Count Leading Zeros
-val / ['1111 0011 1 /D 11 /size 00 /vd 0 1001 /Q /M 0 /vm'] = ternop VCLZ none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 0 1001 /Q /M 0 /vm'] = ternop VCLZ none size vd vm
 
 ### VCNT
 ###  - Vector Count Number of Bits in Element
-val / ['1111 0011 1 /D 11 /size 00 /vd 0 1010 /Q /M 0 /vm'] = ternop VCNT none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 0 1010 /Q /M 0 /vm'] = ternop VCNT none size vd vm
 
 ### VDUP
 ###  - Vector Duplicate Scalar
-val / ['1111 0011 1 /D 11 /imm4 /vd 1100 0 /Q /M 0 /vm'] = ternop VDUP2 none imm4 q d vd q m vm
+val / ['1111 0011 1 /D 11 /imm4 /vd 1100 0 /Q /M 0 /vm'] = ternop VDUP2 none imm4 vd vm
 
 ### VEXT
 ###  - Vector Extract
-val / ['1111 0010 1 /D 11 /vn /vd /imm4 /N /Q /M 0 /vm'] = quaternop VEXT none q d vd q n vn q m vm imm4
+val / ['1111 0010 1 /D 11 /vn /vd /imm4 /N /Q /M 0 /vm'] = quaternop VEXT none vd vn vm imm4
 
 ### VMOVN
 ###  - Vector Move and Narrow
-val / ['1111 0011 1 /D 11 /size 10 /vd 0 0100 0 /M 0 /vm'] = ternop VMOVN none size set0 d vd set0 m vm
+val / ['1111 0011 1 /D 11 /size 10 /vd 0 0100 0 /M 0 /vm'] = ternop VMOVN none size vdq0 vmq0
 
 ### VMOVL
 ###  - Vector Move Long
-val / ['1111 001 /U 1 /D /imm3_124 000 /vd 1010 0 0 /M 1 /vm'] = ternop VMOVL none imm3 set0 d vd set0 m vm
+val / ['1111 001 /U 1 /D /imm3_124 000 /vd 1010 0 0 /M 1 /vm'] = ternop VMOVL none imm3 vdq0 vmq0
 
 ### VMAX
 ###  - Vector Maximum integer
-val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 0 /vm'] = unbitQuaternop VMAXi none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 0 /vm'] = unbitQuaternop VMAXi none u size vd vn vm
 ###  - Vector Maximum floating-point
-val / ['1111 0010 0 /D 0 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = unbitTernop VMAXfp none sz q d vd q n vn q m vm
+val / ['1111 0010 0 /D 0 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = unbitTernop VMAXfp none sz vd vn vm
 
 ### VMIN
 ###  - Vector Minimum integer
-val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 1 /vm'] = unbitQuaternop VMINi none u size q d vd q n vn q m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 0110 /N /Q /M 1 /vm'] = unbitQuaternop VMINi none u size vd vn vm
 ###  - Vector Minimum floating-point
-val / ['1111 0010 0 /D 1 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = unbitTernop VMINfp none sz q d vd q n vn q m vm
+val / ['1111 0010 0 /D 1 /sz /vn /vd 1111 /N /Q /M 0 /vm'] = unbitTernop VMINfp none sz vd vn vm
 
 ### VNEG
 ###  - Vector Negate
-val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 111 /Q /M 0 /vm'] = unbitTernop VNEGasimd none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 01 /vd 0 /F 111 /Q /M 0 /vm'] = unbitTernop VNEGasimd none f size vd vm
 
 ### VPMAX
 ###  - Vector Pairwise Maximum integer
-val / ['1111 001 /U 0 /D /size /vn /vd 1010 /N 0 /M 0 /vm'] = unbitQuaternop VPMAXi none u size set0 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 1010 /N 0 /M 0 /vm'] = unbitQuaternop VPMAXi none u size vdq0 vnq0 vmq0
 ###  - Vector Pairwise Maximum floating-point
-val / ['1111 0011 0 /D 0 /sz /vn /vd 1111 /N 0 /M 0 /vm'] = unbitTernop VPMAXfp none sz set0 d vd set0 n vn set0 m vm
+val / ['1111 0011 0 /D 0 /sz /vn /vd 1111 /N 0 /M 0 /vm'] = unbitTernop VPMAXfp none sz vdq0 vnq0 vmq0
 
 ### VPMIN
 ###  - Vector Pairwise Minimum integer
-val / ['1111 001 /U 0 /D /size /vn /vd 1010 /N 0 /M 1 /vm'] = unbitQuaternop VPMINi none u size set0 d vd set0 n vn set0 m vm
+val / ['1111 001 /U 0 /D /size /vn /vd 1010 /N 0 /M 1 /vm'] = unbitQuaternop VPMINi none u size vdq0 vnq0 vmq0
 ###  - Vector Pairwise Minimum floating-point
-val / ['1111 0011 0 /D 1 /sz /vn /vd 1111 /N 0 /M 0 /vm'] = unbitTernop VPMINfp none sz set0 d vd set0 n vn set0 m vm
+val / ['1111 0011 0 /D 1 /sz /vn /vd 1111 /N 0 /M 0 /vm'] = unbitTernop VPMINfp none sz vdq0 vnq0 vmq0
 
 ### VRECPE
 ###  - Vector Reciprocal Estimate
-val / ['1111 0011 1 /D 11 /size 11 /vd 010 /F 0 /Q /M 0 /vm'] = unbitTernop VRECPE none f size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 11 /vd 010 /F 0 /Q /M 0 /vm'] = unbitTernop VRECPE none f size vd vm
 
 ### VRECPS
 ###  - Vector Reciprocal Step
-val / ['1111 0010 0 /D 0 /sz /vn /vd 1111 /N /Q /M 1 /vm'] = unbitTernop VRECPS none sz q d vd q n vn q m vm
+val / ['1111 0010 0 /D 0 /sz /vn /vd 1111 /N /Q /M 1 /vm'] = unbitTernop VRECPS none sz vd vn vm
 
 ### VRSQRTE
 ###  - Vector Reciprocal Square Root Estimate
-val / ['1111 0011 1 /D 11 /size 11 /vd 010 /F 1 /Q /M 0 /vm'] = unbitTernop VRSQRTE none f size q d vd q m vm 
+val / ['1111 0011 1 /D 11 /size 11 /vd 010 /F 1 /Q /M 0 /vm'] = unbitTernop VRSQRTE none f size vd vm 
 
 ### VRSQRTS
 ###  - Vector Reciprocal Square Root Step
-val / ['1111 0010 0 /D 1 /sz /vn /vd 1111 /N /Q /M 1 /vm'] = unbitTernop VRSQRTS none sz q d vd q n vn q m vm 
+val / ['1111 0010 0 /D 1 /sz /vn /vd 1111 /N /Q /M 1 /vm'] = unbitTernop VRSQRTS none sz vd vn vm 
 
 ### VREV16
 ###  - Vector Reverse in halfwords
-val / ['1111 0011 1 /D 11 /size 00 /vd 000 10 /Q /M 0 /vm'] = ternop VREV16 none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 000 10 /Q /M 0 /vm'] = ternop VREV16 none size vd vm
 
 ### VREV32
 ###  - Vector Reverse in words
-val / ['1111 0011 1 /D 11 /size 00 /vd 000 01 /Q /M 0 /vm'] = ternop VREV32 none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 000 01 /Q /M 0 /vm'] = ternop VREV32 none size vd vm
 
 ### VREV64
 ###  - Vector Reverse in doublewords
-val / ['1111 0011 1 /D 11 /size 00 /vd 000 00 /Q /M 0 /vm'] = ternop VREV64 none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 000 00 /Q /M 0 /vm'] = ternop VREV64 none size vd vm
 
 ### VQABS
 ###  - Vector Saturating Absolute
-val / ['1111 0011 1 /D 11 /size 00 /vd 0111 0 /Q /M 0 /vm'] = ternop VQABS none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 0111 0 /Q /M 0 /vm'] = ternop VQABS none size vd vm
 
 ### VQMOVN
 ###  - Vector Saturating Move and Narrow
-val / ['1111 0011 1 /D 11 /size 10 /vd 0010 1 /U /M 0 /vm'] = unbitTernop VQMOVN none u size set0 d vd set1 m vm
+val / ['1111 0011 1 /D 11 /size 10 /vd 0010 1 /U /M 0 /vm'] = unbitTernop VQMOVN none u size vdq0 vmq1
 
 ### VQMOVUN
 ###  - Vector Saturating Move Unsigned and Narrow
-val / ['1111 0011 1 /D 11 /size 10 /vd 0010 0 1 /M 0 /vm'] = ternop VQMOVUN none size set0 d vd set1 m vm
+val / ['1111 0011 1 /D 11 /size 10 /vd 0010 0 1 /M 0 /vm'] = ternop VQMOVUN none size vdq0 vmq1
 
 ### VQNEG
 ###  - Vector Saturating Negate
-val / ['1111 0011 1 /D 11 /size 00 /vd 0111 1 /Q /M 0 /vm'] = ternop VQNEG none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 00 /vd 0111 1 /Q /M 0 /vm'] = ternop VQNEG none size vd vm
 
 ### VSWP
 ###  - Vector Swap
-val / ['1111 0011 1 /D 11 /size 10 /vd 0 0000 /Q /M 0 /vm'] = ternop VSWP none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 10 /vd 0 0000 /Q /M 0 /vm'] = ternop VSWP none size vd vm
 
 ### VTBL
 ###  - Vector Table Lookup
-val / ['1111 0011 1 /D 11 /vn /vd 10 /len /N 0 /M 0 /vm'] = quaternop VTBL none set0 d vd len set0 n vn set0 m vm
+val / ['1111 0011 1 /D 11 /vn /vd 10 /len /N 0 /M 0 /vm'] = quaternop VTBL none vdq0 len vnq0 vmq0
 
 ### VTBX
 ###  - Vector Table Extension
-val / ['1111 0011 1 /D 11 /vn /vd 10 /len /N 1 /M 0 /vm'] = quaternop VTBX none set0 d vd len set0 n vn set0 m vm
+val / ['1111 0011 1 /D 11 /vn /vd 10 /len /N 1 /M 0 /vm'] = quaternop VTBX none vdq0 len vnq0 vmq0
 
 ### VTRN
 ###  - Vector Transpose
-val / ['1111 0011 1 /D 11 /size 10 /vd 0000 1 /Q /M 0 /vm'] = ternop VTRN none size q d vd q m vm 
+val / ['1111 0011 1 /D 11 /size 10 /vd 0000 1 /Q /M 0 /vm'] = ternop VTRN none size vd vm 
 
 ### VUZP
 ###  -  Vector Unzip
-val / ['1111 0011 1 /D 11 /size 10 /vd 0001 0 /Q /M 0 /vm'] = ternop VUZP none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 10 /vd 0001 0 /Q /M 0 /vm'] = ternop VUZP none size vd vm
 
 ### VZIP
 ###  - Vector Zip
-val / ['1111 0011 1 /D 11 /size 10 /vd 0001 1 /Q /M 0 /vm'] = ternop VZIP none size q d vd q m vm
+val / ['1111 0011 1 /D 11 /size 10 /vd 0001 1 /Q /M 0 /vm'] = ternop VZIP none size vd vm
 
 # --- Floating-point data-processing instructions ----------------------
 
 ### VABS
 ###  - Vector Absolute
-val / ['/cond 1110 1 /D 11 0000 /vd 101 0 11 /M 0 /vm'] = unbitBinop VABSfp cond set0 set1 d vd set1 m vm
-val / ['/cond 1110 1 /D 11 0000 /vd 101 1 11 /M 0 /vm'] = unbitBinop VABSfp cond set1 set0 d vd set0 m vm
+val / ['/cond 1110 1 /D 11 0000 /vd 101 0 11 /M 0 /vm'] = unbitBinop VABSfp cond set0 vdq1 vmq1
+val / ['/cond 1110 1 /D 11 0000 /vd 101 1 11 /M 0 /vm'] = unbitBinop VABSfp cond set1 vdq0 vmq0
 
 ### VADD
 ###  - Vector Add floating-point
-val / ['/cond 1110 0 /D 11 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VADDfpfp cond set0 set1 d vd set1 n vn set1 m vm
-val / ['/cond 1110 0 /D 11 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VADDfpfp cond set1 set0 d vd set0 n vn set0 m vm
+val / ['/cond 1110 0 /D 11 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VADDfpfp cond set0 vdq1 vnq1 vmq1
+val / ['/cond 1110 0 /D 11 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VADDfpfp cond set1 vdq0 vnq0 vmq0
 
 ### VCMP
 ###  - Vector Compare (Encoding A1)
-val / ['/cond 1110 1 /D 11 0100 /vd 101 0 0 1 /M 0 /vm'] = unbitBinop VCMP cond set0 set1 d vd set1 m vm
-val / ['/cond 1110 1 /D 11 0100 /vd 101 1 0 1 /M 0 /vm'] = unbitBinop VCMP cond set1 set0 d vd set0 m vm
+val / ['/cond 1110 1 /D 11 0100 /vd 101 0 0 1 /M 0 /vm'] = unbitBinop VCMP cond set0 vdq1 vmq1
+val / ['/cond 1110 1 /D 11 0100 /vd 101 1 0 1 /M 0 /vm'] = unbitBinop VCMP cond set1 vdq0 vmq0
 ###  - Vector Compare (Encoding A2)
-val / ['/cond 1110 1 /D 11 0101 /vd 101 0 0 1 0 0 0000'] = unbitBinop VCMP cond set0 set1 d vd set1 set0 set0000
-val / ['/cond 1110 1 /D 11 0101 /vd 101 1 0 1 0 0 0000'] = unbitBinop VCMP cond set1 set0 d vd set0 set0 set0000
+val / ['/cond 1110 1 /D 11 0101 /vd 101 0 0 1 0 0 0000'] = unbitBinop VCMP cond set0 vdq1 vm100000
+val / ['/cond 1110 1 /D 11 0101 /vd 101 1 0 1 0 0 0000'] = unbitBinop VCMP cond set1 vdq0 vm000000
 
 ### VCMPE
 ###  - Vector Compare Exception (Encoding A1)
-val / ['/cond 1110 1 /D 11 0100 /vd 101 0 1 1 /M 0 /vm'] = unbitBinop VCMPE cond set0 set1 d vd set1 m vm
-val / ['/cond 1110 1 /D 11 0100 /vd 101 1 1 1 /M 0 /vm'] = unbitBinop VCMPE cond set1 set0 d vd set0 m vm
+val / ['/cond 1110 1 /D 11 0100 /vd 101 0 1 1 /M 0 /vm'] = unbitBinop VCMPE cond set0 vdq1 vmq1
+val / ['/cond 1110 1 /D 11 0100 /vd 101 1 1 1 /M 0 /vm'] = unbitBinop VCMPE cond set1 vdq0 vmq0
 ###  - Vector Compare Exception (Encoding A2)
-val / ['/cond 1110 1 /D 11 0101 /vd 101 0 1 1 0 0 0000'] = unbitBinop VCMPE cond set0 set1 d vd set1 set0 set0000
-val / ['/cond 1110 1 /D 11 0101 /vd 101 1 1 1 0 0 0000'] = unbitBinop VCMPE cond set1 set0 d vd set0 set0 set0000
+val / ['/cond 1110 1 /D 11 0101 /vd 101 0 1 1 0 0 0000'] = unbitBinop VCMPE cond set0 vdq1 vm100000
+val / ['/cond 1110 1 /D 11 0101 /vd 101 1 1 1 0 0 0000'] = unbitBinop VCMPE cond set1 vdq0 vm000000
 
 ### VCVT
 ###  - Vector Convert between floating-point and integer
-val / ['/cond 1110 1 /D 11 1 000 /vd 101 0 /op 1 /M 0 /vm'] = binbitBinop VCVTfpifp cond op set0 set1 d vd set1 m vm
-val / ['/cond 1110 1 /D 11 1 000 /vd 101 1 /op 1 /M 0 /vm'] = binbitBinop VCVTfpifp cond op set1 set0 d vd set1 m vm
+val / ['/cond 1110 1 /D 11 1 000 /vd 101 0 /op 1 /M 0 /vm'] = binbitBinop VCVTfpifp cond op set0 vdq1 vmq1
+val / ['/cond 1110 1 /D 11 1 000 /vd 101 1 /op 1 /M 0 /vm'] = binbitBinop VCVTfpifp cond op set1 vdq0 vmq1
 ###  - Vector Convert between floating-point and fixed-point
-val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = quaternbitBinop VCVTfpfpfp cond op set0 u sz1 set1 d vd set1 d vd combine-imm5
-val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = quaternbitBinop VCVTfpfpfp cond op set1 u sz1 set0 d vd set0 d vd combine-imm5
+val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 0 /sz1 1 /i 0 /imm4'] = quaternbitTernop VCVTfpfpfp cond op set0 u sz1 vdq1 vdq1 combine-imm5
+val / ['/cond 1110 1 /D 11 1 /op 1 /U /vd 101 1 /sz1 1 /i 0 /imm4'] = quaternbitTernop VCVTfpfpfp cond op set1 u sz1 vdq0 vdq0 combine-imm5
 ###  - Vector Convert between double-precision and single-precision
-val / ['/cond 1110 1 /D 11 0 111 /vd 101 /sz1 11 /M 0 /vm'] = binop VCVTdpspfp cond q d vd q m vm
+val / ['/cond 1110 1 /D 11 0 111 /vd 101 /sz1 11 /M 0 /vm'] = binop VCVTdpspfp cond vd vm
 
 ### VCVTR
 ###  - Vector Convert Round between floating-point and integer
-val / ['/cond 1110 1 /D 11 1 /opc2-vcvtr /vd 101 0 /op 1 /M 0 /vm'] = unopUnbitBinop VCVTR cond opc23 set0 set1 d vd set1 m vm
-val / ['/cond 1110 1 /D 11 1 /opc2-vcvtr /vd 101 1 /op 1 /M 0 /vm'] = unopUnbitBinop VCVTR cond opc23 set1 set1 d vd set0 m vm
+val / ['/cond 1110 1 /D 11 1 /opc2-vcvtr /vd 101 0 /op 1 /M 0 /vm'] = unopUnbitBinop VCVTR cond opc23 set0 vdq1 vmq1
+val / ['/cond 1110 1 /D 11 1 /opc2-vcvtr /vd 101 1 /op 1 /M 0 /vm'] = unopUnbitBinop VCVTR cond opc23 set1 vdq1 vmq0
 
 ### VCVTB
 ###  - Vector Convert Bottom
-val / ['/cond 1110 1 /D 11 001 /op /vd 101 0 0 1 /M 0 /vm'] = unbitBinop VCVTB cond op set1 d vd set1 m vm
+val / ['/cond 1110 1 /D 11 001 /op /vd 101 0 0 1 /M 0 /vm'] = unbitBinop VCVTB cond op vdq1 vmq1
 
 ### VCVTT
 ###  - Vector Convert Top
-val / ['/cond 1110 1 /D 11 001 /op /vd 101 0 1 1 /M 0 /vm'] = unbitBinop VCVTT cond op set1 d vd set1 m vm
+val / ['/cond 1110 1 /D 11 001 /op /vd 101 0 1 1 /M 0 /vm'] = unbitBinop VCVTT cond op vdq1 vmq1
 
 ### VDIV
 ###  - Vector Divide
-val / ['/cond 1110 1 /D 00 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VDIV cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 1110 1 /D 00 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VDIV cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 1110 1 /D 00 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VDIV cond set1 vdq0 vnq0 vmq0
+val / ['/cond 1110 1 /D 00 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VDIV cond set0 vdq1 vnq1 vmq1
 
 ### VMLA
 ###  - Vector Multiply Accumulate floating-point
-val / ['/cond 11100 /D 00 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VMLAfpfp cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 11100 /D 00 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VMLAfpfp cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 11100 /D 00 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VMLAfpfp cond set1 vdq0 vnq0 vmq0
+val / ['/cond 11100 /D 00 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VMLAfpfp cond set0 vdq1 vnq1 vmq1
 
 ### VMLS
 ###  - Vector Multiply Subtract floating-point
-val / ['/cond 11100 /D 00 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VMLSfpfp cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 11100 /D 00 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VMLSfpfp cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 11100 /D 00 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VMLSfpfp cond set1 vdq0 vnq0 vmq0
+val / ['/cond 11100 /D 00 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VMLSfpfp cond set0 vdq1 vnq1 vmq1
 
 ### VMOV
 ###  - Vector Move immediate floating-point
-val / ['/cond 11101 /D 11 /imm4H /vd 101 0 0000 /imm4L'] = ternop VMOVimmfp none set1010 set1 d vd combine-imm8
-val / ['/cond 11101 /D 11 /imm4H /vd 101 1 0000 /imm4L'] = ternop VMOVimmfp none set1011 set0 d vd combine-imm8
+val / ['/cond 11101 /D 11 /imm4H /vd 101 0 0000 /imm4L'] = binop VMOVimmfp none vdq0 imm32-vfp
+val / ['/cond 11101 /D 11 /imm4H /vd 101 1 0000 /imm4L'] = binop VMOVimmfp none vdq1 imm64-vfp
 ###  - Vector Move register floating-point
-val / ['/cond 11101 /D 11 0000 /vd 101 0 01 /M 0 /vm'] = unbitBinop VMOVregfp none set0 set1 d vd set1 m vm
-val / ['/cond 11101 /D 11 0000 /vd 101 1 01 /M 0 /vm'] = unbitBinop VMOVregfp none set1 set0 d vd set0 m vm
+val / ['/cond 11101 /D 11 0000 /vd 101 /Q 01 /M 0 /vm'] = binop VMOVregfp none vd vm
 
 ### VFMA
 ###  - Vector Fused Multiply Accumulate
-val / ['/cond 11101 /D 10 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VFMA cond set0 set1 d vd set1 n vn set1 m vm
-val / ['/cond 11101 /D 10 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VFMA cond set1 set0 d vd set0 n vn set0 m vm
+val / ['/cond 11101 /D 10 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VFMA cond set0 vdq1 vnq1 vmq1
+val / ['/cond 11101 /D 10 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VFMA cond set1 vdq0 vnq0 vmq0
 
 ### VFMS
 ###  - Vector Fused Multiply Subtract
-val / ['/cond 11101 /D 10 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VFMS cond set0 set1 d vd set1 n vn set1 m vm
-val / ['/cond 11101 /D 10 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VFMS cond set1 set0 d vd set0 n vn set0 m vm
+val / ['/cond 11101 /D 10 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VFMS cond set0 vdq1 vnq1 vmq1
+val / ['/cond 11101 /D 10 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VFMS cond set1 vdq0 vnq0 vmq0
 
 ### VMUL
 ###  - Vector Multiply floating-point
-val / ['/cond 11100 /D 10 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VMULfpfp cond set0 set1 d vd set1 n vn set1 m vm
-val / ['/cond 11100 /D 10 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VMULfpfp cond set1 set0 d vd set0 n vn set0 m vm 
+val / ['/cond 11100 /D 10 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VMULfpfp cond set0 vdq1 vnq1 vmq1
+val / ['/cond 11100 /D 10 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VMULfpfp cond set1 vdq0 vnq0 vmq0 
 
 ### VNEG
 ###  - Vector Negate
-val / ['/cond 11101 /D 11 0001 /vd 101 0 01 /M 0 /vm'] = unbitBinop VNEGfp cond set0 set1 d vd set1 m vm
-val / ['/cond 11101 /D 11 0001 /vd 101 1 01 /M 0 /vm'] = unbitBinop VNEGfp cond set1 set0 d vd set0 m vm
+val / ['/cond 11101 /D 11 0001 /vd 101 0 01 /M 0 /vm'] = unbitBinop VNEGfp cond set0 vdq1 vmq1
+val / ['/cond 11101 /D 11 0001 /vd 101 1 01 /M 0 /vm'] = unbitBinop VNEGfp cond set1 vdq0 vmq0
 
 ### VNMLA
 ###  - Vector Multiply Negate Add Negation
-val / ['/cond 11100 /D 01 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VNMLA cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 11100 /D 01 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VNMLA cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 11100 /D 01 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VNMLA cond set1 vdq0 vnq0 vmq0
+val / ['/cond 11100 /D 01 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VNMLA cond set0 vdq1 vnq1 vmq1
 
 ### VNMLS
 ###  - Vector Multiply Add Negation
-val / ['/cond 11100 /D 01 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VNMLS cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 11100 /D 01 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VNMLS cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 11100 /D 01 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VNMLS cond set1 vdq0 vnq0 vmq0
+val / ['/cond 11100 /D 01 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VNMLS cond set0 vdq1 vnq1 vmq1
 
 ### VNMUL
 ###  - Vector Multiply Negate
-val / ['/cond 11100 /D 10 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VNMUL cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 11100 /D 10 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VNMUL cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 11100 /D 10 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VNMUL cond set1 vdq0 vnq0 vmq0
+val / ['/cond 11100 /D 10 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VNMUL cond set0 vdq1 vnq1 vmq1
 
 ### VFNMA
 ###  - Vector Fused Multiply Accumulate
-val / ['/cond 11101 /D 01 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VFNMA cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 11101 /D 01 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VFNMA cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 11101 /D 01 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VFNMA cond set1 vdq0 vnq0 vmq0
+val / ['/cond 11101 /D 01 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VFNMA cond set0 vdq1 vnq1 vmq1
 
 ### VFNMS
 ###  - Vector Fused Multiply Subtract
-val / ['/cond 11101 /D 01 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VFNMS cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 11101 /D 01 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VFNMS cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 11101 /D 01 /vn /vd 101 1 /N 0 /M 0 /vm'] = unbitTernop VFNMS cond set1 vdq0 vnq0 vmq0
+val / ['/cond 11101 /D 01 /vn /vd 101 0 /N 0 /M 0 /vm'] = unbitTernop VFNMS cond set0 vdq1 vnq1 vmq1
 
 ### VSQRT
 ###  - Vector Square Root
-val / ['/cond 11101 /D 11 0001 /vd 101 1 11 /M 0 /vm'] = unbitBinop VSQRT cond set1 set0 d vd set0 m vm
-val / ['/cond 11101 /D 11 0001 /vd 101 0 11 /M 0 /vm'] = unbitBinop VSQRT cond set0 set1 d vd set1 m vm
+val / ['/cond 11101 /D 11 0001 /vd 101 1 11 /M 0 /vm'] = unbitBinop VSQRT cond set1 vdq0 vmq0
+val / ['/cond 11101 /D 11 0001 /vd 101 0 11 /M 0 /vm'] = unbitBinop VSQRT cond set0 vdq1 vmq1
 
 ### VSUB (floating-point)
 ###  - Vector Subtract floating-point (Encoding A2)
-val / ['/cond 1110 0 /D 11 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VSUBfpfp cond set1 set0 d vd set0 n vn set0 m vm
-val / ['/cond 1110 0 /D 11 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VSUBfpfp cond set0 set1 d vd set1 n vn set1 m vm
+val / ['/cond 1110 0 /D 11 /vn /vd 101 1 /N 1 /M 0 /vm'] = unbitTernop VSUBfpfp cond set1 vdq0 vnq0 vmq0
+val / ['/cond 1110 0 /D 11 /vn /vd 101 0 /N 1 /M 0 /vm'] = unbitTernop VSUBfpfp cond set0 vdq1 vnq1 vmq1

@@ -266,7 +266,8 @@ GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/forward-subst/forward-subst/inline.ml \
 	$(srcdir)/specifications/rreil/forward-subst/forward-subst/substitute.ml \
 	$(srcdir)/specifications/rreil/forward-subst/forward-subst/substmap.ml \
-	$(srcdir)/specifications/rreil/forward-subst/forward-subst/simplify-expressions.ml
+	$(srcdir)/specifications/rreil/forward-subst/forward-subst/simplify-expressions.ml \
+	$(srcdir)/specifications/rreil/fusion/fusion.ml
 
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la

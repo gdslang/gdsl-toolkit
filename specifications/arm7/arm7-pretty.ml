@@ -26,12 +26,12 @@ end
 # The instruction types for pretty printing
 type instruction_class =
     NONE
-  | BR of unop    # branch/jump
-  | DP of dp      # standard data processing
-  | LSS of ls     # load/store single operands
-  | LSM of lsm    # load/store multiple operands
-  | ML of mul     # multiply
-  | MLL of mull   # mulitply long
+  | BR of unop             # branch/jump                   (redundant, might get removed)
+  | DP of unbitTernop      # standard data processing
+  | LSS of ternbitTernop   # load/store single operands
+  | LSM of unbitBinop      # load/store multiple operands
+  | ML of unbitQuaternop   # multiply
+  | MLL of unbitQuaternop  # mulitply long                 (redundant, might get removed)
   | NULLOP of nullop
   | UNOP of unop
   | BINOP of binop
@@ -130,37 +130,37 @@ val show/target label ip =
 
 # Show data-processing instructions
 val show/dp insn insn_type = case insn_type of
-    CMN i: show/cond insn.cond +++ "\\t" +++ show/op insn.rn +++ "," -++ show/op insn.opnd2
-  | CMP i: show/cond insn.cond +++ "\\t" +++ show/op insn.rn +++ "," -++ show/op insn.opnd2
-  | MOV i: show/s insn +++ show/cond insn.cond +++ "\\t" +++ show/op insn.rd +++ "," -++ show/op insn.opnd2
-  | MVN i: show/s insn +++ show/cond insn.cond +++ "\\t" +++ show/op insn.rd +++ "," -++ show/op insn.opnd2
-  | TEQ i: show/cond insn.cond +++ "\\t" +++ show/op insn.rn +++ "," -++ show/op insn.opnd2
-  | TST i: show/cond insn.cond +++ "\\t" +++ show/op insn.rn +++ "," -++ show/op insn.opnd2
-  | _: show/s insn +++ show/cond insn.cond +++ "\\t" +++ show/op insn.rd +++ "," -++ show/op insn.rn +++ "," -++ show/op insn.opnd2
+    CMN i: show/cond insn.cond +++ "\\t" +++ show/op insn.opnd1 +++ "," -++ show/op insn.opnd3
+  | CMP i: show/cond insn.cond +++ "\\t" +++ show/op insn.opnd1 +++ "," -++ show/op insn.opnd3
+  | MOV i: show/s insn +++ show/cond insn.cond +++ "\\t" +++ show/op insn.opnd2 +++ "," -++ show/op insn.opnd3
+  | MVN i: show/s insn +++ show/cond insn.cond +++ "\\t" +++ show/op insn.opnd2 +++ "," -++ show/op insn.opnd3
+  | TEQ i: show/cond insn.cond +++ "\\t" +++ show/op insn.opnd1 +++ "," -++ show/op insn.opnd3
+  | TST i: show/cond insn.cond +++ "\\t" +++ show/op insn.opnd1 +++ "," -++ show/op insn.opnd3
+  | _: show/s insn +++ show/cond insn.cond +++ "\\t" +++ show/op insn.opnd2 +++ "," -++ show/op insn.opnd1 +++ "," -++ show/op insn.opnd3
 end
 
-val show/s insn = if insn.setflags then "S" else ""
+val show/s insn = if insn.o then "S" else ""
 
 # Show load/store (single) instructions
-val show/lss insn = show/cond insn.cond +++ "\\t" +++ show/op insn.rt +++ ", [" +++ show/op insn.rn +++ "," -++ show/sign insn +++ show/op insn.offset +++ "]"
+val show/lss insn = show/cond insn.cond +++ "\\t" +++ show/op insn.opnd2 +++ ", [" +++ show/op insn.opnd1 +++ "," -++ show/sign insn +++ show/op insn.opnd3 +++ "]"
 
-val show/sign insn = if insn.u then "" else "-"
-val show/wback insn = if insn.w then "!" else ""
+val show/sign insn = if insn.o2 then "" else "-"
+val show/wback insn = if insn.o3 then "!" else ""
 
 # Show load/store (multiple) instructions
 val show/lsm insn insn_type = show/cond insn.cond +++ "\\t" +++ (
   case insn_type of
-      POP i: "{" +++ show/op insn.registers +++ "}"
-    | PUSH i: "{" +++ show/op insn.registers +++ "}"
-    | _: show/op insn.rn +++ ", {" +++ show/op insn.registers +++ "}"
+      POP i: "{" +++ show/op insn.opnd2 +++ "}"
+    | PUSH i: "{" +++ show/op insn.opnd2 +++ "}"
+    | _: show/op insn.opnd1 +++ ", {" +++ show/op insn.opnd2 +++ "}"
   end
 )
 
 # Show multiplication instructions
-val show/ml insn = show/s insn +++ show/cond insn.cond -++ show/op insn.rd +++ "," -++ show/op insn.rn +++ "," -++ show/op insn.rm +++ "," -++ show/op insn.ra
+val show/ml insn = show/s insn +++ show/cond insn.cond -++ show/op insn.opnd1 +++ "," -++ show/op insn.opnd2 +++ "," -++ show/op insn.opnd3 +++ "," -++ show/op insn.opnd4
 
 # Show long multiplication instructions
-val show/mll insn = show/s insn +++ show/cond insn.cond -++ show/op insn.rdlo +++ "," -++ show/op insn.rdhi +++ "," -++ show/op insn.rn +++ "," -++ show/op insn.rm
+val show/mll insn = show/s insn +++ show/cond insn.cond -++ show/op insn.opnd1 +++ "," -++ show/op insn.opnd2 +++ "," -++ show/op insn.opnd3 +++ "," -++ show/op insn.opnd4
 
 val show/cond cond = case cond of
     EQ: "EQ"
@@ -211,16 +211,22 @@ end
 
 val show/op/immediate imm = "#" +++ (case imm of
     IMMi i: show-int i
+  | IMM2 i: show-int (zx i)
+  | IMM3 i: show-int (zx i)
   | IMM4 i: show-int (zx i)
   | IMM5 i: show-int (zx i)
+  | IMM6 i: show-int (zx i)
   | IMM8 i: show-int (zx i)
   | IMM12 i: show-int (zx i)
   | IMM16 i: "0x" +++ show-hex (zx i)
   | IMM24 i: "0x" +++ show-hex (zx i)
+  | IMM32 i: "0x" +++ show-hex (zx i)
+  | IMM64 i: "0x" +++ show-hex (zx i)
   | MODIMM i: show-int (armexpandimm i) +++ "\\t; #" +++ show-int (armexpandimm i) +++ " = imm: " +++ show-int (zx i.byte) +++ ", rotation: " +++ show-int (zx i.rot)
   | _: "???"
 end)
 
+(*TODO: add vector case and according method*)
 val show/op op = case op of
     IMMEDIATE o: show/op/immediate o
   | REGISTER o: show/op/register o
@@ -238,4 +244,3 @@ val show/op/operandlist opndl =
         | _: ", "
       end) +++ show/op/operandlist l.tl
   end
-

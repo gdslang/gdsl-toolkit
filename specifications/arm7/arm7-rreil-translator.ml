@@ -51,8 +51,17 @@ val rvals-c sign x setcarry = let
   val from-imm sn immediate setcarry =
     case immediate of
         IMMi i: return (imm i)
+      | IMM2 i: return (from-vec sn i)
+      | IMM3 i: return (from-vec sn i)
+      | IMM4 i: return (from-vec sn i)
       | IMM5 i: return (from-vec sn i)
+      | IMM6 i: return (from-vec sn i)
+      | IMM8 i: return (from-vec sn i)
       | IMM12 i: return (from-vec sn i)
+      | IMM16 i: return (from-vec sn i)
+      | IMM24 i: return (from-vec sn i)
+      | IMM32 i: return (from-vec sn i)
+      | IMM64 i: return (from-vec sn i)
       | MODIMM i: do
           expanded <- return (armexpandimm-c i 0);
           if setcarry then
@@ -116,12 +125,9 @@ val semantics insn = let
       translator x
 in
   case insn.insn of
-      B x: conditional sem-b x
-    | BL x: conditional sem-bl x
-    | BLX x: conditional sem-blx x
-    | BX x: conditional sem-bx x
-    | ADC x: conditional sem-adc x
+      ADC x: conditional sem-adc x
     | ADD x: conditional sem-add x
+    | ADR x: conditional sem-adr x
     | AND x: conditional sem-and x
     | BIC x: conditional sem-bic x
     | CMN x: conditional sem-cmn x
@@ -139,17 +145,377 @@ in
     | MLA x: conditional sem-mla x
     | MLS x: conditional sem-mls x
     | MUL x: conditional sem-mul x
+    # | SMLABB x: conditional sem-smlabb x
+    # | SMLABT x: conditional sem-smlabt x
+    # | SMLATB x: conditional sem-smlatb x
+    # | SMLATT x: conditional sem-smlatt x
+    # | SMLAD x: conditional sem-smlad x
+    # | SMLADX x: conditional sem-smladx x
     | SMLAL x: conditional sem-smlal x
+    # | SMLALBB x: conditional sem-smlalbb x
+    # | SMLALBT x: conditional sem-smlalbt x
+    # | SMLALTB x: conditional sem-smlaltb x
+    # | SMLALTT x: conditional sem-smlaltt x
+    # | SMLALD x: conditional sem-smlald x
+    # | SMLALDX x: conditional sem-smlaldx x
+    # | SMLAWB x: conditional sem-smlawb x
+    # | SMLAWT x: conditional sem-smlawt x
+    # | SMLSD x: conditional sem-smlsd x
+    # | SMLSDX x: conditional sem-smlsdx x
+    # | SMLSLD x: conditional sem-smlsld x
+    # | SMLSLDX x: conditional sem-smlsldx x
+    # | SMMLA x: conditional sem-smmla x
+    # | SMMLAR x: conditional sem-smmlar x
+    # | SMMLS x: conditional sem-smmls x
+    # | SMMLSR x: conditional sem-smmlsr x
+    # | SMMUL x: conditional sem-smmul x
+    # | SMMULR x: conditional sem-smmulr x
+    # | SMUAD x: conditional sem-smuad x
+    # | SMUADX x: conditional sem-smuadx x
+    # | SMULBB x: conditional sem-smulbb x
+    # | SMULBT x: conditional sem-smulbt x
+    # | SMULTB x: conditional sem-smultb x
+    # | SMULTT x: conditional sem-smultt x
     | SMULL x: conditional sem-smull x
-    | LDM x: conditional sem-ldm x
+    # | SMULWB x: conditional sem-smulwb x
+    # | SMULWT x: conditional sem-smulwt x
+    # | SMUSD x: conditional sem-smusd x
+    # | SMUSDX x: conditional sem-smusdx x
+    # | UMAAL x: conditional sem-umaal x
+    # | UMLAL x: conditional sem-umlal x
+    # | UMULL x: conditional sem-umull x
+    # | SSAT x: conditional sem-ssat x
+    # | SSAT16 x: conditional sem-ssat16 x
+    # | USAT x: conditional sem-usat x
+    # | USAT16 x: conditional sem-usat16 x
+    # | QADD x: conditional sem-qadd x
+    # | QSUB x: conditional sem-qsub x
+    # | QDADD x: conditional sem-qdadd x
+    # | QDSUB x: conditional sem-qdsub  x
+    # | PKH x: conditional sem-pkh
+    # | SXTAB x: condtional sem-sxtab x
+    # | SXTAB16 x: conditional sem-sxtab16 x
+    # | SXTAH x: conditional sem-sxtah x
+    # | SXTB x: conditional sem-sxtb x
+    # | SXTB16 x: conditional sem-sxtb16 x
+    # | SXTH x: conditional sem-sxth x
+    # | UXTAB x: condtional sem-uxtab x
+    # | UXTAB16 x: conditional sem-uxtab16 x
+    # | UXTAH x: conditional sem-uxtah x
+    # | UXTB x: conditional sem-uxtb x
+    # | UXTB16 x: conditional sem-uxtb16 x
+    # | UXTH x: conditional sem-uxth x
+    # | SADD16 x: conditional sem-sadd16 x
+    # | QADD16 x: conditional sem-qadd16 x
+    # | SHADD16 x: conditional sem-shadd16 x
+    # | UADD16 x: conditional sem-uadd16 x
+    # | UQADD16 x: conditional sem-uqadd16 x
+    # | UHADD16 x: conditional sem-uhadd16 x
+    # | SASX x: conditional sem-sasx x
+    # | QASX x: conditional sem-qasx x
+    # | SHASX x: conditional sem-shasx x
+    # | UASX x: conditional sem-uasx x
+    # | UQASX x: conditional sem-uqasx x
+    # | UHASX x: conditional sem-uhasx x
+    # | SSAX x: conditional sem-ssax x
+    # | QSAX x: conditional sem-qsax x
+    # | SHSAX x: conditioal sem-shsax x
+    # | USAX x: conditional sem-usax x
+    # | UQSAX x: conditional sem-uqsax x
+    # | UHSAX x: conditional sem-uhsax x
+    # | SSUB16 x: conditional sem-ssub16 x
+    # | QSUB16 x: conditional sem-qsub16 x
+    # | SHSUB16 x: conditional sem-shsub16 x
+    # | USUB16 x: conditional sem-usub16 x
+    # | UQSUB16 x: conditional sem-uqsub16 x
+    # | UHSUB16 x: conditional sem-uhsub16 x
+    # | SADD8 x: conditional sem-sadd8 x
+    # | QADD8 x: conditional sem-qadd8 x
+    # | SHADD8 x: conditional sem-shadd8 x
+    # | UADD8 x: conditional sem-uadd8 x
+    # | UQADD8 x: conditional sem-uqadd8 x
+    # | UHADD8 x: conditional sem-uhadd8 x
+    # | SSUB8 x: conditional sem-ssub8 x
+    # | QSUB8 x: conditional sem-qsub8 x
+    # | SHSUB8 x: conditional sem-shsub8 x
+    # | USUB8 x: conditional sem-usub8 x
+    # | UQSUB8 x: conditional sem-uqsub8 x
+    # | UHSUB8 x: conditional sem-uhsub8 x
+    # | SDIV x: conditional sem-sdiv x
+    # | UDIV x: conditional sem-udiv x
+    # | BFC x: conditional sem-bfc x
+    # | BFI x: conditional sem-bfi x 
+    # | CLZ x: conditional sem-clz x
+    # | MOVT x: conditional sem-movt x
+    # | RBIT x: conditional sem-rbit x
+    # | REV x: conditional sem-rev x
+    # | REV16 x: conditional sem-rev16 x
+    # | REVSH x: conditional sem-revsh x
+    # | SBFX x: conditional sem-sbfx x
+    # | SEL x: conditional sem-sel x
+    # | UBFX x: conditional sem-ubfx x
+    # | USAD8 x: conditional sem-usad8 x
+    # | USADA8 x: conditional sem-usada8 x
+    # | MRS x: conditional sem-mrs x
+    # | MSRimm x: conditional sem-msrimm x
+    # | MSRreg x: conditional sem-msrreg x
+    # | CPS x: conditional sem-cps x
     | LDR x: conditional sem-ldr x
+    | LDRT x: conditional sem-ldrt x
     | LDRB x: conditional sem-ldrb x
-    | POP x: conditional sem-ldm x
-    | PUSH x: conditional sem-stm x
-    | STM x: conditional sem-stm x
+    | LDRBT x: conditional sem-ldrbt x
+    | LDRH x: conditional sem-ldrh x
+    | LDRHT x: conditional sem-ldrht x
+    | LDRSB x: conditional sem-ldrsb x
+    | LDRSBT x: conditional sem-ldrsbt x
+    | LDRSH x: conditional sem-ldrsh x
+    | LDRSHT x: conditional sem-ldrsht x
+    # | LDRD x: conditional sem-ldrd x
+    # | LDREX x: conditional sem-ldrex x
+    # | LDREXB x: conditional sem-ldrexb x
+    # | LDREXD x: conditional sem-ldrexd x
+    # | LDREXH x: conditional sem-ldrexh x
     | STR x: conditional sem-str x
+    | STRT x: conditional sem-strt x
     | STRB x: conditional sem-strb x
+    | STRBT x: conditional sem-strbt x
+    | STRH x: conditional sem-strh x
+    | STRHT x: conditional sem-strht x
+    # | STRD x: conditional sem-strd x
+    # | STREX x: conditional sem-strex x
+    # | STREXB x: conditional sem-strexb x
+    # | STREXD x: conditional sem-strexd x
+    | LDM x: conditional sem-ldm x
+    | LDMDA x: conditional sem-ldmda x
+    | LDMDB x: conditional sem-ldmdb x
+    | LDMIB x: conditional sem-ldmib x
+    | POP x: conditional sem-ldm x
+    | STM x: conditional sem-stm x
+    | STMDA x: conditional sem-stmda x
+    | STMDB x: conditional sem-stmdb x
+    | STMIB x: conditional sem-stmib x
+    | PUSH x: conditional sem-stm x
+    | B x: conditional sem-b x
+    | BL x: conditional sem-bl x
+    | BLX x: conditional sem-blx x
+    | BX x: conditional sem-bx x
+    # | BXJ x: conditional sem-bxj x
+    # | CLREX x: conditional sem-clrex x
+    # | DBG x: conditional sem-dbg x
+    # | DMB x: conditonal sem-dwb x
+    # | DSB x: conditional sem-dsb x
+    # | ISB x: conditional sem-isb x
+    # | NOP x: conditional sem-nop x
+    # | PLD x: conditional sem-pld x
+    # | PLDW x: conditional sem-pldw x
+    # | PLI x: conditional sem-pli x
+    # | SETEND x: conditional sem-setend x
+    # | SEV x: conditional sem-sev x
+    # | SWP x: conditional sem-swp x
+    # | SWPB x: conditonal sem-swpb x
+    # | WFE x: conditional sem-wfe x
+    # | WFI x: conditional sem-wfi x
+    # | YIELD x: conditional sem-yield x
     | SVC x: conditional sem-svc x
+    | BKPT x: conditional sem-bkpt x
+    # | SMC x: conditional sem-smc x
+    # | RFE x: conditional sem-rfe x
+    # | SUBS x: conditional sem-subs x
+    # | HVC x: conditional sem-hvc x
+    # | ERET x: conditional sem-eret x
+    # | LDMerur x: conditional sem-ldmerur x
+    # | SRS x: conditional sem-srs x
+    # | CDP x: conditional sem-cdp x
+    # | CDP2 x: conditional sem-cdp2 x
+    # | MCR x: conditional sem-mcr x
+    # | MCR2 x: conditional sem-mcr2 x
+    # | MCRR x: conditional sem-mcrr x
+    # | MCRR2 x: conditional sem-mcrr2 x
+    # | MRC x: conditional sem-mrc x
+    # | MRC2 x: conditional sem-mrc2 x
+    # | MRRC x: conditional sem-mrrc x
+    # | MRRC2 x: conditional sem-mrrc2 x
+    # | LDC x: conditional sem-ldc x
+    # | LDC2 x: conditional sem-ldc2 x
+    # | STC x: conditional sem-stc x
+    # | STC2 x: conditional sem-stc2 x
+    # | VLDMIA x: conditional sem-vldmia x
+    # | VLDMDB x: conditional sem-vldmdb x
+    # | VLDR x: conditional sem-vldr x
+    # | VSTMIA x: conditional sem-vstmia x
+    # | VSTMDB x: conditional sem-vstmdb x
+    # | VSTR x: conditional sem-vstr x
+    # | VLD1 x: conditional sem-vld1 x
+    # | VLD1a x: conditional sem-vld1a x
+    # | VLD2 x: conditional sem-vld2 x
+    # | VLD2a x: conditional sem-vld2a x
+    # | VLD3 x: conditional sem-vld3 x
+    # | VLD3a x: conditional sem-vld3a x
+    # | VLD4 x: conditonal sem-vld4 x
+    # | VLD4a x: conditional sem-vld4a x
+    # | VST1 x: conditional sem-vst1 x
+    # | VST2 x: conditional sem-vst2 x
+    # | VST3 x: conditional sem-vst3 x
+    # | VST4 x: conditional sem-vst4 x
+    # | VDUP x: consitional sem-vdup x
+    | VMOVacs x: conditional sem-vmovacs x
+    | VMOVsac x: conditional sem-vmovsac x
+    | VMOVacsp x: conditional sem-vmovacsp x
+    | VMOVspac x: conditional sem-vmovspac x
+    | VMOVacsp2 x: conditional sem-vmovacsp2 x
+    | VMOVspac2 x: conditional sem-vmovspac2 x
+    | VMOVacdwe x: conditional sem-vmovacdwe x
+    | VMOVdweac x: conditional sem-vmovdweac x
+    # | VMRS x: conditional sem-vmrs x
+    # | VMSR x: conditional sem-vmsr x
+    # | VADDiasimd x: conditional sem-vaddiasimd x
+    # | VADDfpasimd x: conditional sem-vaddfpasimd x
+    # | VADDHN x: conditional sem-vaddhn x
+    # | VADDL x: conditional sem-vaddl x
+    # | VADDW x: conditional sem-vaddw x
+    # | VHADD x: conditional sem-vhadd x
+    # | VHSUB x: conditional sem-vhsub x
+    # | VPADAL x: conditional sem-vpadal x
+    # | VPADDi x: conditional sem-vpaddi x
+    # | VPADDfp x: conditional sem-vpaddfp x
+    # | VPADDL x: conditional sem-vpaddl x
+    # | VRADDHN x: conditional sem-vraddhn x
+    # | VRHADD x: conditional sem-vrhadd x
+    # | VRSUBHN x: conditional sem-vrsubhn x
+    # | VQADD x: conditonal sem-vqadd x
+    # | VQSUB x: conditional sem-vqsub x
+    # | VSUBiasimd x: conditional sem-vsubiasimd x
+    # | VSUBfpasimd x: conditional sem-vsubfpasimd x
+    # | VSUBHN x: conditional sem-vsubhn x
+    # | VSUBL x: conditional sem-vsubl x
+    # | VSUBW x: conditional sem-vsubw x
+    # | VAND x: conditional sem-vand x
+    # | VBIC x: sem-vbic x
+    # | VBICundef x: sem-vbic-undef x
+    # | VEOR x: conditional sem-veor x
+    # | VBIF x: conditional sem-vbif x
+    # | VBIT x: conditional sem-vbit x
+    # | VBSL x: conditional sem-vbsl x
+    | VMOVimmasimd x: sem-vmovimmasimd x
+    | VMOVimmasimdundef x: sem-vmovimmasimd-undef x
+    | VMOVregasimd x: conditional sem-vmovregasimd x
+    # | VMVN x: sem-vmvn x
+    # | VMVNundef x: sem-vmvn-undef x
+    # | VORR x: sem-vorr x
+    # | VORRundef x: sem-vorr-undef x
+    # | VORN x: conditional sem-vorn x
+    # | VACGE x: conditional sem-vacge x
+    # | VACGT x: conditional sem-vacgt x
+    # | VCEQrega x: conditional sem-vceqrega x
+    # | VCEQregb x: conditional sem-vceqregb x
+    # | VCEQimm x: conditional sem-vceqimm x
+    # | VCGTrega x: conditional sem-vcgtrega x
+    # | VCGTregb x: conditional sem-vcgtregb x
+    # | VCGTimm x: conditional sem-vcgtimm x
+    # | VCLE x: conditional sem-vcle x
+    # | VCLT x: conditional sem-vclt x
+    # | VTST x: conditional sem-vtst x
+    # | VQRSHL x: conditional sem-vqrshl x
+    # | VQRSHRN x: conditional sem-vqshrn x
+    # | YQRSHRUN x: conditional sem-vqrshrun x
+    # | VRSHL x: conditional sem-vrshl x
+    # | VRSHR x: conditional sem-vrshr x
+    # | VRSRA x: conditional sem-vrsra x
+    # | VRSHRN x: conditional sem-vrshrn x
+    # | VSHLimm x: conditional sem-vshlimm x
+    # | VSHLreg x: conditional sem-vshlreg x
+    # | VSHLL x: conditional sem-vshll x
+    # | VSHR x: conditional sem-vshr x
+    # | VSHRN x: conditional sem-vshrn x
+    # | VSLI x: conditional sem-vsli x
+    # | VSRA x: conditional sem-vsra x
+    # | VSRI x: conditional sem-vsri x
+    # | VMLAiasimd x: conditional sem-vmlaiasimd x
+    # | VMLAfpasimd x: conditional sem-vmlafpasimd x
+    # | VMLAsasimd x: conditional sem-vmlasasimd x
+    # | VMLAL x: conditional sem-vmlal x
+    # | VMLSiasimd x: conditional sem-vmlsiasimd x
+    # | VMLSfpasimd x: conditional sem-vmlsfpasimd x
+    # | VMLSsasimd x: conditional sem-vmlssasimd x
+    # | VMLSL x: conditional sem-vmlsl x
+    # | VMULipasimd x: conditional sem-vmulipasimd x
+    # | VMULfpasimd x: conditional sem-vmulfpasimd x
+    # | VMULsasimd x: conditional sem-vmulsasimd x
+    # | VMULLipasimd x: conditional sem-vmullipasimd x
+    # | VMULLsasimd x: conditional sem-vmullsasimd x
+    # | VFMA x: conditional sem-vfma x
+    # | VFMS x: conditional sem-vfms x
+    # | VQDMLAL x: conditional sem-vqdmlal x
+    # | VQDMLSL x: conditional sem-vqmdlsl x
+    # | VQDMULH x: conditionla sem-vqdmulh x
+    # | VQRDMULH x: conditional sem-vqrdmulh x
+    # | VQDMULL x: conditional sem-vqdmull x
+    # | VABA x: conditional sem-vaba x
+    # | VABAL x: conditional sem-vabal x
+    # | VABDi x: conditional sem-vabdi x
+    # | VABDfp x: conditional sem-vabdfp x
+    # | VABDL x: conditional sem-vabdl x
+    # | VABSasimd x: conditional sem-vabsasimd x
+    # | VCVTfpiasimd x: conditional sem-vcvtfpiasimd x
+    # | VCVTfpfpasimd x: conditional sem-vcvtfpfpasimd x
+    # | VCVThpspasimd x: conditional sem-vcvthpspasimd x
+    # | VCLS x: conditional sem-vcls x 
+    # | VCLZ x: conditional sem-vclz x
+    # | VCNT x: conditional sem-vcnt x
+    # | VDUP2 x: conditional sem-vdup2 x
+    # | VEXT x: conditional sem-vext x
+    # | VMOVN x: conditional sem-vmovn x
+    # | VMOVL x: conditional sem-vmovl x
+    # | VMAXi x: conditional sem-vmaxi x
+    # | VMAXfp x: conditional sem-vmaxfp x
+    # | VMINi x: conditional sem-vmini x
+    # | VMINfp x: conditional sem-vminfp x
+    # | VNEGasimd x: conditional sem-vnegasimd x
+    # | VPMAXi x: conditional sem-vpmaxi x
+    # | VPMAXfp x: conditional sem-vpmaxfp x
+    # | VPMINi x: conditional sem-vpmini x
+    # | VPMINfp x: conditional sem-vpminfp x
+    # | VRECPE x: conditional sem-vrecpe x
+    # | VRECPS x: conditional sem-vrecps x
+    # | VRSQRTE x: conditional sem-vrsqrte x
+    # | VRSQRTS x: conditional sem-vrsqrts x
+    # | VREV16 x: conditional sem-vrev16 x
+    # | VREV32 x: conditional sem-vrev32 x
+    # | VREV64 x: conditional sem-vrev64 x
+    # | VQABS x: conditional sem-vqabs x
+    # | VQMOVN x: conditional sem-vqmovn x
+    # | VQMOVUN x: conditional sem-vqmovun x
+    # | VQNEG x: conditional sem-vqneg x
+    # | VSWP x: conditional sem-vswp x
+    # | VTBL x: conditional sem-vtbl x
+    # | VTBX x: conditional sem-vtbx x
+    # | VTRN x: conditional sem-vtrn x
+    # | VUZP x: conditional sem-vuzp x
+    # | VZIP x: conditional sem-vzip x
+    # | VABSfp x: conditional sem-vabsfp x
+    # | VADDfpfp x: conditional sem-vaddfpfp x
+    # | VCMP x: conditional sem-vcmp x
+    # | VCMPE x: conditional sem-vcmpe x
+    # | VCVTfpifp x: conditional sem-vvtfpifp x
+    # | VCVTfpfpfp x: conditional sem-vcvtfpfpfp x
+    # | VCVTdpspfp x: conditional sem-vcvtdpspfp x
+    # | VCVTR x: conditional sem-vcvtr x
+    # | VCVTB x: conditional sem-vcvtb x
+    # | VCVTT x: conditional sem-vcvtt x
+    # | VDIV x: conditional sem-vdiv x
+    # | VMLAfpfp x: conditional sem-vmlafpfp x
+    # | VMLSfpfp x: conditional sem-vmlsfpfp x
+    | VMOVimmfp x: conditional sem-vmovimmfp x
+    | VMOVregfp x: conditional sem-vmovregfp x
+    # | VMULfpfp x: conditional sem-vmulfpfp x
+    # | VNEGfp x: conditional sem-vnegfp x
+    # | VNMLA x: conditional sem-vnmla x
+    # | VNMLS x: conditional sem-vnmls x
+    # | VNMUL x: conditional sem-vnmul x
+    # | VFNMA x: conditional sem-vfnma x
+    # | VFNMS x: conditional sem-vfnms x
+    # | VSQRT x: conditional sem-vsqrt x
+    # | VSUBfpfp x: conditional sem-vsubfpfp x
     | _: sem-default insn.insn insn.ip
   end
 end
@@ -413,6 +779,318 @@ in
   store-operand opndlist target_addr 0
 end
 
+# --- vector helper functions / type definitions -----------------------
+
+### [A7.2.4]
+type ext-register-width =
+      Single
+    | Double
+    | Quad
+
+### [A7.3]
+val decode-ext-register size x = case x of
+    VECTOR v: case size of
+          Single : single-ext-register-of-int (zx (v.remainder^v.first))
+        | Double : double-ext-register-of-int (zx (v.first^v.remainder))
+        | Quad   : quad-ext-register-of-int (zx (v.first^v.remainder))
+    end
+end
+
+val single-ext-register-of-int number = case number of
+      0  : S0
+    | 1  : S1
+    | 2  : S2
+    | 3  : S3
+    | 4  : S4
+    | 5  : S5
+    | 6  : S6
+    | 7  : S7
+    | 8  : S8
+    | 9  : S9
+    | 10 : S10
+    | 11 : S11
+    | 12 : S12
+    | 13 : S13
+    | 14 : S14
+    | 15 : S15
+    | 16 : S16
+    | 17 : S17
+    | 18 : S18
+    | 19 : S19
+    | 20 : S20
+    | 21 : S21
+    | 22 : S22
+    | 23 : S23
+    | 24 : S24
+    | 25 : S25
+    | 26 : S26
+    | 27 : S27
+    | 28 : S28
+    | 29 : S29
+    | 30 : S30
+    | 31 : S31
+end
+
+val double-ext-register-of-int number = case number of
+      0  : D0
+    | 1  : D1
+    | 2  : D2
+    | 3  : D3
+    | 4  : D4
+    | 5  : D5
+    | 6  : D6
+    | 7  : D7
+    | 8  : D8
+    | 9  : D9
+    | 10 : D10
+    | 11 : D11
+    | 12 : D12
+    | 13 : D13
+    | 14 : D14
+    | 15 : D15
+    | 16 : D16
+    | 17 : D17
+    | 18 : D18
+    | 19 : D19
+    | 20 : D20
+    | 21 : D21
+    | 22 : D22
+    | 23 : D23
+    | 24 : D24
+    | 25 : D25
+    | 26 : D26
+    | 27 : D27
+    | 28 : D28
+    | 29 : D29
+    | 30 : D30
+    | 31 : D31
+end
+
+val quad-ext-register-of-int number = case number of
+      0  : Q0
+    | 1  : Q0
+    | 2  : Q1
+    | 3  : Q1
+    | 4  : Q2
+    | 5  : Q2
+    | 6  : Q3
+    | 7  : Q3
+    | 8  : Q4
+    | 9  : Q4
+    | 10 : Q5
+    | 11 : Q5
+    | 12 : Q6
+    | 13 : Q6
+    | 14 : Q7
+    | 15 : Q7
+    | 16 : Q8
+    | 17 : Q8
+    | 18 : Q9
+    | 19 : Q9
+    | 20 : Q10
+    | 21 : Q10
+    | 22 : Q11
+    | 23 : Q11
+    | 24 : Q12
+    | 25 : Q12
+    | 26 : Q13
+    | 27 : Q13
+    | 28 : Q14
+    | 29 : Q14
+    | 30 : Q15
+    | 31 : Q15
+end
+
+val semantic-vector size x = semantic-ext-register-of (decode-ext-register size x)
+
+#lval and rval for vectors
+val lvval size x = return (semantic-vector size x)
+val rvval size x = return (var (semantic-vector size x))
+
+#lval and rval for successors of vectors
+val lvnext size x = case (decode-ext-register size x) of
+    Q0  : return (semantic-ext-register-of Q1)
+  | Q1  : return (semantic-ext-register-of Q2)
+  | Q2  : return (semantic-ext-register-of Q3)
+  | Q3  : return (semantic-ext-register-of Q4)
+  | Q4  : return (semantic-ext-register-of Q5)
+  | Q5  : return (semantic-ext-register-of Q6)
+  | Q6  : return (semantic-ext-register-of Q7)
+  | Q7  : return (semantic-ext-register-of Q8)
+  | Q8  : return (semantic-ext-register-of Q9)
+  | Q9  : return (semantic-ext-register-of Q10)
+  | Q10 : return (semantic-ext-register-of Q11)
+  | Q11 : return (semantic-ext-register-of Q12)
+  | Q12 : return (semantic-ext-register-of Q13)
+  | Q13 : return (semantic-ext-register-of Q14)
+  | Q14 : return (semantic-ext-register-of Q15)
+  | D0  : return (semantic-ext-register-of D1)
+  | D1  : return (semantic-ext-register-of D2)
+  | D2  : return (semantic-ext-register-of D3)
+  | D3  : return (semantic-ext-register-of D4)
+  | D4  : return (semantic-ext-register-of D5)
+  | D5  : return (semantic-ext-register-of D6)
+  | D6  : return (semantic-ext-register-of D7)
+  | D7  : return (semantic-ext-register-of D8)
+  | D8  : return (semantic-ext-register-of D9)
+  | D9  : return (semantic-ext-register-of D10)
+  | D10 : return (semantic-ext-register-of D11)
+  | D11 : return (semantic-ext-register-of D12)
+  | D12 : return (semantic-ext-register-of D13)
+  | D13 : return (semantic-ext-register-of D14)
+  | D14 : return (semantic-ext-register-of D15)
+  | D15 : return (semantic-ext-register-of D16)
+  | D16 : return (semantic-ext-register-of D17)
+  | D17 : return (semantic-ext-register-of D18)
+  | D18 : return (semantic-ext-register-of D19)
+  | D19 : return (semantic-ext-register-of D20)
+  | D20 : return (semantic-ext-register-of D21)
+  | D21 : return (semantic-ext-register-of D22)
+  | D22 : return (semantic-ext-register-of D23)
+  | D23 : return (semantic-ext-register-of D24)
+  | D24 : return (semantic-ext-register-of D25)
+  | D25 : return (semantic-ext-register-of D26)
+  | D26 : return (semantic-ext-register-of D27)
+  | D27 : return (semantic-ext-register-of D28)
+  | D28 : return (semantic-ext-register-of D29)
+  | D29 : return (semantic-ext-register-of D30)
+  | D30 : return (semantic-ext-register-of D31)
+  | S0  : return (semantic-ext-register-of S1)
+  | S1  : return (semantic-ext-register-of S2)
+  | S2  : return (semantic-ext-register-of S3)
+  | S3  : return (semantic-ext-register-of S4)
+  | S4  : return (semantic-ext-register-of S5)
+  | S5  : return (semantic-ext-register-of S6)
+  | S6  : return (semantic-ext-register-of S7)
+  | S7  : return (semantic-ext-register-of S8)
+  | S8  : return (semantic-ext-register-of S9)
+  | S9  : return (semantic-ext-register-of S10)
+  | S10 : return (semantic-ext-register-of S11)
+  | S11 : return (semantic-ext-register-of S12)
+  | S12 : return (semantic-ext-register-of S13)
+  | S13 : return (semantic-ext-register-of S14)
+  | S14 : return (semantic-ext-register-of S15)
+  | S15 : return (semantic-ext-register-of S16)
+  | S16 : return (semantic-ext-register-of S17)
+  | S17 : return (semantic-ext-register-of S18)
+  | S18 : return (semantic-ext-register-of S19)
+  | S19 : return (semantic-ext-register-of S20)
+  | S20 : return (semantic-ext-register-of S21)
+  | S21 : return (semantic-ext-register-of S22)
+  | S22 : return (semantic-ext-register-of S23)
+  | S23 : return (semantic-ext-register-of S24)
+  | S24 : return (semantic-ext-register-of S25)
+  | S25 : return (semantic-ext-register-of S26)
+  | S26 : return (semantic-ext-register-of S27)
+  | S27 : return (semantic-ext-register-of S28)
+  | S28 : return (semantic-ext-register-of S29)
+  | S29 : return (semantic-ext-register-of S30)
+  | S30 : return (semantic-ext-register-of S31)
+end
+
+val rvnext size x = case (decode-ext-register size x) of
+    Q0  : return (var (semantic-ext-register-of Q1))
+  | Q1  : return (var (semantic-ext-register-of Q2))
+  | Q2  : return (var (semantic-ext-register-of Q3))
+  | Q3  : return (var (semantic-ext-register-of Q4))
+  | Q4  : return (var (semantic-ext-register-of Q5))
+  | Q5  : return (var (semantic-ext-register-of Q6))
+  | Q6  : return (var (semantic-ext-register-of Q7))
+  | Q7  : return (var (semantic-ext-register-of Q8))
+  | Q8  : return (var (semantic-ext-register-of Q9))
+  | Q9  : return (var (semantic-ext-register-of Q10))
+  | Q10 : return (var (semantic-ext-register-of Q11))
+  | Q11 : return (var (semantic-ext-register-of Q12))
+  | Q12 : return (var (semantic-ext-register-of Q13))
+  | Q13 : return (var (semantic-ext-register-of Q14))
+  | Q14 : return (var (semantic-ext-register-of Q15))
+  | D0  : return (var (semantic-ext-register-of D1))
+  | D1  : return (var (semantic-ext-register-of D2))
+  | D2  : return (var (semantic-ext-register-of D3))
+  | D3  : return (var (semantic-ext-register-of D4))
+  | D4  : return (var (semantic-ext-register-of D5))
+  | D5  : return (var (semantic-ext-register-of D6))
+  | D6  : return (var (semantic-ext-register-of D7))
+  | D7  : return (var (semantic-ext-register-of D8))
+  | D8  : return (var (semantic-ext-register-of D9))
+  | D9  : return (var (semantic-ext-register-of D10))
+  | D10 : return (var (semantic-ext-register-of D11))
+  | D11 : return (var (semantic-ext-register-of D12))
+  | D12 : return (var (semantic-ext-register-of D13))
+  | D13 : return (var (semantic-ext-register-of D14))
+  | D14 : return (var (semantic-ext-register-of D15))
+  | D15 : return (var (semantic-ext-register-of D16))
+  | D16 : return (var (semantic-ext-register-of D17))
+  | D17 : return (var (semantic-ext-register-of D18))
+  | D18 : return (var (semantic-ext-register-of D19))
+  | D19 : return (var (semantic-ext-register-of D20))
+  | D20 : return (var (semantic-ext-register-of D21))
+  | D21 : return (var (semantic-ext-register-of D22))
+  | D22 : return (var (semantic-ext-register-of D23))
+  | D23 : return (var (semantic-ext-register-of D24))
+  | D24 : return (var (semantic-ext-register-of D25))
+  | D25 : return (var (semantic-ext-register-of D26))
+  | D26 : return (var (semantic-ext-register-of D27))
+  | D27 : return (var (semantic-ext-register-of D28))
+  | D28 : return (var (semantic-ext-register-of D29))
+  | D29 : return (var (semantic-ext-register-of D30))
+  | D30 : return (var (semantic-ext-register-of D31))
+  | S0  : return (var (semantic-ext-register-of S1))
+  | S1  : return (var (semantic-ext-register-of S2))
+  | S2  : return (var (semantic-ext-register-of S3))
+  | S3  : return (var (semantic-ext-register-of S4))
+  | S4  : return (var (semantic-ext-register-of S5))
+  | S5  : return (var (semantic-ext-register-of S6))
+  | S6  : return (var (semantic-ext-register-of S7))
+  | S7  : return (var (semantic-ext-register-of S8))
+  | S8  : return (var (semantic-ext-register-of S9))
+  | S9  : return (var (semantic-ext-register-of S10))
+  | S10 : return (var (semantic-ext-register-of S11))
+  | S11 : return (var (semantic-ext-register-of S12))
+  | S12 : return (var (semantic-ext-register-of S13))
+  | S13 : return (var (semantic-ext-register-of S14))
+  | S14 : return (var (semantic-ext-register-of S15))
+  | S15 : return (var (semantic-ext-register-of S16))
+  | S16 : return (var (semantic-ext-register-of S17))
+  | S17 : return (var (semantic-ext-register-of S18))
+  | S18 : return (var (semantic-ext-register-of S19))
+  | S19 : return (var (semantic-ext-register-of S20))
+  | S20 : return (var (semantic-ext-register-of S21))
+  | S21 : return (var (semantic-ext-register-of S22))
+  | S22 : return (var (semantic-ext-register-of S23))
+  | S23 : return (var (semantic-ext-register-of S24))
+  | S24 : return (var (semantic-ext-register-of S25))
+  | S25 : return (var (semantic-ext-register-of S26))
+  | S26 : return (var (semantic-ext-register-of S27))
+  | S27 : return (var (semantic-ext-register-of S28))
+  | S28 : return (var (semantic-ext-register-of S29))
+  | S29 : return (var (semantic-ext-register-of S30))
+  | S30 : return (var (semantic-ext-register-of S31))
+end
+
+# --- scalar helper functions / type definitions -----------------------
+
+type scalar-length =
+      Byte
+    | Halfword
+    | Word
+    | Doubleword
+
+val semantic-scalar esize index size x = let
+    val base = semantic-ext-register-of (decode-ext-register size x)
+in
+    case esize of
+          Byte       : {id=base.id, offset=(base.offset + 8 * index), size=8}
+        | Halfword   : {id=base.id, offset=(base.offset + 16 * index), size=16}
+        | Word       : {id=base.id, offset=(base.offset + 32 * index), size=32}
+        | Doubleword : {id=base.id, offset=(base.offset + 64 * index), size=64}
+    end
+end
+
+#lval and rval for scalars
+val lsval esize index size x = return (semantic-scalar esize index size x)
+val rsval esize index size x = return (var (semantic-scalar esize index size x))
+
 # ----------------------------------------------------------------------
 # Individual instruction translators
 # ----------------------------------------------------------------------
@@ -451,9 +1129,9 @@ val sem-bx x = do
 end
 
 val sem-adc x = do
-  rn <- rval x.rn;
-  rd <- lval x.rd;
-  opnd2 <- rval x.opnd2;
+  rn <- rval x.opnd1;
+  rd <- lval x.opnd2;
+  opnd2 <- rval x.opnd3;
 
   add 32 rd rn opnd2;
   add 32 rd (var rd) (var fCF);
@@ -461,39 +1139,55 @@ val sem-adc x = do
   if is-sem-pc? rd then do
     alu-write-pc rd
   end else
-    emit-add-adc-flags 32 rd rn opnd2 x.setflags
+    emit-add-adc-flags 32 rd rn opnd2 x.o
 end
 
 val sem-add x = do
-  rn <- rval x.rn;
-  rd <- lval x.rd;
-  opnd2 <- rval x.opnd2;
+  rn <- rval x.opnd1;
+  rd <- lval x.opnd2;
+  opnd2 <- rval x.opnd3;
 
   add 32 rd rn opnd2;
 
   if is-sem-pc? rd then do
     alu-write-pc rd
   end else
-    emit-add-adc-flags 32 rd rn opnd2 x.setflags
+    emit-add-adc-flags 32 rd rn opnd2 x.o
+end
+
+val sem-adr x = do
+    rn <- rval x.opnd1;
+    rd <- lval x.opnd2;
+    opnd2 <- rval x.opnd3;
+
+    if x.o then do
+        add 32 rd rn opnd2
+    end else
+        sub 32 rd rn opnd2;
+
+    if is-sem-pc? rd then do
+        alu-write-pc rd
+    end else
+        return void
 end
 
 val sem-and x = do
-  rn <- rval x.rn;
-  rd <- lval x.rd;
-  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  rn <- rval x.opnd1;
+  rd <- lval x.opnd2;
+  opnd2 <- rval-c x.opnd3 x.o; # update carry!
 
   andb 32 rd rn opnd2;
 
   if is-sem-pc? rd then do
     alu-write-pc rd
   end else
-    emit-flags-nz (var rd) x.setflags
+    emit-flags-nz (var rd) x.o
 end
 
 val sem-bic x = do
-  rd <- lval x.rd;
-  rn <- rval x.rn;
-  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  rd <- lval x.opnd2;
+  rn <- rval x.opnd1;
+  opnd2 <- rval-c x.opnd3 x.o; # update carry!
   not_opnd2 <- mktemp;
 
   xorb 32 not_opnd2 opnd2 (imm 0);
@@ -502,12 +1196,12 @@ val sem-bic x = do
   if is-sem-pc? rd then
     alu-write-pc rd
   else
-    emit-flags-nz (var rd) x.setflags
+    emit-flags-nz (var rd) x.o
 end
 
 val sem-cmn x = do
-  rn <- rval x.rn;
-  opnd2 <- rval x.opnd2;
+  rn <- rval x.opnd1;
+  opnd2 <- rval x.opnd3;
   cmn_result <- mktemp;
 
   add 32 cmn_result rn opnd2;
@@ -516,8 +1210,8 @@ val sem-cmn x = do
 end
 
 val sem-cmp x = do
-  rn <- rval x.rn;
-  opnd2 <- rval x.opnd2;
+  rn <- rval x.opnd1;
+  opnd2 <- rval x.opnd3;
   cmp_result <- mktemp;
 
   sub 32 cmp_result rn opnd2;
@@ -526,72 +1220,72 @@ val sem-cmp x = do
 end
 
 val sem-eor x = do
-  rd <- lval x.rd;
-  rn <- rval x.rn;
-  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  rd <- lval x.opnd2;
+  rn <- rval x.opnd1;
+  opnd2 <- rval-c x.opnd3 x.o; # update carry!
 
   xorb 32 rd rn opnd2;
 
   if is-sem-pc? rd then
     alu-write-pc rd
   else
-    emit-flags-nz (var rd) x.setflags
+    emit-flags-nz (var rd) x.o
 end
 
 val sem-mov x = do
-  rd <- lval x.rd;
-  opnd2 <- rval-c x.opnd2 x.setflags;
+  rd <- lval x.opnd2;
+  opnd2 <- rval-c x.opnd3 x.o;
 
   mov 32 rd opnd2;
 
   if is-sem-pc? rd then
     alu-write-pc rd
   else
-    emit-flags-nz (var rd) x.setflags
+    emit-flags-nz (var rd) x.o
 end
 
 val sem-mvn x = do
-  rd <- lval x.rd;
-  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  rd <- lval x.opnd2;
+  opnd2 <- rval-c x.opnd3 x.o; # update carry!
 
   xorb 32 rd opnd2 (imm 0); # NOT (opnd2)
 
   if is-sem-pc? rd then
     alu-write-pc rd
   else
-    emit-flags-nz (var rd) x.setflags
+    emit-flags-nz (var rd) x.o
 end
 
 val sem-orr x = do
-  rd <- lval x.rd;
-  rn <- rval x.rn;
-  opnd2 <- rval-c x.opnd2 x.setflags; # update carry!
+  rd <- lval x.opnd2;
+  rn <- rval x.opnd1;
+  opnd2 <- rval-c x.opnd3 x.o; # update carry!
 
   orb 32 rd rn opnd2;
 
   if is-sem-pc? rd then
     alu-write-pc rd
   else
-    emit-flags-nz (var rd) x.setflags
+    emit-flags-nz (var rd) x.o
 end
 
 val sem-rsb x = do
-  rd <- lval x.rd;
-  rn <- rval x.rn;
-  opnd2 <- rval x.opnd2;
+  rd <- lval x.opnd2;
+  rn <- rval x.opnd1;
+  opnd2 <- rval x.opnd3;
 
   sub 32 rd opnd2 rn;
 
   if is-sem-pc? rd then
     alu-write-pc rd
   else
-    emit-rsb-rsc-flags 32 rd opnd2 rn x.setflags
+    emit-rsb-rsc-flags 32 rd opnd2 rn x.o
 end
 
 val sem-rsc x = do
-  rd <- lval x.rd;
-  rn <- rval x.rn;
-  opnd2 <- rval x.opnd2;
+  rd <- lval x.opnd2;
+  rn <- rval x.opnd1;
+  opnd2 <- rval x.opnd3;
 
   sub 32 rd opnd2 rn;
   sub 32 rd (var rd) (var fCF);
@@ -599,13 +1293,13 @@ val sem-rsc x = do
   if is-sem-pc? rd then
     alu-write-pc rd
   else
-    emit-rsb-rsc-flags 32 rd opnd2 rn x.setflags
+    emit-rsb-rsc-flags 32 rd opnd2 rn x.o
 end
 
 val sem-sbc x = do
-  rd <- lval x.rn;
-  rn <- rval x.rn;
-  opnd2 <- rval x.opnd2;
+  rd <- lval x.opnd1; # opnd2?
+  rn <- rval x.opnd1;
+  opnd2 <- rval x.opnd3;
 
   sub 32 rd rn opnd2;
   sub 32 rd (var rd) (var fCF);
@@ -613,25 +1307,25 @@ val sem-sbc x = do
   if is-sem-pc? rd then
     alu-write-pc rd
   else
-    emit-sub-sbc-flags 32 rd rn opnd2 x.setflags
+    emit-sub-sbc-flags 32 rd rn opnd2 x.o
 end
 
 val sem-sub x = do
-  rd <- lval x.rd;
-  rn <- rval x.rn;
-  opnd2 <- rval x.opnd2;
+  rd <- lval x.opnd2;
+  rn <- rval x.opnd1;
+  opnd2 <- rval x.opnd3;
 
   sub 32 rd rn opnd2;
 
   if is-sem-pc? rd then
     alu-write-pc rd
   else
-    emit-sub-sbc-flags 32 rd rn opnd2 x.setflags
+    emit-sub-sbc-flags 32 rd rn opnd2 x.o
 end
 
 val sem-tst x = do
-  rn <- rval x.rn;
-  opnd2 <- rval-c x.opnd2 '1'; # update carry!
+  rn <- rval x.opnd1;
+  opnd2 <- rval-c x.opnd3 '1'; # update carry!
   tst_result <- mktemp;
 
   andb 32 tst_result rn opnd2;
@@ -640,8 +1334,8 @@ val sem-tst x = do
 end
 
 val sem-teq x = do
-  rn <- rval x.rn;
-  opnd2 <- rval-c x.opnd2 '1'; # update carry!
+  rn <- rval x.opnd1;
+  opnd2 <- rval-c x.opnd3 '1'; # update carry!
   teq_result <- mktemp;
 
   xorb 32 teq_result rn opnd2;
@@ -650,42 +1344,42 @@ val sem-teq x = do
 end
 
 val sem-mla x = do
-  result <- lval x.rd;
-  opnd1 <- rval x.rn;
-  opnd2 <- rval x.rm;
-  addend <- rval x.ra;
+  result <- lval x.opnd1;
+  opnd1 <- rval x.opnd4;
+  opnd2 <- rval x.opnd3;
+  addend <- rval x.opnd2;
 
   mul 32 result opnd1 opnd2;
   add 32 result (var result) addend;
 
-  emit-flags-nz (var result) x.setflags
+  emit-flags-nz (var result) x.o
 end
 
 val sem-mls x = do
-  result <- lval x.rd;
-  opnd1 <- rval x.rn;
-  opnd2 <- rval x.rm;
-  addend <- rval x.ra;
+  result <- lval x.opnd1;
+  opnd1 <- rval x.opnd4;
+  opnd2 <- rval x.opnd3;
+  addend <- rval x.opnd2;
 
   mul 32 result opnd1 opnd2;
   sub 32 result addend (var result)
 end
 
 val sem-mul x = do
-  result <- lval x.rd;
-  opnd1 <- rval x.rn;
-  opnd2 <- rval x.rm;
+  result <- lval x.opnd1;
+  opnd1 <- rval x.opnd4;
+  opnd2 <- rval x.opnd3;
 
   mul 32 result opnd1 opnd2;
 
-  emit-flags-nz (var result) x.setflags
+  emit-flags-nz (var result) x.o
 end
 
 val sem-smlal x = do
-  opnd1 <- rval x.rn;
-  opnd2 <- rval x.rm;
-  high <- lval x.rdhi;
-  low <- lval x.rdlo;
+  opnd1 <- rval x.opnd3;
+  opnd2 <- rval x.opnd4;
+  high <- lval x.opnd1;
+  low <- lval x.opnd2;
 
   result <- mktemp;
   addend <- mktemp;
@@ -700,14 +1394,14 @@ val sem-smlal x = do
   mov 32 high (var (at-offset result 32));
   mov 32 low (var result);
 
-  emit-flags-nz (var result) x.setflags
+  emit-flags-nz (var result) x.o
 end
 
 val sem-smull x = do
-  opnd1 <- rval x.rn;
-  opnd2 <- rval x.rm;
-  high <- lval x.rdhi;
-  low <- lval x.rdlo;
+  opnd1 <- rval x.opnd3;
+  opnd2 <- rval x.opnd4;
+  high <- lval x.opnd1;
+  low <- lval x.opnd2;
 
   result <- mktemp;
 
@@ -716,29 +1410,59 @@ val sem-smull x = do
   mov 32 high (var (at-offset result 32));
   mov 32 low (var result);
 
-  emit-flags-nz (var result) x.setflags
+  emit-flags-nz (var result) x.o
 end
 
 val sem-ldm x = do
-  rn <- lval x.rn;
-  load-operands 32 x.registers 32 rn;
+  rn <- lval x.opnd1;
+  load-operands 32 x.opnd2 32 rn;
 
-  if x.w then
-    add 32 rn (var rn) (imm (4 * num-opnds x.registers))
+  if x.o then
+    add 32 rn (var rn) (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-ldmda x = do
+  rn <- lval x.opnd1;
+  load-operands 32 x.opnd2 32 rn;
+
+  if x.o then
+    sub 32 rn (lin-sum (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm 4)) (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-ldmdb x = do
+  rn <- lval x.opnd1;
+  load-operands 32 x.opnd2 32 rn;
+
+  if x.o then
+    sub 32 rn (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-ldmib x = do
+  rn <- lval x.opnd1;
+  load-operands 32 x.opnd2 32 rn;
+
+  if x.o then
+    add 32 rn (lin-sum (var rn) (imm 4)) (imm (4 * num-opnds x.opnd2))
   else
     return void
 end
 
 val sem-ldr x = do
-  rt <- lval x.rt;
-  rn <- lval x.rn;
-  offset <- rval x.offset;
+  rt <- lval x.opnd2;
+  rn <- lval x.opnd1;
+  offset <- rval x.opnd3;
 
-  index <- return x.p;
+  index <- return x.o1;
 
-  offset_addr <- combine-vars (var rn) offset x.u;
+  offset_addr <- combine-vars (var rn) offset x.o2;
 
-  wback <- return (x.w or (not x.p));
+  wback <- return (x.o3 or (not x.o1));
   cwrite 32 rn offset_addr wback;
 
   if index then
@@ -747,19 +1471,34 @@ val sem-ldr x = do
     load 32 rt 32 (var rn)
 end
 
+val sem-ldrt x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    _if (instr-set-arm?) _then do
+        cwrite 32 rn offset_addr '1';
+        load 32 rt 32 (var rn)
+    end _else do
+        load 32 rt 32 offset_addr 
+    end       
+end
+
 val sem-ldrb x = do
-  rt <- lval x.rt;
-  rn <- lval x.rn;
-  offset <- rval x.offset;
+  rt <- lval x.opnd2;
+  rn <- lval x.opnd1;
+  offset <- rval x.opnd3;
 
-  offset_addr <- combine-vars (var rn) offset x.u;
+  offset_addr <- combine-vars (var rn) offset x.o2;
 
-  wback <- return (x.w or (not x.p));
+  wback <- return (x.o3 or (not x.o1));
   cwrite 32 rn offset_addr wback;
 
   byte <- mktemp;
 
-  if x.p then
+  if x.o1 then
     load 8 byte 32 offset_addr
   else
     load 8 byte 32 (var rn)
@@ -768,46 +1507,489 @@ val sem-ldrb x = do
   movzx 32 rt 8 (var byte)
 end
 
+val sem-ldrbt x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    byte <- mktemp;
+
+    _if (instr-set-arm?) _then do
+        cwrite 32 rn offset_addr '1';
+        load 8 rt 32 (var rn)
+    end _else do
+        load 8 rt 32 offset_addr 
+    end;
+
+    movzx 32 rt 8 (var byte)
+end
+
+val sem-ldrh x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    halfword <- mktemp;
+
+    if x.o1 then
+        load 16 halfword 32 offset_addr
+    else
+        load 16 halfword 32 (var rn)
+    ;
+
+    movzx 32 rt 16 (var halfword)
+end
+
+val sem-ldrht x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    halfword <- mktemp;
+
+    _if (instr-set-arm?) _then do
+        cwrite 32 rn offset_addr '1';
+        load 16 rt 32 (var rn)
+    end _else do
+        load 16 rt 32 offset_addr 
+    end;
+
+    movzx 32 rt 16 (var halfword)
+end
+
+val sem-ldrsb x = do
+  rt <- lval x.opnd2;
+  rn <- lval x.opnd1;
+  offset <- rval x.opnd3;
+
+  offset_addr <- combine-vars (var rn) offset x.o2;
+
+  wback <- return (x.o3 or (not x.o1));
+  cwrite 32 rn offset_addr wback;
+
+  byte <- mktemp;
+
+  if x.o1 then
+    load 8 byte 32 offset_addr
+  else
+    load 8 byte 32 (var rn)
+  ;
+
+  movsx 32 rt 8 (var byte)
+end
+
+val sem-ldrsbt x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    byte <- mktemp;
+
+    _if (instr-set-arm?) _then do
+        cwrite 32 rn offset_addr '1';
+        load 8 rt 32 (var rn)
+    end _else do
+        load 8 rt 32 offset_addr 
+    end;
+
+    movsx 32 rt 8 (var byte)
+end
+
+val sem-ldrsh x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    halfword <- mktemp;
+
+    if x.o1 then
+        load 16 halfword 32 offset_addr
+    else
+        load 16 halfword 32 (var rn)
+    ;
+
+    movsx 32 rt 16 (var halfword)
+end
+
+val sem-ldrsht x = do
+    rt <- lval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    halfword <- mktemp;
+
+    _if (instr-set-arm?) _then do
+        cwrite 32 rn offset_addr '1';
+        load 16 rt 32 (var rn)
+    end _else do
+        load 16 rt 32 offset_addr 
+    end;
+
+    movsx 32 rt 16 (var halfword)
+end
+
 val sem-stm x = do
-  rn <- lval x.rn;
-  store-operands 32 x.registers 32 rn;
+  rn <- lval x.opnd1;
+  store-operands 32 x.opnd2 32 rn;
 
   op <- return (if is-sem-sp? rn then sub else add);
 
-  if x.w then
-    op 32 rn (var rn) (imm (4 * num-opnds x.registers))
+  if x.o then
+    op 32 rn (var rn) (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-stmda x = do
+  rn <- lval x.opnd1;
+  store-operands 32 x.opnd2 32 rn;
+
+  op <- return (if is-sem-sp? rn then sub else add);
+
+  if x.o then
+    op 32 rn (lin-sum (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm 4))  (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-stmdb x = do
+  rn <- lval x.opnd1;
+  store-operands 32 x.opnd2 32 rn;
+
+  op <- return (if is-sem-sp? rn then sub else add);
+
+  if x.o then
+    op 32 rn (lin-dif (var rn) (imm (4 * num-opnds x.opnd2))) (imm (4 * num-opnds x.opnd2))
+  else
+    return void
+end
+
+val sem-stmib x = do
+  rn <- lval x.opnd1;
+  store-operands 32 x.opnd2 32 rn;
+
+  op <- return (if is-sem-sp? rn then sub else add);
+
+  if x.o then
+    op 32 rn (lin-sum (var rn) (imm 4)) (imm (4 * num-opnds x.opnd2))
   else
     return void
 end
 
 val sem-str x = do
-  rt <- rval x.rt;
-  rn <- lval x.rn;
-  offset <- rval x.offset;
+  rt <- rval x.opnd2;
+  rn <- lval x.opnd1;
+  offset <- rval x.opnd3;
 
-  offset_addr <- combine-vars (var rn) offset x.u;
+  offset_addr <- combine-vars (var rn) offset x.o2;
 
-  str 32 rt 32 offset_addr (var rn) x.p;
+  str 32 rt 32 offset_addr (var rn) x.o1;
 
-  wback <- return (x.w or (not x.p));
+  wback <- return (x.o3 or (not x.o1));
   cwrite 32 rn offset_addr wback
 end
 
+val sem-strt x = do
+    rt <- rval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    _if (instr-set-arm?) _then do
+        store 32 (address 32 (var rn)) rt;
+        cwrite 32 rn offset_addr '1'
+    end _else do
+        store 32 (address 32 offset_addr) rt
+    end
+end
+
 val sem-strb x = do
-  rt <- rval x.rt;
-  rn <- lval x.rn;
-  offset <- rval x.offset;
+  rt <- rval x.opnd2;
+  rn <- lval x.opnd1;
+  offset <- rval x.opnd3;
 
-  offset_addr <- combine-vars (var rn) offset x.u;
+  offset_addr <- combine-vars (var rn) offset x.o2;
 
-  str 8 rt 32 offset_addr (var rn) x.p;
+  str 8 rt 32 offset_addr (var rn) x.o1;
 
-  wback <- return (x.w or (not x.p));
+  wback <- return (x.o3 or (not x.o1));
   cwrite 32 rn offset_addr wback
+end
+
+val sem-strbt x = do
+    rt <- rval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    _if (instr-set-arm?) _then do
+        store 8 (address 32 (var rn)) rt;
+        cwrite 32 rn offset_addr '1'
+    end _else do
+        store 8 (address 32 offset_addr) rt
+    end
+end
+
+val sem-strh x = do
+    rt <- rval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    str 16 rt 32 offset_addr (var rn) x.o1;
+
+    wback <- return (x.o3 or (not x.o1));
+    cwrite 32 rn offset_addr wback
+end
+
+val sem-strht x = do
+    rt <- rval x.opnd2;
+    rn <- lval x.opnd1;
+    offset <- rval x.opnd3;
+
+    offset_addr <- combine-vars (var rn) offset x.o2;
+
+    _if (instr-set-arm?) _then do
+        store 16 (address 32 (var rn)) rt;
+        cwrite 32 rn offset_addr '1'
+    end _else do
+        store 16 (address 32 offset_addr) rt
+    end
 end
 
 val sem-svc x = prim-generic "SUPERVISOR CALL" varls-none varls-none
 
+# We ignore the immediate according to [A8.8.24]
+val sem-bkpt x = case x.cond of
+      AL : prim-generic "BREAKPOINT" varls-none varls-none
+    | _  : return void
+end
+
+val sem-vmovacs x = let
+    val imm4 = case x.opnd1 of
+        IMMEDIATE i: case i of
+            IMM4 j: j
+        end
+    end
+in
+    case imm4 of
+          '1 h:3': do
+            scalar <- lsval Byte (zx h) Double x.opnd2;
+            rt <- rval x.opnd3;
+            mov 8 scalar rt
+        end
+        | '0 h:2 1': do
+            scalar <- lsval Halfword (zx h) Double x.opnd2;
+            rt <- rval x.opnd3;
+            mov 16 scalar rt
+        end
+        | '0 h:1 00': do
+            scalar <- lsval Word (zx h) Double x.opnd2;
+            rt <- rval x.opnd3;
+            mov 32 scalar rt
+        end
+        | '0.10': return void
+    end
+end
+
+val sem-vmovsac x = let
+    val imm5 = case x.opnd1 of
+        IMMEDIATE i: case i of
+            IMM5 j: j
+        end
+    end
+in
+    case imm5 of
+          'u:1 1 h:3': do
+            scalar <- rsval Byte (zx h) Double x.opnd3;
+            rt <- lval x.opnd2;
+            if u then
+                movsx 32 rt 8 scalar
+            else
+                movzx 32 rt 8 scalar
+        end
+        | 'u:1 0 h:2 1': do
+            scalar <- rsval Halfword (zx h) Double x.opnd3;
+            rt <- lval x.opnd2;
+            if u then
+                movsx 32 rt 16 scalar
+            else
+                movzx 32 rt 16 scalar
+        end
+        | '0 0 h:1 00': do
+            scalar <- rsval Word (zx h) Double x.opnd3;
+            rt <- lval x.opnd2;
+
+            #movzx 32 rt 32 scalar would be an alias since the length of a Word is already 32 bits
+            mov 32 rt scalar
+        end
+        | '10.00': return void
+        | '.0.10': return void
+    end
+end
+
+val sem-vmovacsp x = do
+    sn <- lvval Single x.opnd1;
+    rt <- rval x.opnd2;
+
+    mov 32 sn rt
+end
+
+val sem-vmovspac x = do
+    sn <- rvval Single x.opnd1;
+    rt <- lval x.opnd2;
+
+    mov 32 rt sn
+end
+
+(* TODO: Maybe optimize the usage of decode-ext-register after implementation of every semantic translation *)
+val sem-vmovacsp2 x = case (decode-ext-register Single x.opnd1) of
+      S31 : return void
+    | _   : do
+        sn <- lvval Single x.opnd1;
+        sn2 <- lvnext Single x.opnd1;
+        rt <- rval x.opnd2;
+        rt2 <- rval x.opnd3;
+
+        mov 32 sn rt;
+        mov 32 sn2 rt2
+    end
+end
+
+val sem-vmovspac2 x = case (decode-ext-register Single x.opnd3) of
+      S31 : return void
+    | _   : do
+        sn <- rvval Single x.opnd3;
+        sn2 <- rvnext Single x.opnd3;
+        rt <- lval x.opnd1;
+        rt2 <- lval x.opnd2;
+
+        mov 32 rt sn;
+        mov 32 rt2 sn2
+    end
+end
+
+val sem-vmovacdwe x = do
+    scalar <- lsval Word 0 Double x.opnd1;
+    scalar2 <- lsval Word 1 Double x.opnd1;
+    rt <- rval x.opnd2;
+    rt2 <- rval x.opnd3;
+
+    mov 32 scalar rt;
+    mov 32 scalar2 rt2
+end
+
+val sem-vmovdweac x = do
+    rt <- lval x.opnd1;
+    rt2 <- lval x.opnd2;
+    scalar <- rsval Word 0 Double x.opnd3;
+    scalar2 <- rsval Word 1 Double x.opnd3;
+
+    mov 32 rt scalar;
+    mov 32 rt2 scalar2
+end
+
+val sem-vmovimmasimd x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': do
+            dvd <- lvval Double x.opnd1;
+            imm <- rval x.opnd2;
+
+            mov 64 dvd imm
+        end
+        | '1': do
+            scalar <- lsval Doubleword 0 Quad x.opnd1;
+            scalar2 <- lsval Doubleword 1 Quad x.opnd1;
+            imm <- rval x.opnd2;
+
+            mov 64 scalar imm;
+            mov 64 scalar2 imm
+        end
+    end
+end
+
+val sem-vmovimmasimd-undef x = case x.opnd of
+    VECTOR v: case v.change of
+          '0': do
+            dvd <- lvval Double x.opnd;
+
+            undef 64 dvd
+        end
+        | '1': do
+            scalar <- lsval Doubleword 0 Quad x.opnd;
+            scalar2 <- lsval Doubleword 1 Quad x.opnd;
+
+            undef 64 scalar;
+            undef 64 scalar2
+        end
+    end
+end
+
+val sem-vmovregasimd x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': do
+            dvd <- lvval Double x.opnd1;
+            nvn <- rvval Double x.opnd2;
+
+            mov 64 dvd nvn
+        end
+        | '1': do
+            dvd <- lvval Quad x.opnd1;
+            nvn <- rvval Quad x.opnd2;
+
+            mov 128 dvd nvn
+        end
+    end
+end
+
+val sem-vmovimmfp x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': do
+            dvd <- lvval Single x.opnd1;
+            imm <- rval x.opnd2;
+
+            mov 32 dvd imm
+        end
+        | '1': do
+            dvd <- lvval Double x.opnd1;
+            imm <- rval x.opnd2;
+
+            mov 64 dvd imm
+        end
+    end
+end
+
+val sem-vmovregfp x = case x.opnd1 of
+    VECTOR v: case v.change of
+          '0': do
+            dvd <- lvval Single x.opnd1;
+            nvn <- rvval Single x.opnd2;
+
+            mov 32 dvd nvn
+        end
+        | '1': do
+            dvd <- lvval Double x.opnd1;
+            nvn <- rvval Double x.opnd2;
+
+            mov 64 dvd nvn
+        end
+    end
+end
+
 val sem-default insn ip =
   prim-generic ("TRANSLATOR MISSING:\\t" +++ show/instruction insn ip) varls-none varls-none
-
