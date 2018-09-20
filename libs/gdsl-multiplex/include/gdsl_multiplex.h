@@ -127,6 +127,17 @@ extern int gdsl_multiplex_frontend_get_by_desc(struct frontend* frontend,
                                                struct frontend_desc desc);
 
 /*
+ * This function opens a front-end specified by its library name found in
+ * the folder pointed to by 'base' and returns whether opening was successful.
+ *
+ * Important: This is a stub only. This function always returns a front-end
+ * where all callbacks point to linked functions. There is no opening
+ * going on.
+ */
+extern int gdsl_multiplex_frontend_get_by_path_name_with_base(
+    struct frontend *frontend, char const *base, char const *name);
+
+/*
  * This function opens a front-end specified by its library name and returns
  * whether opening was successful.
  *
